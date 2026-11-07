@@ -1,0 +1,123 @@
+COMMAND USED:
+python3 docs/r23_evidence/scan_crashlogs.py
+
+=== RAW OUTPUT ===
+SCAN_ROOT = ~/Developer/Library/Logs/DiagnosticReports
+FOUND .ips = 4
+====================================================================================================
+
+### Final Cut Pro-2026-11-02-230733.ips
+  PROC            : Final Cut Pro
+  TIME            : 2026-11-02 23:07:33.00 +0800
+  EXC             : EXC_BAD_ACCESS
+  SIGNAL          : SIGSEGV
+  pid             : 8296
+  faulting_thread : 32
+  in_template_load: True
+  project_markers : NONE
+  --- faulting thread top 18 frames ---
+    # 0 OZChannel::getValueAsDouble(CMTime const&, double) const <== template-load
+    # 1 OZChannel::getValueAsInt(CMTime const&, double) const <== template-load
+    # 2 TXTextLayout::applyAllCaps(__CFString*) <== template-load
+    # 3 TXTextLayout::updateDisplayString(CMTime const&) <== template-load
+    # 4 TXTextLayout::didFinishLoadingIntoScene() <== template-load
+    # 5 OZSceneNode::didFinishLoadingIntoScene() <== template-load
+    # 6 OZElement::didFinishLoadingIntoScene() <== template-load
+    # 7 OZScene::parseEnd(PCSerializerReadStream&) <== template-load
+    # 8 PCSerializerReadStream::popHandler() <== template-load
+    # 9 PCXMLReadStream::processNode() <== template-load
+    #10 PCXMLReadStream::parse() <== template-load
+    #11 OZDocument::open(PCURL const&) <== template-load
+    #12 OZXLoadDocument
+    #13 -[FFMotionEffect _backgroundLoadDocument:onTask:] <== template-load
+    #14 -[FFBackgroundLoadManager _backgroundTask:onTask:]
+    #15 FFApplicationHandleExceptionThatShouldNotBeIgnoredInBlock
+    #16 __24-[FFBackgroundTask main]_block_invoke
+    #17 FFApplicationHandleExceptionThatShouldNotBeIgnoredInBlock
+
+### Final Cut Pro-2026-11-03-174024.ips
+  PROC            : Final Cut Pro
+  TIME            : 2026-11-03 17:40:24.00 +0800
+  EXC             : EXC_CRASH
+  SIGNAL          : SIGABRT
+  pid             : 13493
+  faulting_thread : 5
+  in_template_load: False
+  project_markers : NONE
+  --- faulting thread top 18 frames ---
+    # 0 __pthread_kill
+    # 1 pthread_kill
+    # 2 abort
+    # 3 FFApplicationHandleExceptionThatShouldNotBeIgnored.cold.1
+    # 4 FFApplicationHandleExceptionThatShouldNotBeIgnored
+    # 5 __handleUncaughtException
+    # 6 _objc_terminate()
+    # 7 std::__terminate(void (*)())
+    # 8 __cxa_rethrow
+    # 9 objc_exception_rethrow
+    #10 developerSubmittedBlockToNSManagedObjectContextPerform
+    #11 _dispatch_client_callout
+    #12 _dispatch_lane_barrier_sync_invoke_and_complete
+    #13 -[NSManagedObjectContext performBlockAndWait:]
+    #14 -[DSBridge performBlockAndWait:]
+    #15 -[DSBridge objectWithID:store:error:]
+    #16 -[FFCatalogStore objectWithID:error:]
+    #17 -[FFMediaEventProject objectFromID:]
+
+### Final Cut Pro-2026-11-03-174131.ips
+  PROC            : Final Cut Pro
+  TIME            : 2026-11-03 17:41:31.00 +0800
+  EXC             : EXC_CRASH
+  SIGNAL          : SIGABRT
+  pid             : 13729
+  faulting_thread : 24
+  in_template_load: False
+  project_markers : NONE
+  --- faulting thread top 18 frames ---
+    # 0 __pthread_kill
+    # 1 pthread_kill
+    # 2 abort
+    # 3 FFApplicationHandleExceptionThatShouldNotBeIgnored.cold.1
+    # 4 FFApplicationHandleExceptionThatShouldNotBeIgnored
+    # 5 __handleUncaughtException
+    # 6 _objc_terminate()
+    # 7 std::__terminate(void (*)())
+    # 8 __cxa_rethrow
+    # 9 objc_exception_rethrow
+    #10 developerSubmittedBlockToNSManagedObjectContextPerform
+    #11 _dispatch_client_callout
+    #12 _dispatch_lane_barrier_sync_invoke_and_complete
+    #13 -[NSManagedObjectContext performBlockAndWait:]
+    #14 -[DSBridge performBlockAndWait:]
+    #15 -[DSBridge objectWithID:store:error:]
+    #16 -[FFCatalogStore objectWithID:error:]
+    #17 -[FFMediaEventProject objectFromID:]
+
+### Final Cut Pro-2026-11-03-174443.ips
+  PROC            : Final Cut Pro
+  TIME            : 2026-11-03 17:44:43.00 +0800
+  EXC             : EXC_CRASH
+  SIGNAL          : SIGABRT
+  pid             : 14376
+  faulting_thread : 3
+  in_template_load: False
+  project_markers : NONE
+  --- faulting thread top 18 frames ---
+    # 0 __pthread_kill
+    # 1 pthread_kill
+    # 2 abort
+    # 3 FFApplicationHandleExceptionThatShouldNotBeIgnored.cold.1
+    # 4 FFApplicationHandleExceptionThatShouldNotBeIgnored
+    # 5 __handleUncaughtException
+    # 6 _objc_terminate()
+    # 7 std::__terminate(void (*)())
+    # 8 __cxa_rethrow
+    # 9 objc_exception_rethrow
+    #10 developerSubmittedBlockToNSManagedObjectContextPerform
+    #11 _dispatch_client_callout
+    #12 _dispatch_lane_barrier_sync_invoke_and_complete
+    #13 -[NSManagedObjectContext performBlockAndWait:]
+    #14 -[DSBridge performBlockAndWait:]
+    #15 -[DSBridge objectWithID:store:error:]
+    #16 -[FFCatalogStore objectWithID:error:]
+    #17 -[FFMediaEventProject objectFromID:]

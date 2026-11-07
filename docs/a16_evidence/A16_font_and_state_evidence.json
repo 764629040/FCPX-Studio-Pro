@@ -1,0 +1,167 @@
+{
+  "psd": "tests/data/four_state.psd",
+  "psd_width": 1080,
+  "psd_height": 1920,
+  "platform": "macOS (AppKit available)",
+  "generator": "tools/make_a16_evidence.py",
+  "unverifiable_method": "等价环境构造：拦截 builtins.__import__ 使 import AppKit 失败；非 macOS 真机实拍。其判定正确性由第三方在真实无 AppKit 环境交叉验证。",
+  "fonts": [
+    {
+      "font": "PingFangSC-Regular",
+      "canonical_status": "available",
+      "in_NSFontManager_availableFonts": true,
+      "NSFont_instance_created": true,
+      "in_atsutil_fonts_list": true
+    },
+    {
+      "font": "Helvetica",
+      "canonical_status": "available",
+      "in_NSFontManager_availableFonts": true,
+      "NSFont_instance_created": true,
+      "in_atsutil_fonts_list": true
+    },
+    {
+      "font": "CormorantInfant-Regular",
+      "canonical_status": "missing",
+      "in_NSFontManager_availableFonts": false,
+      "NSFont_instance_created": false,
+      "in_atsutil_fonts_list": false
+    },
+    {
+      "font": "FZZYSK--GBK1-0",
+      "canonical_status": "available",
+      "in_NSFontManager_availableFonts": true,
+      "NSFont_instance_created": true,
+      "in_atsutil_fonts_list": true
+    }
+  ],
+  "glyph_proof": {
+    "Helvetica_on_chinese": {
+      "status": "partial_missing",
+      "coverage_rate": 0.0,
+      "covered_count": 0,
+      "total_count": 5,
+      "missing_chars": [
+        "新",
+        "娘",
+        "朱",
+        "永",
+        "宏"
+      ],
+      "has_missing_risk": true,
+      "warning": "字体 'Helvetica' 缺少 5 个字符的字形"
+    },
+    "PingFang_on_chinese": {
+      "status": "complete",
+      "coverage_rate": 1.0,
+      "covered_count": 5,
+      "total_count": 5,
+      "missing_chars": [],
+      "has_missing_risk": false,
+      "warning": null
+    }
+  },
+  "layers": [
+    {
+      "layer_index": 1,
+      "layer_name": "领 衔 呈 现",
+      "font": "PingFangSC-Regular",
+      "internal_status": "detected",
+      "four_state": "detected",
+      "glyph_coverage": 1.0,
+      "missing_chars": []
+    },
+    {
+      "layer_index": 2,
+      "layer_name": "lead the  presentation",
+      "font": "Helvetica",
+      "internal_status": "detected",
+      "four_state": "detected",
+      "glyph_coverage": 1.0,
+      "missing_chars": []
+    },
+    {
+      "layer_index": 3,
+      "layer_name": "新 娘  朱 永 宏",
+      "font": "Helvetica",
+      "internal_status": "missing_fallback",
+      "four_state": "partial_missing(字形缺失)",
+      "glyph_coverage": 0.0,
+      "missing_chars": [
+        "新",
+        "娘",
+        "朱",
+        "永",
+        "宏"
+      ]
+    },
+    {
+      "layer_index": 4,
+      "layer_name": "THE BRIDE",
+      "font": "PingFangSC-Regular",
+      "internal_status": "detected",
+      "four_state": "detected",
+      "glyph_coverage": 1.0,
+      "missing_chars": []
+    },
+    {
+      "layer_index": 5,
+      "layer_name": "新 郎  陈 晗",
+      "font": "CormorantInfant-Regular",
+      "internal_status": "font_missing",
+      "four_state": "font_missing",
+      "glyph_coverage": 0.0,
+      "missing_chars": []
+    },
+    {
+      "layer_index": 6,
+      "layer_name": "THE GROOM",
+      "font": "CormorantInfant-Regular",
+      "internal_status": "font_missing",
+      "four_state": "font_missing",
+      "glyph_coverage": 0.0,
+      "missing_chars": []
+    },
+    {
+      "layer_index": 7,
+      "layer_name": "镇 雄",
+      "font": "Helvetica",
+      "internal_status": "missing_fallback",
+      "four_state": "partial_missing(字形缺失)",
+      "glyph_coverage": 0.0,
+      "missing_chars": [
+        "镇",
+        "雄"
+      ]
+    },
+    {
+      "layer_index": 8,
+      "layer_name": "CITY",
+      "font": "Helvetica",
+      "internal_status": "detected",
+      "four_state": "detected",
+      "glyph_coverage": 1.0,
+      "missing_chars": []
+    }
+  ],
+  "cormorant_variant_check": {
+    "cormorant_family_available": [
+      "CormorantGaramond-Bold",
+      "CormorantGaramond-BoldItalic",
+      "CormorantGaramond-Italic",
+      "CormorantGaramond-Light",
+      "CormorantGaramond-LightItalic",
+      "CormorantGaramond-Medium",
+      "CormorantGaramond-MediumItalic",
+      "CormorantGaramond-Regular",
+      "CormorantGaramond-SemiBold",
+      "CormorantGaramond-SemiBoldItalic",
+      "CormorantSC-Bold",
+      "CormorantSC-Light",
+      "CormorantSC-Medium",
+      "CormorantSC-Regular",
+      "CormorantSC-SemiBold"
+    ],
+    "cormorantinfant_count": 0
+  }
+}

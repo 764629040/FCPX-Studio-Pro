@@ -1,0 +1,22 @@
+=== 第三轮：双卷独立复跑与指纹校验（可追溯证据）===
+GENERATED_AT=2026-10-27 19:48:19
+
+--- 卷路径与项目存在性（绝对路径）---
+EXISTS   /Volumes/NO NAME/未命名文件夹/FCPX_Studio_Pro
+EXISTS   /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+
+--- 用户所指 128 卷 ---
+  CONFIRMED: 128 卷无项目副本（本轮全程只读）
+
+--- 28 个受控文件双卷比对 ---
+结果: 一致 28 / 不一致 0 / 缺失 0  （共 28）
+
+--- A 卷独立复跑 ---
+CMD=pytest tests/ -q   (cwd=/Volumes/NO NAME/未命名文件夹/FCPX_Studio_Pro)
+53 passed, 374 warnings in 82.06s (0:01:22)
+EXIT_CODE=0  (由 shell $? 直接取得)
+
+--- B 卷独立复跑 ---
+CMD=pytest tests/ -q   (cwd=/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro)
+53 passed, 374 warnings in 68.25s (0:01:08)
+EXIT_CODE=0  (由 shell $? 直接取得)

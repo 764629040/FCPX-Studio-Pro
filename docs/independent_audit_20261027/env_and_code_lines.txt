@@ -1,0 +1,22 @@
+===== 环境 =====
+Linux 6.6.69-cube.bm.guest.005.x-g039db8913c80 x86_64
+Python 3.12.13
+pytest 8.3.5
+psd_tools 1.26.0
+PyQt6 6.11.0
+
+===== gui/canvas_view.py 字号换算 =====
+92:                w = max(40.0, info.font_size * 1.5)
+93:                h = max(40.0, line_count * info.font_size * 1.2)
+95:                w = max(40.0, max_line_len * info.font_size * 0.8)
+96:                h = max(40.0, line_count * info.font_size * 1.3)
+176:            font_size = max(8, int(info.font_size / 2.2))
+177:            font = QFont(info.font_name or "PingFang SC", font_size)
+
+===== core/psd_parser.py rotation 赋值 =====
+367:                 rotation: float = 0.0,
+400:        self.rotation = rotation
+439:            "rotation": False,
+476:            "rotation": self.rotation,
+763:                rotation=0.0,
+888:                rotation=0.0,

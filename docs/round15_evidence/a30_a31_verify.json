@@ -1,0 +1,38 @@
+{
+  "phase": "A-30/A-31",
+  "rows": [
+    {
+      "fixture": "vertical_wedding_9_16.psd",
+      "label": "旧夹具(越界)",
+      "oob": true,
+      "type_count": 8,
+      "x_span": 478.0,
+      "x_span_pct": 44.26,
+      "y_span": 108.5,
+      "thumb_red": 119,
+      "thumb_green": 48
+    },
+    {
+      "fixture": "vertical_9x16_true.psd",
+      "label": "Round14占位",
+      "oob": false,
+      "type_count": 8,
+      "x_span": 0.0,
+      "x_span_pct": 0.0,
+      "y_span": 1277.0,
+      "thumb_red": 0,
+      "thumb_green": 0
+    },
+    {
+      "fixture": "vertical_9x16_rebased.psd",
+      "label": "Round15重建",
+      "oob": false,
+      "type_count": 8,
+      "x_span": 478.0,
+      "x_span_pct": 44.26,
+      "y_span": 108.5,
+      "thumb_red": 0,
+      "thumb_green": 0
+    }
+  ]
+}

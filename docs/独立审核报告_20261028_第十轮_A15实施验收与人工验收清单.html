@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立审核报告 · 第十轮 · A-15 实施验收与人工验收清单</title><style>
+:root{--bg:#0f1115;--fg:#e6e8ee;--mut:#9aa3b2;--line:#262b36;--acc:#4f9cf9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 28px 96px}
+h1{font-size:30px;line-height:1.35;margin:0 0 8px;border-left:4px solid var(--acc);padding-left:14px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#fff}
+h3{font-size:17px;margin:26px 0 10px;color:var(--acc)}
+p{margin:10px 0} ul,ol{margin:10px 0 10px 22px;padding:0} li{margin:5px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;background:#151922;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{background:#1c2230;text-align:left;padding:10px 12px;font-weight:600;color:#cdd6e6;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #1e232d;vertical-align:top}
+tr:last-child td{border-bottom:none} tr:nth-child(even) td{background:#131720}
+code{background:#1b2130;color:#ffd479;padding:1.5px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,Menlo,monospace}
+pre{background:#12161f;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto}
+pre code{background:none;padding:0;color:#a8e6a3;font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0} strong{color:#fff} em{color:var(--mut);font-style:normal}
+ul.ck{list-style:none;margin-left:0;background:#131720;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+ul.ck li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed #1e232d}
+ul.ck li:last-child{border-bottom:none}
+ul.ck .box{flex:0 0 16px;width:16px;height:16px;border:2px solid var(--acc);border-radius:3px;margin-top:5px}
+</style></head><body><div class="wrap">
+<h1>独立审核报告 · 第十轮</h1>
+<h2>A-15 方案 1 实施验收 · A-22 阻塞裁定 · 人工验收清单</h2>
+<ul><li><strong>审核方</strong>：Tabbit（独立第三方）</li><li><strong>日期</strong>：2026-10-28</li><li><strong>审核基线</strong>：<code>docs/audit_inventory_20261028_round10_a15.json</code>（44 项）</li><li><strong>被测版本</strong>：<code>/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro</code></li><li><strong>环境</strong>：Linux 沙箱 + 真实无 AppKit（<code>import AppKit</code> 真实抛 <code>ImportError</code>）</li></ul>
+<hr>
+<h2>结论摘要</h2>
+<table><thead><tr><th>事项</th><th>裁定</th></tr></thead><tbody><tr><td>round10 指纹基线</td><td><strong>44/44 一致</strong>，0 缺失</td></tr><tr><td>独立复跑</td><td><strong>123 passed / 2 skipped / exit 0</strong></td></tr><tr><td>A-15 几何叠撞</td><td><strong>已消除</strong>（最小净空 37.32，规格 ≥3）</td></tr><tr><td>A-15 单展开互斥</td><td><strong>成立</strong></td></tr><tr><td><strong>A-15 整体</strong></td><td><strong>条件不通过</strong> —— 折叠态色点不可见（A-22）</td></tr><tr><td><strong>A-22（新，P2 阻塞）</strong></td><td>色点/命中区须按<strong>屏幕像素</strong>补偿；<strong>规格缺陷在审核方</strong></td></tr><tr><td><strong>A-23（新，P3）</strong></td><td>5 个测试文件未入受控清单，随 A-22 一并修</td></tr><tr><td><strong>距验收标准</strong></td><td><strong>仅差 A-22</strong>（改动量小），修完即可进真机验收</td></tr></tbody></table>
+<hr>
+<h2>一、交付物独立复核</h2>
+<h3>1.1 指纹</h3>
+<table><thead><tr><th>指标</th><th>结果</th></tr></thead><tbody><tr><td>清单项数</td><td><strong>44</strong>（<code>count</code> 与实际条目一致）</td></tr><tr><td>独立复算 SHA-256</td><td><strong>44 / 44 一致</strong></td></tr><tr><td>不一致 / 缺失</td><td><strong>0 / 0</strong>（<code>missing = []</code>）</td></tr></tbody></table>
+<p><strong>差分 vs round9（42 项）</strong>：<code>ADDED</code> 2（<code>A15_folded_dots.png</code>、<code>A15_expanded_on_hover.png</code>）、<code>REMOVED</code> 无、<code>CHANGED</code> 含 <code>gui/canvas_view.py</code>。改动面与 A-15 实施范围相符，未见越界修改。</p>
+<h3>1.2 测试</h3>
+<p>审核方在真实无 AppKit 环境独立复跑：</p>
+<pre><code>123 passed, 2 skipped   |  exit code 0</code></pre>
+<p><code>tests/test_a15_badge_collapse.py</code> 含 <strong>14</strong> 个断言用例。第九轮为 105 passed，本轮为 123，增量与此轮新增断言一致。</p>
+<hr>
+<h2>二、几何断言独立复测：<strong>通过</strong></h2>
+<p>在<strong>最终代码</strong>上重新测量（不使用开发方测试代码，自行计算包围盒）：</p>
+<table><thead><tr><th>断言</th><th>实测值</th><th>判定</th></tr></thead><tbody><tr><td>1 色点尺寸</td><td>画布 <strong>4.00 × 4.00</strong></td><td>PASS</td></tr><tr><td>2 任意两色点不相交</td><td>无相交对</td><td>PASS</td></tr><tr><td>3 色点不压他人文字 bbox</td><td>无</td><td>PASS</td></tr><tr><td>4 最小净空 ≥3</td><td><strong>37.32</strong>（最紧：镇雄 ↔ CITY，dx=35.50 / dy=11.50）</td><td>PASS</td></tr><tr><td>6 同一时刻单展开</td><td>展开态截图中仅「新娘」一个徽章展开</td><td>PASS</td></tr></tbody></table>
+<p><strong>A-15 的原始缺陷（4/7 对叠撞）在几何上确已消除。</strong> 方案 1 的交互形态选择是正确的，实现方式也正确。</p>
+<hr>
+<h2>三、阻塞项 A-22（P2）：折叠态色点在默认缩放下不可见</h2>
+<h3>3.1 实测</h3>
+<table><thead><tr><th>项目</th><th>画布单位</th><th><strong>44% 缩放下的屏幕像素</strong></th></tr></thead><tbody><tr><td>色点尺寸</td><td>4.00</td><td><strong>1.76 px</strong></td></tr><tr><td>命中区</td><td>8.00</td><td><strong>3.52 px</strong></td></tr></tbody></table>
+<h3>3.2 像素级与目视验证</h3>
+<p>对 <code>A15_folded_dots.png</code> 全图像素扫描：红色系仅检出 <strong>2 个孤立 1×1 像素</strong>，无任何可辨识色点簇；黄色/橙色的大面积命中经定位为<strong>顶部警告横幅的图标与分隔线</strong>（y[49,72]，全图等宽），与徽章无关。</p>
+<p><strong>目视确认</strong>：折叠态截图中，右栏「应用内转换结果预览」与左栏「PSD 原稿预览」几乎无差别——<strong>四态语义完全没有呈现在界面上</strong>。</p>
+<p>对照展开态截图：仅「新娘」列出现一枚橙色小徽章（<code>缺字: 朱永宏</code>），语义正确、单展开成立，但同样尺寸偏小。</p>
+<h3>3.3 后果</h3>
+<p>A-16 的全部工作（四态判定正确、红黄严格互斥）在默认视图下<strong>用户看不见</strong>。方案 1 若以不可见的色点收尾，等于用「看不见」换「不叠撞」，问题并未真正解决。</p>
+<h3>3.4 归因：<strong>规格缺陷在审核方，开发方无过错</strong></h3>
+<p>第八轮报告第六节断言 1 与 9 原文为：</p>
+<p>&gt; 1. 色点尺寸 4×4 …</p>
+<p>&gt; 9. 视觉 4 单位色点，<strong>命中区不小于 8×8 单位</strong>…</p>
+<p><strong>未声明单位为「屏幕像素」</strong>，按 Qt 语义即画布/场景单位。开发方严格按字面实现，实现无误。</p>
+<p><strong>这与 A-18（point/pixel 偏差）属同一类单位错误。审核方当时以该标准要求开发方，现以同一标准要求自己，并公开更正。</strong></p>
+<h3>3.5 A-22 整改要求（交开发方）</h3>
+<ol><li>折叠色点按<strong>屏幕像素</strong>恒定，建议 <code>dot_screen_px = 6</code>，换算 <code>dot_canvas = 6 / scale</code>；</li><li>命中区 <code>hit_screen_px ≥ 20</code>，换算 <code>hit_canvas = max(8, 20 / scale)</code>；</li><li>最小净空断言改为<strong>屏幕像素</strong>判定：<code>clear_screen_px ≥ 4</code>（44% 下 ≈ 9.1 画布单位）；</li><li>在 <strong>44% / 100% / 200%</strong> 三档缩放下，色点屏幕尺寸恒定、互不相交、不压他人文字；</li><li>重出 <code>A15_folded_dots.png</code> 与 <code>A15_expanded_on_hover.png</code>，<strong>图中必须能看见色点</strong>；</li><li>断言文本与实现报告须显式标注「单位为屏幕像素」。</li></ol>
+<p><strong>估计工作量</strong>：<code>badge_visual_rect()</code> / <code>_hit_rect()</code> 各加一处 <code>/ self.scale</code> 或由 view 注入 scale，加 3 档缩放的参数化断言，重出 2 张图，出新一轮清单。<strong>属小改动，非重构。</strong></p>
+<hr>
+<h2>四、新发现 A-23（P3）：5 个测试文件未纳入受控清单</h2>
+<p><code>round10</code> 的 <code>TEST_FILES</code> 仅枚举至 <code>test_round4_a12_a17.py</code>。以下 5 个实际存在但<strong>不在指纹清单</strong>：</p>
+<ul><li><code>tests/test_a15_badge_collapse.py</code> ← <strong>本轮断言 A-15 合规的执行者</strong></li><li><code>tests/test_a20_evidence_inventory.py</code></li><li><code>tests/test_round5_tools_inventory.py</code></li><li><code>tests/verify_mvp_acceptance.py</code></li><li><code>tests/verify_mvp_extended_acceptance.py</code></li></ul>
+<p><strong>风险</strong>：证明 A-15 合规的测试本身不受哈希保护，可被改写而使断言「永久通过」。与 A-20① 同类。</p>
+<p><strong>这是自 round5 起就存在的存量缺口，审核方此前三轮均未发现</strong>，此次因核查 A-15 测试落入范围才暴露。</p>
+<p><strong>处置</strong>：<code>TEST_FILES</code> 改为 <code>glob(&quot;tests/*.py&quot;)</code> 动态枚举，并入 A-22 同轮修复，不单独占轮次。</p>
+<hr>
+<h2>五、回答「还要多久达到验收标准」</h2>
+<p><strong>审核侧不需要额外时间</strong>——复核通道始终可用，一轮复核约 15 分钟。</p>
+<p><strong>唯余一个阻塞项：A-22。</strong> 它不是「还要探索」，而是<strong>已定位、已量化、改法已写明</strong>的小改动。</p>
+<table><thead><tr><th>阶段</th><th>内容</th><th>责任方</th><th>预估</th></tr></thead><tbody><tr><td>① A-22 实施</td><td>屏幕像素换算 + 3 档缩放断言 + 重出 2 图 + 新清单</td><td>开发方</td><td>0.5–1 小时</td></tr><tr><td>② 我复核</td><td>复算指纹、独立复跑、自量 3 档缩放下色点屏幕尺寸、验图</td><td>审核方</td><td>约 15 分钟</td></tr><tr><td>③ A-15 关闭</td><td>更新清单，P0/P1/P2 全清零</td><td>审核方</td><td>即时</td></tr><tr><td>④ <strong>真机验收</strong></td><td>您在 Motion / FCPX 中实测</td><td><strong>您本人</strong></td><td>不可代劳</td></tr><tr><td>⑤ 人工审核</td><td>您按第六节清单逐项确认</td><td><strong>您本人</strong></td><td>不可代劳</td></tr></tbody></table>
+<p><strong>即：若开发方在 1 小时内交回 A-22，本轮我这边当天即可给出「达到验收标准」的结论。</strong> 之后 ④⑤ 完全在您手上，我无法压缩，只能把判定标准写死让您少花时间——见下节。</p>
+<hr>
+<h2>六、人工验收清单（供您逐项打勾）</h2>
+<p>&gt; 判定基准按双方约定：<strong>不闪退、不报错、必要内容齐全</strong>；文字间距等精修属后续人工调整，不作为本轮否决项。</p>
+<h3>A. 启动与稳定性（否决项）</h3>
+<ul class="ck"><li><span class="box"></span>双击启动 App，<strong>10 秒内</strong>出现主窗口，无 Dock 图标长跳后消失</li><li><span class="box"></span>导入竖版婚礼 PSD（1080×1920），<strong>全程无闪退</strong></li><li><span class="box"></span>连续导入 3 个不同 PSD（竖版/横版/图层极多各一），无闪退</li><li><span class="box"></span>导入后切左栏/右栏/缩放，无卡死</li><li><span class="box"></span>退出 App 再启动，无残留报错弹窗</li></ul>
+<h3>B. 旋转方向（A-1，否决项）</h3>
+<ul class="ck"><li><span class="box"></span>竖版 PSD 中「THE BRIDE / THE GROOM / CITY」等英文层为<strong>竖排（旋转 90°）</strong>，与 PSD 原稿方向一致</li><li><span class="box"></span>与左栏「PSD 原稿预览」逐列对比，<strong>方向无反转、无镜像</strong></li><li><span class="box"></span>横版 PSD 中文字方向正常（不出现该转没转、或不该转却转了）</li></ul>
+<h3>C. 字体诊断四态（A-2 / A-10 / A-16，否决项）</h3>
+<ul class="ck"><li><span class="box"></span>「领衔呈现」显示<strong>绿色</strong>「字体 100% 支持」</li><li><span class="box"></span>「新娘 朱永宏」（Helvetica 中文）显示<strong>橙色</strong>「缺字: …」</li><li><span class="box"></span>「新郎 陈晗」（CormorantInfant-Regular）显示<strong>红色</strong>「字体未安装 回退 PingFangSC-Regular」</li><li><span class="box"></span><strong>红色与黄色不同时出现在同一面板</strong>（四态互斥）</li><li><span class="box"></span><strong>A-22 修复后</strong>：把缩放设为 44%（默认），<strong>每列都能看到一个清晰小色点</strong>，颜色与上述四态一致</li><li><span class="box"></span>鼠标悬停色点 → <strong>展开完整徽章文本</strong>，同一时刻<strong>只有一个</strong>展开</li><li><span class="box"></span>点击色点 → 能跳到诊断报告/详情，不报错</li><li><span class="box"></span>停用「提取缩略图」开关时，诊断结果<strong>仍正确</strong>（A-9：非缺陷，属开关语义）</li></ul>
+<h3>D. 预览与对齐（A-13 / A-14）</h3>
+<ul class="ck"><li><span class="box"></span>左「PSD 原稿预览」与右「应用内转换结果预览」<strong>并排显示</strong>，同一画布尺寸</li><li><span class="box"></span>竖版场景下左右两栏<strong>纵向对齐</strong>（无整体上下错位）</li><li><span class="box"></span>「透明网格背景」按钮可切换，切换后文字仍清晰可读</li><li><span class="box"></span>「1:1」按钮可切到 1:1 原生尺寸查看，切回 Fit 正常</li><li><span class="box"></span>点「适配显示(Fit)」后画面完整落在窗口内</li></ul>
+<h3>E. 数据安全（红线，否决项）</h3>
+<ul class="ck"><li><span class="box"></span>全程<strong>未对 128 卷（<code>/Volumes/NO NAME/128</code> 或 <code>/Volumes/摄影师工具箱128GB</code>）做任何写入</strong>——可在 Finder 查看修改时间确认</li><li><span class="box"></span>交付物（报告/日志/截图/清单）均落在 <code>FCPX_Studio_Pro</code> 源码目录内</li></ul>
+<h3>F. FCPX / Motion 真机链路（P0 核心，否决项）</h3>
+<ul class="ck"><li><span class="box"></span>生成的模板/工程在 Final Cut Pro 中<strong>能打开，不报错</strong></li><li><span class="box"></span>放入时间线后<strong>渲染无红条/无崩溃</strong></li><li><span class="box"></span>导出的视频<strong>文字方向正确、无缺字方块、无明显错位</strong></li><li><span class="box"></span>Motion 中打开同一模板，<strong>不报错、可播放</strong></li><li><span class="box"></span>与 PSD 原稿对比：文字内容齐全、位置合理（允许少量间距差异）</li></ul>
+<h3>G. 记录项（不影响本轮放行，但请记下）</h3>
+<ul class="ck"><li><span class="box"></span>是否出现任何<strong>非预期弹窗</strong>（记录文案）</li><li><span class="box"></span>是否有图层<strong>该显示却空白</strong></li><li><span class="box"></span>徽章展开时是否<strong>溢出画布边界</strong></li><li><span class="box"></span>44% 下色点是否<strong>遮挡相邻文字</strong>（A-22 修复后复查）</li></ul>
+<hr>
+<h2>七、如实声明</h2>
+<ol><li>本报告的指纹、测试、几何、像素数字均由审核方在本环境独立复算复测；<code>tests/</code> 全量运行于真实无 AppKit 解释器（先断言 <code>import AppKit</code> 抛 <code>ImportError</code>）。</li><li><strong>macOS 侧日志为开发方自述，审核方无 macOS 环境，未复核，不作通过依据。</strong></li><li><strong>审核方未在 Motion 6.0 / Final Cut Pro 中做任何渲染验收</strong>，第六节 F 组必须由您本人执行。</li><li>审核方在核查过程中曾用早期副本测得「净空 2.50」，该数字来自开发方改动中途的快照，<strong>已作废</strong>；最终代码实测为 37.32。此处如实记录，避免与您手中的中间数据冲突。</li><li><strong>A-22 的规格缺陷归审核方。</strong> 第八轮断言未声明「屏幕像素」，与 A-18 同类错误，审核方以同一标准自我更正。</li><li><strong>A-23 的存量缺口自 round5 起即存在，审核方此前未发现</strong>，属审核覆盖不足，如实登记。</li></ol>
+<hr>
+<p>*报告生成：2026-10-28 · 审核方 Tabbit*</p>
+</div></body></html>

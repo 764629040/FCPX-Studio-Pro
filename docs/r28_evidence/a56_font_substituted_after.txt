@@ -1,0 +1,9 @@
+CMD: /opt/homebrew/bin/python3 core/cli_bridge.py parse tests/data/four_state.psd | (extract font_info)
+领 衔 呈 现 | st= detected | substituted= False | hi= False
+lead the  pr | st= detected | substituted= False | hi= False
+新 娘  朱 永 宏 | st= missing_fallback | substituted= True | hi= True
+THE BRIDE | st= detected | substituted= False | hi= False
+新 郎  陈 晗 | st= font_missing | substituted= True | hi= True
+THE GROOM | st= font_missing | substituted= True | hi= True
+镇 雄 | st= missing_fallback | substituted= True | hi= True
+CITY | st= detected | substituted= False | hi= False

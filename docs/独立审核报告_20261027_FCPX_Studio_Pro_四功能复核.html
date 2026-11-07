@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FCPX Studio Pro 四功能独立复核报告（2026-10-27）</title>
+<style>
+:root{--ink:#12181f;--muted:#5b6b7c;--line:#dfe6ee;--accent:#0f62fe;--warn:#b3261e;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f9;color:var(--ink);
+ font:16px/1.78 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.page{max-width:980px;margin:0 auto;background:var(--bg);padding:56px 64px 72px;
+ box-shadow:0 1px 3px rgba(16,24,40,.08),0 12px 32px rgba(16,24,40,.06)}
+h1{font-size:30px;line-height:1.3;margin:0 0 8px;letter-spacing:-.01em}
+h2{font-size:21px;margin:44px 0 14px;padding-top:18px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:28px 0 10px;color:#1b2733}
+p{margin:10px 0}
+strong{color:#0b1319}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:13.5px;
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#0b4ea2}
+pre{background:#0f1720;color:#e6edf3;padding:16px 18px;border-radius:8px;overflow:auto;font-size:13px;line-height:1.7}
+pre code{background:none;color:inherit;padding:0}
+blockquote{margin:18px 0;padding:14px 18px;background:#f0f5ff;border-left:4px solid var(--accent);
+ border-radius:0 6px 6px 0;color:#16324f}
+ul,ol{margin:10px 0 10px 22px;padding:0}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+.tw{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:#f2f5f9;font-weight:600;white-space:nowrap}
+tbody tr:nth-child(even){background:#fafbfd}
+@media print{body{background:#fff}.page{box-shadow:none;max-width:none;padding:0}h2{break-after:avoid}}
+@media (max-width:720px){.page{padding:28px 20px}h1{font-size:24px}body{font-size:15px}}
+</style></head>
+<body><main class="page">
+<h1>FCPX Studio Pro 四功能独立复核报告（2026-10-27）</h1>
+<div class="tw"><table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody><tr><td>审核对象</td><td><code>FCPX_Studio_Pro</code>，以 <code>docs/audit_inventory_20261027_postfix.json</code> 所列 23 个受控文件为准</td></tr><tr><td>审核方</td><td>Tabbit（独立审核角色，非开发方）</td></tr><tr><td>审核日期</td><td>2026-10-27</td></tr><tr><td>审核方式</td><td>独立复算指纹 + 独立复跑测试 + 独立探针 + 原始截图亲验（像素级测量）</td></tr><tr><td>总体结论</td><td><strong>四项功能层面通过（功能放行），质量层面不通过（须修复 P0 后进入真机验收）</strong></td></tr><tr><td>03 清单变化</td><td>显示勾选 17 → <strong>21</strong>；未勾选 57 → <strong>53</strong></td></tr></tbody></table></div>
+<hr/>
+<h2>一、结论摘要</h2>
+<p>本次复核回答一个问题：开发方所称&quot;四功能已通过&quot;在当前代码上是否成立。</p>
+<p>答案分两层，必须分开陈述，否则会产生误导：</p>
+<p><strong>第一层，功能是否真实存在并可运行——成立。</strong> 审核方在自建 Linux 沙箱中独立复算 23 个受控文件的 SHA-256，与开发方清单<strong>逐项完全一致（23/23，0 不一致、0 缺失）</strong>，排除了&quot;报告与代码不是同一版&quot;这一最常见的问题。随后独立复跑，主测试集 21 项全通过（退出码 0），字体诊断诚实性回归 3 项全通过（退出码 0），交互探针退出码 0；滚动缩放双向同步、拖拽平移双向同步、<code>is_panning</code> 复位、棋盘格设置跨实例恢复、同名图层 idx10/idx20 精确跳转全部经由审核方亲自运行复现，不是转述开发方日志。</p>
+<p><strong>第二层，输出质量是否达到&quot;可交付&quot;——不成立。</strong> 审核方首次亲验了四张原始截图（开发方报告 6.5 节自述其执行模型无法读图，故此环节此前无人验证）。像素级测量显示：转换结果侧文字被系统性缩小至原稿的 58%–80%；<code>complex_layers.psd</code> 中两个 90° 旋转文本图层在结果侧变成横排并越出画板；诊断表中 <code>font_missing（缺 1 字）</code> 一行的&quot;具体处理原因&quot;仍写&quot;字体元数据完整&quot;，与同一行的结论自相矛盾。这些缺陷不导致崩溃、不抛异常，因此测试全绿，但会直接误导使用者。</p>
+<p>按既定验收口径（&quot;不闪退、不报错、必要内容齐全；文字、间距可放宽&quot;），四项可判功能放行并勾选；按独立审核的职责，两处 P0 缺陷必须显式列出且<strong>不因放行而豁免</strong>。</p>
+<blockquote>一句话结论：<strong>测试通过是真的，视觉与诊断结论是失真的。可以继续开发，但不能据此宣称&quot;并排对照与缺字标记已达到可交付质量&quot;。</strong></blockquote>
+<hr/>
+<h2>二、审核基线与可复现性</h2>
+<h3>2.1 指纹复算</h3>
+<p>审核方未采用开发方提供的任何哈希值作为结论，而是对 <code>docs/audit_inventory_20261027_postfix.json</code> 中 <code>files</code> 映射的每个路径重新计算 SHA-256：</p>
+<ul><li>受控文件：<strong>23</strong></li><li>完全一致：<strong>23</strong></li><li>不一致：<strong>0</strong></li><li>缺失：<strong>0</strong></li></ul>
+<p>结果落盘于 <code>docs/independent_audit_20261027/fingerprint_verification.json</code>。</p>
+<h3>2.2 关于历史日志的处置</h3>
+<p><code>docs/</code> 下历史&quot;全通过&quot;日志与当前版本的源码指纹不一致，按用户明确要求，本报告<strong>不引用其任何结论</strong>，仅将其视为历史记录。本报告全部通过结论均来自审核方本轮独立复跑。</p>
+<h3>2.3 复现环境</h3>
+<div class="tw"><table><thead><tr><th>项</th><th>值</th></tr></thead><tbody><tr><td>平台</td><td>Linux x86_64（无 AppKit）</td></tr><tr><td>Python</td><td>3.12.13</td></tr><tr><td>pytest</td><td>8.3.5</td></tr><tr><td>psd-tools</td><td>1.26.0</td></tr><tr><td>PyQt6</td><td>6.11.0</td></tr><tr><td>显示后端</td><td><code>QT_QPA_PLATFORM=offscreen</code></td></tr></tbody></table></div>
+<p>审核方将项目复制到独立工作区（排除 <code>__pycache__</code>、<code>.pytest_cache</code>），并<strong>先校验副本指纹与原件一致</strong>后再执行测试，确保未在用户目录写入任何缓存，也未修改任何业务源码或测试文件。</p>
+<hr/>
+<h2>三、独立复跑结果</h2>
+<div class="tw"><table><thead><tr><th>项目</th><th>命令对象</th><th>结果</th><th>退出码</th></tr></thead><tbody><tr><td>主测试集</td><td><code>test_clean_environment.py</code> + <code>test_psd_import_and_diagnosis.py</code> + <code>test_preview_comparison.py</code></td><td>21 collected / <strong>21 passed</strong> / 0 failed</td><td><strong>0</strong></td></tr><tr><td>诚实性回归</td><td><code>test_font_diagnosis_honesty.py</code></td><td><strong>3 passed</strong></td><td><strong>0</strong></td></tr><tr><td>交互探针</td><td><code>tests/probe_real_interaction.py</code></td><td>全部通过</td><td><strong>0</strong></td></tr></tbody></table></div>
+<p>原始输出：<code>docs/independent_audit_20261027/main_run.log</code>、<code>reg.log</code>、<code>probe.log</code>。</p>
+<h3>3.1 通过不等于有实质断言</h3>
+<p>审核方逐条读了断言，确认不是&quot;跳过后空跑&quot;：</p>
+<ul><li><code>unverifiable</code> 分支在无 AppKit 环境下<strong>不是跳过</strong>，而是强制要求诚实报告：断言 <code>unverifiable_fonts_count == 8</code>、<code>missing_fonts_count == 0</code>、<code>has_missing_risk is True</code>、风险文案必须含&quot;无法确定风险&quot;且<strong>禁止出现&quot;100%&quot;</strong>。</li><li>审核方另以真实函数直接复现同一结论（<code>generate_conversion_diagnosis_report</code> 对 <code>vertical_wedding_9_16.psd</code>），输出 <code>unverifiable=8 / missing=0 / has_missing_risk=True</code>，与测试断言一致。</li></ul>
+<p>这一项是本轮最扎实的部分：<strong>在缺少平台能力时，程序选择说&quot;无法确定&quot;，而不是说&quot;完全支持&quot;。</strong></p>
+<h3>3.2 交互探针实测项</h3>
+<div class="tw"><table><thead><tr><th>探针项</th><th>结果</th></tr></thead><tbody><tr><td>滚轮缩放，双画布（原稿/结果）双向同步</td><td>通过</td></tr><tr><td>拖拽平移，双画布双向同步</td><td>通过</td></tr><tr><td><code>is_panning</code> 在释放后正确复位</td><td>通过</td></tr><tr><td>棋盘格开关经 QSettings 在新实例中恢复</td><td>通过</td></tr><tr><td>同名图层 idx10 → 行 0、idx20 → 行 1 精确跳转</td><td>通过</td></tr><tr><td>子串陷阱（<code>Text01</code> vs <code>Text010</code>）未误命中</td><td>通过</td></tr></tbody></table></div>
+<hr/>
+<h2>四、四项功能逐项判定</h2>
+<h3>4.1 转换诊断报告（JSON 导出与 UI 展示）——功能通过，内容有 P0 错误</h3>
+<p><strong>成立部分</strong>：四态表格、JSON 导出、UI 渲染均可用；<code>complete / partial_missing / font_missing / unverifiable</code> 四态在 <code>字体状态</code> 列被正确区分；<code>保留矢量文字 4 / 降级透明贴图 0 / 已忽略 0 / 缺字体·缺字形 2 / 中风险</code> 汇总卡与实际图层状况相符。</p>
+<p><strong>缺陷（截图 14 实测）</strong>：</p>
+<ol><li><strong>P0｜处置原因未按四态分化。</strong> 四行&quot;具体处理原因&quot;文字完全相同（&quot;纯矢量文本，字体元数据完整，保留为可发布标题&quot;），其中第 3 行为 <code>font_missing（缺 1 字）</code>、第 2 行为 <code>partial_missing（缺 2 字）</code>。同一行内&quot;缺 1 字&quot;与&quot;字体元数据完整&quot;直接矛盾，属误导性信息。</li><li><strong>P1｜计数口径自相矛盾。</strong> 顶栏显示&quot;图层数：32 导出 / 40 总计&quot;，同页汇总卡&quot;扫描图层总数 4&quot;。同一界面存在两套互不相容的计数。</li><li><strong>P1｜源文件标识不一致。</strong> 窗口标题为 <code>纪实字幕.psd</code>，页脚却写&quot;当前报告源文件：four_state.psd（/four_state.psd）&quot;。</li></ol>
+<p><strong>判定</strong>：功能放行，03 清单勾选；P0 必须修复。</p>
+<h3>4.2 转换前后画面并排对照——功能通过，尺度不一致</h3>
+<p><strong>成立部分</strong>：双画布并排布局、联动缩放、联动平移、整体/局部对照模式均可用（探针实测同步）。</p>
+<p><strong>缺陷（截图 11 像素测量）</strong>：左右画板宽度分别为 493 px 与 495 px，属同尺度画布；但同一行文字的行高为：</p>
+<div class="tw"><table><thead><tr><th>行</th><th>原稿侧（px）</th><th>结果侧（px）</th><th>比值</th></tr></thead><tbody><tr><td>新郎/新娘行</td><td>13</td><td>9</td><td>0.69</td></tr><tr><td>姓名行</td><td>14</td><td>9</td><td>0.64</td></tr><tr><td>2026</td><td>12</td><td>7</td><td>0.58</td></tr><tr><td>箭头行</td><td>15</td><td>12</td><td>0.80</td></tr></tbody></table></div>
+<p><strong>结果侧文字系统性偏小，约为原稿的 58%–80%</strong>。同时&quot;新郎 / 新娘&quot;在原稿中是姓名前置的内联小字，在结果侧被改造为姓名上方的独立徽章行，布局结构发生改变。因此&quot;并排对照&quot;在视觉上并不构成 1:1 可比对照。</p>
+<p><strong>代码依据（可定位到行）</strong>：</p>
+<ul><li><code>gui/canvas_view.py:176</code>：<code>font_size = max(8, int(info.font_size / 2.2))</code> —— 绘制时把字号压缩约 2.2 倍。</li><li><code>gui/canvas_view.py:92-96</code>：命中框按 <code>info.font_size * 1.5 / 1.2 / 0.8 / 1.3</code> 计算 —— 使用的是<strong>未压缩</strong>的字号。</li></ul>
+<p>两处不一致导致两个可观察后果：文字被画小，而选中框远大于文字（截图 12 中蓝色选中矩形明显大于 <code>WENDDING &amp; HAPPY</code> 文字，即为该缺陷的直接证据）。</p>
+<p><strong>判定</strong>：功能放行，03 清单勾选；尺度一致性列入 P1（属&quot;文字/间距&quot;可放宽范围，但须记录）。</p>
+<h3>4.3 透明背景网格——通过</h3>
+<p><strong>证据</strong>：截图 11/12/13 中，原稿侧与结果侧画布均渲染一致的中灰棋盘格；透明区域可见；工具栏&quot;棋盘格背景&quot;按钮处于按下态。QSettings 持久化经探针在新实例中复现为&quot;恢复成功&quot;（<code>tests/reports/probe_real_interaction.json</code>）。</p>
+<p><strong>判定</strong>：<strong>通过，无遗留。</strong> 这是本轮唯一一项既功能成立、又视觉与语义均无瑕疵的条目。</p>
+<h3>4.4 预览中的字体缺失/缺字标记——功能通过，方向与分类有缺陷</h3>
+<p><strong>成立部分</strong>：四态徽章逻辑、颜色分级（绿/黄/红/灰）、&quot;查看诊断&quot;跳转、跨实例持久化均由测试与探针覆盖并通过；徽章文案含具体缺字（如&quot;缺少字形：W, E, N…&quot;）与跳转入口。</p>
+<p><strong>缺陷</strong>：</p>
+<ol><li><strong>P0｜旋转文本方向丢失。</strong> <code>complex_layers.psd</code> 中 <code>Text01</code> 与 <code>Title</code> 两个图层变换矩阵线性部分为 <code>[[0,-1],[1,0]]</code>，即 <strong>90.0° 旋转</strong>（<code>Text01</code> bbox=(75,164,106,929)，<code>Title</code> bbox=(1651,101,1839,899)，均为细高竖条）。原稿侧预览正确显示为竖排；结果侧却渲染为横排，<code>Title</code> 甚至换行并越出画板右边框（截图 12 中 &quot;WENDDING &amp; HAPPY&quot; 右侧溢出画布边界），<code>Text01</code> 则被裁切掉开头的 &quot;LOVE&quot;。</li></ol>
+<p>   <strong>代码依据</strong>：<code>core/psd_parser.py:763</code> 与 <code>:888</code> 将 <code>rotation</code> 硬编码为 <code>0.0</code>，从未读取 <code>layer.transform</code>。</p>
+<ol><li><strong>P1｜字体不可用被误报为缺字形。</strong> 选中图层字体为 <code>Helvetica</code>（字号 90.00），徽章报&quot;缺少字形：W, E, N…&quot;。Helvetica 本身包含 W/E/N，在 Linux 未安装该字体时正确语义应为 <code>unverifiable</code>（无法确定），而非&quot;字体存在但缺这些字形&quot;。该误报会误导用户去替换字体，而非安装字体。</li><li><strong>P1｜四态画布证据不完整。</strong> 截图 13 名为&quot;四态徽章实测截图&quot;，实测：原稿侧为 4 个&quot;矢量：文本图层&quot;占位框，结果侧仅渲染 1 个文本（&quot;默认文本&quot;）与 1 个徽章。四态徽章在画布上的同时呈现<strong>未被该截图证明</strong>（四态的表格证明见截图 14）。</li><li><strong>P1｜复现材料缺失。</strong> 截图 14 指向 <code>four_state.psd</code>，但 <code>tests/data/</code> 仅含 5 个 PSD（<code>vertical_wedding_9_16</code>、<code>wedding_with_decorations_23</code>、<code>complex_layers</code>、<code>corrupted_file</code> 等），<strong>未见 <code>four_state.psd</code></strong>；全盘搜索亦未找到。四态画布行为无法被第三方独立复现。</li></ol>
+<p><strong>判定</strong>：功能放行，03 清单勾选；P0 必须修复。</p>
+<hr/>
+<h2>五、缺陷清单（按优先级）</h2>
+<div class="tw"><table><thead><tr><th>编号</th><th>优先级</th><th>缺陷</th><th>证据</th><th>定位</th></tr></thead><tbody><tr><td>A-1</td><td><strong>P0</strong></td><td>旋转文本方向丢失，90° 竖排渲染为横排并越出画板</td><td>截图 12；transform=90.0°</td><td><code>core/psd_parser.py:763</code>、<code>:888</code></td></tr><tr><td>A-2</td><td><strong>P0</strong></td><td>诊断&quot;具体处理原因&quot;未按四态分化，缺字行称&quot;元数据完整&quot;</td><td>截图 14</td><td>诊断原因生成逻辑</td></tr><tr><td>A-3</td><td>P1</td><td>转换侧文字绘制字号偏小（实测 58%–80%），命中框与绘制字号不一致</td><td>截图 11、12 像素测量</td><td><code>gui/canvas_view.py:176</code> vs <code>92-96</code></td></tr><tr><td>A-4</td><td>P1</td><td>Helvetica 未安装被误报为&quot;缺少字形 W,E,N&quot;</td><td>截图 12</td><td>字形覆盖度判定分支</td></tr><tr><td>A-5</td><td>P1</td><td>计数口径矛盾：&quot;32 导出 / 40 总计&quot; vs &quot;扫描图层总数 4&quot;</td><td>截图 14</td><td>统计聚合</td></tr><tr><td>A-6</td><td>P1</td><td>标题 <code>纪实字幕.psd</code> 与页脚 <code>four_state.psd</code> 不一致</td><td>截图 14</td><td>源文件标识绑定</td></tr><tr><td>A-7</td><td>P1</td><td><code>four_state.psd</code> 未随测试数据交付，四态画布不可复现</td><td><code>tests/data/</code> 清单</td><td>测试夹具</td></tr><tr><td>A-8</td><td>P2</td><td>四态徽章画布同屏证据缺失（仅 1 例可证）</td><td>截图 13</td><td>证据补拍</td></tr></tbody></table></div>
+<hr/>
+<h2>六、本轮未覆盖的边界</h2>
+<p>以下内容<strong>未</strong>被本轮验证，不得据此宣称通过：</p>
+<ol><li><strong>macOS 原生 AppKit 字体枚举</strong>：沙箱为 Linux，<code>unverifiable</code> 分支被正确触发，但&quot;字体已安装 → 精确判定缺字&quot;这条主路径<strong>未在真机验证</strong>。</li><li><strong>真实 Motion / FCPX 渲染</strong>：<code>.motn</code> 保存与 FCPX 导入链路未验证，本轮仅验证应用内预览。界面横幅&quot;应用内预览，非 FCPX 最终渲染&quot;是诚实的自我限定。</li><li><strong><code>128</code> 卷内 PSD 素材</strong>：按用户规定全程只读，未做任何写入；本轮未以该卷素材作为判定依据。</li><li><strong>四态画布的第三方复现</strong>：因 A-7 缺件，无法执行。</li></ol>
+<hr/>
+<h2>七、给开发方的下一步（可直接执行）</h2>
+<p>详见同目录 <code>12_开发方下一轮修复任务单_20261027.md</code>。要点：</p>
+<ol><li><strong>先修 A-1（旋转）</strong>：读 <code>layer.transform</code>，将 90°/180°/270° 映射到绘制旋转角与 bbox；补 1 条断言&quot;竖排文本 bbox 宽&lt;高且旋转角≠0&quot;的回归用例。</li><li><strong>再修 A-2（诊断原因）</strong>：按四态分支生成原因文案，<code>font_missing</code> 行不得出现&quot;元数据完整&quot;；补断言禁止跨态同文案。</li><li><strong>修 A-3（尺度）</strong>：绘制与命中框统一字号来源；建议以画布缩放为唯一缩放因子，删除 <code>/2.2</code> 魔数。</li><li><strong>修 A-4（分类）</strong>：字体文件不存在 → <code>unverifiable</code>；字体存在但字形缺失 → <code>missing</code>。二者不得混淆。</li><li><strong>补件 A-7</strong>：提交 <code>four_state.psd</code> 至 <code>tests/data/</code>，并补拍四态同屏截图。</li><li>修完 A-1/A-2 后，再进入 macOS 真机 + Motion/FCPX 渲染验收。</li></ol>
+<hr/>
+<h2>附录 A：本轮产出证据索引</h2>
+<div class="tw"><table><thead><tr><th>文件</th><th>内容</th></tr></thead><tbody><tr><td><code>docs/independent_audit_20261027/fingerprint_verification.json</code></td><td>23 项指纹逐项比对结果</td></tr><tr><td><code>docs/independent_audit_20261027/pixel_measurement.json</code></td><td>截图像素测量原始数据</td></tr><tr><td><code>docs/independent_audit_20261027/main_run.log</code></td><td>主测试集原始输出（21 passed）</td></tr><tr><td><code>docs/independent_audit_20261027/reg.log</code></td><td>诚实性回归原始输出（3 passed）</td></tr><tr><td><code>docs/independent_audit_20261027/probe.log</code></td><td>交互探针原始输出</td></tr><tr><td><code>docs/independent_audit_20261027/env_and_code_lines.txt</code></td><td>环境版本与关键代码行摘录</td></tr><tr><td><code>docs/independent_audit_20261027/diagnosis_*.json</code></td><td>三份诊断 JSON 原件副本</td></tr><tr><td><code>docs/independent_audit_20261027/shots/</code></td><td>四张原始截图副本</td></tr></tbody></table></div>
+<h2>附录 B：复现命令</h2>
+<pre><code>export QT_QPA_PLATFORM=offscreen PYTHONDONTWRITEBYTECODE=1
+python3 -m pytest tests/test_clean_environment.py tests/test_psd_import_and_diagnosis.py \
+                 tests/test_preview_comparison.py -v
+python3 -m pytest tests/test_font_diagnosis_honesty.py -v
+python3 tests/probe_real_interaction.py</code></pre>
+<h2>附录 C：局限声明</h2>
+<p>本报告的&quot;通过&quot;仅指功能存在、可运行、可复现，不代表视觉保真度或 FCPX 端到端结果达标。报告的&quot;缺陷&quot;均附可定位的文件行号或像素测量数据；未附证据的判断已明确标注为&quot;未验证&quot;，不作为结论使用。审核方未修改任何业务源码、测试或用户清单中的既有条目，仅新增勾选与本节复核结论文本。</p>
+</main></body></html>

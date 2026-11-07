@@ -1,0 +1,279 @@
+{
+  "app": "Motion",
+  "timestamp": "2026-10-28 13:07:13",
+  "process": {
+    "match_count": 5,
+    "lines": [
+      "mrhuang          61053   5.9  0.1 435270480  21392   ??  S     1:07PM   0:00.08 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python tools/host_verify.py snapshot --app Motion --out docs/host_verify",
+      "mrhuang          61052   1.1  0.0 435299632   1984   ??  Ss    1:07PM   0:00.00 bash -c P=\"/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro\"; cd \"$P\"; python3 tools/host_verify.py snapshot --app Motion --out docs/host_verify 2>&1 | tail -10; echo; echo \"=== 1.moti 内文本层 ===\"; /tmp/canvas_text 2>&1 | grep -E \"AXTextField.*\\|(Text|Title)\" | head -12",
+      "mrhuang          59823   0.0  0.3 435553200  55328   ??  S     1:00PM   0:00.16 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/Helpers/RegisterProExtension.app/Contents/MacOS/RegisterProExtension",
+      "mrhuang          59800   0.0  0.2 435401168  27216   ??  Ss    1:00PM   0:00.19 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/PlugIns/InternalFiltersXPC.pluginkit/Contents/MacOS/InternalFiltersXPC",
+      "mrhuang          59795   0.0  3.3 448835072 550352   ??  S     1:00PM   0:50.82 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/MacOS/Motion"
+    ]
+  },
+  "windows": [
+    {
+      "owner": "Motion",
+      "name": "",
+      "bounds": {
+        "Height": 236,
+        "X": 641,
+        "Width": 814,
+        "Y": 698
+      },
+      "layer": 0
+    },
+    {
+      "bounds": {
+        "Width": 1470,
+        "Y": 33,
+        "X": 0,
+        "Height": 923
+      },
+      "name": "1.moti",
+      "owner": "Motion",
+      "layer": 0
+    },
+    {
+      "name": "",
+      "layer": 0,
+      "bounds": {
+        "Height": 236,
+        "X": 641,
+        "Width": 814,
+        "Y": 698
+      },
+      "owner": "Motion"
+    },
+    {
+      "name": "23.moti",
+      "bounds": {
+        "Width": 1470,
+        "Y": 33,
+        "Height": 923,
+        "X": 0
+      },
+      "layer": 0,
+      "owner": "Motion"
+    }
+  ],
+  "crashes": [],
+  "shots": [
+    {
+      "window": "",
+      "path": "docs/host_verify/Motion_win0_130713.png",
+      "stats": {
+        "size": [
+          1628,
+          472
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              34,
+              51,
+              82
+            ],
+            "count": 25355
+          },
+          {
+            "rgb": [
+              34,
+              51,
+              81
+            ],
+            "count": 21310
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              82
+            ],
+            "count": 17568
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              81
+            ],
+            "count": 14092
+          },
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 11779
+          }
+        ],
+        "light_ratio": 0.0085,
+        "distinct_colors": 1753
+      }
+    },
+    {
+      "window": "1.moti",
+      "path": "docs/host_verify/Motion_1.moti_130713.png",
+      "stats": {
+        "size": [
+          2940,
+          1846
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 12250
+          },
+          {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "count": 10201
+          },
+          {
+            "rgb": [
+              39,
+              39,
+              39
+            ],
+            "count": 8082
+          },
+          {
+            "rgb": [
+              30,
+              30,
+              30
+            ],
+            "count": 6866
+          },
+          {
+            "rgb": [
+              55,
+              55,
+              55
+            ],
+            "count": 4254
+          }
+        ],
+        "light_ratio": 0.0122,
+        "distinct_colors": 1045
+      }
+    },
+    {
+      "window": "",
+      "path": "docs/host_verify/Motion_win2_130713.png",
+      "stats": {
+        "size": [
+          1628,
+          472
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              34,
+              51,
+              82
+            ],
+            "count": 25355
+          },
+          {
+            "rgb": [
+              34,
+              51,
+              81
+            ],
+            "count": 21310
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              82
+            ],
+            "count": 17568
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              81
+            ],
+            "count": 14092
+          },
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 11779
+          }
+        ],
+        "light_ratio": 0.0085,
+        "distinct_colors": 1753
+      }
+    },
+    {
+      "window": "23.moti",
+      "path": "docs/host_verify/Motion_23.moti_130713.png",
+      "stats": {
+        "size": [
+          2940,
+          1846
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 12250
+          },
+          {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "count": 10201
+          },
+          {
+            "rgb": [
+              39,
+              39,
+              39
+            ],
+            "count": 8082
+          },
+          {
+            "rgb": [
+              30,
+              30,
+              30
+            ],
+            "count": 6866
+          },
+          {
+            "rgb": [
+              55,
+              55,
+              55
+            ],
+            "count": 4254
+          }
+        ],
+        "light_ratio": 0.0122,
+        "distinct_colors": 1045
+      }
+    }
+  ]
+}

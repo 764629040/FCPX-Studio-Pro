@@ -1,0 +1,561 @@
+{
+  "generated_at": "2026-11-05 11:35:43",
+  "root": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "phase": "r28",
+  "canonical_path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "note": "单卷权威路径；不声称跨卷一致",
+  "count": 110,
+  "missing": [],
+  "files": {
+    "core/psd_parser.py": {
+      "sha256": "1c9b8f51b640299e07be7f7d427ac49bd2af0b5a8618e7a3f2270576e420ea5c",
+      "size": 70935,
+      "module_type": "core"
+    },
+    "core/motion_builder.py": {
+      "sha256": "e859eec309e07a6997d06d450b31fddad5bcdd13dd799e19b16a5a56ffe6a255",
+      "size": 42588,
+      "module_type": "core"
+    },
+    "core/cli_bridge.py": {
+      "sha256": "b7e5dcaf197ad553a6a16afb3338352dd3ddd6223733285c4f3526897d183ae2",
+      "size": 4909,
+      "module_type": "core"
+    },
+    "core/thumbnail.py": {
+      "sha256": "5f0bbb16a4ba53f15bdcdfe16802bcf736f7a350024554bd249077a1d633b3fa",
+      "size": 13379,
+      "module_type": "core"
+    },
+    "core/symlink_manager.py": {
+      "sha256": "1de5c43b5f09910cfcb867a87b49280a11d67f2c3b1b043a3708eb856be8ee26",
+      "size": 6554,
+      "module_type": "core"
+    },
+    "core/__init__.py": {
+      "sha256": "d7c388a29f48aa86f5fc131c6a0eb9b5b06a0062840ec90be3ac86d1e1376d3e",
+      "size": 261,
+      "module_type": "core"
+    },
+    "gui/main_window.py": {
+      "sha256": "5a80920c38367b02872830baeb85ef64fa374d20ee8713aba88448df069f293b",
+      "size": 36412,
+      "module_type": "gui"
+    },
+    "gui/canvas_view.py": {
+      "sha256": "f9d3892e69184e2070632b20a7c69e681c31b3991096b29b8ea6265b2cb537e9",
+      "size": 56194,
+      "module_type": "gui"
+    },
+    "gui/inspector_panel.py": {
+      "sha256": "8007c754aaa2c120fedeeed0d3573214db35ff998158b57a201a0a39c68063d9",
+      "size": 21163,
+      "module_type": "gui"
+    },
+    "gui/asset_hub_panel.py": {
+      "sha256": "18cf02d4abe907d6c2d51da274d15ccf93d94ced830aecfe6867f1db56e39689",
+      "size": 13356,
+      "module_type": "gui"
+    },
+    "gui/__init__.py": {
+      "sha256": "08befe3fc370e79989a67ef50c10bfbb9dfbbc1ad55afe1743fd06ec6ad2b3b0",
+      "size": 217,
+      "module_type": "gui"
+    },
+    "main.py": {
+      "sha256": "687aa2948ca163700b92c15a4022c347b7154914e4e507f62d4b59aaddebb025",
+      "size": 675,
+      "module_type": "other"
+    },
+    "requirements.txt": {
+      "sha256": "8db97fef59fd8d730dd0b7aa6728360bf2de4af1cd85909be9fc3d235435041f",
+      "size": 1655,
+      "module_type": "other"
+    },
+    "tests/test_clean_environment.py": {
+      "sha256": "05506901228d151f08e4e6ddbdd7117fc55b8e26fed49e495dff7b9f16c0e839",
+      "size": 15213,
+      "module_type": "tests"
+    },
+    "tests/test_psd_import_and_diagnosis.py": {
+      "sha256": "31f5f3a21d9b25ed5b8e1d689e25cf706db92a0ff948b05b3612e4b05b2f03ef",
+      "size": 14410,
+      "module_type": "tests"
+    },
+    "tests/test_preview_comparison.py": {
+      "sha256": "6bece2630246bdc8378b7b3f66183949eb32de3fd4266752b3e4379f4c7a7697",
+      "size": 15473,
+      "module_type": "tests"
+    },
+    "tests/test_font_diagnosis_honesty.py": {
+      "sha256": "a7706ec32a08244077d09424055f08cb097afcc24ed49b034a6ec0a65cf67af5",
+      "size": 5741,
+      "module_type": "tests"
+    },
+    "tests/test_p0_rotation_and_reason.py": {
+      "sha256": "cb0107c0578bf713d5830f8dc9c9306887fb173ee2f8a62f1d29f2ddbd038f43",
+      "size": 10185,
+      "module_type": "tests"
+    },
+    "tests/test_round2_a3_to_a7.py": {
+      "sha256": "499157adc3290da4ed88140433810eff199fb9bdf0998fcf9c711883f89ca899",
+      "size": 14454,
+      "module_type": "tests"
+    },
+    "tests/test_round3_a9_a10_a13.py": {
+      "sha256": "e7e74e060766bd8337e5b6072e0bab5f32e9c0ece114c833fbe67a4702c04c83",
+      "size": 13484,
+      "module_type": "tests"
+    },
+    "tests/test_round4_a12_a17.py": {
+      "sha256": "110d88e1abea627e5f6220e7ca02f55fa9629031ac05b1d37727d5a69c0606d4",
+      "size": 10118,
+      "module_type": "tests"
+    },
+    "tests/test_round5_tools_inventory.py": {
+      "sha256": "10e8ebe551e9b14a19a8371fc4ff15a98a76d22a1ab9b5163975e6c7340be680",
+      "size": 5621,
+      "module_type": "tests"
+    },
+    "tests/test_a15_badge_collapse.py": {
+      "sha256": "201d17c30e0493cb6a1ad5f7b3cbb949c6fab9d11d98f5d540ee29cf2b497c53",
+      "size": 18386,
+      "module_type": "tests"
+    },
+    "tests/test_a20_evidence_inventory.py": {
+      "sha256": "98795c4c243359ef98c9aa3007850c967f328d15dee2ab3ec2d20e0649bf5cb7",
+      "size": 7172,
+      "module_type": "tests"
+    },
+    "tests/probe_real_interaction.py": {
+      "sha256": "d1293ccee0abfc4457f21a247d7f6564a91f9e670f7f3d4fb67e61b7a5830250",
+      "size": 12082,
+      "module_type": "tests"
+    },
+    "tests/make_four_state_fixture.py": {
+      "sha256": "45e4d16e242589bf6445df09a65e6544ad340f22600a1a5a6fd267600830c1b5",
+      "size": 4627,
+      "module_type": "tests"
+    },
+    "tests/make_vertical_rebased_fixture.py": {
+      "sha256": "f2ef1f536eb738efcc3f3246e74b3a3cd846165f3f195004a749f92b81050733",
+      "size": 4707,
+      "module_type": "tests"
+    },
+    "tests/make_vertical_true_fixture.py": {
+      "sha256": "d60cb4d3d58ab469c2b45c918f6f635c03616b84d5b8929c81dac277c7a3ca01",
+      "size": 4794,
+      "module_type": "tests"
+    },
+    "tests/r25_fixtures.py": {
+      "sha256": "b007b121e6bdf418da962f3d981e5005d68373867699fd10e94c1051473b1d03",
+      "size": 5004,
+      "module_type": "tests"
+    },
+    "tests/test_a24_a25_comp_and_media.py": {
+      "sha256": "07c9e446083ec0281376245dcc8e47a7022c569b3d1b18da0ea28211a8d8a98b",
+      "size": 7785,
+      "module_type": "tests"
+    },
+    "tests/test_a28_a29_thumbnail_and_fixture.py": {
+      "sha256": "c4a70360ec667705d3002147f0d4965d9a5f03987d30c6232dc32d9f42969558",
+      "size": 9193,
+      "module_type": "tests"
+    },
+    "tests/test_a30_a31_bbox_guard_and_horizontal.py": {
+      "sha256": "2fc0703f573ed3abfd04e9c011937b8c067f01e5870693bafba7f6ec0ac019cf",
+      "size": 9206,
+      "module_type": "tests"
+    },
+    "tests/test_a33_four_state_evidence.py": {
+      "sha256": "936778487bd6b340b15fa451c3134f5aad05706ab7ae0f73f3913ae16d2b1dd9",
+      "size": 9475,
+      "module_type": "tests"
+    },
+    "tests/test_r21_t1_disk_space.py": {
+      "sha256": "e47277799b0bb9bdb11407454e6ea6732c1c3d1e3f100a2d1c80052b566de3cd",
+      "size": 2669,
+      "module_type": "tests"
+    },
+    "tests/test_r21_t2_conflict.py": {
+      "sha256": "e563cf28c749ac08cb5ec5df7731fedc93fabcc14d00a7046312ffd16011214e",
+      "size": 5557,
+      "module_type": "tests"
+    },
+    "tests/test_r21_t3_versions.py": {
+      "sha256": "20d462fbb861e8b252da6b39939a6a2e55bdec6265a51844a42e20668f23aaef",
+      "size": 5299,
+      "module_type": "tests"
+    },
+    "tests/test_r21_t4_batch_resume.py": {
+      "sha256": "b527cc7fad9ba1b74ad93a4518dc908934cb8cb86f91e61d426fd249902aa2ef",
+      "size": 6387,
+      "module_type": "tests"
+    },
+    "tests/test_r22_a40_dedup.py": {
+      "sha256": "2d25d06d548d527c298a77eaed1a9a6062ecda00a8e1096a32e722f94015f1ec",
+      "size": 8557,
+      "module_type": "tests"
+    },
+    "tests/test_r22_f1_f2.py": {
+      "sha256": "cb1fa5907d3d730a9b2f43dd4ae130e9bb701da7d0994203a9003691fafda223",
+      "size": 8670,
+      "module_type": "tests"
+    },
+    "tests/test_r25_a46_all_caps.py": {
+      "sha256": "23b49e811f6dee917f5ada1236c162860087c76bc04df9caa7877b58abf76e61",
+      "size": 10497,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_01_support_matrix.py": {
+      "sha256": "29a50a38e65bc7272fa910970376e0c83f0c49bd16c1b530de3a2f7aa1ba0d11",
+      "size": 2900,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_02_smart_object.py": {
+      "sha256": "3ddd1c39292a9c4e9212f74bcf1ee3fff44b26d26a0cf8cf7c18e0cdd957113b",
+      "size": 2531,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_02b_conservation_policy.py": {
+      "sha256": "16d2b043a7b2377345717265d74ab471df447631639e2ae66dbd15e1501db362",
+      "size": 5013,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_03_04_styles.py": {
+      "sha256": "5adbc456fd36d6836afde8056c980a787aacb0368ce834a91819f5bb8322790a",
+      "size": 4428,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_05_blend.py": {
+      "sha256": "014ad59d8278e7d6d01bd4789adf8167b8cd89b87b67b9174baa9875f42b707d",
+      "size": 2527,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_06_warp.py": {
+      "sha256": "43c924babd14281e78eef2971fae81d73dc9c9533f599938d4003cc938897f82",
+      "size": 2710,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_07_groups_paragraph.py": {
+      "sha256": "636cff1171754de87fd386d2c811e56e20bddef4eec7ba9a17c8cd8b76a280a9",
+      "size": 3205,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_08_conservation.py": {
+      "sha256": "6f018b9476bd79712d822cfeaee389cd8ce463eeca89e4983e16ea75f41643c0",
+      "size": 4515,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_09_png_fallback.py": {
+      "sha256": "ecf573f8460160f4b149d9850e223cc5f7d804c967d2fb34c6ebfa60d821f8c9",
+      "size": 3445,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_10_missing_font.py": {
+      "sha256": "5cecf07f25e3d7ba75dd22d14c6d05ddbbc3760a96b1776fad062600195bbb4d",
+      "size": 6614,
+      "module_type": "tests"
+    },
+    "tests/test_r25_c_11_media_integrity.py": {
+      "sha256": "b569210192a6f97347bc89cc9435f1d4d23243b4168d031ae50ef901d34aedf2",
+      "size": 7555,
+      "module_type": "tests"
+    },
+    "tests/test_r25_d_02_writeback.py": {
+      "sha256": "097f710f05866f06376442374789a4e7e73d6250eb368decae36f4f72023a1c3",
+      "size": 11500,
+      "module_type": "tests"
+    },
+    "tests/test_r25_d_03_lock_persist.py": {
+      "sha256": "60081e4a4b1babc0d34ebf07438782c20d7023341873860cfebbe6470f1baf32",
+      "size": 8998,
+      "module_type": "tests"
+    },
+    "tests/test_r26_a47_gui_highlight.py": {
+      "sha256": "5fc2daf6e3039b502f3d486ee1a976c19f8c35697a941210c6cb849cac2eef4f",
+      "size": 4683,
+      "module_type": "tests"
+    },
+    "tests/test_r26_a47_marked_text.py": {
+      "sha256": "6126db287252ab545ada2859b24e44547d0819f44cae7c0809d4c44e489ca190",
+      "size": 8005,
+      "module_type": "tests"
+    },
+    "tests/verify_mvp_acceptance.py": {
+      "sha256": "d17e51b841dda9129e0e1ea8716a076f9369f058e794ce167314ff7ca0130545",
+      "size": 21878,
+      "module_type": "tests"
+    },
+    "tests/verify_mvp_extended_acceptance.py": {
+      "sha256": "cff7244db62ce6acc1d5ef7cbb123cadefd69c3450ca71fd6844be836e54de99",
+      "size": 23302,
+      "module_type": "tests"
+    },
+    "core/alignment_snap.py": {
+      "sha256": "77c626717fab2a68fb340e31adc446c5f3362eedf535639c9addbcbb20c069b4",
+      "size": 4037,
+      "module_type": "core"
+    },
+    "core/batch_runner.py": {
+      "sha256": "a39850e9eaf78825e1e9f111cc2f1950d4882f8faeb9d530e17e5f241c1da7e3",
+      "size": 5089,
+      "module_type": "core"
+    },
+    "core/missing_font.py": {
+      "sha256": "d34063255d606ec5fc2ddd3353fb3e5f24f67a3f1fcdd2a0a58aa43dd7577f0b",
+      "size": 3356,
+      "module_type": "core"
+    },
+    "core/moti_layer_io.py": {
+      "sha256": "72d0b27d9367c8be2674509aca059342aa96ff3092040767ba3b0da60a2d4192",
+      "size": 8880,
+      "module_type": "core"
+    },
+    "core/motion_param_writer.py": {
+      "sha256": "30c2e0bdfc1a976eb8e4743a99b7ce896a685c86ddc53ccb3bbc17bdf1f84b9d",
+      "size": 7043,
+      "module_type": "core"
+    },
+    "core/psd_layer_fallback.py": {
+      "sha256": "b016cef73513751510e41e5c9f3136b9de561a2e1524263633dee5b010abac59",
+      "size": 10493,
+      "module_type": "core"
+    },
+    "core/psd_support_matrix.py": {
+      "sha256": "1dcc26859eab99385a96488d7455f300ca9f6bb6a98f59b1bf490512cbc8147a",
+      "size": 5678,
+      "module_type": "core"
+    },
+    "core/template_dedup.py": {
+      "sha256": "78bbc7c5da61d683f5fe5dd85c34a8fd29e5e0f4bdbedd91e93881f634db7023",
+      "size": 14522,
+      "module_type": "core"
+    },
+    "core/template_versions.py": {
+      "sha256": "3bff6de739863d063e04af8880c95f8bb58103b64f4656fc099c61e23123d605",
+      "size": 6946,
+      "module_type": "core"
+    },
+    "tests/data/vertical_wedding_9_16.psd": {
+      "sha256": "fdccb8cce285ee0dc31360691de5ea71d0e25dd6f2cf86b2599fe9a70c7e8d75",
+      "size": 493417,
+      "module_type": "tests"
+    },
+    "tests/data/wedding_with_decorations_23.psd": {
+      "sha256": "af801afdd0bfad59f983a2196ae6e6a805351e7d58c4692e6f8785bbddd410f9",
+      "size": 481463,
+      "module_type": "tests"
+    },
+    "tests/data/complex_layers.psd": {
+      "sha256": "b93e49aac31d93412bd0d3412745a0e9c06841960c05c16beab79f859278e932",
+      "size": 4822609,
+      "module_type": "tests"
+    },
+    "tests/data/commercial_4k.psd": {
+      "sha256": "b308155e44907ea76a902360eaef1d123b4e088420506fdf890eb30722c25563",
+      "size": 493417,
+      "module_type": "tests"
+    },
+    "tests/data/corrupted_file.psd": {
+      "sha256": "9fbc5d152fe1f746da2404346c39e97eb6a2be9e63e9cb8755b6e62657945cc9",
+      "size": 50,
+      "module_type": "tests"
+    },
+    "tests/data/four_state.psd": {
+      "sha256": "4c67897b582ce879ea687a8bc40d319d54f1d641523dbb44205a557c7456733b",
+      "size": 493425,
+      "module_type": "tests"
+    },
+    "tests/data/vertical_9x16_true.psd": {
+      "sha256": "d6905c1780ba58a9c66e6aab980c20a4d6d81a17ae4468c006a3786ec1b804e0",
+      "size": 354526,
+      "module_type": "tests"
+    },
+    "tests/data/vertical_9x16_true.json": {
+      "sha256": "a5a264dc9daa12e76a1005be0a9c2400ca64d15e86a33fdc552823369a7c9376",
+      "size": 986,
+      "module_type": "tests"
+    },
+    "tests/data/vertical_9x16_rebased.psd": {
+      "sha256": "4313544d3cdc468f3c002992b96e8131b49fce6292c3de56edc2e88afbc3a779",
+      "size": 555975,
+      "module_type": "tests"
+    },
+    "assets/reference_base.moti": {
+      "sha256": "14b6d5c627a949f9935bdbf6516d2af3465171fc75dbb63db6b5302a354c9fe8",
+      "size": 248462,
+      "module_type": "asset"
+    },
+    "tools/round.py": {
+      "sha256": "bf19007ee30074f80e8aacde976d46d9d2a3dd271850ae7c627a41ae5c410449",
+      "size": 17309,
+      "module_type": "tools"
+    },
+    "tools/make_a16_evidence.py": {
+      "sha256": "6fec089b45d69f72cba264dd4470b3aa6b175895dda1298f03b1aced481baa08",
+      "size": 9692,
+      "module_type": "tools"
+    },
+    "tools/dsh-plugin/package.json": {
+      "sha256": "1a6d13d9b51b764ae450308a357b362511f104a8f4cd17bec82e2a8c97323245",
+      "size": 472,
+      "module_type": "tools"
+    },
+    "tools/dsh-plugin/cordis.patch.yml": {
+      "sha256": "439b6185a573fc62d8a8910584acdfcb8c5aed5eebcee4eb0f15788b22d54d2c",
+      "size": 85,
+      "module_type": "tools"
+    },
+    "tools/dsh-plugin/index.js": {
+      "sha256": "5f3d43e55667bdf8fa055178bc1d2811a79e64a42dba01feaab211ad4e629931",
+      "size": 1130,
+      "module_type": "tools"
+    },
+    "tools/dsh-plugin/README.md": {
+      "sha256": "245bbec0a6fd47f144e3eb684188307a1ef3e7b188e9bfd9d9aff0a5ee024459",
+      "size": 4194,
+      "module_type": "tools"
+    },
+    "docs/a15_evidence/A15_folded_dots.png": {
+      "sha256": "72409cc4d99404bdfc992e7bb08a4d97cfa42c45bca49611e9750728c3f58842",
+      "size": 113936,
+      "module_type": "doc"
+    },
+    "docs/a15_evidence/A15_expanded_on_hover.png": {
+      "sha256": "07f406610cb79a2de84ef0792c4c6c07571b3a9cbeaf7ce141353eaa656bd41e",
+      "size": 114939,
+      "module_type": "doc"
+    },
+    "docs/a15_evidence/A15_singleton_multi_select.png": {
+      "sha256": "15abf00bb9938490da5f0e1175ae37c6e279b736af3524f285c6a1c036e2b4bb",
+      "size": 119249,
+      "module_type": "doc"
+    },
+    "docs/a15_evidence/A22_fit_zoom_dots.png": {
+      "sha256": "a108544a2e657a24bbf63a07a61b5047aecfcd83ac441264271cce6059646009",
+      "size": 114152,
+      "module_type": "doc"
+    },
+    "docs/host_verify/Motion_23.moti_130616.png": {
+      "sha256": "057b28f352d2c9dbcf453d4ed19886e1552419a93e1c8c54ab80a5b66a1ed772",
+      "size": 1416345,
+      "module_type": "doc"
+    },
+    "docs/host_verify/Motion_1.moti_130713.png": {
+      "sha256": "83eafec50078870568efb4ddec1db0391856bf736ca7d05cb3b088b0d1c6b5ea",
+      "size": 1363596,
+      "module_type": "doc"
+    },
+    "docs/host_verify/snapshot_Motion_130616.json": {
+      "sha256": "41a05e606396e1dcef497f59cd6fdebc0aa19d08d754c577c2c601db726ff9e7",
+      "size": 3788,
+      "module_type": "doc"
+    },
+    "docs/host_verify/snapshot_Motion_130713.json": {
+      "sha256": "21593e650472e5245ec37f716b5acbe7275d951f0d54d5bbb453dd553c283017",
+      "size": 6089,
+      "module_type": "doc"
+    },
+    "docs/round13_evidence/a24_comp_size_verify.json": {
+      "sha256": "60b4a4fc946d05fbba6191fc64f3e26616418f0f2419fe590f9256c4a3a9f9c0",
+      "size": 446,
+      "module_type": "doc"
+    },
+    "docs/round14_evidence/a28_a29_verify.json": {
+      "sha256": "53255e23401e546995eab7d7b264cc4aa02ce1368f6be14601706c679abfe487",
+      "size": 806,
+      "module_type": "doc"
+    },
+    "docs/round15_evidence/a30_a31_verify.json": {
+      "sha256": "bbc8d5146cca2d373306aae0599fd80b759fdac36e2e2c424ed34f4da4ce8d2f",
+      "size": 798,
+      "module_type": "doc"
+    },
+    "docs/round16_evidence/a30_verdict_c_verify.json": {
+      "sha256": "4c4bc4b3b2e0958688a326d66e7b5353b7433442cb3b120151bcfa074b973e9c",
+      "size": 1092,
+      "module_type": "doc"
+    },
+    "docs/round17_evidence/a33_four_state_verify.json": {
+      "sha256": "bde9517c854909c395807c26f10c927a70a6cfe0bc9c10081f7b6f1687ea053a",
+      "size": 1493,
+      "module_type": "doc"
+    },
+    "build_staging/_build_review.json": {
+      "sha256": "04b71134418585bfe01249498cbe04e290b089d32b66f05edd765f604e755842",
+      "size": 677,
+      "module_type": "asset"
+    },
+    "build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti": {
+      "sha256": "4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd",
+      "size": 247979,
+      "module_type": "asset"
+    },
+    "build_staging/T01_领衔呈现_竖版/large.png": {
+      "sha256": "1e09570f315eeb237331e0dbf0ada97d73abb61f75233bba847f4ee577144538",
+      "size": 16424,
+      "module_type": "asset"
+    },
+    "build_staging/T01_领衔呈现_竖版/small.png": {
+      "sha256": "4f86a4d349b64b7fb327f6b5b3e7253813cae2b2ae8fe7747684f41066e731ae",
+      "size": 2646,
+      "module_type": "asset"
+    },
+    "build_staging/T23_含装饰_横版/T23_含装饰_横版.moti": {
+      "sha256": "d7520521418996f7bc38a8acb85a0960ccf2efe3a0e2b917ce74240571f1c0b4",
+      "size": 226802,
+      "module_type": "asset"
+    },
+    "build_staging/T23_含装饰_横版/large.png": {
+      "sha256": "84298da6be7ebfe7d9dd1f005577fb0bd24d84afc7e926074e5c581aa03ffa8a",
+      "size": 15281,
+      "module_type": "asset"
+    },
+    "build_staging/T23_含装饰_横版/small.png": {
+      "sha256": "c9133cffd8bb153ac6bc40fbb9309025f643ae4200c8575dc243ec739d94369e",
+      "size": 2390,
+      "module_type": "asset"
+    },
+    "build_staging/T23_含装饰_横版/Media/element_03_箭头.png": {
+      "sha256": "785e059730c11e6b444b9f2fdfc5d4e7924b07a89bc96a97ed792ccba7abdd87",
+      "size": 741,
+      "module_type": "asset"
+    },
+    "build_staging/T23_含装饰_横版/Media/element_05_横线.png": {
+      "sha256": "f7df2166a29590ea19e9859028b1335a9762e2b2d8156975d6ab4151bc595dcb",
+      "size": 116,
+      "module_type": "asset"
+    },
+    "docs/a16_evidence/A16_detected.png": {
+      "sha256": "e70ffc979fa5815fc85798f75e2f9dc8aa6c0b03f31f2119a8604339fc91ab91",
+      "size": 77958,
+      "module_type": "doc"
+    },
+    "docs/a16_evidence/A16_missing_fallback.png": {
+      "sha256": "99572b31231ca3caa04a71c46175b302b534aaf8aad0a427e76340beb1a1a607",
+      "size": 79182,
+      "module_type": "doc"
+    },
+    "docs/a16_evidence/A16_font_missing.png": {
+      "sha256": "d77e2e606ad471f66ae3b740b77598893cf03dfcbd02f49d7bffbcddb1341233",
+      "size": 79106,
+      "module_type": "doc"
+    },
+    "docs/a16_evidence/A16_unverifiable_canvas_noappkit.png": {
+      "sha256": "30085135740f8194d8760626fddc0121ecc1955c3ceb4e4c095ff585030e58bb",
+      "size": 120330,
+      "module_type": "doc"
+    },
+    "docs/a16_evidence/A16_four_state_canvas_macos.png": {
+      "sha256": "62ca2fbf73bb24c9b60d57b8f47eb9ce3f11e620af72d82560a19a85c136271c",
+      "size": 121833,
+      "module_type": "doc"
+    },
+    "docs/a16_evidence/A16_font_and_state_evidence.json": {
+      "sha256": "091ce111d195917ff6acd7451b698695b1cd81a436891cc223e01e1428bed172",
+      "size": 4488,
+      "module_type": "doc"
+    }
+  }
+}

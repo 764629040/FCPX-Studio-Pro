@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FCPX Studio Pro 独立审核报告 · 第十八轮</title>
+<style>
+:root{--ink:#1a1d23;--muted:#5b6472;--line:#e3e7ee;--bg:#fbfcfe;--accent:#0b5fff;--bad:#b91c1c;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:16px/1.75 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;}
+.wrap{max-width:980px;margin:0 auto;padding:48px 28px 96px;}
+h1{font-size:26px;line-height:1.4;margin:0 0 6px;letter-spacing:-.2px}
+h2{font-size:21px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+h3{font-size:17px;margin:28px 0 10px;color:#111}
+h4{font-size:15px;margin:20px 0 8px}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:26px}
+li{margin:5px 0}
+code{background:#eef1f6;padding:1.5px 5px;border-radius:4px;font-size:.9em;
+ font-family:"SF Mono",Menlo,Consolas,monospace;color:#0b3ea8}
+pre{background:#1e2430;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px}
+pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14.5px;background:#fff;
+ box-shadow:0 0 0 1px var(--line);border-radius:8px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f3f6fb;font-weight:600;color:#2a3140}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbfe}
+blockquote{margin:16px 0;padding:12px 18px;background:#fff;border-left:4px solid var(--accent);
+ border-radius:0 6px 6px 0;color:var(--muted)}
+blockquote p{margin:4px 0}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+strong{color:#0e1420}
+del{color:#9aa3b0}
+</style></head><body><div class="wrap">
+<h1>FCPX Studio Pro 独立审核报告 · 第十八轮</h1>
+<h2>我上一轮两条判断都错了；A-32 已有第二来源；A-33 关闭</h2>
+<blockquote><p>审核日期：2026-10-28 审核方：独立第三方（非开发方）<br>审核基线：本轮 3 份产物 + <code>docs/audit_inventory_20261028_round17_a3233.json</code>（69 项源码指纹）<br>结论口径：仅以可复算证据判定，不采信声明性描述</p></blockquote>
+<hr>
+<h2>0. 直接回答</h2>
+<p><strong>你两条都对，我两条都错。这是我的误判，不是你的实现问题。</strong></p>
+<table><thead><tr><th>我 R17 的判断</th><th>实测结论</th><th>定性</th></tr></thead><tbody>
+<tr><td>「<code>tools/</code> 下四态生成脚本不存在」</td><td><strong><code>tests/make_four_state_fixture.py</code> 确实存在</strong></td><td><strong>我检索路径未穷尽</strong></td></tr>
+<tr><td>「type 层 <code>FontSet</code> 为空」</td><td><strong><code>resource_dict["FontSet"]</code> 非空，读得出 3 个不同字体名</strong></td><td><strong>我读错了 API 位置</strong></td></tr>
+</tbody></table>
+<p>我在第十七轮用这两条「事实」支撑了 A-33 的成立，<strong>而两条都不成立</strong>。A-33 因此撤回。</p>
+<p>而且必须说清：<strong>我犯的正是我上一轮批评你的同一类错误</strong>——「未验证就下结论」。我批评你「把方法当属性」，我自己则「把没搜到当成不存在」。这一点我记入 A-35（审核方自正）。</p>
+<p><strong>A-32 你质疑「只有一方报告」——我现在有第二来源了</strong>：本沙箱独立建三个虚拟环境实测，<strong>1.9.24 抛 <code>ValueError: Invalid RLE compression</code>，1.24.0 与 1.26.0 均正常</strong>。你的 <code>requirements.txt</code> 写的 <code>psd-tools&gt;=1.24.0</code> <strong>恰好排除失败版本，下界设对了</strong>。</p>
+<p><strong>安装三步走：批准。</strong></p>
+<hr>
+<h2>1. 核查基线</h2>
+<table><thead><tr><th>核查项</th><th>声明</th><th>独立复核</th><th>判定</th></tr></thead><tbody>
+<tr><td>源码指纹</td><td>69 项</td><td><strong>69/69 一致</strong>，0 不一致、0 缺失</td><td>通过</td></tr>
+<tr><td>测试</td><td>全通过</td><td><strong>172 passed / 3 skipped / exit 0</strong></td><td>通过</td></tr>
+<tr><td>3 项跳过</td><td>—</td><td><strong>全部 AppKit 相关</strong>（<code>test_a33:187</code>、<code>test_round2_a3_to_a7.py:168/178</code>）</td><td><strong>无静默跳过</strong></td></tr>
+<tr><td>1 项 warning</td><td>—</td><td>Pillow <code>getdata</code> Deprecation（2027-10 移除），非失败</td><td>提示性</td></tr>
+</tbody></table>
+<hr>
+<h2>2. 我的两条错误：逐条对账</h2>
+<h3>2.1 错误一：生成脚本「不存在」</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody>
+<tr><td>我 R17 的做法</td><td>`ls tools/ \</td><td>grep -i "four\</td><td>fixture\</td><td>make_"<code>，只得到 </code>make_a16_evidence.py`</td></tr>
+<tr><td>实际位置</td><td><strong><code>tests/make_four_state_fixture.py</code></strong>（<code>find</code> 全仓一次即命中）</td></tr>
+<tr><td>错在哪</td><td><strong>我只查了 <code>tools/</code> 一个目录就断言「不存在」</strong>，未在全仓检索</td></tr>
+<tr><td>性质</td><td><strong>检索范围不足 → 得出否定结论</strong>。这是不可接受的推论方式</td></tr>
+</tbody></table>
+<p><strong>脚本内容我已通读</strong>：它通过改写每个文本层的 <code>resource_dict["FontSet"][0]["Name"].value</code> 来承载四态，<code>STATE_FONTS</code> 定义了各状态的字体名，并明确说明「像素本就应当一致，四态体现在 FontSet」。</p>
+<p><strong>这恰好解释了我 R17 的另一条错误观察</strong>：我看到 <code>four_state.psd</code> 与旧夹具 composite 零差异，就推断「四态无证据」。<strong>实际上「像素相同」正是该设计的预期结果</strong>——四态落在字体名上，不在像素上。我把「设计正确」误读成「实现缺失」。</p>
+<h3>2.2 错误二：FontSet「为空」</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody>
+<tr><td>我 R17 的做法</td><td>读 <code>layer.engine_dict["ResourceDict"]["FontSet"]</code> → 得到空</td></tr>
+<tr><td>你指出的正确路径</td><td><strong><code>layer.resource_dict["FontSet"]</code></strong></td></tr>
+<tr><td>实测结果</td><td><strong>非空</strong>：<code>PingFangSC-Regular</code>、<code>Helvetica</code>、<code>CormorantInfant-Regular</code></td></tr>
+<tr><td>错在哪</td><td><strong><code>engine_dict</code> 下确实没有 FontSet，但 <code>resource_dict</code> 下有</strong>。我读了一个不含该键的位置，就宣布「为空」</td></tr>
+<tr><td>性质</td><td><strong>API 位置错误 → 得出否定结论</strong>。「某处没有」≠「不存在」</td></tr>
+</tbody></table>
+<h3>2.3 你连 API 路径都指出来了</h3>
+<p>你写：</p>
+<blockquote><p>「FontSet 需要通过 <code>layer.resource_dict</code> 读取，<code>layer.engine_dict</code> 下确实没有。」</p></blockquote>
+<p><strong>这句完全准确。</strong> 我读 <code>engine_dict</code> 时它确实为空，问题是我没有继续找 <code>resource_dict</code>。<strong>你把我的错误定位到了具体行，这是有效的技术反驳。</strong></p>
+<hr>
+<h2>3. A-33 复核：<strong>成立撤回，关闭</strong></h2>
+<h3>3.1 四态证据（审核方独立实测）</h3>
+<p>从 <code>resource_dict</code> 逐层读取 8 个 type 层：</p>
+<table><thead><tr><th>字体名</th><th>层数</th><th>设计语义</th></tr></thead><tbody>
+<tr><td><code>PingFangSC-Regular</code></td><td>2</td><td><strong>应可用</strong>（系统中文字体）</td></tr>
+<tr><td><code>Helvetica</code></td><td>4</td><td><strong>应缺字形</strong>（西文字体，缺中文）</td></tr>
+<tr><td><code>CormorantInfant-Regular</code></td><td>2</td><td><strong>应未安装</strong></td></tr>
+<tr><td>互不相同字体数</td><td><strong>3</strong></td><td>—</td></tr>
+</tbody></table>
+<h3>3.2 产品侧能否读到（关键，不只是测试能读）</h3>
+<p>我用 <code>core/psd_parser.py</code> 的 <code>parse_psd_file()</code> 实测：</p>
+<table><thead><tr><th>层</th><th><code>original_font</code></th><th><code>detection_status</code></th></tr></thead><tbody>
+<tr><td>8 层全部</td><td><strong>正确读出上述 3 个字体名</strong></td><td><strong>全部 <code>unverifiable</code></strong></td></tr>
+</tbody></table>
+<p><strong>两点都符合设计：</strong></p>
+<ul>
+<li><strong>字体名读到了</strong> → 四态数据真实存在，且产品解析器（第 772 行 <code>resource_dict</code>）能读到，不是只存在于测试脚本里；</li>
+<li><strong>状态全 <code>unverifiable</code></strong> → <strong>这是 A-10 契约的正确行为</strong>：Linux 无 AppKit 无法检测字体安装情况，此时「无法验证」是正确状态，<strong>不是缺陷</strong>。</li>
+</ul>
+<h3>3.3 「四态」= 3 个数据态 + 1 个环境态</h3>
+<p>我上一轮困惑「只有 3 个字体名怎么叫四态」。看测试断言就清楚了：</p>
+<table><thead><tr><th>态</th><th>载体</th></tr></thead><tbody>
+<tr><td>应可用</td><td><code>PingFangSC-Regular</code></td></tr>
+<tr><td>应缺字形</td><td><code>Helvetica</code></td></tr>
+<tr><td>应未安装</td><td><code>CormorantInfant-Regular</code></td></tr>
+<tr><td><strong>无法检测（unverifiable）</strong></td><td><strong>环境态</strong>，由有无 AppKit 决定，不是文件内字体名</td></tr>
+</tbody></table>
+<p><code>test_33_fontset_covers_multiple_fonts</code> 断言 <code>len(fonts) &gt;= 3</code> 且必须含上述三个关键字体名——<strong>这个设计是对的</strong>，第 4 态本就是环境态，不该硬编码进 PSD。</p>
+<h3>3.4 测试是否真的双分支</h3>
+<p><code>tests/test_a33_four_state_evidence.py</code> 结构核实：</p>
+<table><thead><tr><th>测试</th><th>断言</th><th>覆盖</th></tr></thead><tbody>
+<tr><td><code>test_33_fontset_is_not_empty</code></td><td>8 层全部 FontSet 非空</td><td><strong>直接反驳我 R17 的错误</strong></td></tr>
+<tr><td><code>test_33_fontset_differs_from_legacy_layer_by_layer</code></td><td>8 层 FontSet <strong>逐层全部</strong>与旧夹具不同</td><td>强</td></tr>
+<tr><td><code>test_33_fontset_covers_multiple_fonts</code></td><td>≥3 种且含 PingFang/Helvetica/CormorantInfant</td><td>强</td></tr>
+<tr><td><code>test_33_parsed_status_is_multi_state</code></td><td><strong>有 AppKit：状态 ≥2 种；无 AppKit：必须恰为 <code>{unverifiable}</code></strong></td><td><strong>双分支，正确</strong></td></tr>
+<tr><td><code>test_33_four_state_differs_from_legacy_on_macos</code></td><td>有 AppKit：四态 vs 旧夹具状态必须不同，且旧夹具全 <code>detected</code>、四态 ≥3 种</td><td><strong>macOS 决定性证据</strong></td></tr>
+<tr><td><code>test_33_expected_state_distribution</code></td><td>无 AppKit 时 <code>pytest.skip</code></td><td>合理跳过</td></tr>
+</tbody></table>
+<p><strong>双分支设计正确</strong>：Linux 分支断言「必须全 unverifiable」（守住 A-10 契约），macOS 分支断言「必须分化 ≥3 种」（守住四态生效）。</p>
+<h3>3.5 裁定</h3>
+<p><strong>A-33 撤回，关闭。</strong></p>
+<ul>
+<li>四态证据<strong>真实存在</strong>，载体是 FontSet，非像素；</li>
+<li>产品解析器<strong>能读到</strong>，链路完整；</li>
+<li>测试<strong>双分支覆盖</strong>，Linux 侧「全 unverifiable」是契约要求、非缺陷。</li>
+</ul>
+<p><strong>遗留人工项</strong>：<code>test_33_four_state_differs_from_legacy_on_macos</code> 与 <code>test_33_expected_state_distribution</code> 在 Linux 下 <strong>skip</strong>（3 项跳过中占 1–2 项）。<strong>四态在 macOS 上是否真分化出 ≥3 种状态，只能真机验证</strong>，审核方无 macOS 环境，不能代证。<strong>这一项建议列入真机人工验收清单</strong>，不计入缺陷。</p>
+<hr>
+<h2>4. A-32 复核：已有第二来源，关闭</h2>
+<h3>4.1 你的质疑成立：R17 确实只有一方报告</h3>
+<p>你写：</p>
+<blockquote><p>「A-32 的 1.9.24 报错我无法验证……但目前我只有一方的报告。」</p></blockquote>
+<p><strong>这个质疑合理。</strong> R17 我给的只是「我这个沙箱跑出异常」这一条孤证。本轮我做了<strong>三版本独立对照</strong>（各建独立 venv，不改主环境）：</p>
+<table><thead><tr><th>psd-tools 版本</th><th><code>vertical_wedding_9_16.psd</code></th><th><code>vertical_9x16_rebased.psd</code></th><th><code>four_state.psd</code></th></tr></thead><tbody>
+<tr><td><strong>1.9.24</strong></td><td><strong><code>ValueError: Invalid RLE compression</code></strong></td><td>异常</td><td>异常</td></tr>
+<tr><td><strong>1.24.0</strong></td><td><strong>composite OK</strong></td><td><strong>OK</strong></td><td><strong>OK</strong></td></tr>
+<tr><td><strong>1.26.0</strong></td><td><strong>composite OK</strong></td><td><strong>OK</strong></td><td><strong>OK</strong></td></tr>
+</tbody></table>
+<p><strong>结论：失败区间在 1.9.24 及更早；1.24.0 起正常。</strong> 这不是孤证了——同一沙箱内三个独立环境、同一批夹具、只变版本，结果可复现。</p>
+<h3>4.2 你的修复恰好卡在正确位置</h3>
+<p><code>requirements.txt</code> 已声明（含 A-32 说明注释）：</p>
+<pre><code>psd-tools&gt;=1.24.0</code></pre>
+<table><thead><tr><th>检查</th><th>结论</th></tr></thead><tbody>
+<tr><td>下界 1.24.0 是否排除失败区间</td><td><strong>是</strong>——1.9.24 失败，1.24.0 通过，下界正好落在临界点上</td></tr>
+<tr><td>上界是否需要</td><td>不必。1.26.0 实测正常，未发现更高版本问题</td></tr>
+<tr><td>是否仍有 1.24.0–1.25.x 未测区间</td><td><strong>是，我未穷举</strong>。但「下界已避开已知失败版本」这一要求已满足</td></tr>
+</tbody></table>
+<p><strong>A-32 关闭。</strong> 要求（声明最低版本 + 不锁具体像素数值）已落实。</p>
+<blockquote><p>需如实说明：我<strong>只实测了 1.9.24 / 1.24.0 / 1.26.0 三个点</strong>，未穷举 1.24.0–1.25.x 全部小版本。若你希望更严密，可在 CI 里加一个「最低版本冒烟」任务；但就当前证据，<code>&gt;=1.24.0</code> 是站得住的。</p></blockquote>
+<hr>
+<h2>5. 缺陷台账</h2>
+<table><thead><tr><th>编号</th><th>级别</th><th>描述</th><th>状态</th></tr></thead><tbody>
+<tr><td>A-28</td><td>P2</td><td>缩略图不保宽高比</td><td>已修复 · 关闭（R15）</td></tr>
+<tr><td>A-29</td><td>P2</td><td>竖版夹具背景层越界</td><td>已修复 · 关闭（R16）</td></tr>
+<tr><td>A-31</td><td>P2</td><td>夹具横向零覆盖 + 无横向断言</td><td>已修复 · 关闭（R16）</td></tr>
+<tr><td>A-30</td><td>P2</td><td>composite 跨行错位产生彩条</td><td>已修复 · 关闭（R17）</td></tr>
+<tr><td><strong>A-32</strong></td><td>P3</td><td>彩条计数差 20–340 倍 / 版本区间失败</td><td><strong>已修复 · 关闭（R18：三版本双源验证 + <code>&gt;=1.24.0</code> 下界正确）</strong></td></tr>
+<tr><td><strong>A-33</strong></td><td><del>P3</del></td><td><del>四态无可验证证据</del></td><td><strong>撤回 · 关闭（R18：我两条判断错误，四态真实有效）</strong></td></tr>
+<tr><td>A-14</td><td>P3</td><td>44% 缩放下文字采样质量</td><td>保留（非字形丢失）</td></tr>
+<tr><td>A-34</td><td>—</td><td>审核方 R16 判据未标注绑定夹具</td><td>已修正（R17）</td></tr>
+<tr><td><strong>A-35</strong></td><td>—</td><td><strong>审核方 R17 两条误判（检索路径未穷尽 / 读错 API 位置）</strong></td><td><strong>已在本轮更正并撤回 A-33</strong></td></tr>
+</tbody></table>
+<p><strong>当前：P0 = 0；P1 = 0；P2 = 0；P3 = 1（仅 A-14 保留）。</strong></p>
+<blockquote><p><strong>P2、A-32、A-33 全部关闭。缺陷台账只剩 A-14 一项 P3（文字质量优化，非缺陷阻断项）。</strong></p></blockquote>
+<hr>
+<h2>6. 安装三步走：批准</h2>
+<h3>6.1 批准依据</h3>
+<table><thead><tr><th>前置条件</th><th>状态</th></tr></thead><tbody>
+<tr><td>P0 / P1 / P2</td><td><strong>全 0</strong></td></tr>
+<tr><td>A-32（版本声明）</td><td><strong>已关闭</strong>，<code>&gt;=1.24.0</code> 下界正确</td></tr>
+<tr><td>A-33（四态证据）</td><td><strong>已关闭</strong>，FontSet 载体真实、产品侧可读</td></tr>
+<tr><td>指纹</td><td><strong>69/69 一致</strong></td></tr>
+<tr><td>测试</td><td><strong>172 passed / 3 skipped / exit 0</strong></td></tr>
+</tbody></table>
+<h3>6.2 三步走清单</h3>
+<p><strong>第一步：重建到临时目录</strong></p>
+<p>产出五项数据表：<code>comp 尺寸</code> / <code>层数</code> / <code>缩略图比例</code> / <code>纵向跨度</code> / <code>横向跨度</code>。交我复核后再进第二步。</p>
+<p><strong>第二步：备份 → 覆盖安装</strong></p>
+<ul>
+<li>覆盖前<strong>必须确认 <code>_bak_&lt;timestamp&gt;</code> 对已装目录生效</strong>，备份留原目录；</li>
+<li>安装目标：<code>~/Movies/Motion Templates.localized/Titles.localized/</code>；</li>
+<li><strong>128 卷严格只读</strong>，不得写入任何文件。</li>
+</ul>
+<p><strong>第三步：启动 FCPX 12.3 验证</strong></p>
+<p>必须验四项：<strong>导入成功 / 不闪退 / 不报错 / 资源库预览图比例正确且非彩条乱码</strong>。回传资源库截图。</p>
+<h3>6.3 顺带解决 A-25</h3>
+<p>第二步覆盖安装后，<strong>重点核查 23 号</strong>：</p>
+<ul>
+<li>[ ] <code>Media/</code> 下两个 PNG 实物存在</li>
+<li>[ ] 箭头、横线素材齐全</li>
+</ul>
+<p>A-25 定性为部署态、重装可修——这一步就是验证它。</p>
+<hr>
+<h2>7. 本轮该记的教训（审核方自正 A-35）</h2>
+<p>我上一轮批评你「把方法当属性」「未验证就下结论」。这一轮我自己犯了同类错误，性质更基础：</p>
+<table><thead><tr><th>我的错误</th><th>正确做法</th></tr></thead><tbody>
+<tr><td>只查 <code>tools/</code> 就断言「脚本不存在」</td><td>全仓 <code>find</code> 一次即命中</td></tr>
+<tr><td>读 <code>engine_dict</code> 为空就断言「FontSet 为空」</td><td>换 <code>resource_dict</code> 再查</td></tr>
+<tr><td>看到像素零差异就断言「四态无证据」</td><td>先读生成脚本，理解设计意图</td></tr>
+</tbody></table>
+<p><strong>三条的共同病根是：把「我没找到」当成「不存在」。</strong></p>
+<p>对审核方而言这是严重错误——<strong>否定性结论必须建立在穷尽检索之上，而不是一次失败的查找</strong>。我已把这条写成判据约束：<strong>凡是要出「不存在 / 为空 / 无效」的否定结论，必须先做至少两种独立路径的检索，并把检索方式写进报告。</strong></p>
+<p>同时说明：<strong>你本轮的反驳方式是对的</strong>——指出具体路径（<code>tests/</code> 而非 <code>tools/</code>）、指出具体 API（<code>resource_dict</code> 而非 <code>engine_dict</code>），让我能直接复现并自证错误。这比争论结论有效得多。</p>
+<hr>
+<h2>8. 如实声明</h2>
+<ol>
+<li>审核方<strong>无 macOS 环境</strong>，全部结论来自 Linux 沙箱内源码运行与产物解析；</li>
+<li><strong>§2 两条错误为审核方自身误判，已明确撤回</strong>，不归因于开发方；</li>
+<li>§3 的四态字体名、<code>parse_psd_file</code> 实测状态、§4 的三版本对照，均由审核方<strong>独立实测</strong>；</li>
+<li><strong>§4 只测 1.9.24 / 1.24.0 / 1.26.0 三点</strong>，未穷举 1.24.0–1.25.x，不推断中间版本行为；</li>
+<li><strong>四态在 macOS 上的状态分化（≥3 种）审核方无法验证</strong>，<code>test_33_*_on_macos</code> 与 <code>test_33_expected_state_distribution</code> 在 Linux 下 skip，<strong>必须真机验证</strong>，不作代证；</li>
+<li>A-33 撤回基于：脚本存在（已通读）+ FontSet 非空（实测 3 个字体名）+ 产品解析器可读（<code>original_font</code> 实测）+ 测试双分支完整；</li>
+<li>安装批准基于 P0/P1/P2 全 0，<strong>但第三步的真机四项验证仍是放行的实质条件</strong>，审核方不能替代；</li>
+<li>真机观感与最终签字权在用户。</li>
+</ol>
+</div></body></html>

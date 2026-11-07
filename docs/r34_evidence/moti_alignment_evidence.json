@@ -1,0 +1,225 @@
+[
+  {
+    "layer_index": 0,
+    "psd_name": "领 衔 呈 现",
+    "motion_layer_name": "Text 01",
+    "alignment": "center",
+    "expected_p401": "2",
+    "actual_p401_count": 8,
+    "actual_p401_values": [
+      "2",
+      "2",
+      "2"
+    ],
+    "psd_bbox": [
+      308,
+      388,
+      346,
+      563
+    ],
+    "orig_motion_pos": [
+      -213.0,
+      484.5
+    ],
+    "moti_pos_compensated": [
+      "-213.0",
+      "484.5"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 1,
+    "psd_name": "lead the  presentation",
+    "motion_layer_name": "Text 02",
+    "alignment": "left",
+    "expected_p401": "1",
+    "actual_p401_count": 2,
+    "actual_p401_values": [
+      "1",
+      "1"
+    ],
+    "psd_bbox": [
+      357,
+      389,
+      393,
+      549
+    ],
+    "orig_motion_pos": [
+      -165.0,
+      491.0
+    ],
+    "moti_pos_compensated": [
+      "-165.0",
+      "411.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 2,
+    "psd_name": "新 娘  朱 永 宏",
+    "motion_layer_name": "Text 03",
+    "alignment": "center",
+    "expected_p401": "2",
+    "actual_p401_count": 10,
+    "actual_p401_values": [
+      "2",
+      "2",
+      "2"
+    ],
+    "psd_bbox": [
+      481,
+      389,
+      518,
+      655
+    ],
+    "orig_motion_pos": [
+      -40.5,
+      438.0
+    ],
+    "moti_pos_compensated": [
+      "-40.5",
+      "438.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 3,
+    "psd_name": "THE BRIDE",
+    "motion_layer_name": "Text 04",
+    "alignment": "left",
+    "expected_p401": "1",
+    "actual_p401_count": 18,
+    "actual_p401_values": [
+      "1",
+      "1",
+      "1"
+    ],
+    "psd_bbox": [
+      532,
+      389,
+      546,
+      504
+    ],
+    "orig_motion_pos": [
+      -1.0,
+      513.5
+    ],
+    "moti_pos_compensated": [
+      "-1.0",
+      "456.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 4,
+    "psd_name": "新 郎  陈 晗",
+    "motion_layer_name": "Text 05",
+    "alignment": "center",
+    "expected_p401": "2",
+    "actual_p401_count": 8,
+    "actual_p401_values": [
+      "2",
+      "2",
+      "2"
+    ],
+    "psd_bbox": [
+      653,
+      389,
+      690,
+      609
+    ],
+    "orig_motion_pos": [
+      131.5,
+      461.0
+    ],
+    "moti_pos_compensated": [
+      "131.5",
+      "461.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 5,
+    "psd_name": "THE GROOM",
+    "motion_layer_name": "Text 06",
+    "alignment": "left",
+    "expected_p401": "1",
+    "actual_p401_count": 18,
+    "actual_p401_values": [
+      "1",
+      "1",
+      "1"
+    ],
+    "psd_bbox": [
+      703,
+      389,
+      718,
+      519
+    ],
+    "orig_motion_pos": [
+      170.5,
+      506.0
+    ],
+    "moti_pos_compensated": [
+      "170.5",
+      "441.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 6,
+    "psd_name": "镇 雄",
+    "motion_layer_name": "Text 07",
+    "alignment": "center",
+    "expected_p401": "2",
+    "actual_p401_count": 4,
+    "actual_p401_values": [
+      "2",
+      "2",
+      "2"
+    ],
+    "psd_bbox": [
+      747,
+      388,
+      784,
+      470
+    ],
+    "orig_motion_pos": [
+      225.5,
+      531.0
+    ],
+    "moti_pos_compensated": [
+      "225.5",
+      "531.0"
+    ],
+    "p401_synced": true
+  },
+  {
+    "layer_index": 7,
+    "psd_name": "CITY",
+    "motion_layer_name": "Text 08",
+    "alignment": "left",
+    "expected_p401": "1",
+    "actual_p401_count": 8,
+    "actual_p401_values": [
+      "1",
+      "1",
+      "1"
+    ],
+    "psd_bbox": [
+      798,
+      389,
+      812,
+      438
+    ],
+    "orig_motion_pos": [
+      265.0,
+      546.5
+    ],
+    "moti_pos_compensated": [
+      "265.0",
+      "522.0"
+    ],
+    "p401_synced": true
+  }
+]

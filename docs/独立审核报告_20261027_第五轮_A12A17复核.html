@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>������������������ �� ������������A-12/A-17 ���������</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">������������������ �� ������������A-12/A-17
+���������</h1>
+</header>
+<h1 id="独立审核报告--第五轮a-12--a-17-修复复核">独立审核报告 ·
+第五轮（A-12 / A-17 修复复核）</h1>
+<ul>
+<li>审核日期：2026-10-27</li>
+<li>审核方：Tabbit（独立技术审核）</li>
+<li>审核基线：<code>docs/audit_inventory_20261027_round5.json</code>（30
+个受控文件）</li>
+<li>审核环境：Linux 沙箱，Python 3.12.13，<strong>无
+AppKit</strong></li>
+</ul>
+<hr />
+<h2 id="0-基线校验先于结论">0. 基线校验（先于结论）</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项目</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>声明项数</td>
+<td>30</td>
+</tr>
+<tr class="even">
+<td>实际条目</td>
+<td>30（无虚增、无缺项）</td>
+</tr>
+<tr class="odd">
+<td>SHA-256 复算一致</td>
+<td><strong>30 / 30</strong></td>
+</tr>
+<tr class="even">
+<td>不一致</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>缺失</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="01-仅一个文件被改动逐文件核对不采信自述">0.1
+「仅一个文件被改动」逐文件核对（不采信自述）</h3>
+<p>将 round5 与 round4 指纹清单逐项比对：</p>
+<pre><code>ADDED  : [&#39;tests/test_round4_a12_a17.py&#39;]
+CHANGED: [&#39;gui/canvas_view.py&#39;]
+REMOVED: []
+其余 28 个文件 SHA-256 与第四轮完全一致</code></pre>
+<p><strong>声明属实</strong>：产品代码仅 <code>gui/canvas_view.py</code>
+一处改动，另新增 1 个测试文件，无误改、无夹带。</p>
+<h3 id="02-独立复跑">0.2 独立复跑</h3>
+<p>在项目副本上以无 AppKit 环境独立执行：</p>
+<pre><code>80 passed, 2 skipped, EXIT=0</code></pre>
+<p>与开发方声明「80 passed + 2 skipped / exit 0（无
+AppKit）」<strong>完全一致</strong>。两个跳过项均为「无 AppKit
+无法验证真实缺字」，属预期跳过，非屏蔽失败。</p>
+<p>开发方另声明的 macOS
+<code>82 passed / exit 0</code>，<strong>审核方无 macOS
+环境，无法独立复核</strong>，仅记录为开发方自述，不作为本轮通过依据。</p>
+<hr />
+<h2 id="1-a-12修复成立实测非采信报告">1.
+A-12：<strong>修复成立</strong>（实测，非采信报告）</h2>
+<p>沿用第四轮同一手法：离屏实例化画布容器，执行真实控件操作后读取控件文字与实际宽高。</p>
+<table>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>预设下拉显示</th>
+<th>方向按钮</th>
+<th>实际 W × H</th>
+<th>标签≡画板</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>初始</td>
+<td>1080P 全高清 (1920 × 1080)</td>
+<td>🔄 横版 (16:9)</td>
+<td>1920 × 1080</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>选竖版预设</td>
+<td>竖版 1080P 抖音/短视频 (1080 × 1920)</td>
+<td>🔄 竖版 (9:16)</td>
+<td>1080 × 1920</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><strong>点方向切换</strong></td>
+<td><strong>1080P 全高清 (1920 × 1080)</strong></td>
+<td><strong>🔄 横版 (16:9)</strong></td>
+<td>1920 × 1080</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>再点回</td>
+<td>竖版 1080P 抖音/短视频 (1080 × 1920)</td>
+<td>🔄 竖版 (9:16)</td>
+<td>1080 × 1920</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td>手输 1234×890</td>
+<td><strong>自定义分辨率...</strong></td>
+<td>🔄 横版 (617:445)</td>
+<td>1234 × 890</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>手输后切换</td>
+<td>自定义分辨率...</td>
+<td>🔄 竖版 (445:617)</td>
+<td>890 × 1234</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td>方形 1080×1080</td>
+<td>方形 1:1 视频 (1080 × 1080)</td>
+<td>🔄 方形 (1:1)</td>
+<td>1080 × 1080</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>方形下切换</td>
+<td>方形 1:1 视频 (1080 × 1080)</td>
+<td>🔄 方形 (1:1)</td>
+<td>1080 × 1080</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td>外部 set_artboard_resolution</td>
+<td>竖版 1080P 抖音/短视频 (1080 × 1920)</td>
+<td>🔄 竖版 (9:16)</td>
+<td>1080 × 1920</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p><strong>第四轮缺陷已消失</strong>：上一轮「点方向切换后下拉仍显示竖版
+1080×1920」的矛盾不再出现，切换后下拉正确回到「1080P 全高清 (1920 ×
+1080)」。</p>
+<p><strong>9/9
+全部一致</strong>，且覆盖了报告未强调的三类边界：非预设值正确回落到「自定义分辨率...」（不冒充匹配项）、方形不产生错误标签、外部调用路径同样收口。</p>
+<hr />
+<h2 id="2-a-17修复成立">2. A-17：<strong>修复成立</strong></h2>
+<p>方向按钮在<strong>所有路径</strong>下均带画幅后缀，且后缀由真实宽高约分推导：</p>
+<table>
+<thead>
+<tr class="header">
+<th>路径</th>
+<th>按钮文案</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>预设路径</td>
+<td>🔄 横版 (16:9) / 🔄 竖版 (9:16)</td>
+<td>✅ 带后缀</td>
+</tr>
+<tr class="even">
+<td><strong>方向切换路径</strong></td>
+<td>🔄 横版 (16:9) / 🔄 竖版 (9:16)</td>
+<td>✅ <strong>已补回后缀</strong>（上轮缺失）</td>
+</tr>
+<tr class="odd">
+<td>手输路径</td>
+<td>🔄 横版 (617:445)</td>
+<td>✅ 带后缀，约分正确</td>
+</tr>
+<tr class="even">
+<td>方形</td>
+<td>🔄 方形 (1:1)</td>
+<td>✅ 不误标横/竖</td>
+</tr>
+</tbody>
+</table>
+<p>上轮「切换路径写 <code>🔄 横版</code>、丢失后缀」的不一致已消除。</p>
+<hr />
+<h2 id="3-测试有效性验证审核方主动加固开发方未要求">3.
+测试有效性验证（审核方主动加固，开发方未要求）</h2>
+<p>「全部通过」不等于「测试有效」。审核方在副本上做<strong>变异测试</strong>：把
+<code>_on_toggle_orientation</code> 回滚为修复前写法（仅交换
+W/H、不同步下拉与后缀），再跑新增用例：</p>
+<pre><code>5 failed, 8 passed</code></pre>
+<p>失败项正好锁定缺陷：</p>
+<ul>
+<li><code>test_preset_combo_follows_orientation_toggle_vertical_to_horizontal</code></li>
+<li><code>test_preset_combo_follows_orientation_toggle_horizontal_to_vertical</code></li>
+<li><code>test_label_and_artboard_never_diverge_across_sequence</code></li>
+<li><code>test_orientation_button_has_suffix_on_toggle_path</code></li>
+<li><code>test_orientation_button_text_consistent_between_paths</code></li>
+</ul>
+<p><strong>结论</strong>：这 13 个用例确实咬住 A-12/A-17
+的行为，属真实防护而非装饰。变异副本已还原， 复算 SHA-256
+与清单一致（<code>62a45b1b…</code>），全套复跑仍为 80 passed / 2 skipped
+/ EXIT=0。</p>
+<hr />
+<h2 id="4-回归确认">4. 回归确认</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项</th>
+<th>状态</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-1 ~ A-8</td>
+<td>维持修复</td>
+<td>全套 80 passed，无回归失败</td>
+</tr>
+<tr class="even">
+<td>A-9 两处</td>
+<td>维持整改</td>
+<td>默认 <code>extract_thumbnails=True</code> 未被改动</td>
+</tr>
+<tr class="odd">
+<td>A-10 三态</td>
+<td>维持修复</td>
+<td><code>psd_parser.py</code> 指纹未变，三态逻辑未受影响</td>
+</tr>
+<tr class="even">
+<td>A-11 文案四分</td>
+<td>维持</td>
+<td>占位文案未被改动</td>
+</tr>
+<tr class="odd">
+<td>A-13 画板对齐</td>
+<td>维持修复</td>
+<td><code>set_artboard_resolution</code>
+改为转调统一入口，语义与上轮一致且更强</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意</strong>：<code>set_artboard_resolution</code>
+本轮被并入 <code>_apply_resolution</code>，属 A-12 修复的合理延伸，
+不是对 A-13 的改写；A-13 的几何重算逻辑未动。</p>
+<hr />
+<h2 id="5-128-卷遗留文件裁决用户请审核方定">5. 128
+卷遗留文件裁决（用户请审核方定）</h2>
+<h3 id="51-先更正审核方自己的一处错误">5.1
+先更正审核方自己的一处错误</h3>
+<p>第四轮报告与清单中我写该文件 mtime
+为「03:46」，并据此质疑与只读铁律不符。<strong>这是审核方的读法错误</strong>：</p>
+<ul>
+<li>沙箱系统时钟为 <strong>UTC</strong>（<code>date</code> 显示
+UTC）。</li>
+<li>文件实际 mtime = <code>2026-10-27 03:46:13 +0000</code> =
+<strong>本地时间 11:46:13（UTC+8）</strong>。</li>
+<li>该时间<strong>早于审核方首次接触项目</strong>，属早期遗留，<strong>不是本轮任何一方写入</strong>。</li>
+</ul>
+<p>开发方的更正意见成立，审核方接受并在此更正记录。</p>
+<h3 id="52-核查结果">5.2 核查结果</h3>
+<table>
+<thead>
+<tr class="header">
+<th>检查项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>128 卷该文件 mtime</td>
+<td><code>2026-10-27 03:46:13 UTC</code>（=11:46 本地），本轮未变</td>
+</tr>
+<tr class="even">
+<td>源码目录是否存在同名副本</td>
+<td><strong>不存在</strong>（该文件为唯一一份）</td>
+</tr>
+<tr class="odd">
+<td>128 卷本轮新增/修改文件</td>
+<td><strong>0 个</strong></td>
+</tr>
+<tr class="even">
+<td>审核方对 128 卷写操作</td>
+<td><strong>无</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-裁决留在原处不动另在源码目录建立权威副本">5.3
+裁决：<strong>留在原处不动，另在源码目录建立权威副本</strong></h3>
+<p>理由与处置：</p>
+<ol type="1">
+<li><strong>不移出、不删除</strong> —— 删除或移动都是对 128
+卷的写操作，直接违反只读铁律；且该文件目前是唯一副本，移出有丢失风险。</li>
+<li><strong>读取不违反铁律</strong> ——
+只读铁律约束的是「不修改」，读取取回副本是被允许的。</li>
+<li><strong>已执行</strong>：将 128 卷该文件复制到源码目录
+<code>docs/11_开发方路径迁移与预览对照任务单_自128卷取回副本.md</code>，MD5
+校验一致（<code>3e69e625…</code>），128 卷原文件 mtime
+未变、无新增文件。</li>
+</ol>
+<p><strong>后续铁律细化建议</strong>：交付物一律写入源码目录；128
+卷仅作素材读取源。若确需在 128
+卷留存任何文件，应改为「在源码目录生成后只读引用」，避免再次出现「唯一副本落在只读卷」的隐患。</p>
+<hr />
+<h2 id="6-仍未完成项如实声明">6. 仍未完成项（如实声明）</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-14 文字栅格化质量</td>
+<td>未处理（观感，P2）</td>
+</tr>
+<tr class="even">
+<td>A-15 状态徽章拥挤</td>
+<td>未处理（观感，P2）</td>
+</tr>
+<tr class="odd">
+<td>A-16 macOS 三态语义补证</td>
+<td><strong>未补证</strong>。macOS <code>82 passed</code>
+为开发方自述，审核方无 macOS
+环境，<code>detected</code>/<code>font_missing</code>/字形缺失三态仍未由审核方直接观测</td>
+</tr>
+<tr class="even">
+<td>真机渲染 / Motion / FCPX 实机导入</td>
+<td>未验证，按 80%–90% 口径留待后续</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-结论">7. 结论</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-12 预设标签失同步</td>
+<td><strong>修复成立</strong>（9/9 场景一致）</td>
+</tr>
+<tr class="even">
+<td>A-17 方向按钮后缀丢失</td>
+<td><strong>修复成立</strong>（全路径带后缀）</td>
+</tr>
+<tr class="odd">
+<td>仅改一个文件声明</td>
+<td><strong>属实</strong>（28 文件指纹不变）</td>
+</tr>
+<tr class="even">
+<td>30 项指纹</td>
+<td><strong>30/30 一致</strong></td>
+</tr>
+<tr class="odd">
+<td>独立复跑</td>
+<td>80 passed / 2 skipped / EXIT=0，与声明一致</td>
+</tr>
+<tr class="even">
+<td>测试有效性</td>
+<td>变异测试 5 项失败，确为真实防护</td>
+</tr>
+<tr class="odd">
+<td>A-1 ~ A-11、A-13</td>
+<td>维持，无回归</td>
+</tr>
+<tr class="even">
+<td>128 卷遗留文件</td>
+<td>原样保留，源码目录已建权威副本</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P2（A-12 + A-17）本轮全部关闭。</strong></p>
+<p><strong>下一轮口径</strong>：观感 = A-14 + A-15；补证 = A-16（需
+macOS 环境，建议由开发方提供三态逐项截图与字体清单）；真机 = Motion/FCPX
+导入验收。A-1 ~ A-13 无需重做。</p>
+<p><strong>如实边界</strong>：本轮结论基于无 AppKit
+沙箱内的独立复算、复跑与变异测试，未在 macOS 真机、Motion、FCPX
+中做渲染验收。</p>
+</body>
+</html>

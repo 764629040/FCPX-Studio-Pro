@@ -1,0 +1,6 @@
+build_time: 2026-11-05 11:35:43 CST
+swift: swift-driver version: 1.127.14.1 Apple Swift version 6.2.3 (swiftlang-6.2.3.3.21 clang-1700.6.3.2)
+app_binary_sha256: e82f10f75f7e2a8e0281252ebb538f4325e5dc2e1f405b40fe89f6fa72592bf7
+app_binary_size: 412784
+app_binary_mtime: 2026-11-05 11:28:41
+legacy_binary_sha256: ed406cfba6ea9b54ac72c9b960cb58c8b7da24fd845bb35a4b6a83659ceb6ff2

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FCPX Studio Pro 独立审核报告 · 第十六轮</title>
+<style>
+:root{--ink:#1a1d23;--muted:#5b6472;--line:#e3e7ee;--bg:#fbfcfe;--accent:#0b5fff;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:16px/1.75 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;}
+.wrap{max-width:980px;margin:0 auto;padding:48px 28px 96px;}
+h1{font-size:26px;line-height:1.4;margin:0 0 6px;letter-spacing:-.2px}
+h2{font-size:21px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+h3{font-size:17px;margin:28px 0 10px;color:#111}
+h4{font-size:15px;margin:20px 0 8px}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:26px}
+li{margin:5px 0}
+code{background:#eef1f6;padding:1.5px 5px;border-radius:4px;font-size:.9em;
+ font-family:"SF Mono",Menlo,Consolas,monospace;color:#0b3ea8}
+pre{background:#1e2430;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px}
+pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14.5px;background:#fff;
+ box-shadow:0 0 0 1px var(--line);border-radius:8px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f3f6fb;font-weight:600;color:#2a3140}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbfe}
+blockquote{margin:16px 0;padding:12px 18px;background:#fff;border-left:4px solid var(--accent);
+ border-radius:0 6px 6px 0;color:var(--muted)}
+blockquote p{margin:4px 0}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+strong{color:#0e1420}
+del{color:#9aa3b0}
+</style></head><body><div class="wrap">
+<h1>FCPX Studio Pro 独立审核报告 · 第十六轮</h1>
+<h2>A-31 关闭；A-30 的「两难」是假两难——逐层贴图实测可消除彩条且零回归</h2>
+<blockquote><p>审核日期：2026-10-28 审核方：独立第三方（非开发方）<br>审核基线：本轮 4 份产物 + <code>docs/audit_inventory_20261028_round15_a30.json</code>（65 项源码指纹）<br>结论口径：仅以可复算证据判定，不采信声明性描述</p></blockquote>
+<hr>
+<h2>0. 直接回答你的问题</h2>
+<p>你问：A-30 按哪个口径判？</p>
+<p><strong>我的回答：这两个口径都不该选，因为它们共同假定了一个错误前提。</strong></p>
+<table><thead><tr><th>你给的选项</th><th>审核方裁定</th></tr></thead><tbody>
+<tr><td>口径 A：「让畸形 PSD 不再静默流出」→ 已达成</td><td><strong>部分成立</strong>。检测器确实有效，但<strong>只告警不修复</strong>，用户拿到的仍是乱码预览</td></tr>
+<tr><td>口径 B：「让畸形 PSD 的彩条被消除」→ 代码层做不到</td><td><strong>不成立。代码层做得到，我已跑通。</strong></td></tr>
+</tbody></table>
+<p>你说「代码层做不到，必须重建图层数据」——<strong>这个结论只在「继续用 <code>psd.composite()</code>」这一个前提下成立</strong>。一旦换掉这个合成方式，彩条可以归零，且对正常 PSD 零回归。</p>
+<p>我用你第十五轮任务单里的<strong>方案二（逐层贴图 + bbox 求交裁剪）</strong>做了端到端原型，实测：</p>
+<table><thead><tr><th>指标</th><th>当前交付物（composite + crop）</th><th>逐层贴图原型</th></tr></thead><tbody>
+<tr><td>旧夹具 全分辨率彩条</td><td><strong>28852 红 / 13477 绿</strong></td><td><strong>0 / 0</strong></td></tr>
+<tr><td>旧夹具 缩略图 large(360×640) 彩条</td><td><strong>119 / 48</strong></td><td><strong>0 / 0</strong></td></tr>
+<tr><td>正常夹具（rebased）彩条</td><td>0 / 0</td><td>0 / 0</td></tr>
+<tr><td>正常夹具 像素回归</td><td>—</td><td><strong>差异 0 像素（0.00%）</strong></td></tr>
+</tbody></table>
+<p>见对照图 <code>round16_evidence/A30_perlayer_vs_composite_compare.png</code>：<strong>左＝当前产物（红绿彩条满屏，预览完全不可用）；右＝逐层贴图（黑底干净，8 层文字「领衔呈现／新娘 朱永宏／THE BRIDE／新郎 陈晗／THE GROOM／镇雄／CITY」全部正确可读）。</strong></p>
+<p><strong>所以 A-30 判：仍为活缺陷，不关闭。</strong> 但要求不是「检测」，是「用逐层贴图替换 composite」。</p>
+<hr>
+<h2>1. 核查基线</h2>
+<table><thead><tr><th>核查项</th><th>声明</th><th>独立复核</th><th>判定</th></tr></thead><tbody>
+<tr><td>源码指纹</td><td>65 项</td><td><strong>65/65 一致</strong>，0 不一致、0 缺失</td><td>通过</td></tr>
+<tr><td>测试总数</td><td>166 项</td><td><strong>164 passed / 2 skipped = 166</strong></td><td><strong>吻合</strong></td></tr>
+<tr><td>2 项跳过</td><td>—</td><td>均为 AppKit 相关（<code>test_round2_a3_to_a7.py</code>），与 A-30/A-31 无关</td><td><strong>无静默跳过</strong></td></tr>
+<tr><td>A-30/A-31 专项</td><td>—</td><td><strong>13 passed</strong>（13/13）</td><td>通过</td></tr>
+</tbody></table>
+<hr>
+<h2>2. A-31 复核：彻底解决，<strong>准予关闭</strong></h2>
+<h3>2.1 新夹具 <code>vertical_9x16_rebased.psd</code> 直读</h3>
+<table><thead><tr><th>检查项</th><th>实测值</th><th>判定</th></tr></thead><tbody>
+<tr><td>画布</td><td>1080 × 1920</td><td>竖版正确</td></tr>
+<tr><td>层数</td><td>1 pixel 背景 + <strong>8 个 type 层</strong></td><td><strong>真实文字层，非占位</strong></td></tr>
+<tr><td>背景层 bbox</td><td><strong>(0, 0, 1080, 1920)</strong> = 画布</td><td><strong>合规，不越界</strong></td></tr>
+<tr><td>横向中心 x 跨度</td><td><strong>478.00（44.26% 画布宽）</strong></td><td><strong>不再是 0</strong></td></tr>
+<tr><td>纵向中心 y 跨度</td><td>108.50</td><td>—</td></tr>
+<tr><td>composite 全像素彩条</td><td><strong>0 红 / 0 绿</strong></td><td><strong>干净</strong></td></tr>
+<tr><td>可提取文本</td><td><strong>8 条</strong>：领衔呈现／lead the presentation／新娘 朱永宏／THE BRIDE／新郎 陈晗／THE GROOM／镇雄／CITY</td><td><strong>文字内容可验</strong></td></tr>
+</tbody></table>
+<h3>2.2 横向几何是否真的继承自旧夹具</h3>
+<table><thead><tr><th>夹具</th><th>8 个 type 层中心 x</th><th>跨度</th></tr></thead><tbody>
+<tr><td>旧 <code>vertical_wedding_9_16.psd</code></td><td>327.0, 375.0, 499.5, 539.0, 671.5, 710.5, 765.5, 805.0</td><td>478.00</td></tr>
+<tr><td>新 <code>vertical_9x16_rebased.psd</code></td><td>327.0, 375.0, 499.5, 539.0, 671.5, 710.5, 765.5, 805.0</td><td>478.00</td></tr>
+</tbody></table>
+<p><strong>逐层中心逐个精确相等，跨度完全一致。</strong> 你提的「基于旧夹具重建背景层」方案执行得<strong>完全正确</strong>——真实 type 层与横向分布原封不动继承，只替换了背景层。</p>
+<h3>2.3 断言是否真的双向锁定</h3>
+<table><thead><tr><th>断言</th><th>内容</th><th>判定</th></tr></thead><tbody>
+<tr><td><code>test_31_horizontal_span_matches_source</code></td><td><code>new_span &gt; 0</code> 且 <code>abs(new_span - src_span) &lt;= 0.5</code></td><td><strong>正向锁定，真实有效</strong></td></tr>
+<tr><td><code>test_31_horizontal_span_is_not_zero_guard</code></td><td><code>span &gt; 1.0</code> 且 <code>len(set(xs)) &gt; 1</code>（防全部同 x）</td><td><strong>反向守卫，有效</strong></td></tr>
+<tr><td><code>test_31_real_type_layers_preserved</code></td><td>type 层数 == 8 且能提取含「领」文本</td><td><strong>覆盖文字提取路径</strong></td></tr>
+<tr><td><code>test_31_placeholder_fixture_documented_as_insufficient</code></td><td>占位夹具跨度 <code>== 0.0</code></td><td><strong>把上轮缺陷固化为回归门</strong></td></tr>
+<tr><td><code>test_31_composite_clean</code></td><td>全像素红/绿 == 0</td><td>有效</td></tr>
+</tbody></table>
+<p><strong>Round 15 指出的「横向零覆盖 + 无横向断言」两个缺口，全部补齐。A-31 关闭。</strong></p>
+<hr>
+<h2>3. A-30 深挖：你的根因说法与实测不符</h2>
+<h3>3.1 你说「彩条源自 PSD 内部像素数据本身」</h3>
+<p>我逐层单独 <code>composite()</code> 检查了旧夹具的每一层：</p>
+<table><thead><tr><th>层</th><th>类型</th><th>尺寸</th><th>bbox</th><th>该层彩条</th></tr></thead><tbody>
+<tr><td>图层 0（背景）</td><td>pixel</td><td>1920 × 1080</td><td>(0,0,1920,1080)</td><td><strong>0 / 0</strong></td></tr>
+<tr><td>领衔呈现</td><td>type</td><td>38 × 175</td><td>(308,388,346,563)</td><td>0 / 0</td></tr>
+<tr><td>lead the presentation</td><td>type</td><td>36 × 160</td><td>(357,389,393,549)</td><td>0 / 0</td></tr>
+<tr><td>新娘 朱永宏</td><td>type</td><td>37 × 266</td><td>(481,389,518,655)</td><td>0 / 0</td></tr>
+<tr><td>THE BRIDE</td><td>type</td><td>14 × 115</td><td>(532,389,546,504)</td><td>0 / 0</td></tr>
+<tr><td>新郎 陈晗</td><td>type</td><td>37 × 220</td><td>(653,389,690,609)</td><td>0 / 0</td></tr>
+<tr><td>THE GROOM</td><td>type</td><td>15 × 130</td><td>(703,389,718,519)</td><td>0 / 0</td></tr>
+<tr><td>镇雄</td><td>type</td><td>37 × 82</td><td>(747,388,784,470)</td><td>0 / 0</td></tr>
+<tr><td>CITY</td><td>type</td><td>14 × 49</td><td>(798,389,812,438)</td><td>0 / 0</td></tr>
+</tbody></table>
+<p><strong>没有任何一层自身含彩条像素——连那个 1920×1080 的越界背景层，单独合成也是 0/0。</strong></p>
+<h3>3.2 那彩条从哪来</h3>
+<table><thead><tr><th>观察</th><th>数值</th></tr></thead><tbody>
+<tr><td>整幅 <code>psd.composite()</code> 彩条</td><td><strong>42329 像素（2.04%）</strong></td></tr>
+<tr><td>彩条分布 bbox</td><td><strong>x[0..1079] y[221..1638]</strong></td></tr>
+<tr><td>背景层 bbox</td><td>(0, 0, 1920, 1080)</td></tr>
+<tr><td>彩条是否全在 y&lt;1080 内</td><td><strong>否</strong>（最远到 y=1638，超出背景层 558 px）</td></tr>
+<tr><td>彩条是否全在 x&lt;1080 内</td><td>是</td></tr>
+</tbody></table>
+<p><strong>已证事实</strong>（三条，均为实测）：</p>
+<ol>
+<li>逐层单独 <code>composite()</code>：<strong>无任何一层含彩条像素</strong>（含越界背景层，0/0）；</li>
+<li>整幅 <code>psd.composite()</code>：<strong>42329 个彩条像素，且越出背景层范围</strong>（y 最远 1638 &gt; 1080）；</li>
+<li>逐层贴图到画布：<strong>彩条 0/0</strong>。</li>
+</ol>
+<p><strong>由以上三条可判定：彩条不是任何一层的像素数据，而是整幅合成过程产生的伪影。</strong></p>
+<p><strong>推断（非已证）</strong>：<code>psd.composite()</code> 在处理 1920 宽层写入 1080 宽画布时，疑似发生缓冲区跨行错位（row stride 不匹配）；逐层贴图时每层在自己 bbox 内合成、再裁到画布内，错位前提不成立，故彩条归零。<strong>审核方未深入 psd-tools 源码确认该机制</strong>，此处仅作解释性推断，不影响「逐层贴图可消除彩条」这一实测结论。</p>
+<blockquote><p>这一条很重要：<strong>根因不是「数据坏了」，是「合成器用错了」。</strong> 数据坏 → 只能换数据（你的原判）；合成器用错 → 换合成方式即可（实测可行）。</p></blockquote>
+<h3>3.3 「裁剪不触发」——这点你说得对</h3>
+<p><code>crop_composite_to_canvas</code> 只在 <code>img.size != canvas</code> 时生效。实测 <code>composite()</code> 返回尺寸<strong>恰好等于</strong> 1080×1920，所以 crop 永远走 <code>return img, False</code>，<strong>确实不触发</strong>。你这句判断准确，没有虚报。问题不在你判断错了，而在<strong>你只做了方案一，就把「方案二做不到」当成了结论</strong>。</p>
+<h3>3.4 一处事实偏差（须互相核对）</h3>
+<table><thead><tr><th>来源</th><th>全分辨率彩条</th><th>缩略图彩条</th></tr></thead><tbody>
+<tr><td>你的测试文档</td><td>84 红 / 40 绿</td><td>6 红 / 3 绿</td></tr>
+<tr><td>审核方实测（psd-tools <strong>1.26.0</strong>）</td><td><strong>28852 / 13477</strong></td><td><strong>119 / 48</strong></td></tr>
+</tbody></table>
+<p>差 20–340 倍。<code>test_30_legacy_fixture_color_noise_is_intrinsic</code> 只断言 <code>red &gt; 0 or green &gt; 0</code>，所以<strong>两个数值都能通过</strong>，不构成假通过。但这种量级差异说明两侧 <code>psd-tools</code> 版本或解码路径不同。<strong>建议你在报告里标注所用版本</strong>，否则「彩条很轻微、只有 6 个像素」会让人误判严重程度——实际是 2.04% 的画面被污染。</p>
+<hr>
+<h2>4. 关于「没有造假断言」——这一点必须肯定</h2>
+<p>你写：</p>
+<blockquote><p>「166 项测试里我没有为 A-30 造一条会失败的假断言——反证失败这件事我原样写在报告里了。」</p></blockquote>
+<p>我核了 <code>test_30_legacy_fixture_color_noise_is_intrinsic</code>，它的 docstring 明写：</p>
+<blockquote><p>「而 <code>composite()</code> 返回尺寸本就等于画布，crop 防护<strong>不触发</strong>。因此彩条只能靠替换图层（A-31 已做）解决，crop 归不回正确像素。本测试锁定事实：旧夹具仍有残留彩条，防止误以为 crop 能修彩条。」</p></blockquote>
+<p><strong>这是本轮最值得肯定的地方。</strong> 你没有把「检测」包装成「修复」，还专门写了一条<strong>锁定自己方案无效</strong>的测试，并把反证失败原样报上来。这在工程诚信上是对的，我认可。</p>
+<p>但<strong>诚信不能替代结论</strong>：你诚实地报告了「方案一无效」，同时也把「方案二不可行」当既定事实——而这一半没有验证。我这边替你验了，可行。</p>
+<hr>
+<h2>5. A-30 最终裁定</h2>
+<h3>5.1 判：<strong>保留为活缺陷（P2），不关闭</strong></h3>
+<table><thead><tr><th>口径</th><th>裁定</th></tr></thead><tbody>
+<tr><td>A：不再静默流出</td><td><strong>半达成</strong>。<code>has_out_of_bounds_layers</code> 能检出（旧夹具 True、新夹具 False，实测正确），<code>_thumbnail_warning.txt</code> 能落旁路。但<strong>用户看到的图仍是坏的</strong>，只是旁边多了个 txt</td></tr>
+<tr><td>B：消除彩条</td><td><strong>可达成，且已跑通</strong>。逐层贴图实测 0/0 彩条、0 像素回归</td></tr>
+<tr><td><strong>应采用的口径 C</strong></td><td><strong>「合成改用逐层贴图，彩条不再产生」</strong> —— 既消除彩条，又不依赖告警兜底</td></tr>
+</tbody></table>
+<h3>5.2 必须同时完成的两件事</h3>
+<ol>
+<li><strong><code>generate_thumbnails_from_psd</code> 的合成改用逐层贴图</strong>（保留 crop 作为尺寸兜底，保留检测器作诊断）；</li>
+<li><strong>背景层边缘延伸填充</strong>。</li>
+</ol>
+<p>第 2 点是我原型暴露的瑕疵，<strong>必须如实告诉你</strong>：逐层贴图后，旧夹具背景层只有 1920×1080，裁到 1080×1920 画布后只覆盖上半部，导致<strong>下半部 13.1% 非透明、86.9% 空白</strong>。彩条是没了，但画面变成「上半有图、下半全黑」。</p>
+<p>这不是逐层贴图方案的错，是<strong>背景层本身尺寸不足</strong>——真实畸形 PSD 也会这样。所以需要：当背景层 bbox 小于画布时，<strong>取其边缘像素向外延伸填充</strong>（或按画布尺寸纯色填充），保证整幅无空洞。</p>
+<h3>5.3 验收标准（可执行）</h3>
+<table><thead><tr><th>项</th><th>标准</th></tr></thead><tbody>
+<tr><td>旧夹具缩略图彩条</td><td>全像素 红 == 0 且 绿 == 0</td></tr>
+<tr><td>旧夹具缩略图非透明率</td><td><strong>≥ 99%</strong>（不得出现下半空白）</td></tr>
+<tr><td>新夹具（rebased）像素回归</td><td>与 <code>composite()</code> 逐像素差异 <strong>== 0</strong></td></tr>
+<tr><td>新夹具缩略图</td><td>彩条 0/0，尺寸 360×640 / 108×192</td></tr>
+<tr><td>检测器</td><td>旧 True / 新 False（已有，保持）</td></tr>
+</tbody></table>
+<hr>
+<h2>6. 缺陷台账</h2>
+<table><thead><tr><th>编号</th><th>级别</th><th>描述</th><th>状态</th></tr></thead><tbody>
+<tr><td>A-28</td><td>P2</td><td>缩略图不保宽高比</td><td>已修复 · 关闭（R15）</td></tr>
+<tr><td>A-29</td><td>P2</td><td>竖版夹具背景层越界</td><td>已修复 · 关闭（R16：新夹具合规 + 旧夹具文档化）</td></tr>
+<tr><td><strong>A-31</strong></td><td>P2</td><td>新夹具横向零覆盖 + 无横向断言</td><td><strong>已修复 · 关闭（R16：8 type 层 / 跨度 478.00 / 双向断言）</strong></td></tr>
+<tr><td><strong>A-30</strong></td><td><strong>P2</strong></td><td><strong>composite 跨行错位产生彩条；只做检测未修合成方式</strong></td><td><strong>活缺陷 · 不关闭 · 须改逐层贴图 + 边缘填充</strong></td></tr>
+<tr><td><strong>A-32</strong></td><td><strong>P3</strong></td><td><strong>彩条像素数报告值与实测差 20–340 倍，疑 psd-tools 版本未标注</strong></td><td><strong>新增 · 文档准确性问题</strong></td></tr>
+</tbody></table>
+<p><strong>当前：P0 = 0；P1 = 0；P2 = 1（A-30）；P3 = A-14 + 1 项证据通道表述 + 1 项 <code>THE BRIDE</code> 换列细节 + A-32。</strong></p>
+<hr>
+<h2>7. 版本与放行口径</h2>
+<table><thead><tr><th>项</th><th>状态</th></tr></thead><tbody>
+<tr><td>可覆盖安装</td><td><strong>是</strong>（A-28/A-29/A-31 均已关闭，无阻断项）</td></tr>
+<tr><td>可启动 FCPX 12.3 验导入/不闪退/不报错</td><td><strong>是</strong></td></tr>
+<tr><td><strong>竖版版式验收</strong></td><td><strong>现在可以开展了</strong>——A-31 已提供真实 type 层 + 真实横向分布（跨度 478.00 = 44.26%）</td></tr>
+<tr><td>遗留</td><td>A-30 只影响<strong>畸形 PSD</strong> 的预览质量，不影响规范 PSD，不阻断安装</td></tr>
+</tbody></table>
+<p><strong>关键变化：上一轮卡住「竖版版式验收」的横向缺口，本轮已解除。</strong> 你现在可以用 rebased 夹具做版式验收了。</p>
+<hr>
+<h2>8. 下一步任务单</h2>
+<ol>
+<li><strong>A-31：关闭</strong>，无需再动。方案执行准确，断言双向有效。</li>
+<li><strong>A-30：改合成方式</strong>（不是加检测）。</li>
+</ol>
+<ul>
+<li><code>generate_thumbnails_from_psd</code> 内改用逐层贴图：遍历 <code>descendants()</code>，每层 <code>layer.composite()</code>，按 <code>bbox</code> 与画布求交裁剪后 <code>alpha_composite</code> 到画布；</li>
+<li><strong>背景层 bbox 小于画布时，边缘像素延伸填充</strong>（避免下半空白）；</li>
+<li>保留 <code>crop_composite_to_canvas</code> 作尺寸兜底、保留 <code>has_out_of_bounds_layers</code> 作诊断。</li>
+</ul>
+<ol>
+<li><strong>补断言</strong>：旧夹具缩略图彩条 0/0 <strong>且</strong> 非透明率 ≥ 99%；新夹具逐像素回归 == 0。</li>
+<li><strong>A-32</strong>：报告里标注 <code>psd-tools</code> 版本，并统一彩条计数口径（全像素扫描）。</li>
+<li><strong>重建 01、23 到临时目录</strong>，交访问方复核 → 备份 → 覆盖安装 → 启动 FCPX 12.3。</li>
+</ol>
+<hr>
+<h2>9. 如实声明</h2>
+<ol>
+<li>审核方<strong>无 macOS 环境</strong>，全部结论来自 Linux 沙箱内源码运行与产物解析，未在 Motion / FCPX 中操作；</li>
+<li>§2 的夹具几何、文本提取、§3.1 的逐层彩条、§3.2 的彩条分布、§5.1 的对照数值，均由审核方<strong>独立运行实测</strong>，未采信开发方数据；</li>
+<li><strong>逐层贴图原型由审核方自行编写</strong>（非开发方代码），用于验证「方案二是否可行」，<strong>不是</strong>对开发方实现的验收；原型代码已附逻辑说明，可直接复现；</li>
+<li>原型<strong>存在已知瑕疵并已如实披露</strong>：旧夹具下半 13.1% 非透明（86.9% 空白），因背景层尺寸不足，需边缘延伸填充；因此原型的「0 彩条」不等于「可直接上线」；</li>
+<li>§3.4 的数值差异（84/40 vs 28852/13477）审核方<strong>无法确定成因</strong>，只能确认自己有实测值，推测与 psd-tools 版本相关（审核方 1.26.0），<strong>不作定论</strong>；</li>
+<li>本轮<strong>肯定</strong>：未造假断言、写测试锁定自己方案无效、原样披露反证失败、A-31 方案执行精确；</li>
+<li>本轮<strong>指出</strong>：「代码层做不到」是在只尝试方案一后得出的结论，未经方案二验证；「两难」前提不成立；</li>
+<li>真机观感与最终签字权在用户，审核方只提供可追溯证据与缺陷定性。</li>
+</ol>
+</div></body></html>

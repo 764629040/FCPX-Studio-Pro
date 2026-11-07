@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>������������������ �� ������������A-10/A-13/A-9 ���������</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <link rel="stylesheet" href />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">������������������ �� ������������A-10/A-13/A-9
+���������</h1>
+</header>
+<h1 id="独立审核报告--第四轮a-10--a-13--a-9-两处整改复核">独立审核报告 ·
+第四轮（A-10 / A-13 / A-9 两处整改复核）</h1>
+<ul>
+<li>审核日期：2026-10-27</li>
+<li>审核方：Tabbit（独立技术审核）</li>
+<li>审核基线：<code>docs/audit_inventory_20261027_round4.json</code>（29
+个受控文件）</li>
+<li>审核环境：Linux 沙箱，<strong>无 AppKit</strong>（与开发方 macOS
+环境不同，该差异是本轮多项结论的关键前提）</li>
+</ul>
+<hr />
+<h2 id="0-基线校验先于一切结论">0. 基线校验（先于一切结论）</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项目</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>指纹项数</td>
+<td>29</td>
+</tr>
+<tr class="even">
+<td>SHA-256 复算一致</td>
+<td><strong>29 / 29</strong></td>
+</tr>
+<tr class="odd">
+<td>不一致</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>缺失</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>canonical_path</td>
+<td><code>/Volumes/摄影师工具箱 128GB/未命名文件夹/FCPX_Studio_Pro</code></td>
+</tr>
+</tbody>
+</table>
+<p>独立复跑（<code>QT_QPA_PLATFORM=offscreen</code>，无 AppKit）：</p>
+<pre><code>67 passed, 2 skipped, 0 failed   EXIT=0</code></pre>
+<p>开发方日志声明（<code>docs/pytest_round4_A10A13_20261027.log</code> +
+<code>.exitcode</code>）与本轮实测<strong>通过数一致、退出码一致</strong>。上一轮「平台分歧」已消除：A-10
+修复后，无 AppKit 环境不再产生失败用例。</p>
+<hr />
+<h2 id="1-a-10-裁决接受属根因修复不判定超限">1. A-10
+裁决：<strong>接受，属根因修复，不判定超限</strong></h2>
+<p>开发方第 1
+点询问「改动面是否超出最小修正」。结论：<strong>未超限</strong>，理由如下。</p>
+<h3 id="11-只调判断顺序确实无法修复">1.1 只调判断顺序确实无法修复</h3>
+<p>原缺陷不是顺序问题：<code>check_font_availability()</code>
+的返回类型是布尔，而语义需要三态（可用 / 不可用 /
+<strong>无法检测</strong>）。布尔值把后两者压成同一个
+<code>False</code>，任何顺序调整都无法把「无检测能力」与「未安装」区分开。新增三态接口是唯一可行路径。</p>
+<h3 id="12-兼容性与侵入面已核实">1.2 兼容性与侵入面已核实</h3>
+<ul>
+<li>布尔包装 <code>check_font_availability()</code>
+保留，内部转调三态接口，旧调用契约不破。</li>
+<li>产品代码中 <code>check_font_availability</code>
+的调用点：<strong>仅测试与注释</strong>，无
+GUI/核心流程依赖，改动不产生行为外溢。</li>
+</ul>
+<h3 id="13-成效实测">1.3 成效实测</h3>
+<p><code>four_state.psd</code> 8 个文字层：</p>
+<pre><code>detection_status 集合 = {unverifiable}
+font_missing 计数 = 0</code></pre>
+<p>即：无 AppKit 平台不再把「无法检测」误报为「字体未安装」，A-10
+的判定目标达成。</p>
+<h3 id="14-必须标注的验证边界记-a-16不阻塞">1.4 必须标注的验证边界（记
+A-16，不阻塞）</h3>
+<p>本环境<strong>只能触达 <code>unverifiable</code>
+这一态</strong>。<code>detected</code> / <code>font_missing</code> /
+字形缺失三态在 Linux 下无法被真实触发，因此「四态分化」在<strong>无
+AppKit 平台的可达性</strong>已被证伪为误报，但<strong>四态在 macOS
+上的语义正确性仍未由审核方直接观测</strong>，只能由代码路径与开发方
+macOS 日志间接支持。列为 A-16，留待 macOS 环境补证，不作为退回项。</p>
+<h3 id="15-撤回一项疑似缺陷避免误伤">1.5
+撤回一项疑似缺陷（避免误伤）</h3>
+<p>本轮初步比对发现 8 个文字层中有 6 层的 <code>original_font</code>
+与本层声明字体不一致，曾怀疑为映射错位。逐层取值核对后<strong>撤回该怀疑</strong>：</p>
+<ul>
+<li><code>original_font</code> = PSD 声明的原始字体，取自
+<code>resource_dict[&quot;FontSet&quot;]</code> 首个非 Adobe 隐藏字体，逐层取值与
+FontSet 首项<strong>一一对应</strong>（<code>PingFangSC-Regular</code> /
+<code>Helvetica</code> / <code>CormorantInfant-Regular</code>
+等完全吻合）。</li>
+<li><code>font_name</code> = 实际渲染用字体，按文本是否含中文回退到
+PingFangSC 或 Helvetica。</li>
+</ul>
+<p>两者是<strong>语义不同的两个字段</strong>，不是同一个值被写错。此处不构成缺陷。</p>
+<hr />
+<h2 id="2-a-13修复成立">2. A-13：<strong>修复成立</strong></h2>
+<ul>
+<li>竖版 1080×1920 下，正序与逆序两种图层遍历均 <strong>0
+错位</strong>，<code>worst_dev = 0.00</code> 画板单位。</li>
+<li>根因确认已被处理：<code>set_artboard_resolution</code>
+不再让既有图元保留固化尺寸，重建后重算几何，而不是只改画板不重算图元。</li>
+</ul>
+<h3 id="关于420px-与约-200px的差异开发方第-2-点">关于「420px 与约
+200px」的差异（开发方第 2 点）</h3>
+<p><strong>不是矛盾，是单位不同。</strong></p>
+<ul>
+<li>开发方给的 420 是<strong>画板单位</strong>，审核方实测约 200
+是<strong>屏幕像素</strong>。</li>
+<li>当前画布缩放比约 <strong>0.44</strong>：420 × 0.44 ≈ <strong>186
+屏幕 px</strong>，与审核方实测约 200 px
+同源同量级，差异来自缩放取整与量测位置。</li>
+<li>两者方向一致、量级一致，可互相印证，不构成对修复结论的反证。</li>
+</ul>
+<hr />
+<h2 id="3-a-9两处最小修正均已到位">3.
+A-9：<strong>两处最小修正均已到位</strong></h2>
+<table>
+<thead>
+<tr class="header">
+<th>修正项</th>
+<th>实测</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>parse_psd_file</code> 默认
+<code>extract_thumbnails</code></td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td><code>generate_conversion_diagnosis_report</code> 默认
+<code>extract_thumbnails</code></td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>占位原因四分</td>
+<td><code>group</code> / <code>empty_layer</code> /
+<code>no_slice</code> / <code>decode_failed</code></td>
+</tr>
+</tbody>
+</table>
+<p>占位判定顺序为：先按图层语义（图层组 → 真空图层），再看像素（无切片 →
+解码失败），四类<strong>文案各不相同</strong>：</p>
+<ul>
+<li><code>group</code>：📁 图层组容器 / 无独立像素</li>
+<li><code>empty_layer</code>：⚠️ 真空图层 / 尺寸为零或无有效像素</li>
+<li><code>no_slice</code>：🖼 未生成原稿切片 / 请开启
+extract_thumbnails</li>
+<li><code>decode_failed</code>：❌ 原稿切片解码失败 / 数据可能损坏</li>
+</ul>
+<h3 id="附带结论a-11-已被同一改动覆盖">附带结论：A-11
+已被同一改动覆盖</h3>
+<p>上一轮 P1 项 A-11（「空图层」与「解码失败」文案混同）与 A-9
+改动落在同一段占位逻辑，现已可区分。A-11
+建议在下一轮一并勾销，需开发方确认是否同轮处理的意图。</p>
+<hr />
+<h2 id="4-a-3--a-8维持修复状态">4. A-3 ~ A-8：维持修复状态</h2>
+<p>本轮无回归证据，逐项维持上一轮结论，不重复展开。</p>
+<hr />
+<h2 id="5-a-12未处理本轮实测确认仍存在">5.
+A-12：<strong>未处理，本轮实测确认仍存在</strong></h2>
+<p>审核方在离屏环境实际实例化画布容器并执行真实交互，读数如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th>操作</th>
+<th>预设下拉显示</th>
+<th>方向按钮</th>
+<th>实际 W × H</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>初始</td>
+<td>1080P 全高清 (1920 × 1080)</td>
+<td>🔄 横版 (16:9)</td>
+<td>1920 × 1080</td>
+</tr>
+<tr class="even">
+<td>选竖版预设</td>
+<td>竖版 1080P 抖音/短视频 (1080 × 1920)</td>
+<td>🔄 竖版 (9:16)</td>
+<td>1080 × 1920</td>
+</tr>
+<tr class="odd">
+<td><strong>点击方向切换</strong></td>
+<td><strong>竖版 1080P 抖音/短视频 (1080 × 1920)</strong></td>
+<td>🔄 横版</td>
+<td><strong>1920 × 1080</strong></td>
+</tr>
+</tbody>
+</table>
+<p>点击方向切换后，画板已是横版
+1920×1080，方向按钮也变成「横版」，但<strong>预设下拉框仍写着「竖版
+1080P 抖音/短视频 (1080 × 1920)」</strong>，标签与真实画板直接矛盾。</p>
+<p>成因已定位：方向切换只交换 W/H
+两个数值，并更新方向按钮文字；<code>_on_preset_changed</code>
+会同步按钮文字，但<strong>两条路径都不会反向同步预设下拉框的选中项</strong>，因此下拉框停留在旧标签。</p>
+<p><strong>P2 定性维持，本轮未修。</strong></p>
+<h3 id="新发现-a-17同源小缺陷">新发现 A-17（同源小缺陷）</h3>
+<p>方向切换路径设置的按钮文案是 <code>🔄 横版</code> /
+<code>🔄 竖版</code>，<strong>丢失了 <code>(16:9)</code> /
+<code>(9:16)</code>
+后缀</strong>，而预设路径会带后缀。同一控件在两路径下文案不一致，属一致性瑕疵，建议与
+A-12 一并修。</p>
+<hr />
+<h2 id="6-新发现视觉可用性">6. 新发现（视觉/可用性）</h2>
+<h3 id="a-1444-缩放下的文字栅格化质量差异">A-14：44%
+缩放下的文字栅格化质量差异</h3>
+<p>并排对照截图中右栏文字明显比左栏模糊。审核方做了 1:1
+原生渲染核对：<strong>「宏」等字在原生分辨率下笔画完整</strong>（宀 + 一
++ ノ + 厶 齐全）。</p>
+<p>结论修正：这<strong>不是字形丢失、不是几何裁切</strong>，而是缩放视图下的采样/栅格化质量差异——左栏走位图缩放链路、右栏走文本重绘链路，两者在
+44% 下清晰度不同。影响「并排逐字判读」的可信度，但不构成内容错误。评级
+P2（观感/可判读性）。</p>
+<h3 id="a-15状态徽章拥挤">A-15：状态徽章拥挤</h3>
+<p>竖版排布时状态徽章贴住英文列，遮挡观感。P2 观感项。</p>
+<hr />
+<h2 id="7-结论">7. 结论</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-10</td>
+<td><strong>修复成立</strong>（三态为根因修复，改动面不超限）</td>
+</tr>
+<tr class="even">
+<td>A-13</td>
+<td><strong>修复成立</strong>（0 错位；420 vs 200 为单位差异）</td>
+</tr>
+<tr class="odd">
+<td>A-9 两处</td>
+<td><strong>整改到位</strong></td>
+</tr>
+<tr class="even">
+<td>A-11</td>
+<td>已被 A-9 改动覆盖（待开发方确认意图）</td>
+</tr>
+<tr class="odd">
+<td>A-3 ~ A-8</td>
+<td>维持修复</td>
+</tr>
+<tr class="even">
+<td>A-12</td>
+<td><strong>未修</strong>（P2，实测复现）</td>
+</tr>
+<tr class="odd">
+<td>A-16（新）</td>
+<td>三态中 macOS 侧语义待补证（不阻塞）</td>
+</tr>
+<tr class="even">
+<td>A-17（新）</td>
+<td>方向按钮后缀丢失（P2）</td>
+</tr>
+<tr class="odd">
+<td>A-14 / A-15（新）</td>
+<td>观感与可判读性（P2）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收口径推进</strong>：P0（A-10 +
+A-13）本轮全部关闭，对应既有 P0 勾选可恢复。剩余阻塞项均为 P2
+及观感级，不影响核心链路「不闪退、不报错、必要内容齐全」。</p>
+<p><strong>下一轮验收口径</strong>：P2 = A-12 + A-17；观感 = A-14 +
+A-15；补证 = A-16（macOS 三态）；确认 = A-11 是否同轮勾销。A-1 ~
+A-10、A-13 无需重做。</p>
+<p><strong>如实声明</strong>：本轮所有结论均基于审核方在无 AppKit
+沙箱内的独立复算与复跑，未在 macOS 真机、Motion、FCPX
+中做渲染验收；真机效果仍按双方此前约定的 80%–90% 口径留待后续。</p>
+</body>
+</html>

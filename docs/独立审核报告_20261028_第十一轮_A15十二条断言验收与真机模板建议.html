@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立审核报告 · 第十一轮 · A-15 十二条断言验收</title><style>
+:root{--bg:#0f1115;--fg:#e6e8ee;--mut:#9aa3b2;--line:#262b36;--acc:#4f9cf9;--bad:#ff453a;--ok:#30d158}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 28px 96px}
+h1{font-size:29px;line-height:1.35;margin:0 0 8px;border-left:4px solid var(--acc);padding-left:14px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#fff}
+h3{font-size:17px;margin:26px 0 10px;color:var(--acc)}
+p{margin:10px 0} ul,ol{margin:10px 0 10px 22px;padding:0} li{margin:5px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;background:#151922;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{background:#1c2230;text-align:left;padding:10px 12px;font-weight:600;color:#cdd6e6;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #1e232d;vertical-align:top}
+tr:last-child td{border-bottom:none} tr:nth-child(even) td{background:#131720}
+code{background:#1b2130;color:#ffd479;padding:1.5px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,Menlo,monospace}
+pre{background:#12161f;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto}
+pre code{background:none;padding:0;color:#a8e6a3;font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0} strong{color:#fff} em{color:var(--mut);font-style:normal}
+ul.ck{list-style:none;margin-left:0;background:#131720;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+ul.ck li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed #1e232d}
+ul.ck li:last-child{border-bottom:none}
+ul.ck .box{flex:0 0 16px;width:16px;height:16px;border:2px solid var(--acc);border-radius:3px;margin-top:5px}
+</style></head><body><div class="wrap">
+<h1>独立审核报告 · 第十一轮</h1>
+<h2>A-15 十二条断言逐条验收 · 真机验收模板建议</h2>
+<ul><li><strong>审核方</strong>：Tabbit（独立第三方）</li><li><strong>日期</strong>：2026-10-28</li><li><strong>审核基线</strong>：<code>docs/audit_inventory_20261028_round10_a15.json</code>（44 项）</li><li><strong>环境</strong>：Linux 沙箱 + 真实无 AppKit（<code>import AppKit</code> 真实抛 <code>ImportError</code>）</li></ul>
+<hr>
+<h2>结论摘要</h2>
+<p><strong>A-15 十二条断言：8 条通过、3 条不通过、1 条条件通过。A-15 暂不关闭。</strong></p>
+<table><thead><tr><th>类别</th><th>断言</th><th>结果</th></tr></thead><tbody><tr><td>通过</td><td>2、3、4、5、7、8、11、12</td><td><strong>PASS</strong></td></tr><tr><td>不通过</td><td>1、6、9</td><td><strong>FAIL</strong></td></tr><tr><td>条件通过</td><td>10</td><td>字符串同源已验；弹出效果需真机</td></tr></tbody></table>
+<p><strong>不通过的三条中，1 与 9 同源（A-22，规格缺陷在我），6 是真实功能缺失（需 view 层协调器）。</strong></p>
+<hr>
+<h2>零、先说一件必须核对的事：本轮产物与上轮是同一批字节</h2>
+<table><thead><tr><th>检查</th><th>结果</th></tr></thead><tbody><tr><td><code>04:19:31</code>（我第十轮报告落盘）之后新增的交付文件数</td><td><strong>0</strong></td></tr><tr><td><code>gui/canvas_view.py</code> 最后修改</td><td><code>04:00:59</code></td></tr><tr><td><code>audit_inventory_20261028_round10_a15.json</code> 最后修改</td><td><code>04:06:13</code></td></tr><tr><td>round10 清单独立复算</td><td><strong>44 / 44 一致</strong></td></tr></tbody></table>
+<p>即：磁盘上的产物与我第十轮已审的那批<strong>完全相同</strong>，不存在第十一轮新提交。您所说「A-15 完成，等您按 12 条断言验收」，指的应就是 round10 这批——<strong>我已按 12 条逐条验完，结果见下</strong>。</p>
+<p>若您认为 A-22 已修，则说明改动未落盘（<code>DOT_SIZE = 4.0</code> 仍是固定画布单位，无任何 <code>scale</code> 补偿）。请开发方确认后再提交。</p>
+<hr>
+<h2>一、十二条断言逐条判定</h2>
+<table><thead><tr><th>#</th><th>断言（原文要点）</th><th>实测</th><th>判定</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>色点 4×4，以 bbox 中心为锚点随图元旋转</td><td>画布 4.00×4.00；<strong>44% 缩放 → 1.76 屏幕 px</strong></td><td><strong>FAIL</strong>（A-22）</td></tr><tr><td><strong>2</strong></td><td>任意两色点外接框互不相交</td><td>无相交对</td><td><strong>PASS</strong></td></tr><tr><td><strong>3</strong></td><td>色点不压其他图层文字 bbox</td><td>无</td><td><strong>PASS</strong></td></tr><tr><td><strong>4</strong></td><td>最小净空 ≥3</td><td><strong>37.32</strong>（最紧：镇雄↔CITY，dx=35.50 / dy=11.50）</td><td><strong>PASS</strong></td></tr><tr><td><strong>5</strong></td><td>两夹具同时通过</td><td><code>vertical_wedding_9_16</code> / <code>four_state</code> 均通过；另 <code>commercial_4k</code> 亦通过</td><td><strong>PASS</strong></td></tr><tr><td><strong>6</strong></td><td>同一时刻最多一个展开</td><td><strong>多选 3 个 → 3 个同时展开</strong>；开发方测试 <code>assert len(expanded) == 2</code></td><td><strong>FAIL</strong></td></tr><tr><td><strong>7</strong></td><td>展开徽章不溢出画布</td><td>三夹具越界数均为 <strong>0</strong></td><td><strong>PASS</strong></td></tr><tr><td><strong>8</strong></td><td>四态颜色与文案一致</td><td>四色常量 <code>#30D158/#FF9F0A/#FF453A/#FFD60A</code> 与源码一致；<code>test_11</code> 经 <code>get_badge_info()</code> 取色校验</td><td><strong>PASS</strong></td></tr><tr><td><strong>9</strong></td><td>命中区屏幕像素 ≥8</td><td>画布 8 → <strong>3.52 屏幕 px</strong></td><td><strong>FAIL</strong>（A-22）</td></tr><tr><td><strong>10</strong></td><td>tooltip 与展开文案逐字相同</td><td><code>toolTip() == get_badge_info()[0]</code> 成立（同源）</td><td><strong>条件通过</strong></td></tr><tr><td><strong>11</strong></td><td>A-16 四态像素互斥回归</td><td><code>test_11</code> 存在并通过</td><td><strong>PASS</strong></td></tr><tr><td><strong>12</strong></td><td>全量测试不减少</td><td><strong>123 passed / 2 skipped / exit 0</strong>（上轮 105，未减少）</td><td><strong>PASS</strong></td></tr></tbody></table>
+<h3>断言 7 的更正（审核方自身测量错误）</h3>
+<p>上一轮我口头测出「展开态越界，坐标 −232 / −753」。<strong>该数字错误</strong>，原因是我按「画板左上角为原点、y∈[0,H]」判断，而实际场景坐标<strong>绕画板中心</strong>（<code>x∈[−W/2,W/2]</code>、<code>y∈[−H/2,H/2]</code>，图元按 <code>setPos(mx,−my)</code> 摆放）。</p>
+<p>按正确边界重测：<code>vertical_wedding_9_16</code>、<code>four_state</code>、<code>wedding_with_decorations_23</code> <strong>越界数均为 0</strong>。断言 7 <strong>通过</strong>，我此前的口头结论作废。</p>
+<hr>
+<h2>二、答复断言 6：<strong>要求严格全局单例，请补 view 层协调器</strong></h2>
+<h3>2.1 不是理论问题，已实测复现</h3>
+<table><thead><tr><th>操作</th><th>展开数</th></tr></thead><tbody><tr><td>4 个图元同时 <code>_hovered=True</code></td><td><strong>4</strong></td></tr><tr><td>3 个图元同时 <code>setSelected(True)</code></td><td><strong>3</strong></td></tr></tbody></table>
+<p><strong>悬停</strong>确实受物理限制（鼠标只有一个位置），但<strong>选择</strong>不受限：<code>QGraphicsScene</code> 默认可 Ctrl 多选与框选。用户框选一片文字层，就会同时展开多个徽章，重新造成覆盖——<strong>这正是 A-15 要消除的现象，只是从&quot;常态叠撞&quot;变成&quot;交互时叠撞&quot;</strong>。</p>
+<h3>2.2 开发方测试把违规写成了预期</h3>
+<p><code>tests/test_a15_badge_collapse.py::test_06</code>：</p>
+<pre><code>items[1][1]._hovered = True
+expanded = [i for i, it in items if it._is_badge_expanded()]
+assert len(expanded) == 2, &quot;同时悬停两个时各自展开（使用层负责互斥）&quot;</code></pre>
+<p><strong>该断言与我第 6 条规格方向相反。</strong> 这不是实现偷懒，而是把未实现的部分写成了通过条件——比不写测试更危险，因为未来谁也不会再发现它。</p>
+<h3>2.3 判定与改法</h3>
+<p><strong>判定：断言 6 不通过。必须补 view 层协调器。</strong></p>
+<ul><li>这不是可选优化。<strong>缺陷已从&quot;视觉叠撞&quot;转移为&quot;交互叠撞&quot;</strong>，方案 1 的收益被部分抵消。</li><li>改动量估计：<code>on_selection_changed</code> / <code>hover_enter</code> 中，展开前先清除其他图元的 <code>_badge_expanded</code>，约 <strong>10–15 行</strong>。</li><li><code>test_06</code> 必须改为 <code>assert len(expanded) == 1</code>，并新增「多选 / 框选后仍只有一个展开」用例。</li></ul>
+<hr>
+<h2>三、答复断言 10：<strong>接受当前实现，但须转为人工项</strong></h2>
+<ul><li><code>setToolTip(get_badge_info()[0])</code> 与展开文案<strong>同源</strong>，字符串一致性这条<strong>已满足</strong>；</li><li>离屏环境无法弹出 tooltip，属<strong>平台限制而非实现缺陷</strong>，我不要求您在这上面消耗时间；</li><li>但「tooltip 真的会弹出、且内容正确」<strong>由我这边无法证实</strong>，故列为<strong>条件通过</strong>，已写入人工验收清单（第六节 C 组）。</li></ul>
+<p><strong>结论</strong>：断言 10 不必返工，人工确认即可。</p>
+<hr>
+<h2>四、A-22 / A-23 仍开放</h2>
+<table><thead><tr><th>项</th><th>状态</th><th>依据</th></tr></thead><tbody><tr><td><strong>A-22（P2 阻塞）</strong></td><td><strong>未修复</strong></td><td><code>DOT_SIZE = 4.0</code> 固定画布单位，无 <code>scale</code> 补偿；44% → 1.76px</td></tr><tr><td><strong>A-23（P3）</strong></td><td><strong>未修复</strong></td><td>5 个测试文件仍未入受控清单（含 <code>test_a15_badge_collapse.py</code> 本身）</td></tr></tbody></table>
+<p><strong>A-23 的现实后果</strong>：证明 A-15 合规的测试<strong>本身不受哈希保护</strong>。上面 <code>test_06</code> 把违规写成预期这一行为，恰好说明这类测试需要被锁定——若它在清单内，改动会被指纹捕获并进入审核视野。</p>
+<p><strong>A-22 整改要点（重申，不含新增要求）</strong>：</p>
+<ol><li>色点 <code>dot_screen_px = 6</code>，<code>dot_canvas = 6 / scale</code>；</li><li>命中区 <code>hit_screen_px ≥ 20</code>，<code>hit_canvas = max(8, 20 / scale)</code>；</li><li>净空按屏幕像素判定 <code>≥4</code>；</li><li><strong>44% / 100% / 200% 三档</strong>缩放均需通过；</li><li>重出 2 张证据图，<strong>图中必须看得见色点</strong>；</li><li>断言文本显式写明「单位为屏幕像素」；</li><li>顺带把 <code>TEST_FILES</code> 改为 <code>glob(&quot;tests/*.py&quot;)</code>（A-23）。</li></ol>
+<hr>
+<h2>五、距验收标准：<strong>还差两项，均为小改动</strong></h2>
+<table><thead><tr><th>待办</th><th>责任方</th><th>预估</th></tr></thead><tbody><tr><td>A-22 屏幕像素补偿 + 三档缩放断言 + 重出 2 图</td><td>开发方</td><td>0.5–1 小时</td></tr><tr><td>断言 6 view 层协调器 + 修正 <code>test_06</code></td><td>开发方</td><td>15–30 分钟</td></tr><tr><td>A-23 测试清单动态枚举</td><td>开发方</td><td>10 分钟</td></tr><tr><td>我复核</td><td>审核方</td><td>约 15 分钟</td></tr><tr><td>真机验收 + 人工审核</td><td><strong>您</strong></td><td>不可代劳</td></tr></tbody></table>
+<p><strong>合计：开发方约 1–1.5 小时，我这边 15 分钟即可给出达标结论。</strong></p>
+<hr>
+<h2>六、真机验收：<strong>建议先做「23 含装饰」</strong></h2>
+<h3>6.1 两个模板的实际内容（实测自夹具）</h3>
+<table><thead><tr><th>您说的</th><th>对应夹具</th><th>尺寸/方向</th><th>文本层</th><th>含「领衔呈现」</th></tr></thead><tbody><tr><td><strong>01 领衔呈现</strong></td><td><code>vertical_wedding_9_16.psd</code> / <code>four_state.psd</code></td><td>1080×1920 <strong>竖版</strong></td><td>8</td><td><strong>是</strong></td></tr><tr><td><strong>23 含装饰</strong></td><td><code>wedding_with_decorations_23.psd</code></td><td>1920×1080 <strong>横版</strong></td><td>7</td><td>否</td></tr></tbody></table>
+<h3>6.2 建议顺序：<strong>先 23，后 01</strong></h3>
+<p><strong>先做 23 含装饰</strong>，理由：</p>
+<ol><li><strong>隔离已知缺陷</strong>：竖版 01 的折叠色点受 A-22 影响看不见，会干扰您对四态的判读；23 是横版，列间隙大，徽章本就舒展，不叠加这个干扰。</li><li><strong>先验主链</strong>：23 含装饰图层，更接近真实交付场景，能优先暴露「闪退 / 报错 / FCPX 导入失败」这类 P0 问题——这是否决项，应最早暴露。</li><li><strong>失败代价低</strong>：横版结构简单，若在 23 上就崩，问题定位快，不必在竖版复杂场景里再排查一遍。</li></ol>
+<p><strong>再回做 01 领衔呈现</strong>（等 A-22 修完）：竖版 + 四态齐全，专门验收色点可见性、单展开互斥、四态语义；这是 A-15 的主战场，但要等色点看得见才有意义。</p>
+<h3>6.3 记录口径（按 80%–90%）</h3>
+<p>每个模板记录四项：<strong>① 是否闪退 ② 是否报错弹窗（含文案） ③ FCPX/Motion 能否打开并渲染 ④ 四态/方向是否肉眼可辨</strong>。前两项任一失败即否决；③ 失败即否决；④ 允许&quot;色点太小但悬停可读&quot;记为待改。</p>
+<hr>
+<h2>七、如实声明</h2>
+<ol><li>指纹、测试、几何、像素数字均由审核方在本环境独立复算复测；<code>123 passed / 2 skipped / exit 0</code> 运行于真实无 AppKit 解释器（先断言 <code>import AppKit</code> 抛 <code>ImportError</code>）。</li><li><strong>macOS 侧日志为开发方自述，审核方无 macOS 环境，未复核。</strong></li><li><strong>审核方未在 Motion 6.0 / Final Cut Pro 中做任何渲染验收</strong>，第六节必须由您本人执行。</li><li><strong>断言 7 上一轮的口头&quot;越界&quot;结论已作废</strong>（坐标原点假设错误），本轮按画板中心坐标系重测为 0 越界。此处如实记录。</li><li>本轮未发现 <code>04:19:31</code> 之后的新交付文件，round10 清单仍为 44/44，故「A-22 已修」这一前提不成立；若开发方确有改动未落盘，请重新提交。</li><li><strong>A-22 的规格缺陷归审核方</strong>（断言未声明屏幕像素），<strong>断言 6 的缺失归开发方</strong>（测试把违规写成预期）。两类问题分开记账。</li></ol>
+<hr>
+<p>*报告生成：2026-10-28 · 审核方 Tabbit*</p>
+</div></body></html>

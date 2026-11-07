@@ -1,0 +1,51 @@
+=== 修改文件差异（对手工快照的定点对比，非 git 仓库）===
+core/psd_parser.py: 诊断汇总 unverifiable 处理
+tests/test_psd_import_and_diagnosis.py: 字体状态三态分支断言
+新增: tests/test_font_diagnosis_honesty.py, tests/probe_real_interaction.py
+
+--- 关键代码段 (core/psd_parser.py) ---
+  960|     degraded_count = sum(1 for d in diagnosis_layers if d["disposition"] == "degraded")
+  961|     ignored_count = sum(1 for d in diagnosis_layers if d["disposition"] == "ignored")
+  962|     failed_count = sum(1 for d in diagnosis_layers if d["disposition"] == "failed")
+  963|     missing_fonts_count = sum(
+  964|         1 for d in diagnosis_layers if d.get("font_status") in ("font_missing", "partial_missing")
+  965|     )
+  966|     # unverifiable 代表字体环境无法校验（如 Linux 无 AppKit、字符集对象缺失、AppKit 调用异常），
+  967|     # 此时既不能宣称"字体覆盖率 100%"，也不能宣称"无风险"，必须单列并计入风险。
+  968|     unverifiable_fonts_count = sum(
+  969|         1 for d in diagnosis_layers if d.get("font_status") == "unverifiable"
+  970|     )
+  971|     has_missing_risk = (
+  972|         missing_fonts_count > 0
+  973|         or unverifiable_fonts_count > 0
+  974|         or any(len(d.get("missing_glyphs", [])) > 0 for d in diagnosis_layers)
+  975|     )
+  976| 
+  977|     if failed_count > 0:
+  978|         risk_assessment = f"高风险：存在 {failed_count} 个图层解析失败，可能导致模板视觉缺失"
+  979|     elif missing_fonts_count > 0:
+  980|         risk_assessment = f"中风险：存在 {missing_fonts_count} 个文本图层缺少系统字体或字形，已自动推荐回退字体"
+  981|     elif unverifiable_fonts_count > 0:
+  982|         risk_assessment = (
+  983|             f"无法确定风险：存在 {unverifiable_fonts_count} 个文本图层字体环境不可验证"
+  984|             f"（当前环境无法检测字形覆盖度），缺失情况未知，需在 macOS 目标机复核"
+  985|         )
+  986|     elif degraded_count > 0:
+  987|         risk_assessment = f"低风险：{preserved_count} 个矢量文本保留，{degraded_count} 个复杂/装饰图层已安全降级为 32 位透明贴图"
+  988|     else:
+  989|         risk_assessment = "无风险：所有图层均符合 Motion 矢量规范，字体覆盖率 100%"
+  990| 
+  991|     diagnosis_report = {
+  992|         "summary": {
+  993|             "source_file": {
+  994|                 "name": file_name,
+  995|                 "path": file_path
+
+--- 新增字段 ---
+  968|     unverifiable_fonts_count = sum(
+  973|         or unverifiable_fonts_count > 0
+  981|     elif unverifiable_fonts_count > 0:
+  983|             f"无法确定风险：存在 {unverifiable_fonts_count} 个文本图层字体环境不可验证"
+ 1009|             "unverifiable_fonts_count": unverifiable_fonts_count,
+ 1091|                 "unverifiable_fonts_count": 0,
+ 1138|                 "unverifiable_fonts_count": 0,

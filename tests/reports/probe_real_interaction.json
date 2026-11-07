@@ -1,0 +1,89 @@
+{
+  "zoom": {
+    "before": [
+      0.28557692307692306,
+      0.28557692307692306
+    ],
+    "after_left_wheel": [
+      0.3284134615384615,
+      0.3284134615384615
+    ],
+    "after_right_wheel": [
+      0.28557692307692306,
+      0.28557692307692306
+    ],
+    "zoom_changed_by_left_wheel": true,
+    "zoom_synced_left_to_right": true,
+    "zoom_synced_right_to_left": true
+  },
+  "pan": {
+    "scroll_before": [
+      -300,
+      -300
+    ],
+    "h_scroll_after_drag": [
+      -210,
+      -210
+    ],
+    "v_scroll_after_drag": [
+      -303,
+      -303
+    ],
+    "drag_moved_left_canvas": true,
+    "pan_synced_to_right": true,
+    "is_panning_reset": true
+  },
+  "checkerboard": {
+    "new_instance_reads_false": [
+      false,
+      false
+    ],
+    "new_instance_reads_true": [
+      true,
+      true
+    ],
+    "restore_off_ok": true,
+    "restore_on_ok": true,
+    "settings_key_written": true
+  },
+  "duplicate_layer_nav": {
+    "idx10_row": 0,
+    "idx20_row": 1,
+    "fallback_path_row": 1,
+    "substring_trap_row": 1,
+    "duplicate_names_distinct": true,
+    "fallback_exact_path_ok": true,
+    "row_before_trap": 1,
+    "no_substring_match": true
+  },
+  "four_state_badges": {
+    "badges": {
+      "complete": {
+        "text": "🟢 字体 100% 支持",
+        "bg": "#14301c",
+        "fg": "#30d158"
+      },
+      "partial_missing": {
+        "text": "🟠 缺字: 领, 衔",
+        "bg": "#3d2914",
+        "fg": "#ff9f0a"
+      },
+      "font_missing": {
+        "text": "🔴 原始字体未安装 (回退: PingFangSC-Regular)",
+        "bg": "#3d1418",
+        "fg": "#ff453a"
+      },
+      "unverifiable": {
+        "text": "🟡 无法验证字形",
+        "bg": "#3d3514",
+        "fg": "#ffd60a"
+      }
+    },
+    "click_nav_rows": {
+      "L1": 0,
+      "L2": 1,
+      "L3": 2,
+      "L4": 3
+    }
+  }
+}

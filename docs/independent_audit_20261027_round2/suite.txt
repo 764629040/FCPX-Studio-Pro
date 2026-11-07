@@ -1,0 +1,16 @@
+=== 复跑汇总（审核方独立执行）===
+============================= 39 passed in 22.02s ==============================
+
+=== 用例通过统计 ===
+  PASSED: 0
+  FAILED: 0
+  ERROR: 0
+  SKIPPED: 0
+  最后一行: ============================= 39 passed in 22.02s ==============================
+
+=== 各测试文件分布 ===
+     12 tests/test_clean_environment.py
+      3 tests/test_font_diagnosis_honesty.py
+     15 tests/test_p0_rotation_and_reason.py
+      6 tests/test_preview_comparison.py
+      3 tests/test_psd_import_and_diagnosis.py

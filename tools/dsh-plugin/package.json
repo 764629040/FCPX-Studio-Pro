@@ -1,0 +1,21 @@
+{
+  "name": "@local/fcpx-studio-pro-round",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FCPX Studio Pro 审核轮次自动化：指纹清单生成与比对、macOS/无 AppKit 双环境测试复跑、真实退出码记录。",
+  "license": "MIT",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

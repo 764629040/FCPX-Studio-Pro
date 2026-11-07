@@ -1,0 +1,13 @@
+=== A-1 detect_layer_rotation（真实调用）===
+  'Text01': rotation=90.0 bbox=(75, 164, 106, 929) w=31 h=765
+  'Title': rotation=90.0 bbox=(1651, 101, 1839, 899) w=188 h=798
+
+=== A-2 build_preserved_reason 四态（真实调用）===
+  [complete] 纯矢量文本，字体与字形均完整，保留为可发布标题
+  [partial_missing] 纯矢量文本，字体已安装但缺 2 个字形，已标记待替换
+  [font_missing] 纯矢量文本，原始字体未安装、缺 1 字，已降级为回退字体 'PingFangSC-Regular' 并标记待处理
+  [unverifiable] 纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核
+  四态两两不同 = True
+  font_missing 含'元数据完整' = False
+  partial_missing 含'元数据完整' = False
+  任一含'元数据完整' = False

@@ -1,0 +1,37 @@
+== R26 motion_builder 改动范围证明 ==
+
+方法：取当前（R26）文件，把 R26-A47 改动段反向回退为 R25 原段，
+      对回退产物计算 sha256；若 == R25 指纹基线 sha，则证明
+      R25→R26 的全部内容差异仅为该段（深层 id / 参数结构 / id 编号零改动）。
+
+当前（R26）sha256          : e859eec309e07a6997d06d450b31fddad5bcdd13dd799e19b16a5a56ffe6a255
+反向回退产物 sha256        : e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+R25 指纹基线 sha256        : e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+
+结论: 完全一致 → R26 对 motion_builder.py 的唯一改动就是 R26-A47 文本值写出段，
+      scenenode id、参数结构、id 编号全部未动（深层 id 红线守住，授权范围内）。
+
+R26-A47 改动段（唯一 diff，-旧行 / +新行）：
+----------------------------------------------------------------------
+--- motion_builder.py@R25
++++ motion_builder.py@R26
+@@ -1,11 +1,17 @@
+                 # 文本内容
++                # R26-A47：缺字可见标记接进 .moti 输出层。
++                # 仅当解析层携带非空 marked_text（含 □ tofu 标记，与原文逐字 1:1 等长）
++                # 时用标记版文本；否则保持原始 text（未缺字/旧调用路径零变化）。
++                # 本改动只触碰文本值写出（text_elem.text / styleRun length），
++                # 不触碰 scenenode id、参数结构、id 编号（深层 id 红线依旧）。
++                out_text = getattr(info, "marked_text", "") or info.text
+                 text_elem = layer_elem.find(".//parameter[@id=\"369\"]/text")
+                 if text_elem is not None:
+-                    text_elem.text = info.text
++                    text_elem.text = out_text
+ 
+                 # 同步更新 styleRun 样式指针与文本字符长度 length
+                 style_runs = layer_elem.findall(".//styleRun")
+                 if style_runs:
+                     style_runs[0].attrib["style"] = style_id
+                     style_runs[0].attrib["offset"] = "0"
+-                    style_runs[0].attrib["length"] = str(len(info.text or ""))
++                    style_runs[0].attrib["length"] = str(len(out_text or ""))

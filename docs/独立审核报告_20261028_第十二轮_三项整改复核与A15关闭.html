@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立审核报告 · 第十二轮 · 三项整改复核与 A-15 关闭</title><style>
+:root{--bg:#0f1115;--fg:#e6e8ee;--mut:#9aa3b2;--line:#262b36;--acc:#4f9cf9;--ok:#30d158}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 28px 96px}
+h1{font-size:29px;line-height:1.35;margin:0 0 8px;border-left:4px solid var(--ok);padding-left:14px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#fff}
+h3{font-size:17px;margin:26px 0 10px;color:var(--acc)}
+p{margin:10px 0} ul,ol{margin:10px 0 10px 22px;padding:0} li{margin:5px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;background:#151922;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{background:#1c2230;text-align:left;padding:10px 12px;font-weight:600;color:#cdd6e6;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #1e232d;vertical-align:top}
+tr:last-child td{border-bottom:none} tr:nth-child(even) td{background:#131720}
+code{background:#1b2130;color:#ffd479;padding:1.5px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,Menlo,monospace}
+pre{background:#12161f;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto}
+pre code{background:none;padding:0;color:#a8e6a3;font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0} strong{color:#fff} em{color:var(--mut);font-style:normal}
+blockquote{margin:14px 0;padding:12px 16px;background:#1a1f2b;border-left:3px solid var(--acc);border-radius:0 6px 6px 0;color:#cfd8e8}
+ul.ck{list-style:none;margin-left:0;background:#131720;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+ul.ck li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed #1e232d}
+ul.ck li:last-child{border-bottom:none}
+ul.ck .box{flex:0 0 16px;width:16px;height:16px;border:2px solid var(--acc);border-radius:3px;margin-top:5px}
+</style></head><body><div class="wrap">
+<h1>独立审核报告 · 第十二轮</h1>
+<h2>A-22 / A-23 / 断言 6 三项整改复核 —— A-15 <strong>通过关闭</strong></h2>
+<ul><li><strong>审核方</strong>：Tabbit（独立第三方）</li><li><strong>日期</strong>：2026-10-28</li><li><strong>审核基线</strong>：<code>docs/audit_inventory_20261028_round11_a22.json</code>（51 项）</li><li><strong>被测版本</strong>：<code>gui/canvas_view.py</code> mtime <code>12:38:42</code></li><li><strong>环境</strong>：Linux 沙箱 + 真实无 AppKit（<code>import AppKit</code> 真实抛 <code>ImportError</code>）</li></ul>
+<hr>
+<h2>结论</h2>
+<p><strong>三项整改全部成立。A-15 十二条断言：11 条通过、1 条转人工，A-15 予以关闭。</strong></p>
+<table><thead><tr><th>项</th><th>上轮状态</th><th>本轮实测</th><th>裁定</th></tr></thead><tbody><tr><td>round11 指纹</td><td>—</td><td><strong>51 / 51 一致</strong>，0 不一致、0 缺失</td><td><strong>通过</strong></td></tr><tr><td>独立复跑</td><td>123 passed</td><td><strong>126 passed / 2 skipped / exit 0</strong></td><td><strong>通过</strong>（未减少）</td></tr><tr><td><strong>A-22</strong> 屏幕像素补偿</td><td>FAIL</td><td>三档缩放色点恒 ≥4.00px、命中 ≥8.00px</td><td><strong>已修复，关闭</strong></td></tr><tr><td><strong>A-23</strong> 测试入清单</td><td>5 个缺失</td><td>磁盘 15 个<strong>全部收录</strong>，0 遗漏</td><td><strong>已修复，关闭</strong></td></tr><tr><td><strong>断言 6</strong> 全局单例</td><td>FAIL</td><td>单选→1、多选 8→1、悬停+多选→1</td><td><strong>已修复，通过</strong></td></tr><tr><td>断言 10 tooltip</td><td>条件通过</td><td>字符串同源成立</td><td><strong>维持人工项</strong></td></tr></tbody></table>
+<hr>
+<h2>一、指纹与测试</h2>
+<pre><code>count = 51   条目 = 51   SHA-256 独立复算 OK=51  DIFF=0  MISS=0
+pytest（真实无 AppKit）：126 passed, 2 skipped   exit code 0</code></pre>
+<p><strong>差分 vs round10（44 项）</strong>：<code>ADDED</code> 为 A-22 两张新证据图与相关文件，<code>CHANGED</code> 含 <code>gui/canvas_view.py</code>、<code>tools/round.py</code>、<code>tests/test_a15_badge_collapse.py</code>。改动面与三项整改范围一致。</p>
+<p>测试数 123 → 126（+3），与新增断言用例（<code>test_22</code>、<code>test_06b</code>、<code>test_06c</code> 等）相符。</p>
+<hr>
+<h2>二、A-22 复核：<strong>已修复</strong></h2>
+<h3>2.1 实现机制（源码确认）</h3>
+<p><code>_dot_size_in_scene()</code> 读取所在视图的 <code>transform().m11()</code>，按 <code>DOT_MIN_SCREEN_PX / scale</code> 换算画布尺寸；<code>_hit_rect()</code> 同理按 <code>HIT_MIN_SCREEN_PX</code>。<strong>即以屏幕像素为下限做补偿</strong>，正是 A-22 要求的方式。</p>
+<h3>2.2 三档缩放实测</h3>
+<table><thead><tr><th>缩放</th><th>m11</th><th>色点（画布 → 屏幕）</th><th>命中区（画布 → 屏幕）</th></tr></thead><tbody><tr><td><strong>44%</strong></td><td>0.44</td><td>9.09 → <strong>4.00 px</strong></td><td>18.18 → <strong>8.00 px</strong></td></tr><tr><td><strong>100%</strong></td><td>1.00</td><td>4.00 → <strong>4.00 px</strong></td><td>8.00 → <strong>8.00 px</strong></td></tr><tr><td><strong>200%</strong></td><td>2.00</td><td>4.00 → <strong>8.00 px</strong></td><td>8.00 → <strong>16.00 px</strong></td></tr></tbody></table>
+<p><strong>判定</strong>：三档下色点屏幕尺寸均 <strong>≥4 px</strong>、命中区均 <strong>≥8 px</strong>，44% 默认缩放下不再缩为 1.76 px。<strong>断言 1 与断言 9 通过。</strong></p>
+<p>&gt; <strong>表述澄清</strong>：实现采用&quot;<strong>最小屏幕像素下限</strong>&quot;（放大时色点随之变大），而非字面的&quot;屏幕尺寸恒定&quot;。<strong>这一取舍比我的原始规格更合理</strong>——放大时按像素恒定会显得过小。审核方认可该语义，并据此更新断言文本，避免后续争议。</p>
+<h3>2.3 视觉确认</h3>
+<p><code>A22_fit_zoom_dots.png</code>（44% Fit）：右栏「新娘」旁<strong>橙色点</strong>、「新郎」旁<strong>红色点</strong>、「领衔呈现」旁<strong>绿色点</strong>，均清晰可辨。<strong>这是 A-22 的核心诉求，已达成。</strong></p>
+<hr>
+<h2>三、A-22 引入的回归风险：<strong>已排查，无副作用</strong></h2>
+<p>色点画布尺寸从 4.00 放大到 9.09（44% 下），<strong>碰撞风险随之上升</strong>，必须重测。审核方在<strong>三夹具 × 三缩放（9 组）</strong>下重跑几何断言：</p>
+<table><thead><tr><th>组合</th><th>色点画布</th><th>相交对</th><th>压文字</th><th>最小净空</th></tr></thead><tbody><tr><td>竖版 / 44%</td><td>9.09</td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>31.08</strong></td></tr><tr><td>竖版 / 100%</td><td>4.00</td><td>0</td><td>0</td><td>68.38</td></tr><tr><td>竖版 / 200%</td><td>4.00</td><td>0</td><td>0</td><td>68.38</td></tr><tr><td>四态 / 44%</td><td>9.09</td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>64.91</strong></td></tr><tr><td>四态 / 100% · 200%</td><td>4.00</td><td>0</td><td>0</td><td>64.91</td></tr><tr><td>横版 23 / 44% · 100% · 200%</td><td>9.09 · 4.00 · 4.00</td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>136.64</strong></td></tr></tbody></table>
+<p><strong>9 组全部 PASS</strong>，最小净空 31.08 远超规格 ≥3。<strong>放大色点未引入任何新碰撞</strong>——这是因为色点以 bbox 中心为锚点，而列间隙的最小值 11 仍大于 9.09。</p>
+<p><strong>断言 2、3、4、5 通过。</strong></p>
+<hr>
+<h2>四、断言 6 复核：<strong>已修复，全局单例成立</strong></h2>
+<h3>4.1 实现</h3>
+<p>视图层新增 <code>_expanded_item</code> 单例持有者与 <code>_reconcile_badge_expansion()</code>，<code>scene.selectionChanged</code> 已接线。展开前先收回旧持有者，实现跨图元唯一。</p>
+<h3>4.2 用官方装配路径实测（复现真实交互）</h3>
+<table><thead><tr><th>操作</th><th>展开数</th><th>判定</th></tr></thead><tbody><tr><td><strong>单选 1 个</strong></td><td><strong>1</strong></td><td>PASS（展开功能未失效）</td></tr><tr><td>取消选中</td><td><strong>0</strong></td><td>PASS（正确收回）</td></tr><tr><td><strong>多选 8 个</strong></td><td><strong>1</strong></td><td>PASS（全局唯一）</td></tr><tr><td><strong>悬停 + 多选并存</strong></td><td><strong>1</strong></td><td>PASS（跨来源仍唯一）</td></tr></tbody></table>
+<p>上轮&quot;多选 3 个 → 展开 3 个&quot;的缺陷<strong>已消失</strong>。</p>
+<h3>4.3 测试已按规格改正</h3>
+<ul><li><code>test_06_only_one_expanded_at_a_time</code></li><li><code>test_06b_multi_select_keeps_single_expansion</code></li><li><code>test_06c_hover_plus_select_still_single</code></li></ul>
+<p>上轮 <code>assert len(expanded) == 2</code>（把违规写成预期）<strong>已改为 <code>== 1</code></strong>，并新增多选、悬停+多选两个用例。<strong>这一改动方向正确，且补上了原本缺失的覆盖。</strong></p>
+<hr>
+<h2>五、A-23 数量分歧裁决：<strong>双方都对，口径不同</strong></h2>
+<p>您实测 3 个、我说 5 个，**差异来自是否统计 <code>verify_mvp_*.py</code>**：</p>
+<table><thead><tr><th>项</th><th>round10 收录</th><th>round11 收录</th><th>新增</th></tr></thead><tbody><tr><td><code>tests/*.py</code> 总数</td><td>10</td><td><strong>15</strong></td><td><strong>5</strong></td></tr></tbody></table>
+<p><strong>round11 新增收录的 5 个</strong>：</p>
+<ul><li><code>test_a15_badge_collapse.py</code> ← 您指的 3 个之一</li><li><code>test_a20_evidence_inventory.py</code> ← 3 个之一</li><li><code>test_round5_tools_inventory.py</code> ← 3 个之一</li><li><code>verify_mvp_acceptance.py</code> ← <strong>我额外计入的</strong></li><li><code>verify_mvp_extended_acceptance.py</code> ← <strong>我额外计入的</strong></li></ul>
+<p><strong>结论</strong>：您按 <code>test_</code> 前缀口径统计得 3 个，<strong>完全正确</strong>；我按&quot;磁盘上所有 <code>tests/*.py</code>&quot;统计得 5 个，也正确。**两个 <code>verify_mvp_*.py</code> 是不带 <code>test_</code> 前缀但可执行的验收脚本<strong>，同样属于&quot;证明合规的脚本&quot;，故应纳入受控面——</strong>这正是本轮已做到的**。</p>
+<p><strong>当前状态：磁盘 15 个 = 清单 15 个，遗漏 0。A-23 关闭。</strong></p>
+<hr>
+<h2>六、断言 10：<strong>维持人工项，同意您的建议</strong></h2>
+<ul><li><code>toolTip() == get_badge_info()[0]</code> 在全部 8 个图层上成立，<strong>字符串同源已验证</strong>；</li><li>您提议的 <code>QHelpEvent</code> 手动投递方案：<strong>不建议实施</strong>。原因有二——① 依赖平台事件循环行为，离屏下可靠性低，得到的&quot;通过&quot;本身不可信；② 为一条可通过肉眼 3 秒确认的功能，投入高风险自动化，收益为负。</li><li><strong>裁定：保留为人工验收项</strong>（清单 C 组），您在真机上悬停即可确认。<strong>不返工。</strong></li></ul>
+<hr>
+<h2>七、十二条断言最终判定</h2>
+<table><thead><tr><th>#</th><th>断言</th><th>结果</th></tr></thead><tbody><tr><td>1</td><td>色点尺寸与中心锚点</td><td><strong>PASS</strong>（三档 ≥4.00px）</td></tr><tr><td>2</td><td>任意两色点不相交</td><td><strong>PASS</strong>（9 组 0 相交）</td></tr><tr><td>3</td><td>不压其他图层文字</td><td><strong>PASS</strong>（9 组 0 压盖）</td></tr><tr><td>4</td><td>最小净空 ≥3</td><td><strong>PASS</strong>（最小 31.08）</td></tr><tr><td>5</td><td>多夹具同时通过</td><td><strong>PASS</strong>（3 夹具 × 3 缩放）</td></tr><tr><td>6</td><td>同一时刻最多一个展开</td><td><strong>PASS</strong>（单选1/多选1/悬停1）</td></tr><tr><td>7</td><td>展开不溢出画布</td><td><strong>PASS</strong>（越界 0）</td></tr><tr><td>8</td><td>四态颜色与文案一致</td><td><strong>PASS</strong>（<code>#30D158/#FF9F0A/#FF453A/#FFD60A</code>）</td></tr><tr><td>9</td><td>命中区 ≥8 屏幕像素</td><td><strong>PASS</strong>（三档 ≥8.00px）</td></tr><tr><td>10</td><td>tooltip 与展开文案一致</td><td><strong>人工项</strong>（字符串同源已验证）</td></tr><tr><td>11</td><td>四态像素互斥回归</td><td><strong>PASS</strong>（<code>test_11</code>）</td></tr><tr><td>12</td><td>全量测试不减少</td><td><strong>PASS</strong>（126 ≥ 123）</td></tr></tbody></table>
+<p><strong>11 通过 + 1 人工项 → A-15 关闭。</strong></p>
+<hr>
+<h2>八、一条 P3 优化建议（不阻塞）</h2>
+<p>命中区当前 8 屏幕像素，<strong>满足断言原文（≥8）</strong>，但鼠标精细点击偏紧，建议后续提至 <strong>20 屏幕像素</strong>（<code>HIT_MIN_SCREEN_PX = 20</code>）。属体验优化，<strong>不列入本轮阻塞</strong>，也不要求为此返工。</p>
+<hr>
+<h2>九、勾选状态</h2>
+<table><thead><tr><th>项</th><th>状态</th></tr></thead><tbody><tr><td>A-1 ～ A-13</td><td>已核实修复，维持</td></tr><tr><td>A-14</td><td>P3 使用引导，不阻塞</td></tr><tr><td><strong>A-15</strong></td><td><strong>✅ 通过关闭</strong>（11/12 断言 + 1 人工项）</td></tr><tr><td>A-16</td><td>已通过关闭</td></tr><tr><td>A-18 / A-19 / A-20</td><td>已关闭</td></tr><tr><td><strong>A-21</strong></td><td>已闭环（A-20 覆盖）</td></tr><tr><td><strong>A-22</strong></td><td><strong>✅ 已修复关闭</strong></td></tr><tr><td><strong>A-23</strong></td><td><strong>✅ 已修复关闭</strong>（15/15 收录）</td></tr></tbody></table>
+<p><strong>P0 / P1 / P2 阻塞 / 补证 / 证据治理 / 断言缺口 —— 全部清零。</strong></p>
+<hr>
+<h2>十、现在可以进入真机验收</h2>
+<p><strong>建议顺序：先「23 含装饰」，后「01 领衔呈现」</strong>（理由见第十一轮报告第六节；横版不受色点尺寸干扰，且优先暴露闪退/导入失败等否决项）。</p>
+<p><strong>记录口径（80%–90%）</strong>，每模板四项：</p>
+<ol><li>是否闪退（否决项）</li><li>是否报错弹窗（记录文案，否决项）</li><li>FCPX / Motion 能否打开并渲染（否决项）</li><li>四态/方向是否肉眼可辨（允许&quot;色点偏小但悬停可读&quot;记为待改）</li></ol>
+<p><strong>人工项请在真机上一并确认</strong>：C 组 tooltip 悬停弹出、色点可见性、单展开互斥。</p>
+<hr>
+<h2>十一、如实声明</h2>
+<ol><li>指纹 51/51、测试 126 passed、几何 9 组、三档缩放像素值、断言 6 交互序列，<strong>均由审核方在本环境独立复算复测</strong>；<code>pytest</code> 运行于真实无 AppKit 解释器（先断言 <code>import AppKit</code> 抛 <code>ImportError</code>）。</li><li><strong>macOS 侧日志为开发方自述，审核方无 macOS 环境，未复核，不作通过依据。</strong></li><li><strong>审核方未在 Motion 6.0 / Final Cut Pro 中做任何渲染验收</strong>，第九节之后必须由您本人执行。</li><li>断言 1 的&quot;屏幕尺寸恒定&quot;实际实现为&quot;最小屏幕像素下限&quot;，<strong>属于更优解，审核方据此修订断言文本</strong>，非开发方偏离。</li><li>A-23 的分歧已查明为统计口径差异（<code>test_</code> 前缀 vs 全部 <code>tests/*.py</code>），<strong>双方均无错误</strong>。</li></ol>
+<hr>
+<p>*报告生成：2026-10-28 · 审核方 Tabbit*</p>
+</div></body></html>

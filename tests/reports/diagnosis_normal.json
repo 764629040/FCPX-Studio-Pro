@@ -1,0 +1,420 @@
+{
+  "summary": {
+    "source_file": {
+      "name": "vertical_wedding_9_16.psd",
+      "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+    },
+    "canvas": {
+      "width": 1080,
+      "height": 1920,
+      "aspect_ratio": "9:16 (竖屏短视频)",
+      "resolution_spec": "2K 高清"
+    },
+    "total_layers": 9,
+    "preserved_count": 8,
+    "degraded_count": 0,
+    "ignored_count": 1,
+    "failed_count": 0,
+    "missing_fonts_count": 0,
+    "unverifiable_fonts_count": 8,
+    "missing_media_refs": 0,
+    "missing_glyph_layers": 0,
+    "hidden_layer_count": 0,
+    "hidden_layer_names": [],
+    "background_layer_count": 1,
+    "group_layer_count": 0,
+    "empty_layer_count": 0,
+    "other_ignored_count": 0,
+    "preview_layer_count": 0,
+    "visible_emitted_count": 8,
+    "ignored_summary": "已忽略 1 层（1 个底板）",
+    "count_sum_holds": true,
+    "include_hidden": false,
+    "background_preview_present": false,
+    "original_composite_path": null,
+    "has_missing_risk": true,
+    "risk_assessment": "无法确定风险：存在 8 个文本图层字体环境不可验证（当前环境无法检测字形覆盖度），缺失情况未知，需在 macOS 目标机复核",
+    "layer_conservation": {
+      "holds": true,
+      "count_sum_holds": true,
+      "input_layer_count": 9,
+      "output_layer_count": 8,
+      "skipped_layer_count": 1,
+      "preserved_count": 8,
+      "degraded_count": 0,
+      "ignored_count": 1,
+      "invariant": "input_layer_count == output_layer_count + skipped_layer_count",
+      "count_invariant": "input_layer_count == preserved + degraded + ignored + failed"
+    },
+    "generated_at": "2026-11-08T02:11:52.636733"
+  },
+  "layers": [
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": null,
+      "layer_path": "图层 0",
+      "parent_path": "",
+      "layer_name": "图层 0",
+      "layer_type": "pixel",
+      "disposition": "ignored",
+      "reason": "背景底板图层 ('图层 0')，已按规范过滤忽略",
+      "font_status": null,
+      "missing_glyphs": [],
+      "fallback_font": null,
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": false,
+      "marked_text": "",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 1,
+      "layer_path": "领 衔 呈 现",
+      "parent_path": "",
+      "layer_name": "领 衔 呈 现",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "PingFangSC-Regular",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "领\n衔\n呈\n现",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 2,
+      "layer_path": "lead the  presentation",
+      "parent_path": "",
+      "layer_name": "lead the  presentation",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "Helvetica",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "lead the \npresentation",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 3,
+      "layer_path": "新 娘  朱 永 宏",
+      "parent_path": "",
+      "layer_name": "新 娘  朱 永 宏",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "PingFangSC-Regular",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "新\n娘\n\n朱\n永\n宏",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 4,
+      "layer_path": "THE BRIDE",
+      "parent_path": "",
+      "layer_name": "THE BRIDE",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "Helvetica",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "THE BRIDE",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 5,
+      "layer_path": "新 郎  陈 晗",
+      "parent_path": "",
+      "layer_name": "新 郎  陈 晗",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "PingFangSC-Regular",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "新\n郎\n\n陈\n晗",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 6,
+      "layer_path": "THE GROOM",
+      "parent_path": "",
+      "layer_name": "THE GROOM",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "Helvetica",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "THE GROOM",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 7,
+      "layer_path": "镇 雄",
+      "parent_path": "",
+      "layer_name": "镇 雄",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "PingFangSC-Regular",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "镇\n雄",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    },
+    {
+      "source_file": {
+        "name": "vertical_wedding_9_16.psd",
+        "path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tests/data/vertical_wedding_9_16.psd"
+      },
+      "layer_index": 8,
+      "layer_path": "CITY",
+      "parent_path": "",
+      "layer_name": "CITY",
+      "layer_type": "type",
+      "disposition": "preserved",
+      "reason": "纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定，已保留矢量并标记待复核",
+      "font_status": "unverifiable",
+      "missing_glyphs": [],
+      "fallback_font": "Helvetica",
+      "fallback_png": null,
+      "unsupported_features": [],
+      "error_details": null,
+      "is_blocking": false,
+      "severity": null,
+      "media_error": null,
+      "layer_styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "motion_blend_mode": {
+        "supported": false,
+        "param_name": "blendMode",
+        "motion_value": "normal",
+        "original_cn": null,
+        "note": "未检出非 Normal 混合模式，无需写入。"
+      },
+      "warp_detected": false,
+      "warp_warning": "",
+      "highlight_missing_font": true,
+      "marked_text": "CITY",
+      "missing_glyph_visible_marker": false,
+      "smart_object_policy": "flatten"
+    }
+  ],
+  "schema": {
+    "font_info_fields": {
+      "has_confirmed_missing_glyphs": "确证缺字：missing_chars 非空",
+      "has_glyph_risk": "任何缺字风险，含环境不可验证（unverifiable）",
+      "has_missing_glyphs": "DEPRECATED：等同于 has_glyph_risk，仅为向后兼容保留"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+build_time: 2026-11-05 14:13:40 CST
+binary_sha256: 0a283c9d5314d60e995247ff61c90e8e2c0e23b1548cdd2ece2a04d9a07aaaf1  FCPX Studio Pro.app/Contents/MacOS/FCPXStudio
+legacy_r28_binary_sha256: e82f10f75f7e2a8e0281252ebb538f4325e5dc2e1f405b40fe89f6fa72592bf7  docs/r31_evidence/legacy_app_binary_r28

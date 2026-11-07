@@ -1,0 +1,143 @@
+{
+  "generated_at": "2026-11-05T17:34:03.795056",
+  "seed": 20261105,
+  "zhenxiong_equivalent": {
+    "file": "zhenxiong_equivalent.psd",
+    "canvas": [
+      2848,
+      1600
+    ],
+    "layers": 13,
+    "text_layers": 0,
+    "visible_non_bg": [
+      "镇雄夜色"
+    ],
+    "visible_bg": [
+      "图层 2"
+    ],
+    "hidden": [
+      "备选调色_01",
+      "备选调色_02",
+      "备选调色_03",
+      "备选调色_04",
+      "备选调色_05",
+      "备选调色_06",
+      "备选调色_07",
+      "备选调色_08",
+      "备选调色_09",
+      "备选调色_10",
+      "备选调色_11"
+    ]
+  },
+  "zhenxiong_source_video": "亿家福农贸 2.mov",
+  "unseen": [
+    {
+      "file": "unseen_random_1.psd",
+      "canvas": [
+        2048,
+        1152
+      ],
+      "seed": 20261105,
+      "layers_desc": [
+        {
+          "name": "装饰块_0",
+          "visible": true
+        },
+        {
+          "name": "隐藏片段_0",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_1",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_2",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_3",
+          "visible": false
+        },
+        {
+          "name": "装饰组_1/组内亮条",
+          "visible": true
+        }
+      ],
+      "hidden_count": 4,
+      "source_video": "车拍 2.mov",
+      "frame_at": 11.84
+    },
+    {
+      "file": "unseen_random_2.psd",
+      "canvas": [
+        1600,
+        1600
+      ],
+      "seed": 20261105,
+      "layers_desc": [
+        {
+          "name": "装饰块_0",
+          "visible": true
+        },
+        {
+          "name": "装饰块_1",
+          "visible": true
+        },
+        {
+          "name": "隐藏片段_0",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_1",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_2",
+          "visible": false
+        },
+        {
+          "name": "装饰组_2/组内亮条",
+          "visible": true
+        }
+      ],
+      "hidden_count": 3,
+      "source_video": "凉粉.mov",
+      "frame_at": 2.2
+    },
+    {
+      "file": "unseen_random_3.psd",
+      "canvas": [
+        1920,
+        1080
+      ],
+      "seed": 20261105,
+      "layers_desc": [
+        {
+          "name": "装饰块_0",
+          "visible": true
+        },
+        {
+          "name": "装饰块_1",
+          "visible": true
+        },
+        {
+          "name": "装饰块_2",
+          "visible": true
+        },
+        {
+          "name": "隐藏片段_0",
+          "visible": false
+        },
+        {
+          "name": "隐藏片段_1",
+          "visible": false
+        }
+      ],
+      "hidden_count": 2,
+      "source_video": "夜景-公租房 2.mov",
+      "frame_at": 3.69
+    }
+  ],
+  "note": "原 /mnt/local/128/字幕素材/镇雄.psd 在开发机不存在（/mnt 无挂载），本样本为结构等价重建；照片为用户 SD 卡真实镇雄素材抽帧。"
+}

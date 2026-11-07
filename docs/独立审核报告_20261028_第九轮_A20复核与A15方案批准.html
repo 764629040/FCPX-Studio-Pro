@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>独立审核报告 · 第九轮 · A-20 复核与 A-15 方案批准</title>
+<style>
+:root{--bg:#0f1115;--fg:#e6e8ee;--mut:#9aa3b2;--line:#262b36;--acc:#4f9cf9;--warn:#ffb02e;--ok:#30d158;--bad:#ff453a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:48px 28px 96px}
+h1{font-size:30px;line-height:1.35;margin:0 0 8px;border-left:4px solid var(--acc);padding-left:14px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#fff}
+h3{font-size:17px;margin:26px 0 10px;color:var(--acc)}
+p{margin:10px 0;color:var(--fg)}
+ul,ol{margin:10px 0 10px 22px;padding:0}
+li{margin:5px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;background:#151922;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{background:#1c2230;text-align:left;padding:10px 12px;font-weight:600;color:#cdd6e6;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #1e232d;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:#131720}
+code{background:#1b2130;color:#ffd479;padding:1.5px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:#12161f;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:14px 0}
+pre code{background:none;padding:0;color:#a8e6a3;font-size:13px;line-height:1.6}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+strong{color:#fff}
+blockquote{margin:14px 0;padding:12px 16px;background:#1a1f2b;border-left:3px solid var(--warn);border-radius:0 6px 6px 0;color:#f0d9a8}
+em{color:var(--mut);font-style:normal}
+</style></head><body><div class="wrap">
+<h1>独立审核报告 · 第九轮</h1>
+<h2>A-20 复核 · 审核方更正 · A-15 方案 1 批准</h2>
+<ul><li><strong>审核方</strong>：Tabbit（独立第三方，非开发方）</li><li><strong>日期</strong>：2026-10-28</li><li><strong>审核基线</strong>：<code>docs/audit_inventory_20261028_round9_a20.json</code>（42 项）</li><li><strong>被测版本路径</strong>：<code>/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro</code></li><li><strong>审核环境</strong>：Linux 沙箱 + 真实无 AppKit 解释器（<code>import AppKit</code> 真实抛 <code>ImportError</code>）</li></ul>
+<hr>
+<h2>结论摘要</h2>
+<table><thead><tr><th>事项</th><th>裁定</th></tr></thead><tbody><tr><td>A-20 ①证据文件入指纹清单</td><td><strong>通过，关闭</strong>（42/42 复算一致）</td></tr><tr><td>A-20 ②截图生成脚本入库</td><td><strong>通过，关闭</strong>（脚本已入库并受指纹保护）</td></tr><tr><td>A-20 ②表述准确性</td><td><strong>审核方自身错误，予以更正</strong>（见第一节）</td></tr><tr><td>A-15 方案 1（4px 色点 + 选中/悬停展开）</td><td><strong>批准</strong>，附断言规格（见第六节）</td></tr><tr><td>新发现 A-21</td><td>证据文件在第八轮审核后被重写（P3，已随 A-20 修复闭环）</td></tr><tr><td><strong>Motion / FCPX 真机验收</strong></td><td><strong>可以开始</strong></td></tr></tbody></table>
+<hr>
+<h2>一、审核方更正：我上一轮写错了一句</h2>
+<p>第八轮报告第 160 行原文：</p>
+<p>&gt; 全仓检索 <code>builtins.__import__</code>：<strong>无命中</strong>。</p>
+<p><strong>这句话是错的。</strong> 实测 <code>tools/round.py</code> 在该时点已含 <strong>3 处</strong> 该字符串（第 206、210、232 行），并非无命中。</p>
+<p>证据链（时间戳可交叉验证）：</p>
+<table><thead><tr><th>事件</th><th>时间</th></tr></thead><tbody><tr><td><code>docs/pytest_20261027_round7_no_appkit.log</code> 由 <code>round.py</code> 生成，其 <code>CMD=</code> 行内嵌 <code>builtins.__import__</code> 拦截代码</td><td><code>2026-10-28 00:17:12</code></td></tr><tr><td>审核方第八轮报告写入</td><td><code>2026-10-28 03:35:53</code></td></tr></tbody></table>
+<p>即：<strong>在我写&quot;无命中&quot;之前约 3 小时 20 分，仓库里就已经有该实现，并且它自己产出的日志把这段代码原样打印了出来。</strong></p>
+<p><strong>归因</strong>：审核方检索执行失败/范围失准，未命中即下&quot;无命中&quot;结论，属<strong>以检索空结果代替事实</strong>，违反证据纪律。<strong>不归因于开发方。</strong></p>
+<p>您提出的&quot;实测仓库里有 5 处&quot;更接近事实（<code>round.py</code> 3 处 + <code>tests/</code> 内 monkeypatch 2 处；若计入新入库的 <code>make_a16_evidence.py</code> 则为 9 处）。<strong>我接受您的判断，并撤回&quot;无命中&quot;这一表述。</strong></p>
+<hr>
+<h2>二、A-20 修复的独立复核（不采信开发方日志）</h2>
+<h3>2.1 指纹清单复算</h3>
+<table><thead><tr><th>指标</th><th>结果</th></tr></thead><tbody><tr><td>清单项数</td><td><strong>42</strong>（<code>count</code> 字段与 <code>files</code> 实际条目一致）</td></tr><tr><td>独立复算 SHA-256</td><td><strong>42 / 42 一致</strong></td></tr><tr><td>不一致</td><td><strong>0</strong></td></tr><tr><td>缺失</td><td><strong>0</strong>（<code>missing = []</code>）</td></tr></tbody></table>
+<p><strong>与第八轮（35 项）差分</strong>：</p>
+<ul><li><code>ADDED</code>（7 项）：<code>tools/make_a16_evidence.py</code> + <code>docs/a16_evidence/</code> 下 6 个证据文件</li><li><code>REMOVED</code>：<strong>无</strong></li><li><code>CHANGED</code>：<strong>仅 <code>tools/round.py</code></strong>（新增 <code>EVIDENCE_FILES</code> 与 <code>TOOL_FILES</code> 条目）</li></ul>
+<p>差分形态与 A-20 的整改内容<strong>精确对应</strong>：只加了证据与生成器，未借机改动业务源码。</p>
+<h3>2.2 独立复跑</h3>
+<p>审核方在<strong>真实无 AppKit</strong> 环境复跑全量测试：</p>
+<pre><code>105 passed, 2 skipped  |  exit code 0</code></pre>
+<p><strong>与开发方 <code>docs/pytest_20261028_round9_a20_no_appkit.log</code> 完全一致。</strong></p>
+<p>数量校验：第八轮 94 passed → 第九轮 105 passed，<strong>增量 11</strong>，与 <code>tests/test_a20_evidence_inventory.py</code> 中 <strong>11 个</strong> <code>test_</code> 函数数量<strong>精确相等</strong>。无凭空增加的用例。</p>
+<h3>2.3 受控面实测</h3>
+<p><code>tools/round.py</code> 中 <code>CONTROLLED = SOURCE_FILES + TEST_FILES + FIXTURE_FILES + TOOL_FILES + EVIDENCE_FILES</code>，<code>EVIDENCE_FILES</code> 明确列入 6 个证据文件，<code>TOOL_FILES</code> 含 <code>make_a16_evidence.py</code>。清单文件实测包含：</p>
+<ul><li><code>docs/a16_evidence/A16_detected.png</code> ✓</li><li><code>docs/a16_evidence/A16_font_and_state_evidence.json</code> ✓</li><li><code>docs/a16_evidence/A16_unverifiable_canvas_noappkit.png</code> ✓</li><li><code>tools/make_a16_evidence.py</code> ✓</li></ul>
+<p><strong>A-20 ①与 ②的技术整改成立，予以关闭。</strong></p>
+<hr>
+<h2>三、A-20 ② 表述问题的准确定位</h2>
+<p>您的判断&quot;表述不准确但核心成立&quot;<strong>成立</strong>。分开看：</p>
+<table><thead><tr><th>主张</th><th>第八轮时点真值</th><th>判定</th></tr></thead><tbody><tr><td>生成 <code>unverifiable</code> <strong>截图</strong>的脚本不在项目内</td><td><code>make_a16_evidence.py</code> 创建于 <code>03:40:09</code>，晚于我报告 <code>03:35:53</code> → <strong>当时确实不存在</strong></td><td><strong>核心成立</strong></td></tr><tr><td>支撑该主张的证据句&quot;全仓检索无命中&quot;</td><td><code>round.py</code> 已有 3 处</td><td><strong>不准确，已撤回</strong></td></tr></tbody></table>
+<p>即：<strong>结论对，论据错。</strong> 这类错误比结论错更危险——若结论碰巧正确，错误论据会被一并采信。</p>
+<p><strong>关于您问的是否需要更严格约束</strong>：需要，但<strong>约束对象应是我，而非开发方</strong>。建议纳入后续约定：</p>
+<ol><li>审核方凡以&quot;检索无命中&quot;作为论据，必须附<strong>可复现的命令、检索范围与命中计数</strong>；</li><li>检索需排除 <code>__pycache__</code> 与二进制大目录，且<strong>必须先用已知存在的字符串做阳性对照</strong>，证明检索通道有效；</li><li>检索通道异常（超时、挂载失败、范围受限）时，只能写&quot;未检索到&quot;并标注通道状态，<strong>不得写&quot;不存在&quot;</strong>。</li></ol>
+<p>上述三条为审核方自律条款，写入 03 清单持续执行。</p>
+<hr>
+<h2>四、新发现 A-21：证据文件在我审核之后被重写</h2>
+<table><thead><tr><th>文件/事件</th><th>时间</th></tr></thead><tbody><tr><td>审核方第八轮报告</td><td><code>03:35:53</code></td></tr><tr><td><code>make_a16_evidence.py</code> 创建</td><td><code>03:40:09</code></td></tr><tr><td><strong><code>docs/a16_evidence/</code> 6 个证据文件被重写</strong></td><td><strong><code>03:40:12</code></strong></td></tr><tr><td>第九轮指纹清单生成</td><td><code>03:40:57</code></td></tr></tbody></table>
+<p><strong>问题</strong>：我第八轮审核所依据的像素文件，与当前文件<strong>不是同一批字节</strong>。而第八轮清单（35 项）<strong>不含任何证据文件</strong>，因此<strong>无法用哈希证明两批文件内容一致</strong>。</p>
+<p>这正是 A-20 ①预警的风险（&quot;证据图片可被替换而无人察觉&quot;）在现实中发生的实例——虽本次是正常重生成，非恶意替换。</p>
+<p><strong>处置</strong>：</p>
+<ul><li>该缺口已由 A-20 修复闭环：当前 42 项清单已覆盖 6 个证据文件，此后任何替换都会被哈希捕获；</li><li>审核方<strong>不沿用第八轮的像素数字</strong>，已在当前文件上重新测量（见第五节）；</li><li>定性结论<strong>维持不变</strong>（见第五节），但数字以本节为准。</li></ul>
+<p><strong>这是一次真实的&quot;证据可替换性&quot;演示，结论是 A-20 应当修复，且已修复到位。</strong></p>
+<hr>
+<h2>五、A-16 四态语义在当前文件上的复测</h2>
+<h3>5.1 逐层四态映射（取自当前 <code>A16_font_and_state_evidence.json</code>）</h3>
+<table><thead><tr><th>#</th><th>图层</th><th>字体</th><th>四态</th><th>字形覆盖</th></tr></thead><tbody><tr><td>1</td><td>领 衔 呈 现</td><td>PingFangSC-Regular</td><td><code>detected</code></td><td>1.0</td></tr><tr><td>2</td><td>lead the presentation</td><td>Helvetica</td><td><code>detected</code></td><td>1.0</td></tr><tr><td>3</td><td>新 娘 朱 永 宏</td><td>Helvetica</td><td><code>partial_missing</code>（字形缺失）</td><td><strong>0.0</strong></td></tr><tr><td>4</td><td>THE BRIDE</td><td>PingFangSC-Regular</td><td><code>detected</code></td><td>1.0</td></tr><tr><td>5</td><td>新 郎 陈 晗</td><td>CormorantInfant-Regular</td><td><code>font_missing</code></td><td>0.0</td></tr><tr><td>6</td><td>THE GROOM</td><td>CormorantInfant-Regular</td><td><code>font_missing</code></td><td>0.0</td></tr><tr><td>7</td><td>镇 雄</td><td>Helvetica</td><td><code>partial_missing</code>（字形缺失）</td><td><strong>0.0</strong></td></tr><tr><td>8</td><td>CITY</td><td>Helvetica</td><td><code>detected</code></td><td>1.0</td></tr></tbody></table>
+<p><strong>四态在同一 PSD 内同时出现</strong>，非拼接伪造。<code>cormorantinfant_count = 0</code>、<code>Helvetica</code> 中文 <code>coverage_rate = 0.0</code> 与上表自洽。</p>
+<h3>5.2 像素实测（右栏预览区，排除顶栏/横幅/左栏图例）</h3>
+<table><thead><tr><th>状态</th><th><code>A16_four_state_canvas_macos.png</code></th><th><code>A16_unverifiable_canvas_noappkit.png</code></th></tr></thead><tbody><tr><td>红（font_missing）</td><td><strong>422 px</strong></td><td><strong>0 px</strong></td></tr><tr><td>黄（unverifiable）</td><td>14 px（噪点）</td><td><strong>351 px</strong></td></tr><tr><td>橙（partial_missing）</td><td>15 px</td><td>0 px</td></tr><tr><td>绿（detected）</td><td><strong>199 px</strong></td><td>0 px</td></tr></tbody></table>
+<p><strong>红/黄互斥成立</strong>：有 AppKit 侧红大量存在、黄接近零；无 AppKit 侧黄大量存在、红为零。绿的存在与 <code>detected</code> 层对应，橙与 <code>partial_missing</code> 层对应。</p>
+<p>&gt; <strong>方法说明</strong>：颜色计数依赖裁剪区域与容差，绝对值随参数浮动，故与第八轮（36 px / 176 px）不可直接比较——那批文件已被重写。<strong>本报告只主张定性互斥，不主张绝对值。</strong></p>
+<h3>5.3 真实无 AppKit 环境复现</h3>
+<p>审核方在 <code>import AppKit</code> <strong>真实失败</strong>（先断言该导入确实抛 <code>ImportError</code>，再执行业务代码）的解释器中运行 <code>parse_psd_file(&#x27;tests/data/four_state.psd&#x27;)</code>，8 个图层全部落入 <code>unverifiable</code>。</p>
+<p><strong>该复现不依赖任何拦截器</strong>，故 A-16 的第四态语义已由真实环境独立证实。开发方提出的隔离进程注入方案<strong>仍无必要执行</strong>。</p>
+<hr>
+<h2>六、A-15 方案 1 批准与断言规格</h2>
+<h3>6.1 几何实测（<code>vertical_wedding_9_16.psd</code> / <code>four_state.psd</code>，画布 1080×1920）</h3>
+<p>徽章几何取自 <code>gui/canvas_view.py</code> 源码：</p>
+<pre><code>b_h = 18.0
+b_rect = QRectF(rect.left(), rect.top() - b_h - 4, b_w, b_h)
+b_w = max(110.0, len(badge_text) * 7.5 + 14)     # 主体层
+b_w = 135.0                                       # 降级贴图层</code></pre>
+<p><strong>关键：徽章有一个 110 单位的最小宽度下限，而竖版相邻列的实测水平间隙只有 11–14 单位。</strong></p>
+<table><thead><tr><th>相邻列</th><th>水平间隙</th><th>需求（18+4）</th><th>结果</th></tr></thead><tbody><tr><td>领衔呈现 → lead the presentation</td><td>11</td><td>≥22</td><td><strong>叠撞</strong></td></tr><tr><td>lead the → 新娘朱永宏</td><td>88</td><td>≥22</td><td>正常</td></tr><tr><td>新娘朱永宏 → THE BRIDE</td><td>14</td><td>≥22</td><td><strong>叠撞</strong></td></tr><tr><td>THE BRIDE → 新郎陈晗</td><td>107</td><td>≥22</td><td>正常</td></tr><tr><td>新郎陈晗 → THE GROOM</td><td>13</td><td>≥22</td><td><strong>叠撞</strong></td></tr><tr><td>THE GROOM → 镇雄</td><td>29</td><td>≥22</td><td>正常</td></tr><tr><td>镇雄 → CITY</td><td>14</td><td>≥22</td><td><strong>叠撞</strong></td></tr></tbody></table>
+<p><strong>叠撞 4 / 7 对。</strong> 与四态同框截图中右栏徽章连成一片的观感一致。</p>
+<h3>6.2 审核方对第八轮根因表述的更正</h3>
+<p>第八轮我写&quot;根因在高度方向 22px &gt; 行距 11–14px&quot;。<strong>该表述方向不准确</strong>：</p>
+<ul><li><code>rotation = 90°</code> 的图元（<code>lead the</code>、<code>THE BRIDE</code>、<code>THE GROOM</code>、<code>CITY</code>）经 <code>setRotation(90)</code> 后，徽章的 18 单位厚度落在<strong>水平</strong>方向；</li><li><code>rotation = 0°</code> 的图元（领衔呈现、新娘、新郎、镇雄）徽章为<strong>横向 110 单位宽</strong>，而列宽仅 14–38 单位，必然压住 4–8 个邻列。</li></ul>
+<p><strong>准确表述</strong>：根因是<strong>徽章固定尺寸（最小 110 宽 / 18 厚）与竖版 11–14 单位的列间距不匹配</strong>，横向（宽度与厚度）与纵向同时失配，横向失配量级更大（110 vs 11–14，约 8 倍）。</p>
+<p>结论方向不变（调宽度/字号无效、需改交互形态），但<strong>论据已修正</strong>。</p>
+<h3>6.3 批准</h3>
+<p><strong>批准方案 1：常态显示 4 单位色点，选中或悬停时展开完整徽章文本。</strong></p>
+<p>量化依据：4 单位色点的水平占用 = 4 单位 &lt; 最小间隙 11 单位，<strong>在最密列上仍保有 ≥3.5 单位净空</strong>，从几何上必然消除叠撞；且四色语义可原样复用，不新增状态。</p>
+<h3>6.4 断言规格（建议开发方据此实现，供下轮验收）</h3>
+<p><strong>折叠态（默认）必须满足：</strong></p>
+<ol><li>色点尺寸 4×4，以图层 bbox <strong>中心</strong>为锚点，随图元旋转（不得用 <code>rect.left()</code> 作锚点）；</li><li>任意两个可见文字层的<strong>色点外接框互不相交</strong>；</li><li>色点外接框<strong>不得与任何其他图层的文字 bbox 相交</strong>；</li><li>在上述两条基础上，最小净空 <strong>≥ 3 单位</strong>（以 <code>four_state.psd</code> 最小间隙 11 单位计算，留 1.5 单位余量）；</li><li>断言需在 <code>vertical_wedding_9_16.psd</code> 与 <code>four_state.psd</code> 两个夹具上<strong>同时通过</strong>。</li></ol>
+<p><strong>交互态（选中 / 悬停）允许重叠</strong>，但须满足：</p>
+<ol><li>展开仅对<strong>单个</strong>图层生效（同一时刻最多一个展开）；</li><li>展开的徽章在视口内自动避让或被裁剪到画布范围内，不得溢出画布边界；</li><li>颜色、文案与当前四态完全一致（绿 <code>#30D158</code> / 橙 <code>#FF9F0A</code> / 红 <code>#FF453A</code> / 黄 <code>#FFD60A</code>），不得因折叠而丢失语义。</li></ol>
+<p><strong>可点击性：</strong></p>
+<ol><li>视觉 4 单位色点，<strong>命中区不小于 8×8 单位</strong>，保持&quot;点击徽章跳转诊断报告&quot;链路可用（<code>on_badge_clicked</code> 不得失活）；</li><li>折叠态须提供悬停提示，文案等同展开态徽章文本。</li></ol>
+<p><strong>回归：</strong></p>
+<ol><li>A-16 四态像素互斥（红/黄不同时出现在同一面板）在改动后仍成立；</li><li>全量测试不得因徽章改动而减少通过项。</li></ol>
+<hr>
+<h2>七、勾选状态</h2>
+<table><thead><tr><th>项</th><th>状态</th></tr></thead><tbody><tr><td>A-1 ～ A-13</td><td>已核实修复，维持</td></tr><tr><td>A-14</td><td>P3 使用引导，不阻塞</td></tr><tr><td><strong>A-15</strong></td><td><strong>方案 1 已批准</strong>，转实施，出断言后进入验收</td></tr><tr><td>A-16</td><td><strong>已通过关闭</strong>（第八轮）</td></tr><tr><td>A-18</td><td>已驳回关闭</td></tr><tr><td>A-19</td><td>已关闭（35 项 + 白名单）</td></tr><tr><td><strong>A-20</strong></td><td><strong>已通过关闭</strong>（42/42、105 passed、11 项回归、证据与生成器均入清单）</td></tr><tr><td><strong>A-21（新）</strong></td><td>证据文件曾于审核后被重写；已由 A-20 修复覆盖，<strong>P3 记录不另立任务</strong></td></tr><tr><td><strong>审核方自查条款（新）</strong></td><td>检索类论据须附命令/范围/计数 + 阳性对照；通道异常只能写&quot;未检索到&quot;</td></tr></tbody></table>
+<p><strong>P0 / P1 / P2 阻塞 / 补证 / 证据治理 全部清零。</strong></p>
+<hr>
+<h2>八、如实声明</h2>
+<ol><li>本报告所有指纹、测试、几何、像素数字均为审核方在本环境独立复算所得，命令与范围如下：<code>core</code>、<code>gui</code>、<code>tools</code>、<code>tests</code>、<code>docs</code> 五目录限定扫描（全项目递归曾因 <code>assets/</code> 内 PSD 二进制导致 180 秒超时）；<code>pytest tests/ -q</code> 于真实无 AppKit 解释器运行。</li><li><strong>macOS 侧 <code>pytest_20261028_round9_a20_macos.log</code> 为开发方自述，审核方无 macOS 环境，未复核，不作通过依据。</strong></li><li><strong>审核方未在 Motion 6.0 / Final Cut Pro 中做任何渲染验收</strong>，真机效果仍待您本人确认。</li><li>四态同框截图中的 <code>unverifiable</code> 面板来自等价环境构造（拦截 <code>builtins.__import__</code>），<strong>非 macOS 真机实拍</strong>；其判定正确性由审核方在真实无 AppKit 环境独立复现（第五节 5.3），二者互为交叉验证。</li><li>像素计数的绝对值依赖裁剪区域与颜色容差，本报告只主张<strong>定性互斥</strong>；与第八轮数字的差异源于证据文件已被重写（A-21），非结论变化。</li><li><strong>本报告第一节为审核方对自身错误的更正。</strong> 上一轮&quot;全仓检索无命中&quot;的表述不成立，已撤回；由此给您带来的返工与困扰，由审核方承担。</li></ol>
+<hr>
+<p>*报告生成：2026-10-28 · 审核方 Tabbit*</p>
+</div></body></html>

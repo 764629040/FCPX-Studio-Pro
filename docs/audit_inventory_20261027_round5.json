@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-10-27 22:56:02",
+  "root": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "phase": "round5-A12-A17",
+  "canonical_path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "note": "单卷权威路径；不声称跨卷一致",
+  "count": 30,
+  "files": {
+    "core/psd_parser.py": {
+      "sha256": "e52a6a6b892634160938d7e1d3a5d8c1a92cd944d62b0548bfb395056e458115",
+      "size": 55510
+    },
+    "core/motion_builder.py": {
+      "sha256": "986f6c2def60983533abc969177819a5e832d3b4c87a75428bca2b1f85a48eb7",
+      "size": 36076
+    },
+    "core/cli_bridge.py": {
+      "sha256": "b7e5dcaf197ad553a6a16afb3338352dd3ddd6223733285c4f3526897d183ae2",
+      "size": 4909
+    },
+    "core/thumbnail.py": {
+      "sha256": "03bc416423e89487819c030f5d08e228f3cbfd99beb6564d3e06d71aca13843e",
+      "size": 1779
+    },
+    "core/symlink_manager.py": {
+      "sha256": "1de5c43b5f09910cfcb867a87b49280a11d67f2c3b1b043a3708eb856be8ee26",
+      "size": 6554
+    },
+    "core/__init__.py": {
+      "sha256": "d7c388a29f48aa86f5fc131c6a0eb9b5b06a0062840ec90be3ac86d1e1376d3e",
+      "size": 261
+    },
+    "gui/main_window.py": {
+      "sha256": "81bc00c567ec265eccb6f06aefb5fa302af10a7a4aaf4676c77604cfbf0d748d",
+      "size": 30335
+    },
+    "gui/canvas_view.py": {
+      "sha256": "62a45b1bf1cb424a524789b2f9510c7b643caa1699c2c9ec1350aa40e9403325",
+      "size": 42471
+    },
+    "gui/inspector_panel.py": {
+      "sha256": "fcc27cc116130019ee40773c22ed667b987ef47be1d073b22dfac775faa1d0ed",
+      "size": 16401
+    },
+    "gui/asset_hub_panel.py": {
+      "sha256": "23323503bbad9213128b8f3b5bc2c53b5629e017fa851a9335bba2936bd89374",
+      "size": 7647
+    },
+    "gui/__init__.py": {
+      "sha256": "08befe3fc370e79989a67ef50c10bfbb9dfbbc1ad55afe1743fd06ec6ad2b3b0",
+      "size": 217
+    },
+    "main.py": {
+      "sha256": "687aa2948ca163700b92c15a4022c347b7154914e4e507f62d4b59aaddebb025",
+      "size": 675
+    },
+    "requirements.txt": {
+      "sha256": "283085f3b100c467ad3be2ba174b4cf84d7d2f645e41ad9d8f2e4d5703b2a0c7",
+      "size": 760
+    },
+    "tests/test_clean_environment.py": {
+      "sha256": "05506901228d151f08e4e6ddbdd7117fc55b8e26fed49e495dff7b9f16c0e839",
+      "size": 15213
+    },
+    "tests/test_psd_import_and_diagnosis.py": {
+      "sha256": "31f5f3a21d9b25ed5b8e1d689e25cf706db92a0ff948b05b3612e4b05b2f03ef",
+      "size": 14410
+    },
+    "tests/test_preview_comparison.py": {
+      "sha256": "5254c011e28b05041c49b4f043561c08aa9817fdb2b621069bc2fd52c3558a1a",
+      "size": 15102
+    },
+    "tests/test_font_diagnosis_honesty.py": {
+      "sha256": "8f0ded73202e13edbc446a51c567c6f9507b3209a2cb81612f487edf4ad0be8a",
+      "size": 5185
+    },
+    "tests/test_p0_rotation_and_reason.py": {
+      "sha256": "eb922f27edd5a23dd5aa274c89140208089e415bc2242d65c4e2fdb23e7dbfc8",
+      "size": 9814
+    },
+    "tests/test_round2_a3_to_a7.py": {
+      "sha256": "07bb158098f2eede3c9bb5a18afe0067da344d00c26199842095a1e29a3c37b0",
+      "size": 14083
+    },
+    "tests/test_round3_a9_a10_a13.py": {
+      "sha256": "e5f0cc796dce7e9fce9c8451a5b03647694f5ab827ff6086efb29d2accf5d986",
+      "size": 13141
+    },
+    "tests/test_round4_a12_a17.py": {
+      "sha256": "01754ba72500e0020dfcb44983a44583a302429fb16189fa09e2c5d1d7ffc445",
+      "size": 9747
+    },
+    "tests/probe_real_interaction.py": {
+      "sha256": "d1293ccee0abfc4457f21a247d7f6564a91f9e670f7f3d4fb67e61b7a5830250",
+      "size": 12082
+    },
+    "tests/make_four_state_fixture.py": {
+      "sha256": "45e4d16e242589bf6445df09a65e6544ad340f22600a1a5a6fd267600830c1b5",
+      "size": 4627
+    },
+    "tests/data/vertical_wedding_9_16.psd": {
+      "sha256": "fdccb8cce285ee0dc31360691de5ea71d0e25dd6f2cf86b2599fe9a70c7e8d75",
+      "size": 493417
+    },
+    "tests/data/wedding_with_decorations_23.psd": {
+      "sha256": "af801afdd0bfad59f983a2196ae6e6a805351e7d58c4692e6f8785bbddd410f9",
+      "size": 481463
+    },
+    "tests/data/complex_layers.psd": {
+      "sha256": "b93e49aac31d93412bd0d3412745a0e9c06841960c05c16beab79f859278e932",
+      "size": 4822609
+    },
+    "tests/data/commercial_4k.psd": {
+      "sha256": "b308155e44907ea76a902360eaef1d123b4e088420506fdf890eb30722c25563",
+      "size": 493417
+    },
+    "tests/data/corrupted_file.psd": {
+      "sha256": "9fbc5d152fe1f746da2404346c39e97eb6a2be9e63e9cb8755b6e62657945cc9",
+      "size": 50
+    },
+    "tests/data/four_state.psd": {
+      "sha256": "4c67897b582ce879ea687a8bc40d319d54f1d641523dbb44205a557c7456733b",
+      "size": 493425
+    },
+    "assets/reference_base.moti": {
+      "sha256": "14b6d5c627a949f9935bdbf6516d2af3465171fc75dbb63db6b5302a354c9fe8",
+      "size": 248462
+    }
+  }
+}

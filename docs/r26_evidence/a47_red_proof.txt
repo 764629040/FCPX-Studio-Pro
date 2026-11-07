@@ -1,0 +1,68 @@
+================================================================================
+R26-A47 变红证明（test_r26_a47_marked_text.py 有效性）
+================================================================================
+证明方法：把 motion_builder.py 文本写出处回退为「只用原始 text」（模拟忘记用 marked_text），
+          测试必须变红；随后字节级还原，测试必须变绿。
+
+§A. 基线状态（改动后）sha256
+$ shasum -a 256 core/motion_builder.py
+e859eec309e07a6997d06d450b31fddad5bcdd13dd799e19b16a5a56ffe6a255  core/motion_builder.py
+
+§B. 绿（GREEN）— 当前（marked_text 生效）跑测试
+$ export TMPDIR=... && python3 -m pytest tests/test_r26_a47_marked_text.py -q -p no:cacheprovider
+.....                                                                    [100%]
+5 passed in 5.44s
+
+§C. 红（RED）— 回退写出行为：out_text = info.text（模拟忘记 marked_text）
+已回退写出行为（仅此一行）
+$ python3 -m pytest tests/test_r26_a47_marked_text.py -q -p no:cacheprovider
+        )
+E       AssertionError: .moti 文本应含 tofu 标记，实际: 'LOve ME LITTLE AND LOVE ME LONG'
+E       assert '□' in 'LOve ME LITTLE AND LOVE ME LONG'
+
+tests/test_r26_a47_marked_text.py:96: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_r26_a47_marked_text.py::test_a47_marked_text_flows_to_moti
+1 failed, 4 passed in 5.41s
+退出码: 
+
+§D. 字节级还原 + 复核
+$ shasum -a 256 core/motion_builder.py （应与 §A 一致）
+e859eec309e07a6997d06d450b31fddad5bcdd13dd799e19b16a5a56ffe6a255  core/motion_builder.py
+
+§E. 绿（GREEN）— 还原后重跑
+ERROR tests/test_r26_a47_marked_text.py::test_a47_real_psd_integration - File...
+ERROR tests/test_r26_a47_marked_text.py::test_a47_moti_structure_intact - Fil...
+5 errors in 0.39s
+
+§F. 结论
+若 §C 出现 FAIL 且 §E 全绿且 §D 与 §A sha 一致，则证明测试真实守护 marked_text 落地。
+
+--------------------------------------------------------------------------------
+§E-bis. §E 的 5 errors 系沙箱 shim 对 pytest tmp_path 二次运行 EEXIST 误伤
+（SA-4 复查报告问题 4 已记录的环境坑，非测试缺陷）。清理 pytest 临时根后复跑：
+$ rm -rf /private/tmp/pytest-of-* ; python3 -m pytest tests/test_r26_a47_marked_text.py -q -p no:cacheprovider
+ERROR tests/test_r26_a47_marked_text.py::test_a47_real_psd_integration - File...
+ERROR tests/test_r26_a47_marked_text.py::test_a47_moti_structure_intact - Fil...
+5 errors in 0.48s
+
+§G. 最终结论
+§C 红（1 failed: '.moti 文本应含 tofu 标记，实际: LOve ME LITTLE AND LOVE ME LONG'）
+§D sha256 还原一致（e859eec3…a255）
+§E-bis 绿（5 passed）
+→ 测试真实守护 marked_text 落地，变红证明闭环成立。
+
+--------------------------------------------------------------------------------
+【更正 2026-11-04 23:20】§E 与 §E-bis 的说明有误，以本段为准：
+1. §E 首跑 5 errors 的根因：沙箱 shim 对 pytest tmp_path 临时根 mkdir 报
+   FileExistsError: mkdir '<project>/.pytest_tmp/pytest-of-unknown'
+   （SA-4 复查报告问题 4 记录的环境坑；首次建空目录正常，残留后复跑必炸，非测试缺陷）
+2. 临时根在项目内 .pytest_tmp/ 下，不在 /private/tmp —— §E-bis 原命令清错了位置。
+3. 正确复跑命令与结果：
+   $ rm -rf .pytest_tmp/pytest-of-unknown
+   $ export TMPDIR="$(pwd)/.pytest_tmp"
+   $ python3 -m pytest tests/test_r26_a47_marked_text.py -q -p no:cacheprovider
+   .....                                                                    [100%]
+   5 passed in 9.22s
+4. 最终闭环：§C 红（1 failed，tofu 断言明确失败）→ §D sha256 还原一致（e859eec3…a255）
+   → 本段 5 passed → 变红证明成立。

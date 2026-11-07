@@ -1,0 +1,61 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode / Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# App & Binary Builds (Release artifacts distributed via GitHub Releases)
+*.app/
+*.dmg
+build/
+build_staging/
+dist/
+tools/render_github_screenshots
+docs/*_evidence/*_harness
+docs/*_evidence/*_render_evidence
+docs/*_evidence/legacy_*
+
+# Python Cache & Testing
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.pytest_tmp*/
+.tmp_pytest/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Temporary & Test Volumes
+tgt_0/
+tgt_1/
+scratch/
+*.log
+
+# Sensitive Credentials & Private Keys
+*.pem
+*.key
+*.p12
+*.cer
+*.secret
+credentials.json
+.env
+.user_uploaded/

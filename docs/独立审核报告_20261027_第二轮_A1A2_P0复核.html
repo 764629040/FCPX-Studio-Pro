@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FCPX Studio Pro 第二轮独立复核：A-1 / A-2 两项 P0 修复验证（2026-10-27）</title>
+<style>
+:root{--ink:#12181f;--muted:#5b6b7c;--line:#dfe6ee;--accent:#0f62fe;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f9;color:var(--ink);
+ font:16px/1.78 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.page{max-width:1000px;margin:0 auto;background:var(--bg);padding:56px 64px 72px;
+ box-shadow:0 1px 3px rgba(16,24,40,.08),0 12px 32px rgba(16,24,40,.06)}
+h1{font-size:29px;line-height:1.32;margin:0 0 10px;letter-spacing:-.01em}
+h2{font-size:21px;margin:44px 0 14px;padding-top:18px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:28px 0 10px;color:#1b2733}
+p{margin:10px 0}
+strong{color:#0b1319}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:13.5px;
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#0b4ea2}
+pre{background:#0f1720;color:#e6edf3;padding:16px 18px;border-radius:8px;overflow:auto;font-size:13px;line-height:1.7}
+pre code{background:none;color:inherit;padding:0}
+blockquote{margin:18px 0;padding:14px 18px;background:#f0f5ff;border-left:4px solid var(--accent);
+ border-radius:0 6px 6px 0;color:#16324f}
+ul,ol{margin:10px 0 10px 22px;padding:0}
+li{margin:5px 0}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+.tw{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:#f2f5f9;font-weight:600;white-space:nowrap}
+tbody tr:nth-child(even){background:#fafbfd}
+@media print{body{background:#fff}.page{box-shadow:none;max-width:none;padding:0}h2{break-after:avoid}}
+@media (max-width:720px){.page{padding:28px 20px}h1{font-size:23px}body{font-size:15px}}
+</style></head>
+<body><main class="page">
+<h1>FCPX Studio Pro 第二轮独立复核：A-1 / A-2 两项 P0 修复验证（2026-10-27）</h1>
+<div class="tw"><table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody><tr><td>复核对象</td><td><code>FCPX_Studio_Pro</code>，基线 <code>docs/audit_inventory_20261027_round2.json</code>（25 个受控文件）</td></tr><tr><td>复核方</td><td>Tabbit（独立审核角色，非开发方）</td></tr><tr><td>复核范围</td><td>仅核验本轮声明的 A-1（旋转方向）、A-2（诊断原因四态化）及连带影响</td></tr><tr><td>独立复跑环境</td><td>Linux x86_64 / Python 3.12.13 / pytest 8.3.5 / psd-tools 1.26.0 / PyQt6 6.11.0 / <code>QT_QPA_PLATFORM=offscreen</code></td></tr><tr><td><strong>A-1 结论</strong></td><td><strong>修复成立</strong>（真值合成图逐列比对通过，方向、列序、阅读顺序均正确）</td></tr><tr><td><strong>A-2 结论</strong></td><td><strong>修复成立</strong>（四态文案两两不同，非 complete 行已无「元数据完整」）</td></tr><tr><td>测试集</td><td>审核方独立复跑 <strong>39 passed / 0 failed / 0 error / 退出码 0</strong>（21.37s）</td></tr><tr><td>指纹</td><td><strong>25/25 完全一致，0 不一致、0 缺失</strong></td></tr><tr><td>变更范围</td><td>仅 <code>core/psd_parser.py</code>、<code>gui/canvas_view.py</code> 修改；新增 <code>tests/test_p0_rotation_and_reason.py</code>、<code>requirements.txt</code>；其余 21 个文件未动</td></tr></tbody></table></div>
+<hr/>
+<h2>一、结论摘要</h2>
+<p><strong>两项 P0 都真的修好了，不是靠改测试或放宽断言换来的。</strong> 这一点我用三条独立证据交叉确认，而不是读开发方报告：</p>
+<p><strong>证据一，变更范围是干净的。</strong> 与上一轮 23 个受控文件逐项对比：只有 <code>core/psd_parser.py</code> 和 <code>gui/canvas_view.py</code> 两个文件的哈希发生变化，其余 21 个文件一字未动；新增的是 <code>tests/test_p0_rotation_and_reason.py</code>（15 个用例）和 <code>requirements.txt</code>。没有顺手改别的文件，也没有删改原有测试来迁就实现。</p>
+<p><strong>证据二，断言不是空跑。</strong> 15 个新用例里，A-1 断言 <code>detect_layer_rotation</code> 对 90° 图层返回 90.0、渲染图元 rotation 为 90、且旋转后 bbox 不越出画板；A-2 断言四态文案两两不同、且 <code>font_missing</code> / <code>partial_missing</code> 行禁止出现「元数据完整」。我另以源码函数直接调用复现：<code>detect_layer_rotation</code> 对 <code>Text01</code>/<code>Title</code> 均返回 <code>90.0</code>，<code>build_preserved_reason</code> 四态返回四段互不相同的文案，非 complete 三态均不含「元数据完整」。</p>
+<p><strong>证据三，视觉与真值一致。</strong> 我用 <code>psd_tools</code> 把 <code>complex_layers.psd</code> 合成成真值图（不经被测程序），再与截图 15 的右侧转换结果逐列比对：真值中「WENDDING &amp;」位于最右列、「HAPPY」在其左，两列都是字母顺时针旋转 90°、自上而下阅读；截图 15 右侧的列序、旋转方向、阅读顺序与真值完全一致，且不再越出画板右边框。这一项在本轮之前是横排、且 <code>Title</code> 溢出画板——修复是真实的。</p>
+<p><strong>但必须同时说清三件报告里没写或写错的事：</strong></p>
+<ol><li><strong>「两个卷上的结果一致」无法核实。</strong> <code>128</code> 卷（<code>/Volumes/NO NAME/128</code>）顶层是字体、插件、LUT 类素材目录，<strong>不存在 <code>FCPX_Studio_Pro</code> 副本</strong>；本轮报告全文也没有任何关于「两个卷」的测试记录。因此这句话目前没有任何可追溯证据，不作为通过依据。</li><li><strong>A-1 的验证截图左侧其实没有渲染原稿文字。</strong> 截图 15 左栏「PSD 原稿预览」实测只有 2 个亮像素（阈值 170）、0 个近白像素、1 个米色底像素——画面里只有 bbox 细框和「矢量: 文本图层」「1/4」标签。也就是说，这张图<strong>无法自证 A/B 对照</strong>，真正的对照是我用 PSD 真值合成图完成的。这一点需要开发方确认：对文本图层不做原稿渲染是设计取舍还是缺陷？若是设计取舍，「并排对照」对文本层就不成立。</li><li><strong>A-5、A-6 仍在，A-3、A-4 按计划未动。</strong> 截图 16 同时显示「图层数：32 导出 / 40 总计」与「扫描图层总数 4」并存，标题「纪实字幕.psd」与页脚「当前报告源文件：four_state.psd」不一致。<code>gui/canvas_view.py:199</code> 的 <code>font_size = max(8, int(info.font_size / 2.2))</code> 与 <code>:92-96</code> 命中框使用原字号的矛盾依然存在。</li></ol>
+<p>这属于正常节奏——任务单里 A-3/A-4 本就排在 A-1/A-2 之后，本轮没有承诺修完。但 A-5、A-6 是 P1，需要在下一轮一并处理。</p>
+<hr/>
+<h2>二、审核基线与可复现性</h2>
+<h3>2.1 指纹复算（审核方独立执行）</h3>
+<div class="tw"><table><thead><tr><th>项</th><th>值</th></tr></thead><tbody><tr><td>清单受控文件</td><td>25</td></tr><tr><td>完全一致</td><td><strong>25</strong></td></tr><tr><td>不一致</td><td><strong>0</strong></td></tr><tr><td>缺失</td><td><strong>0</strong></td></tr></tbody></table></div>
+<p>与上一轮 <code>audit_inventory_20261027_postfix.json</code> 对比：</p>
+<ul><li>变更：<code>core/psd_parser.py</code>、<code>gui/canvas_view.py</code></li><li>新增：<code>tests/test_p0_rotation_and_reason.py</code>、<code>requirements.txt</code></li><li>移除：无</li><li>未变：21 个</li></ul>
+<h3>2.2 复现方式</h3>
+<p>将项目复制到独立工作区（排除 <code>__pycache__</code>、<code>.pytest_cache</code>），<strong>先校验副本与原件指纹一致</strong>才执行测试，确保既未在用户目录写入缓存，也未修改任何业务源码或测试。</p>
+<h3>2.3 审核方独立复跑结果</h3>
+<div class="tw"><table><thead><tr><th>项</th><th>值</th></tr></thead><tbody><tr><td>收集</td><td>39 项</td></tr><tr><td>通过</td><td><strong>39</strong></td></tr><tr><td>失败</td><td><strong>0</strong></td></tr><tr><td>错误</td><td><strong>0</strong></td></tr><tr><td>退出码</td><td><strong>0</strong></td></tr><tr><td>耗时</td><td>21.37s</td></tr></tbody></table></div>
+<p>与开发方声明的「39/39、退出码 0」一致。需要说明：第一次执行时沙箱更换实例、<code>psd_tools</code>/<code>PyQt6</code> 缺失，导致收集阶段 4 个 error；补齐依赖后重跑方才得到上述结果——该 error 属环境缺失，不是代码缺陷，此处如实记录以免被误读为「代码有问题」或「一跑就过」。</p>
+<hr/>
+<h2>三、A-1 旋转方向：修复成立</h2>
+<h3>3.1 源码层</h3>
+<p><code>detect_layer_rotation</code> 已存在并被 <code>psd_parser</code> 实际调用，不再是硬编码 <code>0.0</code>。审核方直接调用：</p>
+<div class="tw"><table><thead><tr><th>图层</th><th>检测旋转</th><th>bbox</th><th>形态</th></tr></thead><tbody><tr><td><code>Text01</code></td><td><strong>90.0</strong></td><td><code>(75, 164, 106, 929)</code></td><td>w=31 / h=765（细高，竖排）</td></tr><tr><td><code>Title</code></td><td><strong>90.0</strong></td><td><code>(1651, 101, 1839, 899)</code></td><td>w=188 / h=798（细高，竖排）</td></tr></tbody></table></div>
+<p>两者 bbox 均为细高竖条，与「90° 竖排」自洽，不是靠改断言糊过去。</p>
+<h3>3.2 关于报告 2.6 节「改掉一条失败断言」</h3>
+<p>报告自述把原断言「未旋转图层 rotation 必须为 0」改为「自洽性断言」。审核方专门核对了这一点，确认<strong>改动是正当的</strong>：<code>vertical_wedding_9_16.psd</code> 中 4 个图层 <code>transform=(1,0,0,1)</code>（真实 0°）、另有 4 个为 <code>(0,1,-1,0)</code>（真实 90°）；旧断言假设「同一 PSD 内未旋转图层必须全为 0」本身就与夹具不符，属断言写错而非实现出错。改为「rotation 与 bbox 长宽形态自洽」是可验证的更强约束，不是放宽。</p>
+<h3>3.3 视觉层（真值比对）</h3>
+<p>审核方用 <code>psd_tools</code> 直接合成 <code>complex_layers.psd</code> 得到真值图，逐列比对：</p>
+<div class="tw"><table><thead><tr><th>比对项</th><th>真值</th><th>截图 15 右侧转换结果</th><th>判定</th></tr></thead><tbody><tr><td>「WENDDING &amp;」列位置</td><td>最右列</td><td>最右列</td><td>一致</td></tr><tr><td>「HAPPY」列位置</td><td>其左一列</td><td>其左一列</td><td>一致</td></tr><tr><td>字符旋转</td><td>顺时针 90°</td><td>顺时针 90°</td><td>一致</td></tr><tr><td>阅读方向</td><td>自上而下</td><td>自上而下</td><td>一致</td></tr><tr><td>是否越出画板</td><td>否</td><td>否</td><td>一致</td></tr><tr><td>左侧「LOVE ME LITTLE AND LOVE ME LONG」</td><td>竖排、贴左边缘</td><td>竖排、贴左边缘</td><td>一致</td></tr></tbody></table></div>
+<p><strong>判定：A-1 修复成立。</strong> 上一轮「横排 + <code>Title</code> 溢出画板右边框」的症状已消失。</p>
+<h3>3.4 附带发现（A-9，新增）</h3>
+<p>截图 15 左栏「PSD 原稿预览」实测像素：亮像素（阈值 170）<strong>2 个</strong>、近白（阈值 210）<strong>0 个</strong>、米色底 <strong>1 个</strong>；右栏同口径分别为 970 / 675 / 43。左栏只有 bbox 细框与「矢量: 文本图层」「1/4」标签。</p>
+<p>结合 <code>gui/canvas_view.py:280-289</code>：取不到 <code>original_slice_bytes</code> 时置 <code>is_empty_or_group = True</code>，走占位框分支（<code>:337</code>）。因此<strong>文本图层在左栏不渲染原稿，只显示占位框</strong>。</p>
+<p>后果：对文本图层，「并排对照」实际是「占位框 vs 渲染结果」，无法做字形级 A/B。这解释了为何本轮的 A-1 验证必须借助 PSD 真值合成图，而不能只靠应用截图。<strong>需开发方明确这是设计取舍还是缺陷</strong>；若为取舍，应在界面标注「原稿侧文本为结构示意」。</p>
+<hr/>
+<h2>四、A-2 诊断原因四态化：修复成立</h2>
+<h3>4.1 源码层真实调用</h3>
+<p>直接调用 <code>build_preserved_reason</code> 四态：</p>
+<div class="tw"><table><thead><tr><th>状态</th><th>输出文案（节选）</th></tr></thead><tbody><tr><td><code>complete</code></td><td>纯矢量文本，字体与字形均完整，保留为可发布标题</td></tr><tr><td><code>partial_missing</code></td><td>纯矢量文本，字体已安装但缺 2 个字形，已标记待替换</td></tr><tr><td><code>font_missing</code></td><td>纯矢量文本，原始字体未安装、缺 1 字，已降级为回退字体 …</td></tr><tr><td><code>unverifiable</code></td><td>纯矢量文本，当前平台无法枚举字体字形，缺字风险无法确定 …</td></tr></tbody></table></div>
+<p>校验结果：</p>
+<ul><li>四态文案两两不同：<strong>是</strong></li><li>非 <code>complete</code> 三态是否含「元数据完整」：<strong>否</strong></li><li><code>font_missing</code> 行是否再出现与「缺 1 字」矛盾的表述：<strong>否</strong></li></ul>
+<h3>4.2 界面层（截图 16）</h3>
+<p>诊断表四行「具体处理原因」已完全分化，且 <code>font_missing（缺 1 字）</code> 行明确写「原始字体未安装、缺 1 字，已降级为回退字体 <code>PingFangSC-Regular</code> 并标记待处理」，与同行状态自洽。上一轮「四行同文案、缺字行称元数据完整」的误导已消除。</p>
+<p><strong>判定：A-2 修复成立。</strong></p>
+<hr/>
+<h2>五、本轮仍未修复（与任务单进度一致，非违约）</h2>
+<div class="tw"><table><thead><tr><th>编号</th><th>优先级</th><th>状态</th><th>本轮证据</th></tr></thead><tbody><tr><td>A-3 字号不一致</td><td>P1</td><td><strong>仍在</strong></td><td><code>gui/canvas_view.py:199</code> 仍为 <code>font_size = max(8, int(info.font_size / 2.2))</code>；<code>:92-96</code> 命中框仍用 <code>info.font_size</code> 原值，即绘制字形被系统性缩至框体的 1/2.2 = 0.4545。实测 <code>complex_layers.psd</code> 的 <code>Text01</code> 字号 45、<code>Title</code> 字号 90，按 <code>:92-96</code> 建框宽达 1080px（远超其 bbox 宽 31），而绘制字号仅 20。截图 15 右侧 <code>Title</code> 两行总高 798px，实测约 0.52 倍、且字列宽远小于 bbox（188px），旁证偏小方向成立</td></tr><tr><td>A-4 Helvetica 误报缺字</td><td>P1</td><td><strong>仍在</strong></td><td>截图 15 右侧画布徽章仍写「缺少字形: W, E, N」；而同图真值中 W/E/N 均正常渲染，属分类错误（应落 <code>unverifiable</code>）</td></tr><tr><td>A-5 计数矛盾</td><td>P1</td><td><strong>仍在</strong></td><td>截图 16：「图层数：32 导出 / 40 总计」与「扫描图层总数 4」并存</td></tr><tr><td>A-6 源文件标识不一致</td><td>P1</td><td><strong>仍在</strong></td><td>截图 16：标题「纪实字幕.psd」，页脚「当前报告源文件：four_state.psd（/four_state.psd）」</td></tr><tr><td>A-7 <code>four_state.psd</code> 未交付</td><td>P1</td><td><strong>确认未交付</strong></td><td><code>tests/data/</code> 仅 5 个 PSD：<code>commercial_4k</code>、<code>complex_layers</code>、<code>corrupted_file</code>、<code>vertical_wedding_9_16</code>、<code>wedding_with_decorations_23</code>，无 <code>four_state.psd</code></td></tr><tr><td>A-8 四态同屏证据</td><td>P2</td><td>仍缺</td><td>截图 16 证明的是表格四态，非画布四态同屏</td></tr><tr><td><strong>A-9 原稿侧文本不渲染（新增）</strong></td><td><strong>待定性</strong></td><td>新发现</td><td>见 3.4，左栏亮像素仅 2 个，文本层走占位框分支</td></tr></tbody></table></div>
+<p>关于 A-7，采纳用户判断：<code>four_state.psd</code> 只存在于探针临时构造数据中，<strong>不能用不存在的文件名充数</strong>。补件必须真正生成一个含四种字体状态的 PSD 样本，加入 <code>tests/data/</code> 并纳入指纹清单；在此之前，截图 14/16 中「源文件：four_state.psd」的标注无法被第三方复现。</p>
+<hr/>
+<h2>六、「两个卷上的结果一致」：无法核实</h2>
+<div class="tw"><table><thead><tr><th>核查项</th><th>结果</th></tr></thead><tbody><tr><td><code>128</code> 卷顶层内容</td><td>字体、插件、LUT 类素材目录，<strong>无 <code>FCPX_Studio_Pro</code></strong></td></tr><tr><td>本轮报告是否记录双卷复跑</td><td><strong>无任何记录</strong>（全文检索「128」「两卷」「双卷」均无命中）</td></tr><tr><td>是否有第二份复跑日志/退出码</td><td>无</td></tr></tbody></table></div>
+<p>因此该声明目前<strong>没有可追溯证据</strong>，本次不作为通过依据。若确曾在 <code>128</code> 卷上跑过，请补交该卷的路径、日志与退出码；若只是口述，请从结论中撤回。</p>
+<hr/>
+<h2>七、下一步（按任务单继续）</h2>
+<ol><li><strong>A-3 + A-4 同轮修复</strong>（二者都涉及字号/字体判定）：删除 <code>/2.2</code> 魔数，让绘制与命中框共用同一字号来源；字体文件不存在归 <code>unverifiable</code>、字形缺失才归 <code>missing</code>，徽章不得在字体未安装时列具体缺字。</li><li><strong>A-5 + A-6 一并清理</strong>：统一统计口径；标题/页脚/JSON 三处源文件字段同源。</li><li><strong>A-7 真实补件</strong>：生成含四态字体状态的 PSD，纳入 <code>tests/data/</code> 与指纹清单。</li><li><strong>A-9 定性</strong>：确认左栏文本占位是否为设计取舍；若保持，请在界面标注，并在文档中说明「并排对照对文本层为结构对照」。</li><li>以上完成后再进入 macOS 真机 + Motion/FCPX 渲染验收。</li></ol>
+<hr/>
+<h2>附录 A：本轮证据</h2>
+<div class="tw"><table><thead><tr><th>文件</th><th>说明</th></tr></thead><tbody><tr><td><code>docs/audit_inventory_20261027_round2.json</code></td><td>开发方基线（审核方独立复算 25/25）</td></tr><tr><td><code>docs/15_A1旋转竖排修复验证.png</code></td><td>A-1 验证截图（含左栏占位问题）</td></tr><tr><td><code>docs/16_A2四态原因分化修复验证.png</code></td><td>A-2 验证截图（含 A-5/A-6 残留）</td></tr><tr><td><code>docs/independent_audit_20261027_round2/</code></td><td>审核方本轮独立输出（指纹比对、复跑日志、真值合成图、像素测量）</td></tr></tbody></table></div>
+<h2>附录 B：局限</h2>
+<ul><li>沙箱为 Linux，无 AppKit，<code>unverifiable</code> 分支被触发，但「字体已安装则精确判定缺字」的主路径仍未在 macOS 验证。</li><li><code>128</code> 卷按约定仅只读查看，未写入任何内容。</li><li>本轮未修改业务源码、测试或既有清单条目；仅新增复核章节与勾选状态说明。</li></ul>
+</main></body></html>

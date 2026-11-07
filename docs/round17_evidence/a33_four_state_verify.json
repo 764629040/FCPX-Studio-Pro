@@ -1,0 +1,73 @@
+{
+  "psd_tools": "1.24.0",
+  "fontset_four_state": [
+    {
+      "layer": "领 衔 呈 现",
+      "font": "PingFangSC-Regular"
+    },
+    {
+      "layer": "lead the  presentation",
+      "font": "Helvetica"
+    },
+    {
+      "layer": "新 娘  朱 永 宏",
+      "font": "Helvetica"
+    },
+    {
+      "layer": "THE BRIDE",
+      "font": "PingFangSC-Regular"
+    },
+    {
+      "layer": "新 郎  陈 晗",
+      "font": "CormorantInfant-Regular"
+    },
+    {
+      "layer": "THE GROOM",
+      "font": "CormorantInfant-Regular"
+    },
+    {
+      "layer": "镇 雄",
+      "font": "Helvetica"
+    },
+    {
+      "layer": "CITY",
+      "font": "Helvetica"
+    }
+  ],
+  "fontset_legacy": {
+    "领 衔 呈 现": "FZZYSK--GBK1-0",
+    "lead the  presentation": "FZZYSK--GBK1-0",
+    "新 娘  朱 永 宏": "FZZYSK--GBK1-0",
+    "THE BRIDE": "FZZYSK--GBK1-0",
+    "新 郎  陈 晗": "FZZYSK--GBK1-0",
+    "THE GROOM": "FZZYSK--GBK1-0",
+    "镇 雄": "FZZYSK--GBK1-0",
+    "CITY": "FZZYSK--GBK1-0"
+  },
+  "fontset_differs_count": 8,
+  "parsed_status_four": [
+    "detected",
+    "detected",
+    "missing_fallback",
+    "detected",
+    "font_missing",
+    "font_missing",
+    "missing_fallback",
+    "detected"
+  ],
+  "parsed_status_legacy": [
+    "detected",
+    "detected",
+    "detected",
+    "detected",
+    "detected",
+    "detected",
+    "detected",
+    "detected"
+  ],
+  "sizes": {
+    "four_state": 493425,
+    "legacy": 493417
+  },
+  "generator": "tests/make_four_state_fixture.py"
+}

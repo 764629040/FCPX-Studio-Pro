@@ -1,0 +1,184 @@
+R25 SA-2b 修复证据集（SA-4 独立复查问题 1/2/3）
+=================================================
+- 修复人：SA-2b（定向修复代理）
+- 日期：2026-11-05
+- 项目根：/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+- 依据：docs/复查报告_R25_SA4_独立复查_20261105.md §4 问题 1（P1）/ 问题 2（P1）/ 问题 3（P2）
+- 改动面（严格遵守授权范围）：
+    core/psd_parser.py            （问题 1/2/3 修复）
+    core/psd_layer_fallback.py    （问题 2 PIL 回退）
+    tests/test_r25_c_02b_conservation_policy.py （新增，问题 1 回归）
+    tests/test_r25_c_11_media_integrity.py      （新增，问题 2 回归）
+    tests/test_r25_c_10_missing_font.py         （追加 1 测试，问题 3 回归）
+    docs/psd_support_matrix_R25.md              （修复补记 + 诚实披露）
+    docs/r25_evidence/sa2b_fixes.txt            （本文件）
+  红线文件 core/motion_builder.py 未触碰（见 §6）；gui/、FCPXStudioNative/、
+  tests/test_r25_a46_all_caps.py、tests/test_r25_d_*.py 未触碰。
+  "NO NAME" 卷与 ~/Movies 未触碰。
+
+────────────────────────────────────────────────────────────────
+§1 环境：scipy 安装结果（问题 2 附带授权项）
+────────────────────────────────────────────────────────────────
+$ pip install scipy
+Installing collected packages: scipy
+Successfully installed scipy-1.18.1
+exit=0
+
+$ python3 -c "import scipy; print('scipy OK', scipy.__version__)"
+scipy OK 1.18.1
+
+结果：安装成功。但所有新增测试均不依赖 scipy 存在——失败路径用
+monkeypatch 强制注入（见 §4），PIL 原始像素回退无 scipy 依赖。
+
+────────────────────────────────────────────────────────────────
+§2 问题 1（P1）复现 → 修复：可见智能对象 + skip 守恒
+────────────────────────────────────────────────────────────────
+复现脚本（等价于 SA-4 报告 §4 问题 1 的 repro）：
+
+$ export TMPDIR="$(pwd)/.pytest_tmp"
+$ python3 -  # FX.build_visible_smartobject_psd + parse_psd_file(p, smart_object_policy="skip")
+
+【修复前——缺陷确认，与 SA-4 实测逐字一致】
+conservation: {'holds': False, 'input_layer_count': 12, 'output_layer_count': 7,
+               'skipped_layer_count': 7, 'invariant': '...',
+               'detail': '守恒被破坏: input=12 output=7 skipped=7 (差 -2)'}
+SO: Image01 disposition= ignored visible_in_output= True
+SO: 2303edcbb5dfad77a452cab79b4fabd disposition= ignored visible_in_output= True
+layers_info 中的 smartobject 数: 2
+
+【修复后——同脚本重跑】
+conservation: {'holds': True, 'input_layer_count': 12, 'output_layer_count': 5,
+               'skipped_layer_count': 7, 'invariant': 'input_layer_count == output_layer_count + skipped_layer_count',
+               'detail': 'OK'}
+SO: Image01 disposition= ignored in_output= False | reason: 智能对象图层，包含样式: 图层样式: 描边，按 smart_object_policy='skip' 策略显式跳过并记录...
+SO: 2303edcbb5dfad77a452cab79b4fabd disposition= ignored in_output= False | reason: 智能对象图层，按 smart_object_policy='skip' 策略显式跳过并记录原因，未参与转换（非静默丢失）
+layers_info 中的 smartobject 数: 0
+flatten conservation: {'holds': True, 'input_layer_count': 12, 'output_layer_count': 7,
+                       'skipped_layer_count': 5, ..., 'detail': 'OK'} missing_media_refs= 0
+hidden-SO skip conservation: {'holds': True, 'input_layer_count': 12, 'output_layer_count': 5,
+                              'skipped_layer_count': 7, ..., 'detail': 'OK'}
+
+结论：12 == 5 + 7 / 12 == 7 + 5，skip/flatten × 可见/隐藏 全组合守恒成立；
+skip 层不在 layers_info，但诊断条目 disposition='ignored' 且 reason 含"跳过"。
+
+修复逻辑（core/psd_parser.py 非文本层分支）：
+- 新增逐层标志 skip_layer_output；smartobject+skip 命中时置 True，
+  该层不构造 PSDLayerInfo、不 append layers_info、不消耗 layer_idx；
+  诊断条目与 layer_tree 节点照常记录（绝不静默消失）。
+- 附带修复潜在 NameError：png_path 改为每层循环开头初始化为 None
+  （修复前若首个非文本层即 skip 智能对象，png_path 未定义即被引用）。
+
+────────────────────────────────────────────────────────────────
+§3 问题 2（P1）：媒体生成失败大声记录 + PIL 回退
+────────────────────────────────────────────────────────────────
+注入总失败（composite 与 PIL 回退全挂）验证脚本与原始输出：
+
+$ python3 -  # monkeypatch core.psd_parser.render_layer_to_png_bytes → (False, None, {"error": "模拟 composite 失败: ..."})
+conservation: {'holds': True, 'input_layer_count': 12, 'output_layer_count': 7,
+               'skipped_layer_count': 5, ..., 'detail': 'OK'}
+missing_media_refs: 5 summary: 5
+risk: 高风险：存在 5 个图层的媒体资产 (Media/*.png) 生成失败，转换产物不完整（对应层已降级保留并逐条记录失败原因，详见 severity='erro...
+MEDIA-ERR: Element02 | severity= error | Media 资产生成失败: 模拟 composite 失败: scipy 缺失 (SA-2b 注入)
+MEDIA-ERR: Element01 | severity= error | Media 资产生成失败: 模拟 composite 失败: scipy 缺失 (SA-2b 注入)
+MEDIA-ERR: Image02 | severity= error | Media 资产生成失败: 模拟 composite 失败: scipy 缺失 (SA-2b 注入)
+MEDIA-ERR: Image01 | severity= error | Media 资产生成失败: 模拟 composite 失败: scipy 缺失 (SA-2b 注入)
+MEDIA-ERR: 2303edcbb5dfad77a452cab79b4fabd | severity= error | Media 资产生成失败: 模拟 composite 失败: scipy 缺失 (SA-2b 注入)
+no dangling fallback_png_path: OK
+
+PIL 回退路径（psd_layer_fallback.render_layer_to_png_bytes）：
+PIL fallback: True pil_topil_fallback 10 x 12 | note: composite 失败后用 PIL 原始像素回退渲染，图层效果未包含
+both-fail: False composite 失败: boom；PIL 原始像素回退也失败: topil boom
+
+修复逻辑：
+- core/psd_layer_fallback.py：composite() 抛错 → 尝试 layer.topil()（PIL 原始
+  像素，无 scipy 依赖；丢效果但保图层本体，render_method='pil_topil_fallback'
+  诚实标注）→ 回退也失败才返回 (False, None, {error 含两级原因})。
+- core/psd_parser.py：PNG 落盘成功后才写 fallback_png_path（失败保持 None，
+  杜绝 .moti 引用不存在文件）；失败时诊断条目带 severity='error'、
+  media_error="Media 资产生成失败: <确切原因>"、reason 追加失败信息、
+  fallback_png={"error":..., "missing_media_ref": True}；
+  计数器 missing_media_refs（顶层 + summary 同源）；>0 时 risk_assessment
+  强制"高风险…媒体资产…生成失败"，绝不容宣称完整成功；失败层仍以
+  degraded 计入 output，守恒不破。
+
+────────────────────────────────────────────────────────────────
+§4 权威测试运行（最终数字）
+────────────────────────────────────────────────────────────────
+环境准备（按任务书）：
+$ export TMPDIR="$(pwd)/.pytest_tmp" && mkdir -p "$TMPDIR"
+$ rm -rf .pytest_tmp/pytest-of-root .pytest_tmp/pytest-of-unknown   # 每次权威运行前清理
+
+C 域 + 回归全量（任务书指定 11 文件 + 新增 2 文件）：
+$ python3 -m pytest tests/test_r25_c_01_support_matrix.py tests/test_r25_c_02_smart_object.py \
+    tests/test_r25_c_02b_conservation_policy.py tests/test_r25_c_03_04_styles.py \
+    tests/test_r25_c_05_blend.py tests/test_r25_c_06_warp.py tests/test_r25_c_07_groups_paragraph.py \
+    tests/test_r25_c_08_conservation.py tests/test_r25_c_09_png_fallback.py \
+    tests/test_r25_c_10_missing_font.py tests/test_r25_c_11_media_integrity.py \
+    tests/test_psd_import_and_diagnosis.py tests/test_font_diagnosis_honesty.py -q -p no:cacheprovider
+
+..................................................                       [100%]
+50 passed in 40.49s
+
+→ 0 failed, 0 errors。对账（pytest --collect-only -q 逐文件实测）：
+  c_01=4 c_02=2 c_02b=4 c_03_04=4 c_05=3 c_06=5 c_07=4 c_08=5 c_09=3
+  c_10=5 c_11=5 test_psd_import_and_diagnosis=3 test_font_diagnosis_honesty=3
+  合计 4+2+4+4+3+5+4+5+3+5+5+3+3 = 50 ✓
+  修复前基线（同 11 个原文件）= 40 passed；本轮新增 10 条测试
+  （c_02b 新文件 4 条 + c_11 新文件 5 条 + c_10 追加 1 条），
+  40 + 10 = 50 ✓，原有 40 条无一变动、无一失败。
+
+保险运行（A46 / D 域 / R21 / R22，验证无跨域破坏）：
+$ python3 -m pytest tests/test_r25_a46_all_caps.py tests/test_r25_d_02_writeback.py \
+    tests/test_r25_d_03_lock_persist.py tests/test_r21_t2_conflict.py \
+    tests/test_r21_t3_versions.py tests/test_r21_t4_batch_resume.py \
+    tests/test_r22_a40_dedup.py tests/test_r22_f1_f2.py -q -p no:cacheprovider
+.........................................................                       [100%]
+57 passed in 19.50s
+→ 0 failed, 0 errors（与 SA-4 复查的 D+A46+R21/R22 通过数一致，无回归）。
+
+沙箱 EEXIST 复核（任务书提示项）：
+$ export TMPDIR="$(pwd)/.pytest_tmp"
+$ python3 -m pytest tests/test_r25_c_08_conservation.py -q -p no:cacheprovider   # 连续第二次运行
+.....                                                                    [100%]
+5 passed in 2.03s
+→ 本会话未复现 EEXIST（连续两次运行均绿）；权威运行前仍按规程清理
+  .pytest_tmp/pytest-of-* 目录，最终权威运行为绿（见上）。
+
+────────────────────────────────────────────────────────────────
+§5 问题 3（P2）：缺字标记数据层闭合
+────────────────────────────────────────────────────────────────
+- PSDLayerInfo.marked_text / missing_glyph_visible_marker /
+  highlight_missing_font 为一等字段（.marked_text 属性 + to_dict() 序列化）；
+- 诊断 summary 与解析顶层新增 missing_glyph_layers 计数器，
+  tests/test_r25_c_10_missing_font.py::test_missing_glyph_counter_and_first_class_marked_text
+  断言：计数器存在且为 int、与逐层标记严格相等、缺字形层 marked_text 含 □
+  且与原文 1:1 等长、无缺字形层 marked_text == 原文（不臆造）。
+- 诚实披露（docs/psd_support_matrix_R25.md 已写入）：.moti 文本写入的是
+  原始 info.text（motion_builder 属红线未改动）；GUI 徽章/悬浮提示/诊断
+  面板高亮接线归 SA-3 的 gui/ 域——本轮只闭合数据层。
+
+────────────────────────────────────────────────────────────────
+§6 红线核查
+────────────────────────────────────────────────────────────────
+$ shasum -a 256 core/motion_builder.py
+e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+→ 与任务书给定基线一致（修复前、修复后各核查一次，字节级未动）。
+gui/ 、FCPXStudioNative/ 、tests/test_r25_a46_all_caps.py 、
+tests/test_r25_d_*.py ：未修改（仅作为测试运行）。
+"NO NAME" 只读卷 / ~/Movies ：未触碰。
+
+────────────────────────────────────────────────────────────────
+§7 剩余诚实缺口（本轮不闭合，已披露）
+────────────────────────────────────────────────────────────────
+1. motion_builder 构建期 PNG 重提取 except:pass 与 fabricate Media 引用
+   （SA-4 问题 2 的构建侧一半）属红线文件，未改动。解析侧已保证
+   fallback_png_path 不悬挂 + 大声记录，但 .moti 级 media 完整性校验
+   （verify_bundle_integrity 增规则）需后续 motion_builder 域轮次闭合。
+2. .moti 缺字层文本仍写原始 info.text（非 marked_text）——同属
+   motion_builder 红线；GUI 高亮接线归 SA-3。数据层已就绪。
+3. SA-4 问题 4（C 域 tmp_path 沙箱 EEXIST）/ 问题 5（GUI grep 型测试）/
+   问题 6（round.py 前缀）/ 问题 7（warp 真实样本）不在本次 SA-2b
+   授权范围（问题 4 本会话未复现）。
+
+SA-2b（定向修复代理）
+2026-11-05

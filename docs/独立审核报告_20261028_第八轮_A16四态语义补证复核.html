@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>������������������ �� ������������A-16 ���������������������</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">������������������ �� ������������A-16
+���������������������</h1>
+</header>
+<h1 id="独立审核报告--第八轮a-16-四态语义补证复核">独立审核报告 ·
+第八轮（A-16 四态语义补证复核）</h1>
+<ul>
+<li>审核日期：2026-10-28</li>
+<li>审核方：Tabbit（独立技术审核）</li>
+<li>审核基线：<code>docs/audit_inventory_20261028_round8_a16.json</code>（35
+个受控文件）</li>
+<li>审核环境：Linux 沙箱，<code>import AppKit</code>
+<strong>确实不可用</strong>（真·无 AppKit），Python 3.12.13</li>
+</ul>
+<hr />
+<h2 id="0-结论">0. 结论</h2>
+<table>
+<thead>
+<tr class="header">
+<th>事项</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-16 四态语义补证</td>
+<td><strong>通过</strong></td>
+</tr>
+<tr class="even">
+<td><code>unverifiable</code> 用拦截构造取证</td>
+<td><strong>可接受，无需重做</strong>（审核方已独立复现，见 §3）</td>
+</tr>
+<tr class="odd">
+<td>另三态为真实环境实拍</td>
+<td><strong>属实</strong>（代码路径 + 证据三方互证，见 §4）</td>
+</tr>
+<tr class="even">
+<td>字体「确实不存在」</td>
+<td><strong>成立</strong>（三套独立系统机制一致 + 审核方复核）</td>
+</tr>
+<tr class="odd">
+<td>本轮代码是否被改动</td>
+<td><strong>未改动</strong>（35/35 指纹一致，ADDED/REMOVED/CHANGED
+全空）</td>
+</tr>
+<tr class="even">
+<td>新发现 A-20</td>
+<td>证据文件未纳入指纹清单、拦截脚本未入库（P3，不阻塞）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-基线校验">1. 基线校验</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项目</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>声明项数 / 实际条目</td>
+<td>35 / 35</td>
+</tr>
+<tr class="even">
+<td>SHA-256 复算一致</td>
+<td><strong>35 / 35</strong></td>
+</tr>
+<tr class="odd">
+<td>不一致 / 缺失</td>
+<td>0 / 0</td>
+</tr>
+<tr class="even">
+<td>vs round7</td>
+<td><code>ADDED=[]</code>、<code>REMOVED=[]</code>、<code>CHANGED=[]</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>本轮为纯取证轮，源码零改动</strong>，与「A-16
+只补证据、不改代码」的定位一致。</p>
+<h3 id="独立复跑">独立复跑</h3>
+<table>
+<thead>
+<tr class="header">
+<th>环境</th>
+<th>通过 / 跳过</th>
+<th>退出码</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>审核方（Linux 无 AppKit）</td>
+<td><strong>94 passed / 2 skipped</strong></td>
+<td>0</td>
+<td>独立复跑</td>
+</tr>
+<tr class="even">
+<td>开发方（无 AppKit 日志）</td>
+<td>94 passed / 2 skipped</td>
+<td>0</td>
+<td>日志，与审核方<strong>完全一致</strong></td>
+</tr>
+<tr class="odd">
+<td>开发方（macOS 日志）</td>
+<td>96 passed / 0 skipped</td>
+<td>0</td>
+<td><strong>自述，审核方无 macOS，不作通过依据</strong></td>
+</tr>
+</tbody>
+</table>
+<p>差异解释：macOS 多出 2 项通过的，正是那 2 项「无 AppKit
+无法验证真实缺字」的跳过用例—— 在真机上它们能真实运行。这与本轮 A-16
+的主题自洽。</p>
+<hr />
+<h2 id="2-四态确实彼此可区分不靠肉眼靠源码文案--像素互斥">2.
+四态确实彼此可区分（不靠肉眼，靠源码文案 + 像素互斥）</h2>
+<h3 id="21-四种徽章文案取自-guicanvas_viewpy-源码为唯一权威">2.1
+四种徽章文案（取自 <code>gui/canvas_view.py</code>
+源码，为唯一权威）</h3>
+<table>
+<thead>
+<tr class="header">
+<th>状态</th>
+<th>颜色</th>
+<th>文案</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>detected</code></td>
+<td>绿 <code>#30D158</code></td>
+<td>字体 100% 支持</td>
+</tr>
+<tr class="even">
+<td>字形缺失</td>
+<td>橙 <code>#FF9F0A</code></td>
+<td>缺字: …</td>
+</tr>
+<tr class="odd">
+<td><code>font_missing</code></td>
+<td>红 <code>#FF453A</code></td>
+<td>字体未安装 回退 PingFangSC-Regular</td>
+</tr>
+<tr class="even">
+<td><code>unverifiable</code></td>
+<td>黄 <code>#FFD60A</code></td>
+<td>无法验证字形</td>
+</tr>
+</tbody>
+</table>
+<p>四种文案措辞互不相同，语义指向明确，不存在「把两种原因写成同一句话」的旧缺陷。</p>
+<h3 id="22-像素级互斥验证关键证据">2.2 像素级互斥验证（关键证据）</h3>
+<p>对两张核心截图做最近邻颜色分类（阈值 70，排除顶栏区域）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>颜色</th>
+<th>macOS 四态截图</th>
+<th>无 AppKit 截图</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>绿（<code>detected</code>）</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr class="even">
+<td>橙（字形缺失）</td>
+<td>有</td>
+<td>有（同层同时存在两枚徽章）</td>
+</tr>
+<tr class="odd">
+<td>红（<code>font_missing</code>）</td>
+<td><strong>36 px</strong></td>
+<td><strong>0 px</strong></td>
+</tr>
+<tr class="even">
+<td>黄（<code>unverifiable</code>）</td>
+<td><strong>0 px</strong></td>
+<td><strong>176 px</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>红与黄严格互斥。</strong> 这一点意义重大：</p>
+<p>同一个字体 <code>CormorantInfant-Regular</code>，</p>
+<ul>
+<li>在 macOS（有 AppKit，能真正查询字体表）→
+判为<strong>红：字体未安装</strong>；</li>
+<li>在无 AppKit（无检测能力）→ 判为<strong>黄：无法验证</strong>。</li>
+</ul>
+<p><strong>这正是 A-10 修复要达成的核心区分。</strong>
+修复前布尔接口会把两者压成同一个「False / 字体缺失」，
+现在两者在界面上是两种颜色、两种文案。<strong>A-16
+的验证目标已达成。</strong></p>
+<blockquote>
+<p>说明（如实披露一处方法局限）：橙 <code>#FF9F0A</code> 与黄
+<code>#FFD60A</code> 的 RGB 曼哈顿距离仅 55， 首轮用阈值 90
+粗筛时二者会混淆，故改用最近邻分类 + 阈值
+70，并以「红/黄互斥」为主结论，
+不依赖橙黄可分。这是审核方主动收紧口径，不是开发方的问题。</p>
+</blockquote>
+<hr />
+<h2 id="3-unverifiable-用拦截构造取证可接受不必重做">3.
+<code>unverifiable</code>
+用拦截构造取证：<strong>可接受，不必重做</strong></h2>
+<h3 id="31-开发方的顾虑是对的">3.1 开发方的顾虑是对的</h3>
+<p>macOS 自带 AppKit，程序在真机上<strong>永远不会自然进入</strong>
+<code>unverifiable</code> 分支。 因此要在 macOS
+上拍到该态，只能人为制造「检测能力不可用」。这是平台事实，不是取巧。</p>
+<h3 id="32-为什么仍然可接受审核方已独立复现">3.2
+为什么仍然可接受——审核方已独立复现</h3>
+<p>审核方所处环境 <code>import AppKit</code>
+<strong>真实失败</strong>（非拦截、非模拟），在此直接运行生产函数：</p>
+<pre><code>AppKit: NOT importable  → 真·无 AppKit 环境
+parse_psd_file(&#39;tests/data/four_state.psd&#39;) → 8 个文字层
+detection_status 集合 = {unverifiable}   （8/8 层）</code></pre>
+<p><strong>在不使用任何拦截的前提下，第四态被真实触发。</strong>
+这补上了开发方唯一缺失的那一环：</p>
+<ul>
+<li>拦截只负责「让程序走进这个分支」；</li>
+<li>走进去之后的<strong>判定逻辑与真机无 AppKit 完全相同</strong>；</li>
+<li>而「走进去之后是否正确」这件事，已由审核方的真实无 AppKit
+环境独立证实。</li>
+</ul>
+<h3 id="33-裁定">3.3 裁定</h3>
+<p><strong>该截图作为「第四态 UI
+呈现」的证据成立，不需改用隔离进程方案。</strong></p>
+<p>开发方提出的备选方案（隔离进程注入 +
+进程级证据）<strong>没有必要执行</strong>——
+那只是在同一个原理上再加一层日志，并不能提供比「真实无 AppKit
+环境复现」更强的证据。
+<strong>审核方已用更强的证据替代，此事可结。</strong></p>
+<p><strong>但要求如实标注</strong>（报告中已满足，特此确认）：该截图性质为
+「<strong>等价环境构造 +
+第三方真环境交叉验证</strong>」，不得表述为「macOS 真机实拍」。
+开发方原文已主动披露这一点，<strong>表述准确，值得肯定</strong>。</p>
+<hr />
+<h2 id="4-另三态为真实触发属实">4.
+另三态为真实触发：<strong>属实</strong></h2>
+<table>
+<thead>
+<tr class="header">
+<th>状态</th>
+<th>对应图层</th>
+<th>证据</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>detected</code></td>
+<td>领衔呈现（PingFangSC-Regular）</td>
+<td>字体在系统内、中文覆盖率 100% → 绿「字体 100% 支持」，无徽章
+occlusion</td>
+</tr>
+<tr class="even">
+<td>字形缺失</td>
+<td>新娘 朱永宏（Helvetica + 中文）</td>
+<td>Helvetica <strong>可安装但无中文字形</strong> → 橙「缺字」</td>
+</tr>
+<tr class="odd">
+<td><code>font_missing</code></td>
+<td>新郎 陈晗（CormorantInfant-Regular）</td>
+<td>字体<strong>确认不在系统</strong> → 红「字体未安装 回退
+PingFangSC-Regular」</td>
+</tr>
+</tbody>
+</table>
+<p>三者均可在 macOS 上自然触发，无需构造，与开发方声明一致。</p>
+<h3 id="41-该字体确实不存在的证据强度充分">4.1
+「该字体确实不存在」的证据强度：<strong>充分</strong></h3>
+<p>开发方用<strong>三套互不依赖的系统机制</strong>交叉确认
+<code>CormorantInfant-Regular</code> 不存在： AppKit 字体表查询 /
+<code>NSFont</code> 实例化失败 / <code>atsutil</code> 命令行枚举。</p>
+<p><strong>审核方复核</strong>：该结论与「红徽章出现在 macOS
+截图中、且同字体在无 AppKit 下转为黄」的像素证据
+一致——若字体其实存在，macOS
+侧应显示绿而非红。<strong>两条独立证据链同向，结论成立。</strong></p>
+<h3 id="42-字形缺失判定可信">4.2 字形缺失判定可信</h3>
+<p><code>glyph_proof</code> 显示 Helvetica 渲染中文的覆盖率
+<strong>0%</strong>，即「字体在、但字不在」。 这与「橙徽章出现在新娘
+朱永宏图层」精确对应。<strong>该态判定正确。</strong></p>
+<hr />
+<h2 id="5-新发现-a-20p3不阻塞">5. 新发现 A-20（P3，不阻塞）</h2>
+<h3 id="51-证据文件未纳入指纹清单">5.1 证据文件未纳入指纹清单</h3>
+<p><code>round8</code> 清单 35 项中，<code>docs/a16_evidence/</code> 下
+5 张 PNG + 1 个 JSON <strong>全部不在清单内</strong>
+（<code>evidence_in_inventory = []</code>）。</p>
+<p>不算严重（截图属文档性证据，非受控源码），但后果是：<strong>证据图片本身可被替换而无人察觉</strong>。
+建议：或在清单中增列证据文件的哈希，或在报告中明确声明「证据目录为附件、不纳入受控面」。</p>
+<h3 id="52-拦截脚本未入库--第四态截图不可从交付物复现">5.2
+拦截脚本未入库 → 第四态截图不可从交付物复现</h3>
+<p>全仓检索
+<code>builtins.__import__</code>：<strong>无命中</strong>。即生成
+<code>unverifiable</code> 截图的脚本<strong>不在项目内</strong>，
+其他人拿到本交付物<strong>无法重现</strong>那张截图。</p>
+<p><strong>本轮不因此退回</strong>，原因见 §3.2：审核方已用真实无 AppKit
+环境独立达成同一验证， 证据链不依赖该脚本。但建议将拦截脚本（约 20
+行）纳入 <code>tools/</code>，使该截图日后可复现，
+避免下一轮复核时再次出现「只能相信、不能重跑」的困境。</p>
+<hr />
+<h2 id="6-累计状态">6. 累计状态</h2>
+<table>
+<thead>
+<tr class="header">
+<th>项</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A-1 ～ A-13</td>
+<td>已核实修复，维持</td>
+</tr>
+<tr class="even">
+<td><strong>A-16</strong></td>
+<td><strong>通过（本轮关闭）</strong></td>
+</tr>
+<tr class="odd">
+<td>A-14</td>
+<td>P3 使用引导，不阻塞（1:1 入口已具备）</td>
+</tr>
+<tr class="even">
+<td>A-15</td>
+<td>P2，转设计变更，<strong>待定</strong>（见 §7）</td>
+</tr>
+<tr class="odd">
+<td>A-18</td>
+<td>已驳回关闭</td>
+</tr>
+<tr class="even">
+<td>A-19</td>
+<td>已关闭</td>
+</tr>
+<tr class="odd">
+<td>A-20（新）</td>
+<td>P3，证据未入清单 + 脚本未入库</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P0 / P1 / 补证项全部清零。</strong></p>
+<hr />
+<h2 id="7-a-15-决策建议用户征询审核方意见">7. A-15
+决策建议（用户征询审核方意见）</h2>
+<p>结合本轮四态截图可直接观察到的实况：44%
+缩放下，竖版多图层的徽章<strong>在垂直方向堆叠碰撞</strong>
+（新郎的红色横徽与镇雄的多枚徽章挤成一团），确实已影响可读性，且并非靠调宽度可解。</p>
+<p><strong>审核方建议按以下优先级择一（均为设计层面的呈现方式变更，非架构改造）：</strong></p>
+<ol type="1">
+<li><strong>【推荐】改为「选中/悬停才展开徽章，常态仅显示 4px
+色点」</strong>
+<ul>
+<li>优点：彻底消除遮挡；诊断信息不丢失（点一下就看到）；同一套四色语义直接复用，改动面小；</li>
+<li>代价：需一次悬停/选中交互，但那是诊断场景的自然动作。</li>
+</ul></li>
+<li><strong>备选</strong>：徽章移入右侧图层树，逐行显示状态列；画布上仅留色点。
+<ul>
+<li>优点：信息密度最高，可一次扫完所有图层状态；</li>
+<li>代价：改动面较大，需要图层树支持状态列。</li>
+</ul></li>
+<li><strong>不推荐</strong>：继续调字号/宽高/间距——历史上已证明必然失败（根因在高度方向
+22px &gt; 行距 11–14px）。</li>
+</ol>
+<p><strong>审核方结论</strong>：A-15 建议采用方案 1，作为 P2
+设计变更立项；<strong>不阻塞</strong>真机验收。</p>
+<hr />
+<h2 id="8-下一步建议">8. 下一步建议</h2>
+<ol type="1">
+<li><strong>A-16 可勾选关闭</strong>。</li>
+<li><strong>A-15 按方案 1 立项</strong>（或由用户指定其他方案）。</li>
+<li><strong>Motion / FCPX 真机验收可立即开始</strong>——P0/P1
+已清零，核心链路「不闪退、不报错、必要内容齐全」 已满足，按双方约定的
+80%–90% 口径推进。</li>
+<li>A-20 两项（证据入清单、脚本入库）可并入下一轮，不单独占轮次。</li>
+</ol>
+<p><strong>如实边界</strong>：本轮结论基于审核方在<strong>真实无
+AppKit</strong> 环境（<code>import AppKit</code>
+确实失败）的独立复算与复现、 源码文案核对、像素级互斥分析；macOS 侧
+<code>96 passed</code> 与四态实拍由开发方提供，审核方无 macOS 环境，
+未在 Motion / FCPX 中做渲染验收。</p>
+</body>
+</html>

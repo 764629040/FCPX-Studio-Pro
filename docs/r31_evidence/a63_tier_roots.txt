@@ -1,0 +1,28 @@
+# A-63 三级根目录真机解析结果（2026-11-05 14:17:57）
+
+## FCPX 定位
+app: /Applications/Final Cut Pro Creator Studio.app
+  "CFBundleIdentifier" => "com.apple.FinalCutApp"
+  "CFBundleName" => "Final Cut Pro"
+（任务单给的 com.apple.FinalCut 与真机不符，真机实测 com.apple.FinalCutApp；代码两个都探测 + 包结构兜底扫描）
+
+## 内置级
+Effects.localized
+Generators.localized
+Titles.localized
+Transitions.localized
+exists=YES
+
+## 用户级
+Compositing Elements.localized
+Compositions.localized
+Effects.localized
+Generators.localized
+Icon
+Titles.localized
+Transitions.localized
+templateThemes
+...(共 8 项)
+
+## 系统级
+ls: /Library/Application Support/Final Cut Pro/Templates: No such file or directory/Library/Application Support writable=NO（本机系统级目录不存在，UI 显示『目录不存在』，符合任务单判据9）

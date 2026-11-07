@@ -1,0 +1,149 @@
+{
+  "app": "Motion",
+  "timestamp": "2026-10-28 13:06:16",
+  "process": {
+    "match_count": 5,
+    "lines": [
+      "mrhuang          60868   4.1  0.1 435270720  21280   ??  S     1:06PM   0:00.08 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python tools/host_verify.py snapshot --app Motion --out docs/host_verify",
+      "mrhuang          60867   1.0  0.0 435299488   1984   ??  Ss    1:06PM   0:00.00 bash -c P=\"/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro\"; cd \"$P\"; python3 tools/host_verify.py snapshot --app Motion --out docs/host_verify 2>&1 | tail -12; echo; echo \"=== 窗口内文本（验证渲染内容）===\"; /tmp/textprobe 2>&1 | grep -vE \"AXScrollArea|AXOutline|AXRow\" | head -25",
+      "mrhuang          59800   0.0  0.2 435401168  27360   ??  Ss    1:00PM   0:00.18 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/PlugIns/InternalFiltersXPC.pluginkit/Contents/MacOS/InternalFiltersXPC",
+      "mrhuang          59795   0.0  3.1 448740592 512912   ??  S     1:00PM   0:48.76 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/MacOS/Motion",
+      "mrhuang          59823   0.0  0.3 435553200  55936   ??  S     1:00PM   0:00.16 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/Helpers/RegisterProExtension.app/Contents/MacOS/RegisterProExtension"
+    ]
+  },
+  "windows": [
+    {
+      "layer": 0,
+      "owner": "Motion",
+      "name": "",
+      "bounds": {
+        "X": 641,
+        "Height": 236,
+        "Y": 698,
+        "Width": 814
+      }
+    },
+    {
+      "layer": 0,
+      "bounds": {
+        "Width": 1470,
+        "Y": 33,
+        "Height": 923,
+        "X": 0
+      },
+      "owner": "Motion",
+      "name": "23.moti"
+    }
+  ],
+  "crashes": [],
+  "shots": [
+    {
+      "window": "",
+      "path": "docs/host_verify/Motion_win0_130616.png",
+      "stats": {
+        "size": [
+          1628,
+          472
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              34,
+              51,
+              82
+            ],
+            "count": 25419
+          },
+          {
+            "rgb": [
+              34,
+              51,
+              81
+            ],
+            "count": 21315
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              82
+            ],
+            "count": 17583
+          },
+          {
+            "rgb": [
+              34,
+              52,
+              81
+            ],
+            "count": 14122
+          },
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 11779
+          }
+        ],
+        "light_ratio": 0.0087,
+        "distinct_colors": 1711
+      }
+    },
+    {
+      "window": "23.moti",
+      "path": "docs/host_verify/Motion_23.moti_130616.png",
+      "stats": {
+        "size": [
+          2940,
+          1846
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              31,
+              31,
+              31
+            ],
+            "count": 11878
+          },
+          {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "count": 10253
+          },
+          {
+            "rgb": [
+              39,
+              39,
+              39
+            ],
+            "count": 8072
+          },
+          {
+            "rgb": [
+              30,
+              30,
+              30
+            ],
+            "count": 6866
+          },
+          {
+            "rgb": [
+              55,
+              55,
+              55
+            ],
+            "count": 4253
+          }
+        ],
+        "light_ratio": 0.0135,
+        "distinct_colors": 1100
+      }
+    }
+  ]
+}

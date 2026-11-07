@@ -1,0 +1,30 @@
+# FCPX Studio Pro — Python 依赖（实际验证版本，macOS arm64）
+# 实测环境：Python 3.14.6 / macOS 26.5 arm64
+# 安装：python3 -m pip install -r requirements.txt
+#
+# 说明：
+#   PyQt6 / psd-tools / Pillow / pytest 为跨平台必需项；
+#   pyobjc-framework-Cocoa 仅在 macOS 上提供 AppKit（字体可用性 + 字形覆盖度检测）。
+#   Linux 等无 AppKit 环境可不装 pyobjc，此时字体诊断按设计返回 unverifiable，
+#   并由 tests/test_font_diagnosis_honesty.py 校验其不得伪装成“无风险/100%”。
+
+PyQt6==6.11.0
+# A-32：版本下限声明
+#   - 本项目实测通过：1.24.0（macOS 26.5 arm64 / Python 3.14.6）
+#   - 审核方报告：1.9.24 对含 RLE 压缩的旧夹具抛 Invalid RLE compression，
+#                 1.26.0 正常。该区间未在本机复现（本机无此版本），
+#                 故采用「>=1.24.0」下限并推荐 1.26.0，不锁定单点。
+#   - 彩条计数请用全像素扫描，断言不要固定具体数值（不同版本计数可能不同）。
+psd-tools>=1.24.0
+Pillow==11.3.0
+pytest==9.1.1
+numpy==2.4.4
+# R26（独立复核报告 R25 §十.4）：scipy 显式声明。
+#   缺 scipy 时 psd-tools 对带图层效果的层 composite() 会失败——
+#   R25 SA-4 问题 2 的盲区正在于此（无 scipy 的机器上才会出现的静默缺陷）。
+#   代码已有 PIL topil() 回退 + missing_media_refs 大声告警兜底，
+#   但完整渲染（描边/投影/发光参与合成）仍需 scipy。
+scipy>=1.13.1
+
+# 仅 macOS 需要（AppKit / NSFontManager / coveredCharacterSet）
+pyobjc-framework-Cocoa==12.2.1 ; sys_platform == "darwin"

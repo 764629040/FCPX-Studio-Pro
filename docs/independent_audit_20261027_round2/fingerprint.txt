@@ -1,0 +1,10 @@
+清单声明 count = 25  实际条目 = 25  一致? True
+root 声明 = /Volumes/NO NAME/未命名文件夹/FCPX_Studio_Pro
+
+一致=25 不一致=0 缺失=0 大小不符=0
+
+--- 与上一轮对比 ---
+新增: ['requirements.txt', 'tests/test_p0_rotation_and_reason.py']
+移除: []
+变更: ['core/psd_parser.py', 'gui/canvas_view.py']
+未变: 21

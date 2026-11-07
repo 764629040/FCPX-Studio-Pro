@@ -1,0 +1,57 @@
+{
+  "psd_tools": "1.24.0",
+  "rows": [
+    {
+      "fixture": "vertical_wedding_9_16.psd",
+      "label": "旧夹具(越界)",
+      "thumb": [
+        360,
+        640
+      ],
+      "red": 0,
+      "green": 0,
+      "opaque_pct": 100.0,
+      "composite_dark_noise": 2646,
+      "perlayer_dark_noise": 712
+    },
+    {
+      "fixture": "vertical_9x16_rebased.psd",
+      "label": "重建夹具",
+      "thumb": [
+        360,
+        640
+      ],
+      "red": 0,
+      "green": 0,
+      "opaque_pct": 100.0,
+      "composite_dark_noise": 0,
+      "perlayer_dark_noise": 0
+    },
+    {
+      "fixture": "four_state.psd",
+      "label": "四态",
+      "thumb": [
+        360,
+        640
+      ],
+      "red": 0,
+      "green": 0,
+      "opaque_pct": 100.0,
+      "composite_dark_noise": 2646,
+      "perlayer_dark_noise": 712
+    },
+    {
+      "fixture": "complex_layers.psd",
+      "label": "横版",
+      "thumb": [
+        640,
+        360
+      ],
+      "red": 0,
+      "green": 0,
+      "opaque_pct": 100.0,
+      "composite_dark_noise": 0,
+      "perlayer_dark_noise": 0
+    }
+  ]
+}

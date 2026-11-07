@@ -1,0 +1,25 @@
+# R21 证据 · 核心约束自查
+
+## 1. core 层无 PyQt import
+0 命中 OK
+
+## 2. requirements.txt psd-tools 下限
+#   PyQt6 / psd-tools / Pillow / pytest 为跨平台必需项；
+psd-tools>=1.24.0
+
+## 3. tests/data 夹具 mtime（应为既有，未改动）
+-rw-rw-rw-@ 1 mrhuang  staff   493417 Oct 26 23:58 tests/data/commercial_4k.psd
+-rw-rw-rw-@ 1 mrhuang  staff  4822609 Oct 27 03:14 tests/data/complex_layers.psd
+-rw-rw-rw-@ 1 mrhuang  staff       50 Oct 27 03:15 tests/data/corrupted_file.psd
+-rw-r--r--@ 1 mrhuang  staff   493425 Oct 27 19:18 tests/data/four_state.psd
+-rw-r--r--@ 1 mrhuang  staff   555975 Oct 28 16:33 tests/data/vertical_9x16_rebased.psd
+-rw-r--r--@ 1 mrhuang  staff   354526 Oct 28 15:15 tests/data/vertical_9x16_true.psd
+-rw-rw-rw-@ 1 mrhuang  staff   493417 Oct 26 23:56 tests/data/vertical_wedding_9_16.psd
+-rw-rw-rw-@ 1 mrhuang  staff   481463 Oct 27 00:43 tests/data/wedding_with_decorations_23.psd
+
+## 4. gui/canvas_view.py 未改动（mtime）
+-rw-rw-rw-@ 1 mrhuang  staff  51228 Oct 28 12:38 gui/canvas_view.py
+
+## 5. 128 卷零写入声明：本轮所有写入均在 ~/Movies 与项目 docs/ 下，未触碰 /Volumes/NO NAME/128
+## 6. pytest 真实退出码
+EXIT=0（188 passed，见 docs/pytest_r21.log）

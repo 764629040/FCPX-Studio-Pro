@@ -1,0 +1,49 @@
+{
+  "canvas": [
+    1080,
+    1920
+  ],
+  "note": "真正竖版 9:16 夹具，背景层不越界，文字纵向居中分布",
+  "layers": [
+    {
+      "ascii": "Text 01",
+      "original": "领 衔 呈 现",
+      "text": "领\r衔\r呈\r现"
+    },
+    {
+      "ascii": "Text 02",
+      "original": "lead the  presentation",
+      "text": "lead the \rpresentation"
+    },
+    {
+      "ascii": "Text 03",
+      "original": "新 娘  朱 永 宏",
+      "text": "新\r娘\r\r朱\r永\r宏"
+    },
+    {
+      "ascii": "Text 04",
+      "original": "THE BRIDE",
+      "text": "THE BRIDE"
+    },
+    {
+      "ascii": "Text 05",
+      "original": "新 郎  陈 晗",
+      "text": "新\r郎\r\r陈\r晗"
+    },
+    {
+      "ascii": "Text 06",
+      "original": "THE GROOM",
+      "text": "THE GROOM"
+    },
+    {
+      "ascii": "Text 07",
+      "original": "镇 雄",
+      "text": "镇\r雄"
+    },
+    {
+      "ascii": "Text 08",
+      "original": "CITY",
+      "text": "CITY"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""
+CLI 桥接模块 (Socket Bridge - 稳健原子版)
+为 macOS 原生工程提供极速 JSON 协议通信接口：
+1. parse <psd_file>: 解析并返回图层 JSON、画幅规格与详尽诊断报告 (包含字体三元组诊断与降级信息)
+2. build <config_json_file>: 执行完整的临时目录沙箱构建、严格完整性校验、时间戳备份与原子级替换提交流程
+"""
+import sys
+import os
+import json
+import time
+import shutil
+import hashlib
+import tempfile
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+from core.psd_parser import parse_psd_file, PSDLayerInfo
+from core.motion_builder import MotionBuilder
+
+
+def media_output_dir(psd_path: str) -> str:
+    """R33 / A-68：为一次解析准备稳定的贴图输出目录。
+
+    目录键由「绝对路径 + mtime + 大小」决定，同一文件重复解析复用同一目录，
+    文件一改就换新目录，避免读到上次的旧贴图。放在系统临时目录下，
+    不会污染用户素材目录。
+    """
+    try:
+        st = os.stat(psd_path)
+        key_src = f"{os.path.abspath(psd_path)}|{st.st_mtime_ns}|{st.st_size}"
+    except OSError:
+        key_src = os.path.abspath(psd_path)
+    key = hashlib.sha1(key_src.encode("utf-8", "replace")).hexdigest()[:16]
+    base = os.path.join(tempfile.gettempdir(), "FCPXStudioPSDMedia")
+    os.makedirs(base, exist_ok=True)
+    # 顺手清理 7 天前的旧目录（失败不影响解析）
+    now = time.time()
+    try:
+        for name in os.listdir(base):
+            old = os.path.join(base, name)
+            if os.path.isdir(old) and now - os.path.getmtime(old) > 7 * 86400:
+                shutil.rmtree(old, ignore_errors=True)
+    except OSError:
+        pass
+    out = os.path.join(base, key)
+    os.makedirs(out, exist_ok=True)
+    return out
+
+
+def handle_parse(psd_path: str, include_hidden: bool = False):
+    if not os.path.exists(psd_path):
+        print(json.dumps({"status": "error", "message": f"文件不存在: {psd_path}"}, ensure_ascii=False))
+        sys.exit(1)
+    
+    try:
+        # R33 / A-68：桥接层必须显式启用 PNG 导出并给出目录。
+        # R32 之前这里只传 psd_path，导致 extract_fallback_pngs=False、
+        # png_output_dir=None，所有位图层都没有贴图，画布自然全黑。
+        parsed = parse_psd_file(
+            psd_path,
+            extract_fallback_pngs=True,
+            png_output_dir=media_output_dir(psd_path),
+            include_hidden=include_hidden,
+            # R33：原生壳的 LayerModel 不消费缩略图，而逐层缩略图对 2848×1600
+            # 的 13 层照片稿要花 44s（实测 61s → 17s）。桥接显式关闭，避免
+            # 大 PSD 在 60s 超时线附近被误判为“解析超时”。
+            extract_thumbnails=False,
+        )
+        layers_data = [l.to_dict() for l in parsed["layers"]]
+        summary = parsed.get("diagnosis_report", {}).get("summary", {})
+        result = {
+            "status": "ok",
+            "width": parsed["width"],
+            "height": parsed["height"],
+            "aspect_ratio": parsed["aspect_ratio"],
+            "resolution_spec": parsed["resolution_spec"],
+            "layer_count": parsed["layer_count"],
+            "input_layer_count": parsed.get("input_layer_count", 0),
+            "output_layer_count": parsed.get("output_layer_count", 0),
+            "skipped_layer_count": parsed.get("skipped_layer_count", 0),
+            "preview_layer_count": parsed.get("preview_layer_count", 0),
+            "hidden_layer_count": parsed.get("hidden_layer_count", 0),
+            "ignored_summary": parsed.get("ignored_summary", ""),
+            "include_hidden": parsed.get("include_hidden", include_hidden),
+            "layer_conservation": parsed.get("layer_conservation", {}),
+            "summary": summary,
+            "background_preview": parsed.get("background_preview"),
+            "original_composite_path": parsed.get("original_composite_path"),
+            "layers": layers_data,
+            "diagnostics": parsed["diagnostics"]
+        }
+        print(json.dumps(result, ensure_ascii=False))
+    except Exception as e:
+        print(json.dumps({"status": "error", "message": f"解析 PSD 异常: {str(e)}"}, ensure_ascii=False))
+        sys.exit(1)
+
+def handle_build(payload_json_file: str):
+    if not os.path.exists(payload_json_file):
+        print(json.dumps({"status": "error", "message": f"构建配置 JSON 不存在: {payload_json_file}"}, ensure_ascii=False))
+        sys.exit(1)
+
+    try:
+        with open(payload_json_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        psd_path = data.get("psd_path", "")
+        output_dir = data["output_dir"]
+        template_name = data["template_name"]
+        layers_raw = data.get("layers", [])
+
+        layers_info = []
+        for d in layers_raw:
+            info = PSDLayerInfo(
+                index=d.get("index", 1),
+                name=d.get("name", ""),
+                kind=d.get("kind", "type"),
+                text=d.get("text", ""),
+                font_name=d.get("font_name", "Helvetica"),
+                font_size=float(d.get("font_size", 36.0)),
+                tracking=float(d.get("tracking", 0.0)),
+                psd_bbox=tuple(d.get("psd_bbox", (0, 0, 0, 0))),
+                motion_pos=tuple(d.get("motion_pos", (0, 0))),
+                visible=bool(d.get("visible", True)),
+                is_published=bool(d.get("is_published", True)),
+                rotation=float(d.get("rotation", 0.0)),
+                scale_x=float(d.get("scale_x", 1.0)),
+                scale_y=float(d.get("scale_y", 1.0)),
+                opacity=float(d.get("opacity", 1.0)),
+                writing_direction=d.get("writing_direction", "vertical"),
+                fallback_png_path=d.get("fallback_png_path", None),
+                fallback_png_info=d.get("fallback_png_info", None),
+                font_info=d.get("font_info", None),
+                diagnostic_notes=d.get("diagnostic_notes", []),
+                alignment=d.get("alignment", "center"),
+                line_spacing=float(d.get("line_spacing", 1.0))
+            )
+            if "published_channels" in d:
+                info.published_channels = d["published_channels"]
+            layers_info.append(info)
+
+        # 调用原子构建流程 (包含临时沙箱构建、校验、备份、原子移动及异常自动回滚)
+        builder = MotionBuilder()
+        build_result = builder.build_template_atomic(
+            layers_info=layers_info,
+            output_dir=output_dir,
+            template_name=template_name,
+            psd_path=psd_path if (psd_path and os.path.exists(psd_path)) else None,
+            backup_existing=True
+        )
+
+        resp = {
+            "status": "ok",
+            "moti_path": build_result["moti_path"],
+            "large_png": build_result["large_png"],
+            "small_png": build_result["small_png"],
+            "backup_path": build_result.get("backup_path"),
+            "output_dir": output_dir
+        }
+        print(json.dumps(resp, ensure_ascii=False))
+    except Exception as e:
+        print(json.dumps({"status": "error", "message": f"生成模板失败: {str(e)}"}, ensure_ascii=False))
+        sys.exit(1)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: cli_bridge.py parse <psd_file> OR cli_bridge.py build <json_file>")
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+    arg = sys.argv[2]
+    flags = set(sys.argv[3:])
+    if cmd == "parse":
+        # R33 / A-70：--include-hidden 只影响「预览列表」，不改变转换口径。
+        handle_parse(arg, include_hidden=("--include-hidden" in flags))
+    elif cmd == "build":
+        handle_build(arg)
+    else:
+        print(json.dumps({"status": "error", "message": f"未知命令: {cmd}"}, ensure_ascii=False))
+        sys.exit(1)

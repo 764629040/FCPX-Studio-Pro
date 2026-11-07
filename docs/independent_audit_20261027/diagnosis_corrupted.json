@@ -1,0 +1,47 @@
+{
+  "summary": {
+    "source_file": {
+      "name": "corrupted_file.psd",
+      "path": "/mnt/work/audit_run/tests/data/corrupted_file.psd"
+    },
+    "canvas": {
+      "width": 0,
+      "height": 0,
+      "aspect_ratio": "未知画幅",
+      "resolution_spec": "损坏文件"
+    },
+    "total_layers": 0,
+    "preserved_count": 0,
+    "degraded_count": 0,
+    "ignored_count": 0,
+    "failed_count": 1,
+    "missing_fonts_count": 0,
+    "unverifiable_fonts_count": 0,
+    "has_missing_risk": true,
+    "risk_assessment": "致命错误：源文件已损坏或格式非法无法解析 (25455 is not a valid ColorMode)",
+    "generated_at": "2026-10-27T08:45:55.354737"
+  },
+  "layers": [
+    {
+      "source_file": {
+        "name": "corrupted_file.psd",
+        "path": "/mnt/work/audit_run/tests/data/corrupted_file.psd"
+      },
+      "layer_index": null,
+      "layer_path": "corrupted_file.psd",
+      "layer_name": "corrupted_file.psd",
+      "layer_type": "unknown",
+      "disposition": "failed",
+      "reason": "源文件解析失败: 25455 is not a valid ColorMode",
+      "font_status": null,
+      "missing_glyphs": [],
+      "fallback_font": null,
+      "fallback_png": null,
+      "unsupported_features": [
+        "文件损坏 / 非法 PSD 结构"
+      ],
+      "error_details": "25455 is not a valid ColorMode",
+      "is_blocking": true
+    }
+  ]
+}

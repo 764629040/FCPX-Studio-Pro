@@ -1,0 +1,31 @@
+# 安装器执行输出（/tmp/install_step2.py，真实运行捕获）
+# 执行命令：
+#   cd /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro && /opt/homebrew/bin/python3 /tmp/install_step2.py
+# 退出码：INSTALLER_EXIT=0
+
+=== 串行安装 T01_领衔呈现_竖版（替换旧 1）===
+    [拷贝] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/build_staging/T01_领衔呈现_竖版 -> ~/Developer/Movies/Motion Templates.localized/Titles.localized/PSD婚礼字幕/_tmp_T01_领衔呈现_竖版_72629_1793200983757
+    [T01] Media 为空（源 PSD 无 shape 层，属正确）
+    [防护] 已存在同名目录，先行备份至 ~/Developer/Movies/_psd_subtitle_backups/T01_领衔呈现_竖版_20261028_232303
+    [原子提交] ~/Developer/Movies/Motion Templates.localized/Titles.localized/PSD婚礼字幕/T01_领衔呈现_竖版
+    [A-36/覆盖] 旧 1 已移出扫描树 -> ~/Developer/Movies/_psd_subtitle_backups/20261028_232303/1
+
+=== 串行安装 T23_含装饰_横版（替换旧 23）===
+    [拷贝] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/build_staging/T23_含装饰_横版 -> ~/Developer/Movies/Motion Templates.localized/Titles.localized/PSD婚礼字幕/_tmp_T23_含装饰_横版_72629_1793200983770
+    [A-25] element_03_箭头.png = 47x47  OK
+    [A-25] element_05_横线.png = 81x8  OK
+    [原子提交] ~/Developer/Movies/Motion Templates.localized/Titles.localized/PSD婚礼字幕/T23_含装饰_横版
+    [A-36/覆盖] 旧 23 已移出扫描树 -> ~/Developer/Movies/_psd_subtitle_backups/20261028_232303/23
+
+=== A-36 终检（扫描树内残留）===
+    [A-36] 扫描树内无 _bak_/_tmp_build_/_tmp_ 残留  OK
+
+=== 安装后目录核验 ===
+    T01_领衔呈现_竖版/ -> ['Media', 'T01_领衔呈现_竖版.moti', 'large.png', 'small.png']
+        .moti=['T01_领衔呈现_竖版.moti']  Media=[]
+    T23_含装饰_横版/ -> ['Media', 'T23_含装饰_横版.moti', 'large.png', 'small.png']
+        .moti=['T23_含装饰_横版.moti']  Media=['element_03_箭头.png', 'element_05_横线.png']
+
+ALL_OK  round20 第二步覆盖安装完成
+BACKUP_ROOT=~/Developer/Movies/_psd_subtitle_backups/20261028_232303
+INSTALLER_EXIT=0

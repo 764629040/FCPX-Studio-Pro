@@ -1,0 +1,197 @@
+{
+  "generated_at": "2026-11-06 12:23:08",
+  "root": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "phase": "r39",
+  "canonical_path": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro",
+  "note": "独立原生清单；与 tools/round.py 的 110 项 CONTROLLED 清单分开，不混合、不改其范围",
+  "count": 27,
+  "missing": [],
+  "optional_absent": [
+    "FCPXStudioNative/Package.resolved"
+  ],
+  "files": {
+    "FCPXStudioNative/Package.swift": {
+      "sha256": "94cc1ba3c99d2dcd675579dcdd23a89449b170dcf0b9f9285bf09f44702d0958",
+      "size": 366,
+      "lines": 18,
+      "module_type": "package"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/main.swift": {
+      "sha256": "da3b6aa1578baef5e92f7a3e00a94d13835c2ede412b722c6822d743324977c7",
+      "size": 4481,
+      "lines": 100,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/AppConfig.swift": {
+      "sha256": "137b5d04ba1f3572f55a9b42ef2f3baf99a5bb31fce0b7669eaa82c96fb762c1",
+      "size": 1873,
+      "lines": 46,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/AudioManager.swift": {
+      "sha256": "b3d90816f02473b487ed76c962c5f077c6a55e184836c4a15baba3cd0dcce1bc",
+      "size": 10304,
+      "lines": 293,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/LUTManager.swift": {
+      "sha256": "d4f78fc462360db80cb7d7ea7c030d602f14d3230369557bf8c7e43ffb7f1121",
+      "size": 13994,
+      "lines": 324,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/LayerModel.swift": {
+      "sha256": "50c91c97169941f9b89617f746d8c8feaf1bc3b718bc7ce659c3c672ba7ac3b6",
+      "size": 8935,
+      "lines": 209,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/LibraryCleaner.swift": {
+      "sha256": "38f4d7edd38c5a09864bdf3baa49e4f0116bb1df360a1e788816b9e7d48bd0a2",
+      "size": 26466,
+      "lines": 613,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/PSDImportPlanner.swift": {
+      "sha256": "cbb693534f22acef1a259f0aa2f20463a654f50b65b28b62be11a8c4de77607d",
+      "size": 4336,
+      "lines": 113,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/ParseDiagnostics.swift": {
+      "sha256": "44557de3fb2592ce0e76b1b65dc474b3fa721efc5e022fed9ae0a4724c014f31",
+      "size": 5988,
+      "lines": 126,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/TemplateInstaller.swift": {
+      "sha256": "98999de5a76cea079ea6a35eae15ff8fe3e21c33085d4afbb603ce9b55dc5b53",
+      "size": 15081,
+      "lines": 377,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/TemplateMigrator.swift": {
+      "sha256": "759961c829221987134272a2691977cbe020b28ab4a7925e77688dda6ebdf23a",
+      "size": 13367,
+      "lines": 329,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/TemplateRenameManager.swift": {
+      "sha256": "7f9d9f9022e1d79e15300e12d71180d1da56b036158cef28f49819ee541f28ed",
+      "size": 11645,
+      "lines": 252,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Models/TemplateTier.swift": {
+      "sha256": "6ff6bdd2783f1a966125cb04845ed7d852b9537334b28c85aae201a91fe08ecd",
+      "size": 12903,
+      "lines": 308,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Sockets/MotionBuilderSocket.swift": {
+      "sha256": "c861787f54f10e0d4034f7c6d43187d2d9932c40212afb397722601ecc7da15e",
+      "size": 2784,
+      "lines": 76,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Sockets/PSDParserSocket.swift": {
+      "sha256": "8b72f9dc6cbcd1076ce37537ee3e52d820af4d9617793a7bedb316bfd139f06b",
+      "size": 20088,
+      "lines": 428,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Sockets/SymlinkSocket.swift": {
+      "sha256": "f302c005e025347bb9a0d373f78e049cd0a08e69dc2a434d932298267d96ec89",
+      "size": 4471,
+      "lines": 106,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/AssetHubView.swift": {
+      "sha256": "f0fc46faad7196cdd1fc11f807de5468aa4a5e6dd2302a93aa16dd9c43a6529c",
+      "size": 79452,
+      "lines": 1767,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/AudioWaveformView.swift": {
+      "sha256": "0e1416c3f56f8eebf1ed2f10e6d8c1213a2b054d454cba4f1412c6128eb3c44d",
+      "size": 6105,
+      "lines": 170,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/CleanerDashboardView.swift": {
+      "sha256": "778966f83cd931ec08036055eca8683a1b6c7b924ec6c9d568463f8c79bdd109",
+      "size": 24372,
+      "lines": 564,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/DropAcceptingView.swift": {
+      "sha256": "3be5d4290738700ca43023497de8ccc126b7586c5818b9d3c2decf72ec5399e0",
+      "size": 3797,
+      "lines": 102,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/InfiniteCanvasView.swift": {
+      "sha256": "4134fc801c5a3cba5ceb69a29e6d01d7004b5a183ed785e5fce336f22e2f09db",
+      "size": 29411,
+      "lines": 700,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift": {
+      "sha256": "9823c80fcec53ff30804ff709220c5a3188852d1fe9723761a1d1ea8227e05e5",
+      "size": 26684,
+      "lines": 564,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/LUTCompareView.swift": {
+      "sha256": "11d68aa56ddae2505c7d85366a207a48d4b7598322e5df83351af7f85a2b4360",
+      "size": 11551,
+      "lines": 310,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/MainWindowController.swift": {
+      "sha256": "54d30fcdedf33f67d0fcaa43823fb0ebffe5206303af5314509150589f133c94",
+      "size": 22109,
+      "lines": 550,
+      "module_type": "swift"
+    },
+    "FCPXStudioNative/Sources/FCPXStudio/Views/SettingsWindow.swift": {
+      "sha256": "37835017e01e539f6b51befd5d464c5c6901aeae7f68c730944aa77dc22db02c",
+      "size": 6635,
+      "lines": 150,
+      "module_type": "swift"
+    },
+    "FCPX Studio Pro.app/Contents/MacOS/FCPXStudio": {
+      "sha256": "96949ceba52fcbbf3ceb549d5c03aefe2aa368e8a213db5248ffef112be25cd8",
+      "size": 1430624,
+      "mtime": "2026-11-06 12:22:59",
+      "module_type": "bundle-binary",
+      "file": "Mach-O 64-bit executable arm64",
+      "arch": "arm64"
+    },
+    "FCPX Studio Pro.app/Contents/Info.plist": {
+      "sha256": "0139e4481cb9f1b0fbb3fccd24fad7fdf7f2dd92024e01d100d2910ca40b7d42",
+      "size": 696,
+      "mtime": "2026-10-26 22:01:56",
+      "module_type": "bundle-plist"
+    }
+  },
+  "native": {
+    "swift_version": "Apple Swift version 6.2.3 (swiftlang-6.2.3.3.21 clang-1700.6.3.2)",
+    "swift_version_raw": "Apple Swift version 6.2.3 (swiftlang-6.2.3.3.21 clang-1700.6.3.2)\nTarget: arm64-apple-macosx26.0\nswift-driver version: 1.127.14.1",
+    "macos": "26.5",
+    "app_bundle": "FCPX Studio Pro.app",
+    "app_binary": "FCPX Studio Pro.app/Contents/MacOS/FCPXStudio",
+    "build_time": "2026-11-06 12:22:59",
+    "signing": {
+      "available": true,
+      "valid": true,
+      "verify_output": "",
+      "summary": {
+        "Identifier": "com.studiopro.fcpxstudio",
+        "Format": "app bundle with Mach-O thin (arm64)",
+        "Signature": "adhoc",
+        "TeamIdentifier": "not set"
+      }
+    }
+  }
+}

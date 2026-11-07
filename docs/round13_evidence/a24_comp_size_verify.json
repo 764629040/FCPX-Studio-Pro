@@ -1,0 +1,23 @@
+{
+  "phase": "A-24 修复验证",
+  "rows": [
+    {
+      "psd": "vertical_wedding_9_16.psd",
+      "psd_size": "1080x1920",
+      "comp_size": "1080x1920",
+      "match": true
+    },
+    {
+      "psd": "complex_layers.psd",
+      "psd_size": "1920x1080",
+      "comp_size": "1920x1080",
+      "match": true
+    },
+    {
+      "psd": "four_state.psd",
+      "psd_size": "1080x1920",
+      "comp_size": "1080x1920",
+      "match": true
+    }
+  ]
+}

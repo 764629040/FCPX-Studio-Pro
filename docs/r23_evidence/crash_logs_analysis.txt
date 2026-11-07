@@ -1,0 +1,102 @@
+COMMAND USED:
+python3 docs/r23_evidence/scan_crashlogs.py
+
+=== RAW OUTPUT ===
+SEARCH ROOTS:
+  - ~/Developer/Library/Logs/DiagnosticReports (exists=True)
+  - ~/Developer/Library/Logs/DiagnosticReports/Retired (exists=True)
+
+TOTAL CRASH/IPS FILES = 7
+
+=== 与 FCP/Motion/本项目可能的崩溃日志 ===
+--------------------------------------------------------------------------------
+FILE      : ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-02-230733.ips
+PROC      : ?
+TIME      : ?
+EXC TYPE  : ?
+SIGNAL    : ?
+FCP-NAMED : True
+MARKER HIT: （无：未引用本项目模板路径）
+--------------------------------------------------------------------------------
+FILE      : ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174024.ips
+PROC      : ?
+TIME      : ?
+EXC TYPE  : ?
+SIGNAL    : ?
+FCP-NAMED : True
+MARKER HIT: （无：未引用本项目模板路径）
+--------------------------------------------------------------------------------
+FILE      : ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174131.ips
+PROC      : ?
+TIME      : ?
+EXC TYPE  : ?
+SIGNAL    : ?
+FCP-NAMED : True
+MARKER HIT: （无：未引用本项目模板路径）
+--------------------------------------------------------------------------------
+FILE      : ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174443.ips
+PROC      : ?
+TIME      : ?
+EXC TYPE  : ?
+SIGNAL    : ?
+FCP-NAMED : True
+MARKER HIT: （无：未引用本项目模板路径）
+--------------------------------------------------------------------------------
+
+CONCLUSION: 本项目模板路径标记命中 = NONE
+=> 现有崩溃日志均未引用 ~/Movies/.../PSD婚礼字幕 / T01 / T23 / 14fa354d 等本项目标记。
+
+================================================================================
+RAW TEXT EXTRACTION (grep 原始抽取，可复现)
+COMMAND:
+  D="$HOME/Library/Logs/DiagnosticReports/Retired"
+  for f in "$D"/Final\ Cut\ Pro-*.ips; do
+    echo "## $f ($(wc -c <"$f") bytes)"
+    grep -aoE '"(captureTime|procName|exceptionType|signal|parentProc)"[ ]*:[ ]*"[^"]*"' "$f" | head -8
+    echo "  crash-type:"; grep -aoE '(EXC_BAD_ACCESS|SIGABRT|SIGSEGV|EXC_CRASH|abort\(\))' "$f" | sort | uniq -c
+    echo "  proj-markers:"; grep -aoE 'Motion Templates|PSD婚礼字幕|T01_领衔呈现|T23_含装饰|14fa354d|领衔呈现|含装饰' "$f" | sort -u
+  done
+--------------------------------------------------------------------------------
+## ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-02-230733.ips (161998 bytes)
+"captureTime" : "2026-11-02 23:06:59.9497 +0800"
+"procName" : "Final Cut Pro"
+"parentProc" : "launchd"
+"signal":"SIGSEGV"
+  crash-type:
+   1 EXC_BAD_ACCESS
+   1 SIGSEGV
+  proj-markers:
+
+## ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174024.ips (125776 bytes)
+"captureTime" : "2026-11-03 17:40:20.6143 +0800"
+"procName" : "Final Cut Pro"
+"parentProc" : "launchd"
+"signal":"SIGABRT"
+  crash-type:
+   1 EXC_CRASH
+   1 SIGABRT
+   1 abort()
+  proj-markers:
+
+## ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174131.ips (123287 bytes)
+"captureTime" : "2026-11-03 17:41:30.1445 +0800"
+"procName" : "Final Cut Pro"
+"parentProc" : "launchd"
+"signal":"SIGABRT"
+  crash-type:
+   1 EXC_CRASH
+   1 SIGABRT
+   1 abort()
+  proj-markers:
+
+## ~/Developer/Library/Logs/DiagnosticReports/Retired/Final Cut Pro-2026-11-03-174443.ips (120975 bytes)
+"captureTime" : "2026-11-03 17:44:42.5498 +0800"
+"procName" : "Final Cut Pro"
+"parentProc" : "launchd"
+"signal":"SIGABRT"
+  crash-type:
+   1 EXC_CRASH
+   1 SIGABRT
+   1 abort()
+  proj-markers:
+

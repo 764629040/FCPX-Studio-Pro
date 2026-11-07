@@ -1,0 +1,43 @@
+# round20 第二步覆盖安装 · sha256 / A-25 / A-36 核验（真实运行捕获）
+
+## 1) staging ↔ 已安装 逐字节一致性（证明复用已复核产物、未重建）
+源：/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/build_staging
+目标：~/Movies/Motion Templates.localized/Titles.localized/PSD婚礼字幕
+
+  MATCH  T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+  MATCH  T01_领衔呈现_竖版/large.png
+  MATCH  T01_领衔呈现_竖版/small.png
+  MATCH  T23_含装饰_横版/T23_含装饰_横版.moti
+  MATCH  T23_含装饰_横版/large.png
+  MATCH  T23_含装饰_横版/small.png
+  MATCH  T23_含装饰_横版/Media/element_03_箭头.png
+  MATCH  T23_含装饰_横版/Media/element_05_横线.png
+（8/8 MATCH）
+
+## 2) A-25（T23 Media 实物尺寸，安装器显式像素核验）
+  element_03_箭头.png = 47x47   OK
+  element_05_横线.png = 81x8     OK
+
+## 3) A-36（扫描树内无残留）
+  终检：扫描树内无 _bak_/_tmp_build_/_tmp_ 残留  OK
+  find 扫描树内 _bak_/_tmp_build_：0 命中
+
+## 4) 安装产物体积证据
+  247979  …/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+  226802  …/T23_含装饰_横版/T23_含装饰_横版.moti
+
+## 5) 终态枚举（扫描树成员）
+  应只剩 T01/T23 及原有其他模板；旧 1/23 已不在扫描树内。
+  1/23 已不在扫描树内 ✓
+  备份落点（扫描树外）：~/Movies/_psd_subtitle_backups/20261028_232303/{1,23}
+
+## 6) 测试真实退出码（tools/round.py verify --tag round20）
+  macOS 原生     : 175 passed,  exit=0   （权威，真实机器环境）
+  no_appkit      : 154 passed + 3 skipped + 18 errors, exit=1
+                   18 errors 全部为 ERROR at setup（PSD 渲染依赖 AppKit，被模拟环境拦截），与安装无关
+  A-24 双环境 PASSED；A-25 在 macOS 原生 PASSED
+  日志：docs/pytest_round20_macos.log、docs/pytest_round20_no_appkit.log
+
+## 7) 指纹清单（tools/round.py inventory --tag round20）
+  docs/audit_inventory_round20.json（78 项）
+  对比 round18 基线：相同 78 / 改动 0 / 新增 0 / 移除 0 → 源码零改动

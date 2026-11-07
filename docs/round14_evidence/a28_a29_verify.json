@@ -1,0 +1,41 @@
+{
+  "phase": "A-28/A-29 修复验证",
+  "rows": [
+    {
+      "fixture": "vertical_9x16_true.psd",
+      "label": "真竖版",
+      "psd_size": "1080x1920",
+      "psd_ratio": 0.5625,
+      "large": [
+        360,
+        640
+      ],
+      "large_ratio": 0.5625,
+      "deviation_pct": 0.0
+    },
+    {
+      "fixture": "vertical_wedding_9_16.psd",
+      "label": "旧竖版(越界)",
+      "psd_size": "1080x1920",
+      "psd_ratio": 0.5625,
+      "large": [
+        360,
+        640
+      ],
+      "large_ratio": 0.5625,
+      "deviation_pct": 0.0
+    },
+    {
+      "fixture": "complex_layers.psd",
+      "label": "横版",
+      "psd_size": "1920x1080",
+      "psd_ratio": 1.7778,
+      "large": [
+        640,
+        360
+      ],
+      "large_ratio": 1.7778,
+      "deviation_pct": 0.0
+    }
+  ]
+}

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>独立审核报告 · 第十九轮</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:1080px;margin:0 auto;padding:32px 28px;line-height:1.75;color:#1d1d1f;background:#fff}
+h1{font-size:26px;border-bottom:3px solid #0a84ff;padding-bottom:12px;margin-top:0}
+h2{font-size:21px;margin-top:38px;border-left:5px solid #0a84ff;padding-left:12px;background:#f5f9ff}
+h3{font-size:17px;margin-top:26px;color:#0b4a8f}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+th,td{border:1px solid #d2d2d7;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#eaf2fc;font-weight:600}
+tr:nth-child(even) td{background:#fafcff}
+code{background:#f2f2f7;padding:2px 6px;border-radius:4px;font-size:13px;color:#c7254e}
+pre{background:#1e1e1e;color:#d4d4d4;padding:14px 16px;border-radius:8px;overflow-x:auto}
+pre code{background:none;color:inherit;padding:0}
+blockquote{border-left:4px solid #ffb340;background:#fffaf0;margin:14px 0;padding:10px 16px;color:#5a4a2a}
+strong{color:#0b3d75}
+</style></head><body>
+<h1 id="_1">独立审核报告 · 第十九轮：安装第一步五项数据复核与第二步方式裁定</h1>
+<ul>
+<li>报告日期：2026-10-28</li>
+<li>审核对象：<code>docs/安装第一步_构建产物与五项数据表_20261028.md</code>、<code>build_staging/_build_review.json</code>、<code>build_staging/</code> 全部产物</li>
+<li>阶段：<strong>安装三步走 · 第一步复核 + 第二步方式裁定</strong></li>
+<li>审核方立场：不采信报告自述数字，全部从 <code>.moti</code> 与源 PSD 独立复算</li>
+</ul>
+<hr />
+<h2 id="_2">〇、结论摘要</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>五项数据（comp 尺寸/层数/缩略图比例/纵向跨度/横向跨度）</td>
+<td><strong>全部通过</strong>，独立复算与报告自述<strong>逐项完全一致</strong>，且与源 PSD 逐层中心<strong>完全吻合</strong></td>
+</tr>
+<tr>
+<td>第一步是否放行</td>
+<td><strong>放行</strong></td>
+</tr>
+<tr>
+<td>第二步方式</td>
+<td><strong>采用方案 A（构建函数直接输出到已装路径，让备份机制自然生效）</strong>，但必须满足四项前置条件</td>
+</tr>
+<tr>
+<td>命名</td>
+<td><strong>建议本轮改为 <code>T01_领衔呈现_竖版</code> / <code>T23_含装饰_横版</code></strong>，理由见 §四（含一条技术硬约束，非审美偏好）</td>
+</tr>
+<tr>
+<td>新增缺陷</td>
+<td><strong>A-36（P2）</strong>：备份目录与临时目录均落在模板扫描树内部，存在幽灵模板风险</td>
+</tr>
+<tr>
+<td>缺陷台账</td>
+<td>P0=0、P1=0、P2=<strong>1</strong>（A-36 新增）、P3=1（A-14）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">一、五项数据独立复算（不复用报告数字）</h2>
+<h3 id="11">1.1 复算方法</h3>
+<p>对每一项都采用「<strong>双路径</strong>」：</p>
+<ul>
+<li><strong>路径一</strong>：直接解析 <code>build_staging/*/*.moti</code> 的 ozml 结构（<code>sceneSettings/width</code>、<code>scene/layer</code> 数量、<code>变换&gt;位置&gt;X/Y</code>）；</li>
+<li><strong>路径二</strong>：用 <code>psd-tools 1.24.0</code> 重新打开源 PSD，逐层取 bbox 中心复算跨度，再与 <code>.moti</code> 换算值比对。</li>
+</ul>
+<p>坐标换算口径：<code>绝对中心 x = comp_w/2 + X</code>，<code>绝对中心 y = comp_h/2 - Y</code>（Motion 的 Y 轴向上）。</p>
+<h3 id="12">1.2 复算结果</h3>
+<p><strong>T01_领衔呈现_竖版</strong>（源 <code>tests/data/vertical_9x16_rebased.psd</code>，画布 1080×1920）</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>报告自述</th>
+<th>审核方复算</th>
+<th>源 PSD 实测</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① comp 尺寸</td>
+<td>1080×1920</td>
+<td><code>sceneSettings</code> = 1080×1920</td>
+<td>—</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>② 层数</td>
+<td>8（text 8 + media 0）</td>
+<td><code>scene/layer</code> = 8，节点名 Title 01–08，factoryID 全 16（文本）</td>
+<td>type 层 = 8</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>③ 缩略图比例</td>
+<td>large 360×640 = 0.5625</td>
+<td>PIL 实测 360×640 → 0.562500</td>
+<td>源 1080/1920 = 0.562500</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>④ 纵向跨度</td>
+<td>108.5（5.65%）</td>
+<td>108.50（5.65%）</td>
+<td>108.50（5.65%）</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>⑤ 横向跨度</td>
+<td>478.0（44.26%）</td>
+<td>478.00（44.26%）</td>
+<td>478.00（44.26%）</td>
+<td>✅ 一致</td>
+</tr>
+</tbody>
+</table>
+<p>逐层中心对照（8 层全部对齐，节选）：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>源 PSD 中心</th>
+<th><code>.moti</code> 换算中心</th>
+<th>偏差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>领 衔 呈 现</td>
+<td>(327.0, 475.5)</td>
+<td>(327.0, 475.5)</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>THE BRIDE</td>
+<td>(539.0, 446.5)</td>
+<td>(539.0, 446.5)</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>CITY</td>
+<td>(805.0, 413.5)</td>
+<td>(805.0, 413.5)</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>T23_含装饰_横版</strong>（源 <code>tests/data/wedding_with_decorations_23.psd</code>，画布 1920×1080）</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>报告自述</th>
+<th>审核方复算</th>
+<th>源 PSD 实测</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① comp 尺寸</td>
+<td>1920×1080</td>
+<td><code>sceneSettings</code> = 1920×1080</td>
+<td>—</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>② 层数</td>
+<td>9（text 7 + media 2）</td>
+<td><code>scene/layer</code> = 9；含 <code>箭头</code>(factoryID 20)、<code>横线</code>(factoryID 20)</td>
+<td>type 7 + shape 2</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>③ 缩略图比例</td>
+<td>large 640×360 = 1.7778</td>
+<td>PIL 实测 640×360 → 1.777778</td>
+<td>源 1920/1080 = 1.777778</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>④ 纵向跨度</td>
+<td>389.5（36.06%）</td>
+<td>389.50（36.06%）</td>
+<td>389.50（36.06%）</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td>⑤ 横向跨度</td>
+<td>162.5（8.46%）</td>
+<td>162.50（8.46%）</td>
+<td>162.50（8.46%）</td>
+<td>✅ 一致</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Media 实物</strong>（A-25 关键项，独立核验）：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>实测尺寸</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Media/element_03_箭头.png</code></td>
+<td>47×47</td>
+<td>✅ 实物存在</td>
+</tr>
+<tr>
+<td><code>Media/element_05_横线.png</code></td>
+<td>81×8</td>
+<td>✅ 实物存在</td>
+</tr>
+</tbody>
+</table>
+<p>T01 的 <code>Media/</code> 为空（源 PSD 无 shape 层），<strong>属正确</strong>，不构成缺失。</p>
+<h3 id="13">1.3 附带核实：<code>固定宽度/固定高度</code> 疑问（审核方自查，不计缺陷）</h3>
+<p>审核方一度怀疑 T01（1080×1920 画布）的文字层仍写着 <code>固定宽度=1920 / 固定高度=1080</code>，可能是画布改了、图层框没跟着改。</p>
+<p><strong>查证结果：不成立。</strong> 两条独立依据：</p>
+<ol>
+<li>基准模板 <code>assets/reference_base.moti</code>（1920×1080）里这四项本来就是 <code>1920/1080/1920/1080</code>，是 Motion 自身默认值，非本项目硬编码；</li>
+<li>关键在同层参数 <code>新的固定分辨率行为 = 0</code>（默认值 1）。该值为 0 时此项不生效，<code>固定宽度/固定高度</code> 不参与解析。</li>
+</ol>
+<p>两个模板的<strong>全部 17 个图层</strong>该项均为 0，已逐层实测。<strong>故此项不影响画布适配，记录为审核方自查过程，不作为缺陷。</strong></p>
+<hr />
+<h2 id="a">二、第二步方式裁定：采用方案 A</h2>
+<h3 id="21">2.1 你的两个方案</h3>
+<ul>
+<li><strong>方案 A</strong>：用 <code>build_template_atomic</code> 直接输出到已装路径，让备份机制自然生效；</li>
+<li><strong>方案 B</strong>：先手工备份，再 <code>cp</code> 覆盖。</li>
+</ul>
+<h3 id="22-a">2.2 裁定：<strong>方案 A</strong>，理由如下</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>方案 A（构建函数）</th>
+<th>方案 B（手工 cp）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完整性校验</td>
+<td>走 <code>_validate_template_bundle</code>，<code>.moti</code> &gt;1KB、XML 合法、缩略图非空、降级 PNG 全部存在，缺一即拒</td>
+<td>无，靠人眼</td>
+</tr>
+<tr>
+<td>失败回滚</td>
+<td>异常时 <code>shutil.rmtree(tmp)</code> + <code>os.rename(backup→output)</code> 自动还原</td>
+<td>无，出错即半成品</td>
+</tr>
+<tr>
+<td>产物一致性</td>
+<td>临时目录内构建后 <code>os.replace</code> 原子提交</td>
+<td><code>cp -r</code> 非原子，中断即残</td>
+</tr>
+<tr>
+<td>与线上路径一致性</td>
+<td>与 GUI「保存为模板」走同一条代码路径</td>
+<td>偏离产品实际路径，装了等于没验</td>
+</tr>
+<tr>
+<td>备份命名</td>
+<td><code>_bak_&lt;timestamp&gt;</code> 自动</td>
+<td>需人工保证不重名</td>
+</tr>
+</tbody>
+</table>
+<p><strong>方案 A 唯一的代价是备份目录落点问题（见 §三 A-36），但该问题在方案 B 里同样存在</strong>——手工备份你也得选一个位置，放在扫描树内一样会被扫到。所以这不是「A 有 B 没有」，而是「选 A 顺带把这个问题暴露出来」。</p>
+<p><strong>结论：用方案 A。</strong></p>
+<h3 id="23-a">2.3 但方案 A 不是无条件执行——四项前置必须满足</h3>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>前置条件</th>
+<th>原因</th>
+<th>验证方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P-1</strong></td>
+<td>先 <code>ls -ld</code> 确认已装 <code>1</code>、<code>23</code> 是<strong>真实目录还是符号链接</strong></td>
+<td><code>os.rename</code> 对符号链接只移动链接本身，随后 <code>os.replace</code> 会建出<strong>真实目录</strong>，若原本是链接则链接架构被破坏</td>
+<td><code>ls -ld "&lt;已装路径&gt;/1" "&lt;已装路径&gt;/23"</code></td>
+</tr>
+<tr>
+<td><strong>P-2</strong></td>
+<td>确认备份目录落点，并在第三步验证后<strong>手动移出扫描树</strong></td>
+<td>见 A-36</td>
+<td>见 §三</td>
+</tr>
+<tr>
+<td><strong>P-3</strong></td>
+<td>确认 <code>Titles.localized/PSD婚礼字幕</code> 本身是否为符号链接；若是，确认备份与替换发生在<strong>外部真实目录</strong>内</td>
+<td><code>os.rename</code> 跨文件系统会抛 <code>EXDEV</code></td>
+<td><code>ls -ld "&lt;group 目录&gt;"</code></td>
+</tr>
+<tr>
+<td><strong>P-4</strong></td>
+<td>第二步<strong>逐模板串行</strong>执行（先 01 后 23），不要批量</td>
+<td>任一失败时保留另一个不动，回滚面最小</td>
+<td>分两次调用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P-1 是硬门槛。</strong> 如果 <code>1</code>/<code>23</code> 是符号链接，方案 A 必须先改造（在 <code>build_template_atomic</code> 内对 <code>os.path.islink(output_dir)</code> 分支处理），否则会静默破坏链接架构。<strong>在此项确认前，不要执行第二步。</strong></p>
+<hr />
+<h2 id="a-36p2">三、新增缺陷 A-36（P2）：备份与临时目录落在模板扫描树内部</h2>
+<h3 id="31">3.1 事实（源码实证，非推断）</h3>
+<p><code>core/motion_builder.py</code>：</p>
+<ul>
+<li>第 548 行：<code>tmp_build_dir = f"{output_dir}_tmp_build_{os.getpid()}_{int(time.time()*1000)}"</code></li>
+<li>第 629 行：<code>backup_dir = f"{output_dir}_bak_{ts}"</code></li>
+</ul>
+<p>两者都是 <strong><code>output_dir</code> 的同级目录</strong>。当 <code>output_dir</code> = <code>.../Titles.localized/PSD婚礼字幕/1</code> 时：</p>
+<ul>
+<li>临时目录 → <code>.../PSD婚礼字幕/1_tmp_build_&lt;pid&gt;_&lt;ms&gt;</code></li>
+<li>备份目录 → <code>.../PSD婚礼字幕/1_bak_20261028_xxxxxx</code></li>
+</ul>
+<p>即<strong>落在 Motion / FCPX 的模板扫描目录内部</strong>，与真实模板 <code>1</code>、<code>23</code> 同级。</p>
+<h3 id="32">3.2 风险</h3>
+<p>备份目录内<strong>包含完整的 <code>1.moti</code></strong>（<code>os.rename</code> 整目录搬走）。Motion 的模板浏览器按「组目录下的子目录」枚举，很可能把 <code>1_bak_20261028_xxxxxx</code> 也列成一个模板。</p>
+<p>后果：FCPX 模板浏览器出现<strong>重名或近重的幽灵模板</strong>，用户可能误选旧版（正是 comp 尺寸错误的那个版本）。</p>
+<p><strong>这一条我标注为「高概率风险，待真机确认」</strong>——枚举规则属 Motion 内部行为，Linux 沙箱无法证实。但「把备份放在被扫描目录里」本身就是设计缺陷，不依赖枚举规则是否成立即可判定。</p>
+<h3 id="33">3.3 定性与建议</h3>
+<ul>
+<li><strong>定级 P2</strong>：不阻断安装（备份目录可事后移走），但会污染用户可见的模板列表，属必须处理的交付质量问题。</li>
+<li><strong>本轮不必改代码</strong>：第二步验证完成后，把 <code>*_bak_*</code> 移到扫描树外（如 <code>~/Movies/_psd_subtitle_backups/</code>）即可。</li>
+<li><strong>建议后续整改（A-36 正式修复）</strong>：给 <code>build_template_atomic</code> 增加 <code>backup_root</code> 参数，默认备份到 <code>~/Movies/_psd_subtitle_backups/</code>，或备份目录加 <code>.</code> 前缀（<code>.1_bak_xxx</code>）借隐藏属性规避枚举。<strong>加隐藏前缀是更稳的做法</strong>，因为不依赖用户额外目录。</li>
+<li><strong>临时目录风险较低</strong>：<code>_tmp_build_</code> 在成功后即被 <code>os.replace</code> 消费掉，只在构建<strong>失败但未清理</strong>时才残留；现有异常分支已 <code>shutil.rmtree</code>，残留概率低。</li>
+</ul>
+<hr />
+<h2 id="t01_-t23_">四、命名裁定：建议改为 <code>T01_...</code> / <code>T23_...</code></h2>
+<h3 id="41">4.1 先纠正一个前提</h3>
+<p>你担心「改名会影响 FCPX 里显示的模板名」——<strong>确实会</strong>，这一点你的直觉是对的。但改名不是纯粹的偏好问题，它背后有一条<strong>项目自身的硬约束</strong>：</p>
+<p><code>_validate_template_bundle</code>（<code>core/motion_builder.py</code> 第 681 行）要求：</p>
+<pre><code>moti_path = os.path.join(bundle_dir, f&quot;{template_name}.moti&quot;)
+if not os.path.isfile(moti_path): raise FileNotFoundError
+</code></pre>
+<p>而 GUI 侧（<code>gui/main_window.py</code> 第 562、574 行）用同一变量同时作<strong>目录名</strong>和<strong><code>template_name</code></strong>：</p>
+<pre><code>base_name = os.path.splitext(os.path.basename(self.current_psd_path))[0]
+template_dir = os.path.join(target_group_dir, base_name)
+build_template_atomic(output_dir=template_dir, template_name=base_name, ...)
+</code></pre>
+<p><strong>推论（重要）：<code>.moti</code> 文件名必须与模板目录名一致。</strong></p>
+<h3 id="42">4.2 这直接决定了两条路的成本</h3>
+<table>
+<thead>
+<tr>
+<th>命名</th>
+<th>能否直接复用 <code>build_staging/</code></th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>保持 <code>1</code> / <code>23</code></td>
+<td><strong>不能</strong>。staging 里是 <code>T01_领衔呈现_竖版.moti</code>，装进名为 <code>1</code> 的目录会过不了校验</td>
+<td>必须<strong>重新构建</strong>（<code>template_name="1"</code>/<code>"23"</code>），或手工改名 <code>.moti</code>（绕过校验，不推荐）</td>
+</tr>
+<tr>
+<td>改为 <code>T01_领衔呈现_竖版</code> / <code>T23_含装饰_横版</code></td>
+<td><strong>能</strong>，staging 已是此命名，与 §一 已复核的产物<strong>字节一致</strong></td>
+<td>无需重建，直接装已复核的产物</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43">4.3 裁定</h3>
+<p><strong>建议本轮改为 <code>T01_领衔呈现_竖版</code> / <code>T23_含装饰_横版</code></strong>，三个理由：</p>
+<ol>
+<li><strong>直接用已复核产物</strong>，不引入「重建后未经复核」的新变量——这是审核角度最看重的；</li>
+<li><code>1</code> / <code>23</code> 无信息量，用户在 FCPX 里无法区分；</li>
+<li>旧版 <code>1</code> / <code>23</code> 本身是<strong>坏的</strong>（01 comp 方向错、23 缺 2 个 Media），从未真正可用，因此不存在「历史工程引用了它、改名会断链」的实际损失。</li>
+</ol>
+<p><strong>但有一条例外</strong>：如果你<strong>已经</strong>把旧 <code>1</code> / <code>23</code> 拖进过某个 FCPX 工程时间线，改名后旧引用会变「缺失模板」，需要重新套用。<strong>如果存在这种情况，就保持 <code>1</code> / <code>23</code>，改为按 §4.2 第一行执行重建。</strong></p>
+<p><strong>请明确告知属于哪种情况</strong>，我再确认最终路径。</p>
+<hr />
+<h2 id="a-35">五、审核方本轮自查（A-35 判据约束执行记录）</h2>
+<p>按第十八轮自立的约束「<strong>凡出否定结论，必须先做至少两种独立路径检索并写明检索方式</strong>」，本轮所有结论的检索路径：</p>
+<table>
+<thead>
+<tr>
+<th>结论</th>
+<th>路径一</th>
+<th>路径二</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>五项数据成立</td>
+<td>直接解析 <code>.moti</code> ozml（<code>sceneSettings</code> / <code>scene/layer</code> / <code>变换&gt;位置&gt;X/Y</code>）</td>
+<td><code>psd-tools 1.24.0</code> 重开源 PSD 逐层 bbox 中心复算</td>
+</tr>
+<tr>
+<td>缩略图比例</td>
+<td>PIL 读 <code>large.png</code>/<code>small.png</code> 实际像素</td>
+<td>与源 PSD 宽高比对照</td>
+</tr>
+<tr>
+<td>坐标确在 <code>.moti</code> 中</td>
+<td>先按 <code>&lt;x&gt;</code>/<code>&lt;y&gt;</code> 标签查（0 命中）</td>
+<td>改按「变换&gt;位置&gt;X/Y」参数树查（命中），未据此误报「坐标缺失」</td>
+</tr>
+<tr>
+<td><code>固定宽度</code> 不是缺陷</td>
+<td>读基准模板 <code>reference_base.moti</code> 确认是 Motion 默认值</td>
+<td>读同层 <code>新的固定分辨率行为=0</code> 确认不生效，并逐层实测 17 层全为 0</td>
+</tr>
+<tr>
+<td>备份目录落点在扫描树内</td>
+<td>读 <code>motion_builder.py</code> 第 629 行源码</td>
+<td>读第 548 行临时目录，确认同为同级目录；再全仓 grep <code>_bak_</code> 确认无清理/隐藏逻辑</td>
+</tr>
+</tbody>
+</table>
+<p><strong>本轮未出现「我没找到=不存在」类误判。</strong> 其中「<code>&lt;x&gt;</code> 标签 0 命中」一项，若当即下结论就会重犯第十八轮的错误——改换参数树路径后即命中，记录在案。</p>
+<hr />
+<h2 id="_4">六、未做 / 未声称</h2>
+<ol>
+<li><strong>未执行第二步</strong>（未覆盖安装、未触碰 <code>~/Movies/Motion Templates.localized/</code>）。</li>
+<li><strong>未执行第二步</strong>，因此 <strong>A-36 的幽灵模板风险未经真机证实</strong>，仅据源码结构判定「备份位于扫描树内」这一事实成立。</li>
+<li><strong>未启动 FCPX 12.3</strong>。</li>
+<li><strong>未验证 <code>1</code>/<code>23</code> 是否为符号链接</strong>——审核方无 macOS 环境，<code>P-1</code> 必须由你在真机执行 <code>ls -ld</code> 后告知。</li>
+<li><strong>未声称真机渲染合格</strong>，观感与最终签字权在你。</li>
+<li>128 卷<strong>未写入</strong>任何内容。</li>
+<li>五项数据复算基于 <code>psd-tools 1.24.0</code> 与主环境 <code>1.26.0</code> 均可正常打开三份夹具（第十八轮已验），本轮未重复三版本对照。</li>
+</ol>
+<hr />
+<h2 id="_5">七、给开发方的下一步（按序）</h2>
+<ol>
+<li>回告 §4.3 的命名情形（是否已有 FCPX 工程引用旧 <code>1</code>/<code>23</code>）；</li>
+<li>在真机执行 <code>ls -ld</code> 查 <code>1</code>、<code>23</code>、<code>PSD婚礼字幕</code> 三者是否为符号链接，结果回报（对应 P-1 / P-3）；</li>
+<li>待审核方确认后，按方案 A 串行执行第二步（先 01 后 23，各自 <code>backup_existing=True</code>）；</li>
+<li>第二步完成后立即核查 <code>Media/</code> 两个 PNG 实物（A-25），并把 <code>*_bak_*</code> 移出扫描树（A-36 临时处置）；</li>
+<li>第三步启动 FCPX 12.3，验四项（导入成功 / 不闪退 / 不报错 / 预览图比例正确且非彩条乱码），回传资源库截图。</li>
+</ol>
+</body></html>

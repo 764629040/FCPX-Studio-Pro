@@ -1,0 +1,233 @@
+================================================================================
+R25-A46 全部大写 (id="12") 注入修复 — 红/绿有效性证明日志
+================================================================================
+生成时间: 2026-11-04
+被测文件: core/motion_builder.py  (build_moti, 文本层分支 ~L348-366)
+测试文件: tests/test_r25_a46_all_caps.py
+测试命令:
+    export TMPDIR="$(pwd)/.pytest_tmp" && mkdir -p "$TMPDIR"
+    python3 -m pytest tests/test_r25_a46_all_caps.py -v -p no:cacheprovider
+
+核心结论:
+    - 注释掉注入块 → 测试变红 (FAILED)  => 测试确实在守护该修复
+    - 还原 core/motion_builder.py (sha256 字节级一致) → 测试变绿 (PASSED)
+    - core/motion_builder.py 已还原，未被改动 (见 §C 校验)
+
+================================================================================
+§A. 注入块（修复本体）— 注释前 / 注释后
+================================================================================
+
+【注释前 = 线上修复态 (active)】  core/motion_builder.py  L348-366
+--------------------------------------------------------------------------------
+                    # 确保全部大写 (id="12") 参数无条件完整存在，杜绝 Motion TXTextLayout::applyAllCaps 段错误崩溃
+                    all_caps_p = style.find("parameter[@id=\"12\"]")
+                    if all_caps_p is None:
+                        all_caps_p = ET.Element("parameter", {
+                            "name": "全部大写",
+                            "id": "12",
+                            "flags": "8589934608",
+                            "default": "0",
+                            "value": "0"
+                        })
+                        p81_idx = None
+                        for s_idx, sp in enumerate(style):
+                            if sp.tag == "parameter" and sp.attrib.get("id") == "81":
+                                p81_idx = s_idx
+                                break
+                        if p81_idx is not None:
+                            style.insert(p81_idx + 1, all_caps_p)
+                        else:
+                            style.append(all_caps_p)
+--------------------------------------------------------------------------------
+
+【注释后 = 临时失效态 (disabled, 用于制造红)】  core/motion_builder.py  L349-366
+--------------------------------------------------------------------------------
+                    # ===== R25 RED PROOF: injection block temporarily disabled =====
+                    # all_caps_p = style.find("parameter[@id=\"12\"]")
+                    # if all_caps_p is None:
+                    #     all_caps_p = ET.Element("parameter", {
+                    #         "name": "全部大写",
+                    #         "id": "12",
+                    #         "flags": "8589934608",
+                    #         "default": "0",
+                    #         "value": "0"
+                    #     })
+                    #     p81_idx = None
+                    #     for s_idx, sp in enumerate(style):
+                    #         if sp.tag == "parameter" and sp.attrib.get("id") == "81":
+                    #             p81_idx = s_idx
+                    #             break
+                    #     if p81_idx is not None:
+                    #         style.insert(p81_idx + 1, all_caps_p)
+                    #     else:
+                    #         style.append(all_caps_p)
+--------------------------------------------------------------------------------
+说明: 仅注释代码块 (L349-366)，描述性注释 L348 保留；未触碰任何 deep-id
+      (layer/scenenode/style/para id) 生成逻辑。
+
+================================================================================
+§B. 红 (RED) — 注入块被注释后重跑测试
+================================================================================
+退出码: 1  (pytest 非零 => 失败)
+
+--------------------------------------------------------------------------------
+$ export TMPDIR="$(pwd)/.pytest_tmp" && mkdir -p "$TMPDIR"
+$ python3 -m pytest tests/test_r25_a46_all_caps.py -v -p no:cacheprovider
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0 -- ~/Developer/.workbuddy/binaries/python/versions/3.13.12/bin/python3
+rootdir: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+collecting ... collected 5 items
+
+tests/test_r25_a46_all_caps.py::test_text_layers_contain_id12 FAILED     [ 20%]
+tests/test_r25_a46_all_caps.py::test_id12_immediately_after_id81 FAILED  [ 40%]
+tests/test_r25_a46_all_caps.py::test_id12_count_equals_text_layer_count FAILED  [ 60%]
+tests/test_r25_a46_all_caps.py::test_negative_bad_build_zero_vs_good_build_n FAILED [ 80%]
+tests/test_r25_a46_all_caps.py::test_structural_integrity_after_injection PASSED [100%]
+
+=================================== FAILURES ===================================
+________________________ test_text_layers_contain_id12 _________________________
+
+tmp_path = PosixPath('/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/.pytest_tmp/pytest-of-unknown/pytest-0/test_text_layers_contain_id120')
+
+    def test_text_layers_contain_id12(tmp_path):
+        _, moti_path, layers = _build_good_template(tmp_path, N_TEXT_LAYERS)
+        tree = ET.parse(moti_path)
+        root = tree.getroot()
+        styles = _styles(root)
+        assert len(styles) == len(layers), (
+            f"文本层 style 数量不符: 期望 {len(layers)}，实际 {len(styles)}"
+        )
+        for si, style in enumerate(styles, 1):
+            p = style.find("parameter[@id='12']")
+>           assert p is not None, f"style #{si} 缺少 parameter[@id='12']"
+E           AssertionError: style #1 缺少 parameter[@id='12']
+E           assert None is not None
+
+tests/test_r25_a46_all_caps.py:114: AssertionError
+_______________________ test_id12_immediately_after_id81 _______________________
+
+tmp_path = PosixPath('/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/.pytest_tmp/pytest-of-unknown/pytest-0/test_id12_immediately_after_id0')
+
+    def test_id12_immediately_after_id81(tmp_path):
+        _, moti_path, _ = _build_good_template(tmp_path, N_TEXT_LAYERS)
+        tree = ET.parse(moti_path)
+        root = tree.getroot()
+        for si, style in enumerate(_styles(root), 1):
+            params = style.findall("parameter")
+            ids = [p.attrib.get("id") for p in params]
+            assert "81" in ids, f"style #{si} 缺少 id='81' 锚点"
+>           assert "12" in ids, f"style #{si} 缺少 id='12'"
+E           AssertionError: style #1 缺少 id='12'
+E           assert '12' in ['83', '3', '81', '14', '21', '30', ...]
+
+tests/test_r25_a46_all_caps.py:131: AssertionError
+___________________ test_id12_count_equals_text_layer_count ____________________
+
+tmp_path = PosixPath('/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/.pytest_tmp/pytest-of-unknown/pytest-0/test_id12_count_equals_text_la0')
+
+    def test_id12_count_equals_text_layer_count(tmp_path):
+        n = N_TEXT_LAYERS
+        _, moti_path, _ = _build_good_template(tmp_path, n)
+        tree = ET.parse(moti_path)
+        root = tree.getroot()
+        c12 = _count_param(root, "id", "12")
+        cname = _count_param(root, "name", "全部大写")
+>       assert c12 == n, f"id='12' 数量应为 {n}，实际 {c12}"
+E       AssertionError: id='12' 数量应为 8，实际 4
+E       assert 4 == 8
+
+tests/test_r25_a46_all_caps.py:147: AssertionError
+_________________ test_negative_bad_build_zero_vs_good_build_n _________________
+
+tmp_path = PosixPath('/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/.pytest_tmp/pytest-of-unknown/pytest-0/test_negative_bad_build_zero_v0')
+
+    def test_negative_bad_build_zero_vs_good_build_n(tmp_path):
+        assert os.path.isfile(BAD_MOTI), f"坏构建 .moti 缺失: {BAD_MOTI}"
+
+        btree = ET.parse(BAD_MOTI)
+        broot = btree.getroot()
+        bad_name = _count_param(broot, "name", "全部大写")
+        bad_id12 = _count_param(broot, "id", "12")
+        assert bad_name == 0, f"坏构建 name='全部大写' 应为 0，实际 {bad_name}"
+        assert bad_id12 == 0, f"坏构建 id='12' 应为 0，实际 {bad_id12}"
+        # 坏构建确实含有文本层 style（证明其“本应有” id=12），只是缺失
+        bad_styles = _styles(broot)
+        assert len(bad_styles) > 0, "坏构建应包含文本层 style"
+
+        # 新构建的好模板
+        n = N_TEXT_LAYERS
+        _, moti_path, _ = _build_good_template(tmp_path, n)
+        gtree = ET.parse(moti_path)
+        groot = gtree.getroot()
+        good_id12 = _count_param(groot, "id", "12")
+        good_name = _count_param(groot, "name", "全部大写")
+>       assert good_id12 == n, f"好构建 id='12' 应为 {n}，实际 {good_id12}"
+E       AssertionError: 好构建 id='12' 应为 8，实际 4
+E       assert 4 == 8
+
+tests/test_r25_a46_all_caps.py:174: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_r25_a46_all_caps.py::test_text_layers_contain_id12 - Assert...
+FAILED tests/test_r25_a46_all_caps.py::test_id12_immediately_after_id81 - Ass...
+FAILED tests/test_r25_a46_all_caps.py::test_id12_count_equals_text_layer_count
+FAILED tests/test_r25_a46_all_caps.py::test_negative_bad_build_zero_vs_good_build_n
+========================= 4 failed, 1 passed in 2.66s ==========================
+--------------------------------------------------------------------------------
+
+观察: 注消失效后，新构建模板仅含 4 个 id="12"（来自 layer 原型本身自带的
+     部分），缺失的 4 个不再被补齐 → ①/②/③/④ 均失败。证明测试对修复敏感。
+
+================================================================================
+§C. 还原校验 — core/motion_builder.py 字节级一致
+================================================================================
+操作:
+    1) 注释前记录原文件 sha256:
+       ORIG_SHA256 = e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+    2) 备份副本 sha256 (断言与原式一致):
+       BACKUP_SHA256 = e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+       => BACKUP_OK
+    3) 注释注入块 → 跑红 → 用备份 cp 还原:
+       cp .r25_mb_backup.py core/motion_builder.py
+    4) 还原后 sha256:
+       RESTORE_SHA256 = e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+    5) 最终当前 sha256:
+       CURRENT_SHA256 = e522c265804ab4cd241c2392c3d857fba14d3c8fa8f3a6053db786a9c86b82df
+
+断言:
+    ORIG_SHA256 == RESTORE_SHA256 == CURRENT_SHA256
+    => MB_BYTE_IDENTICAL_OK  (core/motion_builder.py 已完全还原，未被改动)
+附加校验:
+    grep 'all_caps_p = style.find' core/motion_builder.py  => 命中 L349 (active)
+    grep -c 'R25 RED PROOF' core/motion_builder.py         => 0  (注释残留已清除)
+
+================================================================================
+§D. 绿 (GREEN) — 还原后重跑测试
+================================================================================
+退出码: 0  (pytest 零 => 全过)
+
+--------------------------------------------------------------------------------
+$ export TMPDIR="$(pwd)/.pytest_tmp" && mkdir -p "$TMPDIR"
+$ python3 -m pytest tests/test_r25_a46_all_caps.py -v -p no:cacheprovider
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0 -- ~/Developer/.workbuddy/binaries/python/versions/3.13.12/bin/python3
+rootdir: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+collecting ... collected 5 items
+
+tests/test_r25_a46_all_caps.py::test_text_layers_contain_id12 PASSED     [ 20%]
+tests/test_r25_a46_all_caps.py::test_id12_immediately_after_id81 PASSED  [ 40%]
+tests/test_r25_a46_all_caps.py::test_id12_count_equals_text_layer_count PASSED  [ 60%]
+tests/test_r25_a46_all_caps.py::test_negative_bad_build_zero_vs_good_build_n PASSED  [ 80%]
+tests/test_r25_a46_all_caps.py::test_structural_integrity_after_injection PASSED [100%]
+
+============================== 5 passed in 1.46s ===============================
+--------------------------------------------------------------------------------
+
+================================================================================
+§E. 结论
+================================================================================
+- tests/test_r25_a46_all_caps.py 在修复生效时全绿 (5/5)，修复失效时变红 (4 failed)。
+- 测试确实守护了 “每个文本层 <style> 必须含 id='12' (name='全部大写')” 这一修复。
+- core/motion_builder.py 经字节级还原校验，确认未被改动（sha256 前后一致）。
+- 注：本地跑绿阶段因 WorkBuddy 沙箱对 pytest 临时目录 (pytest-of-root) 的 broker
+  拦截而首次报错；改用沙箱放行后稳定 5 passed。此属运行环境限制，非测试或代码问题。
+================================================================================

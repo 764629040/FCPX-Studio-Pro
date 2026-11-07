@@ -1,0 +1,84 @@
+{
+  "app": "Motion",
+  "timestamp": "2026-10-28 13:04:04",
+  "process": {
+    "match_count": 5,
+    "lines": [
+      "mrhuang          60381  17.8  0.1 435271072  21328   ??  S     1:04PM   0:00.07 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python tools/host_verify.py snapshot --app Motion --out docs/host_verify",
+      "mrhuang          59795   2.0  3.5 448289136 588256   ??  S     1:00PM   0:45.50 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/MacOS/Motion",
+      "mrhuang          60380   0.9  0.0 435299248   1968   ??  Ss    1:04PM   0:00.00 bash -c P=\"/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro\"; cd \"$P\"; python3 tools/host_verify.py snapshot --app Motion --out docs/host_verify 2>&1 | tail -15",
+      "mrhuang          59800   0.0  0.2 435401168  26544   ??  Ss    1:00PM   0:00.18 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/PlugIns/InternalFiltersXPC.pluginkit/Contents/MacOS/InternalFiltersXPC",
+      "mrhuang          59823   0.0  0.3 435553200  54192   ??  S     1:00PM   0:00.15 /Volumes/SD/Applications/Motion Creator Studio.app/Contents/Helpers/RegisterProExtension.app/Contents/MacOS/RegisterProExtension"
+    ]
+  },
+  "windows": [
+    {
+      "layer": 0,
+      "name": "项目浏览器",
+      "bounds": {
+        "Width": 972,
+        "Y": 72,
+        "Height": 672,
+        "X": 1944
+      },
+      "owner": "Motion"
+    }
+  ],
+  "crashes": [],
+  "shots": [
+    {
+      "window": "项目浏览器",
+      "path": "docs/host_verify/Motion_项目浏览器_130404.png",
+      "stats": {
+        "size": [
+          972,
+          672
+        ],
+        "top_colors": [
+          {
+            "rgb": [
+              15,
+              15,
+              15
+            ],
+            "count": 16496
+          },
+          {
+            "rgb": [
+              50,
+              50,
+              50
+            ],
+            "count": 9630
+          },
+          {
+            "rgb": [
+              37,
+              37,
+              37
+            ],
+            "count": 8469
+          },
+          {
+            "rgb": [
+              0,
+              0,
+              0
+            ],
+            "count": 7083
+          },
+          {
+            "rgb": [
+              51,
+              51,
+              51
+            ],
+            "count": 5047
+          }
+        ],
+        "light_ratio": 0.0466,
+        "distinct_colors": 2097
+      }
+    }
+  ]
+}
