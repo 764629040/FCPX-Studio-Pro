@@ -1363,8 +1363,8 @@ public final class AssetHubView: NSVisualEffectView,
         // 4. 拖放安装引导层
         dropOverlayView = NSView()
         dropOverlayView.wantsLayer = true
-        dropOverlayView.layer?.backgroundColor = NSColor(red: 0.08, green: 0.38, blue: 0.78, alpha: 0.65).cgColor
-        dropOverlayView.layer?.borderColor = NSColor(red: 0.35, green: 0.72, blue: 1.0, alpha: 0.95).cgColor
+        dropOverlayView.layer?.backgroundColor = ColorToken.dropOverlayBg.cgColor
+        dropOverlayView.layer?.borderColor = ColorToken.dropOverlayBorder.cgColor
         dropOverlayView.layer?.borderWidth = 3.0
         dropOverlayView.layer?.cornerRadius = 14.0
         dropOverlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -2326,11 +2326,11 @@ public final class AssetHubView: NSVisualEffectView,
         let lutScroll = NSScrollView()
         lutScroll.translatesAutoresizingMaskIntoConstraints = false
         lutScroll.hasVerticalScroller = true
-        lutScroll.backgroundColor = NSColor(red: 0.05, green: 0.06, blue: 0.07, alpha: 1.0)
+        lutScroll.backgroundColor = ColorToken.darkSurface
 
         lutTableView = NSTableView()
         lutTableView.usesAlternatingRowBackgroundColors = false
-        lutTableView.backgroundColor = NSColor(red: 0.05, green: 0.06, blue: 0.07, alpha: 1.0)
+        lutTableView.backgroundColor = ColorToken.darkSurface
 
         let colThumb = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("lut_name"))
         colThumb.title = "LUT 名称与分类"
@@ -2381,7 +2381,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         lutStatusLabel = NSTextField(labelWithString: "提示：在画面左右移动鼠标可实时拉动对比分屏")
         lutStatusLabel.font = .systemFont(ofSize: 11)
-        lutStatusLabel.textColor = NSColor(red: 0.38, green: 0.74, blue: 0.95, alpha: 1.0)
+        lutStatusLabel.textColor = ColorToken.lutAccentText
         lutBottomBar.addArrangedSubview(lutStatusLabel)
 
         rightBox.addArrangedSubview(lutBottomBar)
@@ -2451,11 +2451,11 @@ public final class AssetHubView: NSVisualEffectView,
         let audioScroll = NSScrollView()
         audioScroll.translatesAutoresizingMaskIntoConstraints = false
         audioScroll.hasVerticalScroller = true
-        audioScroll.backgroundColor = NSColor(red: 0.05, green: 0.06, blue: 0.07, alpha: 1.0)
+        audioScroll.backgroundColor = ColorToken.darkSurface
 
         audioTableView = NSTableView()
         audioTableView.usesAlternatingRowBackgroundColors = false
-        audioTableView.backgroundColor = NSColor(red: 0.05, green: 0.06, blue: 0.07, alpha: 1.0)
+        audioTableView.backgroundColor = ColorToken.darkSurface
 
         let colAudioName = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("audio_name"))
         colAudioName.title = "音效名称与分类"
@@ -2487,7 +2487,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         let rightCard = NSView()
         rightCard.wantsLayer = true
-        rightCard.layer?.backgroundColor = NSColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
+        rightCard.layer?.backgroundColor = ColorToken.cardBg.cgColor
         rightCard.layer?.cornerRadius = 8
         rightCard.translatesAutoresizingMaskIntoConstraints = false
 
@@ -2542,7 +2542,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         audioTimeLabel = NSTextField(labelWithString: "00:00.0 / 00:00.0")
         audioTimeLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
-        audioTimeLabel.textColor = NSColor(red: 0.35, green: 0.85, blue: 0.95, alpha: 1.0)
+        audioTimeLabel.textColor = ColorToken.audioAccentText
         ctrlBox.addArrangedSubview(audioTimeLabel)
 
         let revealBtn = NSButton(title: "在访达中显示", target: self, action: #selector(onRevealAudioClicked))
@@ -3839,7 +3839,7 @@ public final class AssetHubView: NSVisualEffectView,
                 cell.stringValue = "\(item.name)  (\(item.category))"
             } else if colId == "lut_dim" {
                 cell.stringValue = "\(item.dimension)³"
-                cell.textColor = NSColor(red: 0.4, green: 0.8, blue: 0.95, alpha: 1.0)
+                cell.textColor = ColorToken.lutAccentText
             } else if colId == "lut_size" {
                 cell.stringValue = item.fileSizeFormatted
                 cell.textColor = NSColor(calibratedWhite: 0.65, alpha: 1.0)
@@ -3863,7 +3863,7 @@ public final class AssetHubView: NSVisualEffectView,
                 cell.stringValue = "\(item.name)  [\(item.category)]"
             } else if colId == "audio_duration" {
                 cell.stringValue = item.durationFormatted
-                cell.textColor = NSColor(red: 0.35, green: 0.85, blue: 0.95, alpha: 1.0)
+                cell.textColor = ColorToken.audioAccentText
             }
             return cell
         }

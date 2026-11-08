@@ -53,7 +53,7 @@ public final class CleanerDashboardView: NSView,
     // MARK: – Layout Setup
     private func setupUI() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
+        layer?.backgroundColor = ColorToken.cardBg.cgColor
 
         // 顶层垂直主布局
         let mainStack = NSStackView()
@@ -640,12 +640,12 @@ public final class CleanerDashboardView: NSView,
         case "colCleanable":
             cell.stringValue = item.cleanableSizeFormatted
             cell.textColor = item.cleanableSizeBytes > 0
-                ? NSColor(red: 1.0, green: 0.55, blue: 0.1, alpha: 1.0)
+                ? ColorToken.statusWarning
                 : .secondaryLabelColor
             cell.alignment = .right
         case "colSafety":
             cell.stringValue = "🛡️ 原始素材安全"
-            cell.textColor = NSColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 1.0)
+            cell.textColor = ColorToken.statusNormal
         default:
             break
         }
@@ -717,7 +717,7 @@ public final class LibraryStorageBarView: NSView {
         if origWidth > 0 {
             let origRect = NSRect(x: 0, y: 0, width: origWidth, height: bounds.height)
             let path = NSBezierPath(roundedRect: origRect, xRadius: 4, yRadius: 4)
-            NSColor(red: 0.2, green: 0.75, blue: 0.4, alpha: 1.0).setFill()
+            ColorToken.statusNormal.setFill()
             path.fill()
         }
 
@@ -725,7 +725,7 @@ public final class LibraryStorageBarView: NSView {
         if cacheWidth > 0 {
             let cacheRect = NSRect(x: origWidth, y: 0, width: min(cacheWidth, totalWidth - origWidth), height: bounds.height)
             let path = NSBezierPath(rect: cacheRect)
-            NSColor(red: 1.0, green: 0.55, blue: 0.1, alpha: 1.0).setFill()
+            ColorToken.statusWarning.setFill()
             path.fill()
         }
     }

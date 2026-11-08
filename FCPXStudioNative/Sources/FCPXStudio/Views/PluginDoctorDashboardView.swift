@@ -51,7 +51,7 @@ public final class PluginDoctorDashboardView: NSView,
     // MARK: – UI Setup
     private func setupUI() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
+        layer?.backgroundColor = ColorToken.cardBg.cgColor
 
         let mainStack = NSStackView()
         mainStack.orientation = .vertical

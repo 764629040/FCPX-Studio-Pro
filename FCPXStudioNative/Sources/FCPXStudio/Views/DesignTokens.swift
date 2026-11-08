@@ -54,7 +54,30 @@ public enum ColorToken {
     public static let successGreen = NSColor(calibratedRed: 0.28, green: 0.86, blue: 0.55, alpha: 1.0)
     public static let warningAmber = NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.28, alpha: 1.0)
     public static let alertRed = NSColor(calibratedRed: 1.0, green: 0.45, blue: 0.45, alpha: 1.0)
+
+    /// 画布与深色卡片背景 (UI-G018)
+    public static let cardBg = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.11, alpha: 1.0)
+    public static let darkSurface = NSColor(calibratedRed: 0.05, green: 0.06, blue: 0.07, alpha: 1.0)
+    public static let surfaceRaised = NSColor(calibratedRed: 0.07, green: 0.08, blue: 0.10, alpha: 1.0)
+    public static let badgeBackground = NSColor(calibratedRed: 0.12, green: 0.14, blue: 0.18, alpha: 0.92)
+
+    /// 音频与波形色彩令牌
+    public static let waveformPlayed = NSColor(calibratedRed: 0.22, green: 0.74, blue: 0.97, alpha: 1.0)
+    public static let waveformUnplayed = NSColor(calibratedRed: 0.28, green: 0.32, blue: 0.38, alpha: 0.85)
+    public static let audioAccentText = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.95, alpha: 1.0)
+    public static let lutAccentText = NSColor(calibratedRed: 0.38, green: 0.74, blue: 0.95, alpha: 1.0)
+
+    /// 拖拽高亮覆盖层令牌
+    public static let dropOverlayBg = NSColor(calibratedRed: 0.08, green: 0.38, blue: 0.78, alpha: 0.65)
+    public static let dropOverlayBorder = NSColor(calibratedRed: 0.35, green: 0.72, blue: 1.0, alpha: 0.95)
+
+    /// 清理与健康状态色令牌
+    public static let statusNormal = NSColor(calibratedRed: 0.2, green: 0.8, blue: 0.4, alpha: 1.0)
+    public static let statusWarning = NSColor(calibratedRed: 1.0, green: 0.55, blue: 0.1, alpha: 1.0)
+    public static let statusDangerFill = NSColor(calibratedRed: 0.25, green: 0.05, blue: 0.05, alpha: 0.85)
 }
+
+public typealias AppTheme = ColorToken
 
 // UI-O016: 统一 hover 响应按钮，支持主按钮与危险按钮鼠标悬停背景渐变反馈
 public class HoverButton: NSButton {

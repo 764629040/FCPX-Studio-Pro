@@ -27,8 +27,8 @@ public final class AudioWaveformView: NSView {
     private var hoverRatio: CGFloat?
 
     // 颜色配置
-    public var playedColor = NSColor(red: 0.22, green: 0.74, blue: 0.97, alpha: 1.0)     // 天蓝
-    public var unplayedColor = NSColor(red: 0.28, green: 0.32, blue: 0.38, alpha: 0.85)   // 暗石板灰
+    public var playedColor = ColorToken.waveformPlayed     // 天蓝
+    public var unplayedColor = ColorToken.waveformUnplayed   // 暗石板灰
     public var playheadColor = NSColor.white
     public var centerLineColor = NSColor(white: 0.3, alpha: 0.4)
 
@@ -46,7 +46,7 @@ public final class AudioWaveformView: NSView {
 
     private func commonInit() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
+        layer?.backgroundColor = ColorToken.cardBg.cgColor
         layer?.cornerRadius = 6.0
         layer?.masksToBounds = true
     }

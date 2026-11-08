@@ -66,7 +66,7 @@ public final class LUTCompareView: NSView {
 
     private func commonInit() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor(red: 0.05, green: 0.06, blue: 0.07, alpha: 1.0).cgColor
+        layer?.backgroundColor = ColorToken.darkSurface.cgColor
         layer?.masksToBounds = true
         layer?.cornerRadius = 8.0
         registerForDraggedTypes([.fileURL])
@@ -155,7 +155,7 @@ public final class LUTCompareView: NSView {
         guard targetBounds.width > 0, targetBounds.height > 0 else { return }
 
         // 背景
-        NSColor(red: 0.07, green: 0.08, blue: 0.10, alpha: 1.0).setFill()
+        ColorToken.surfaceRaised.setFill()
         dirtyRect.fill()
 
         let rightImage = lutImage ?? originalImage
@@ -217,7 +217,7 @@ public final class LUTCompareView: NSView {
             let handleRect = NSRect(x: splitX - handleW / 2.0, y: handleY, width: handleW, height: handleH)
 
             let handlePath = NSBezierPath(roundedRect: handleRect, xRadius: 13, yRadius: 13)
-            NSColor(red: 0.12, green: 0.14, blue: 0.18, alpha: 0.92).setFill()
+            ColorToken.badgeBackground.setFill()
             handlePath.fill()
             NSColor(white: 1.0, alpha: 0.85).setStroke()
             handlePath.lineWidth = 1.5
@@ -262,7 +262,7 @@ public final class LUTCompareView: NSView {
 
         let bgRect = NSRect(x: bgX, y: bgY, width: bgW, height: bgH)
         let path = NSBezierPath(roundedRect: bgRect, xRadius: 5, yRadius: 5)
-        NSColor(calibratedRed: 0.25, green: 0.05, blue: 0.05, alpha: 0.85).setFill()
+        ColorToken.statusDangerFill.setFill()
         path.fill()
         NSColor.systemRed.setStroke()
         path.stroke()
