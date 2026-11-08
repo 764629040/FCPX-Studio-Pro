@@ -230,29 +230,29 @@ $ echo $?
 | **UI-G069** | 文案 | `AppConfig.swift:61` | defaultExternalAssetsDir 硬编码开发者卷名，换机器 smartAuto 必静默降级到本地 | ✅ 已修 | 改为空串 + 首启引导选卷并存 UserDefaults；降级时 UI 明确提示；已在 Segment CS 完成规范整改并通过编译构建 (Commit: dede7da) |
 | **UI-G070** | 交互反馈 | `TemplateMigrator.swift:434-439` | saveRecord 的 try? encode 静默失败：迁移成功但记录没存，"撤销上次迁移"失效且无提示 | ✅ 已修 | encode 失败兜底写 last_migration.json，撤销按钮始终可用；已在 Segment CS 完成规范整改并通过编译构建 (Commit: dede7da) |
 | **UI-G071** | 交互反馈 | `TemplateMigrator.swift:241-247` | sourceMissing 对"指向已离线卷的软链"判为存在并继续迁移，中途才失败且已建 catDir | ✅ 已修 | 软链目标离线时直接抛 tierUnavailable，前置检查即拦截；已在 Segment CS 完成规范整改并通过编译构建 (Commit: dede7da) |
-| **UI-O001** | 间距 | `MainWindowController.swift:155-156` | 分段控件标签前手写两个空格给图标让位，字号或本地化变化即错位 | ✅ 已修 | 改用原生 image+title，代码中无前导空格；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O002** | 文案 | `ResourceCardView.swift:11` | 文件头注释仍写"精致 开启/禁用 胶囊 Toggle"，与代码现状不符 | ✅ 已修 | 注释与实现一致，无 emoji 过时描述；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O003** | 视觉 | `MainWindowController.swift:627` | 安装完成用字符 ✓ 当图标，他处用 NSImage，图标语言不统一 | ✅ 已修 | 统一 systemImage 或 alertStyle 图标；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O004** | 交互反馈 | `ResourceCardView.swift:298` | 容量徽章初值"计算中…"，但 loadThumbnailAsync 不触发 size 刷新，可能永久停留 | ✅ 已修 | 卡片复用/首现时主动触发一次体积计算，或 2s 超时回退为 "--"；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O005** | 文案 | `MainWindowController:262,627,629；类名 AssetHubView` | 同一对象三种叫法：素材批处理列表 / 模板 / 资产 | ✅ 已修 | 界面层统一"模板"，"素材"仅指 PSD 源文件，无"资产"字样；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O006** | 交互反馈 | `InfiniteCanvasView.swift:813-818` | 滚轮缩放以画板中心为锚点，不跟随光标，想放大角落视角会飘走 | ✅ 已修 | 以光标为锚点反算 panOffset；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O007** | 交互反馈 | `InfiniteCanvasView.swift:137 vs 815` | fitArtboard 下限 0.1、滚轮下限 0.08 不一致，适应后再滚有可见跳变 | ✅ 已修 | 统一 kMinZoom，两处同一常量；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O008** | 色彩体系 | `InfiniteCanvasView.swift:733` | 文字层 NSColor.white 硬编码，未来切浅色画布文字消失 | ✅ 已修 | 改 NSColor.labelColor 或语义 token；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O009** | 体积 | `AssetHubView.swift:1489,1558,1948` | 三处完全相同的授权未激活文案重复硬编码 | ✅ 已修 | 抽 requireProLicense() 单点，grep 该文案仅 1 处；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O010** | 间距 | `AssetHubView.swift:1232,1244` | 两个 scrollView 初始 frame 硬编码，极小窗初始化时短暂错位 | ✅ 已修 | 用约束或 bounds 驱动初始 frame；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O011** | 体积 | `AssetHubView.swift:1171,2968,3236,3260` | undoButton.isEnabled 分散 4 处赋值，新增入口易漏同步 | ✅ 已修 | 收敛为 refreshUndoButtonState() 单点；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O012** | 空态 | `InfiniteCanvasView.swift:230-240` | 空画布只画点阵+画板框，无"拖入 PSD 开始设计"引导 | ✅ 已修 | 空态叠加居中引导文案+图示，拖入后消失；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O013** | 文案 | `AssetHubView.swift:1885-1898 vs 1940-1945` | 故障态文案两套，reason 拼接各写一遍 | ✅ 已修 | 抽 offlineGuardAlert(for:) 复用，两入口逐字相同；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O014** | 间距 | `InspectorView.swift:226` | 锁定横幅在窄栏（<280pt）被截断 | ✅ 已修 | 改 wrapping 或缩短为"图层已锁定"，280pt 宽完整可见；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O015** | 文案 | `PluginDoctorDashboardView.swift:83` | 主标题过长，窄窗与副标题叠字 | ✅ 已修 | 缩为"幽灵插件体检医生"，800px 宽不重叠；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O016** | 交互反馈 | `六看板` | 按钮与卡片全无 hover 反馈 | ✅ 已修 | 危险按钮与主按钮加 hover 背景变化，六看板鼠标移入均有响应；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O017** | 文案 | `TeamSyncDashboardView.swift:598` | 导出名用下划线大驼峰，与项目命名风格不一 | ✅ 已修 | 统一 FCPXStudio_ProductionEnv_yyyyMMdd_HHmmss.fcpxpack；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O018** | 性能 | `AppConfig.swift:250-260` | 候选循环里每个 python 路径各跑一次 checkPsdTools，冷启动连起 3-4 个进程 | ✅ 已修 | 定位到首个可执行 python 后只探测一次，子进程数 ≤1；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O019** | 文案 | `PSDParserSocket.swift:306-309,115` | stderr 只保留末尾 800 字符，根因常在 traceback 中段被截掉 | ✅ 已修 | 全文落盘诊断文件，UI 显示末尾 800 字 + 查看完整日志入口；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O020** | 性能 | `PSDParserSocket.swift:238-246` | SIGKILL 后第三次 readers.wait 未检查返回值，极端情况再阻塞 3s | ✅ 已修 | SIGKILL 后直接 waitUntilExit 兜底，超时路径总耗时 ≤ timeout+6s；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O021** | 体积 | `TemplateMigrator.swift:409-425` | backupRoot 每次迁移/冲突新建时间戳目录从不清理，长期可涨到几十 GB | ✅ 已修 | 加"保留最近 N 份"GC 或手动清理入口；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O022** | 性能 | `GhostPluginDoctor.swift:664-676` | ledger JSON 全量重写且非原子写，隔离数百项时每次写整文件，断电留半文件 | ✅ 已修 | 加 .atomic 并按月分文件；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O023** | 性能 | `LibraryCleaner.swift:398-445` | 同一 Render Files 目录 calculateDirectorySize 调 4 次，等于递归扫 4 遍 | ✅ 已修 | 一次 enumerator 同时累加各子树，耗时约 1/4；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O024** | 交互反馈 | `TemplateTier.swift:410,472` | String(dirName.dropLast(9)) 假定后缀恰为 .disabled，用户恰好以该串结尾命名时被截 | ✅ 已修 | 先 hasSuffix 判断再截并加长度断言；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O025** | 交互反馈 | `LUTManager.swift:213-219` | cube root 用浮点 pow(voxel,1/3) 反推，非标准尺寸可能错 1，静默 fallback 33 后被拒 | ✅ 已修 | 强制要求 LUT_3D_SIZE 头，缺失即报错，不再浮点反推；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
-| **UI-O026** | 文案 | `core/cli_bridge.py:95,162` | 全部日志走 stdout JSON，无日志文件；Swift 只拿到 message，无步骤无堆栈 | ✅ 已修 | 同时写 ~/Library/Logs/FCPXStudio/build_<ts>.log，error JSON 带 log_path；已在 Segment Opt 优化段完成性能与交互优化 (Commit: 0da8075) |
+| **UI-O001** | 间距 | `MainWindowController.swift:155-156` | 分段控件标签前手写两个空格给图标让位，字号或本地化变化即错位 | ✅ 已修 | MainWindowController.swift:157 | 改用原生 image+title 布局，移除标签前手写空格，分段控件自适应对齐 (Commit: 0da8075) |
+| **UI-O002** | 文案 | `ResourceCardView.swift:11` | 文件头注释仍写"精致 开启/禁用 胶囊 Toggle"，与代码现状不符 | ✅ 已修 | ResourceCardView.swift:11 | 修正文件头注释，移除 emoji 过时描述，与当前无开关扁平胶囊实现保持严格一致 (Commit: 0da8075) |
+| **UI-O003** | 视觉 | `MainWindowController.swift:627` | 安装完成用字符 ✓ 当图标，他处用 NSImage，图标语言不统一 | ✅ 已修 | MainWindowController.swift:671 | 安装完成弹窗统一使用 NSImage(systemSymbolName: "checkmark.circle.fill")，废弃字符 ✓ (Commit: 0da8075) |
+| **UI-O004** | 交互反馈 | `ResourceCardView.swift:298` | 容量徽章初值"计算中…"，但 loadThumbnailAsync 不触发 size 刷新，可能永久停留 | ✅ 已修 | ResourceCardView.swift:330 | 卡片挂载时主动触发 fetchTemplateSizeAsync，<=2s 超时或无法计算时回退为 "--"，绝不永久停在计算中 (Commit: a3f0d5f, 0da8075) |
+| **UI-O005** | 文案 | `MainWindowController:262,627,629；类名 AssetHubView` | 同一对象三种叫法：素材批处理列表 / 模板 / 资产 | ✅ 已修 | MainWindowController.swift:262,627 & AssetHubView.swift:全仓 | 界面全量文案统一收敛为“模板”，源文件称“素材”，彻底剔除“资产”歧义词 (Commit: 0da8075) |
+| **UI-O006** | 交互反馈 | `InfiniteCanvasView.swift:813-818` | 滚轮缩放以画板中心为锚点，不跟随光标，想放大角落视角会飘走 | ✅ 已修 | InfiniteCanvasView.swift:784 | 滚轮缩放以当前鼠标光标所在点为锚点反算 panOffset，视角精准跟随光标缩放不飘走 (Commit: 0da8075) |
+| **UI-O007** | 交互反馈 | `InfiniteCanvasView.swift:137 vs 815` | fitArtboard 下限 0.1、滚轮下限 0.08 不一致，适应后再滚有可见跳变 | ✅ 已修 | InfiniteCanvasView.swift:34,133 | 统一 kMinZoom = 0.1 缩放下限常量，fitArtboard 与滚轮下限统一，消除适应后首次缩放可见跳变 (Commit: 0da8075) |
+| **UI-O008** | 色彩体系 | `InfiniteCanvasView.swift:733` | 文字层 NSColor.white 硬编码，未来切浅色画布文字消失 | ✅ 已修 | InfiniteCanvasView.swift:746 | 画布文字层硬编码 NSColor.white 改为语义化 NSColor.labelColor，浅色画布下文字清晰可见 (Commit: 0da8075) |
+| **UI-O009** | 体积 | `AssetHubView.swift:1489,1558,1948` | 三处完全相同的授权未激活文案重复硬编码 | ✅ 已修 | AssetHubView.swift:1237,3449 | 抽离 requireProLicense() 单点拦截，并在 e4e2d82 中彻底下线商业授权加固，全量功能无锁可用 (Commit: 0da8075, e4e2d82) |
+| **UI-O010** | 间距 | `AssetHubView.swift:1232,1244` | 两个 scrollView 初始 frame 硬编码，极小窗初始化时短暂错位 | ✅ 已修 | AssetHubView.swift:973 | 中栏 groupScrollView 与右栏网格初始 frame 由父容器 bounds 动态驱动，彻底消除极小窗短暂错位 (Commit: 0da8075) |
+| **UI-O011** | 体积 | `AssetHubView.swift:1171,2968,3236,3260` | undoButton.isEnabled 分散 4 处赋值，新增入口易漏同步 | ✅ 已修 | AssetHubView.swift:911,3444 | 收敛 undoButton.isEnabled 状态至 refreshUndoButtonState() 单点，依据 migrator.lastRecord() 同步 (Commit: 0da8075) |
+| **UI-O012** | 空态 | `InfiniteCanvasView.swift:230-240` | 空画布只画点阵+画板框，无"拖入 PSD 开始设计"引导 | ✅ 已修 | InfiniteCanvasView.swift:262,312 | 空画布状态叠加居中引导文案“拖入 PSD 工程文件开始解析制作”与指示图标，文件拖入后自动隐去 (Commit: 0da8075) |
+| **UI-O013** | 文案 | `AssetHubView.swift:1885-1898 vs 1940-1945` | 故障态文案两套，reason 拼接各写一遍 | ✅ 已修 | AssetHubView.swift:1672,1707,3455 | 抽离 offlineGuardAlert(for:actionName:) 统合离线与故障提示，双入口实现逐字一致 (Commit: 0da8075) |
+| **UI-O014** | 间距 | `InspectorView.swift:226` | 锁定横幅在窄栏（<280pt）被截断 | ✅ 已修 | InspectorView.swift:229 | 锁定横幅文案缩短为“图层已锁定”，并设置 lineBreakMode = .byTruncatingTail，280pt 窄栏完整展示 (Commit: 0da8075) |
+| **UI-O015** | 文案 | `PluginDoctorDashboardView.swift:83` | 主标题过长，窄窗与副标题叠字 | ✅ 已修 | PluginDoctorDashboardView.swift:83 | 主标题缩短为“幽灵插件体检医生”，800px 窄窗下与副标题无任何叠字重叠 (Commit: 0da8075) |
+| **UI-O016** | 交互反馈 | `六看板` | 按钮与卡片全无 hover 反馈 | ✅ 已修 | DesignTokens.swift:82 | 封装 HoverFeedbackButton，主按钮与危险按钮均实现鼠标移入平滑背景变色与高亮反馈 (Commit: 0da8075) |
+| **UI-O017** | 文案 | `TeamSyncDashboardView.swift:598` | 导出名用下划线大驼峰，与项目命名风格不一 | ✅ 已修 | TeamSyncDashboardView.swift:609 | 导出包文件命名严格规范为 FCPXStudio_ProductionEnv_yyyyMMdd_HHmmss.fcpxpack (Commit: 0da8075) |
+| **UI-O018** | 性能 | `AppConfig.swift:250-260` | 候选循环里每个 python 路径各跑一次 checkPsdTools，冷启动连起 3-4 个进程 | ✅ 已修 | AppConfig.swift:371 | Python 路径探测放入后台并发，命中首个可用路径即缓存并终止循环，冷启动子进程数 ≤1 (Commit: dede7da) |
+| **UI-O019** | 文案 | `PSDParserSocket.swift:306-309,115` | stderr 只保留末尾 800 字符，根因常在 traceback 中段被截掉 | ✅ 已修 | PSDParserSocket.swift:110 | 增加 writeDiagnosticLog，stderr 全量输出实时落盘至 ~/Library/Logs/FCPXStudio/，traceback 完整可查 (Commit: 0da8075) |
+| **UI-O020** | 性能 | `PSDParserSocket.swift:238-246` | SIGKILL 后第三次 readers.wait 未检查返回值，极端情况再阻塞 3s | ✅ 已修 | PSDParserSocket.swift:258 | SIGKILL 后直接调用 waitUntilExit() 兜底，消除极端 3s 盲等，将超时失败总耗时严控在 timeout+6s 阈值内 (Commit: 0da8075) |
+| **UI-O021** | 体积 | `TemplateMigrator.swift:409-425` | backupRoot 每次迁移/冲突新建时间戳目录从不清理，长期可涨到几十 GB | ✅ 已修 | TemplateMigrator.swift:468 | 实现 pruneBackups(maxKept: 10)，每次迁移自动回收历史备份目录，限制最多保留 10 份防膨胀 (Commit: dede7da) |
+| **UI-O022** | 性能 | `GhostPluginDoctor.swift:664-676` | ledger JSON 全量重写且非原子写，隔离数百项时每次写整文件，断电留半文件 | ✅ 已修 | GhostPluginDoctor.swift:667,717 | 隔离账本存储改用按月归档目录 (quarantine_ledger_yyyyMM.json) 并增加 .atomic 原子写入防损坏 (Commit: dede7da) |
+| **UI-O023** | 性能 | `LibraryCleaner.swift:398-445` | 同一 Render Files 目录 calculateDirectorySize 调 4 次，等于递归扫 4 遍 | ✅ 已修 | LibraryCleaner.swift:418-452 | Render Files 扫描彻底移除重复调用 calculateDirectorySize，改用单 pass enumerator 一次性并行统计体积，耗时降至 1/4 (Commit: dede7da) |
+| **UI-O024** | 交互反馈 | `TemplateTier.swift:410,472` | String(dirName.dropLast(9)) 假定后缀恰为 .disabled，用户恰好以该串结尾命名时被截 | ✅ 已修 | TemplateTier.swift:431,499 | 扫描与恢复 .disabled 模板时，先执行 hasSuffix(".disabled") 判定且验证长度 >9 再截取，彻底防止误截 (Commit: 0da8075) |
+| **UI-O025** | 交互反馈 | `LUTManager.swift:213-219` | cube root 用浮点 pow(voxel,1/3) 反推，非标准尺寸可能错 1，静默 fallback 33 后被拒 | ✅ 已修 | LUTManager.swift:216 | 移除浮点反推 cube root，首行强制校验 LUT_3D_SIZE，缺失直接报错拦截，严禁浮点推算引入尺寸误差 (Commit: dede7da) |
+| **UI-O026** | 文案 | `core/cli_bridge.py:95,162` | 全部日志走 stdout JSON，无日志文件；Swift 只拿到 message，无步骤无堆栈 | ✅ 已修 | core/cli_bridge.py:17 | CLI 执行全过程与堆栈实时同步写入 ~/Library/Logs/FCPXStudio/build_<ts>.log，错误 JSON 附带 log_path (Commit: 0da8075) |
