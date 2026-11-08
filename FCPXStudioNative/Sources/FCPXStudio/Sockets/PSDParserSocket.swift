@@ -317,7 +317,8 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             let fontName = item["font_name"] as? String ?? "Helvetica"
             let fontSize = item["font_size"] as? Double ?? 36.0
             let tracking = item["tracking"] as? Double ?? 0.0
-            let motionPos = item["motion_pos"] as? [Double] ?? [0.0, 0.0]
+            let rawMotionPos = item["motion_pos"] as? [Double] ?? [0.0, 0.0]
+            let motionPos = rawMotionPos.count >= 2 ? rawMotionPos : [0.0, 0.0]
             let visible = item["visible"] as? Bool ?? true
             let isPublished = item["is_published"] as? Bool ?? true
             let isLocked = (item["is_locked"] as? Bool) ?? (item["locked"] as? Bool) ?? false

@@ -160,8 +160,8 @@ public final class AppConfig {
     }
 
     public let isPortableEnvironment: Bool
-    public let hasPsdTools: Bool
-    public let environmentSummary: String
+    public private(set) var hasPsdTools: Bool
+    public private(set) var environmentSummary: String
 
     private init() {
         let fm = FileManager.default
@@ -238,7 +238,7 @@ public final class AppConfig {
             }
         }
 
-        // 优先级 4：系统级与包管理器备选项（优先选用包含核心依赖 psd-tools 的解释器）
+        // 优先级 4：系统级与包管理器备选项
         if !isPortable || detectedPython.isEmpty {
             let standardCandidates = [
                 "/opt/homebrew/bin/python3",
@@ -248,18 +248,20 @@ public final class AppConfig {
             ]
             var fallbackCandidate: String? = nil
             for candidate in standardCandidates {
-                if fm.fileExists(atPath: candidate) {
-                    if fallbackCandidate == nil {
-                        fallbackCandidate = candidate
-                    }
-                    if AppConfig.checkPsdTools(python: candidate) {
-                        detectedPython = candidate
-                        break
-                    }
+                if fm.fileExists(atPath: candidate) && fm.isExecutableFile(atPath: candidate) {
+                    fallbackCandidate = candidate
+                    break
                 }
             }
             if detectedPython.isEmpty {
-                detectedPython = fallbackCandidate ?? "/usr/bin/python3"
+                if let cand = fallbackCandidate {
+                    detectedPython = cand
+                } else if fm.fileExists(atPath: "/usr/bin/python3") && fm.isExecutableFile(atPath: "/usr/bin/python3") {
+                    detectedPython = "/usr/bin/python3"
+                } else {
+                    // FCPX-014: 兜底路径不可执行或不存在时，明写未找到可用 python3
+                    detectedPython = ""
+                }
             }
         }
 
@@ -332,43 +334,91 @@ public final class AppConfig {
 
         self.bridgeScriptPath = detectedBridge
 
-        // ── 3. 依赖完整性校验 ──
-        let psdToolsAvailable = AppConfig.checkPsdTools(python: detectedPython)
-        self.hasPsdTools = psdToolsAvailable
-
+        // ── 3. 依赖完整性校验 (FCPX-014 & FCPX-015: 移后台异步检测，首屏 0ms 阻塞) ──
+        let pythonExecutable = !detectedPython.isEmpty && fm.isExecutableFile(atPath: detectedPython)
         let modeStr = isPortable ? "便携模式 (Zero-Dependency Standalone)" : "主机系统模式"
-        let depStr = psdToolsAvailable ? "psd-tools 核心引擎正常" : "⚠︎ 缺失 psd-tools"
-        self.environmentSummary = "[\(modeStr)] Python: \(detectedPython) · \(depStr)"
-    }
 
-    public var isStandalonePortableReady: Bool {
-        return isPortableEnvironment && hasPsdTools && FileManager.default.fileExists(atPath: pythonPath)
-    }
-
-    private static func checkPsdTools(python: String) -> Bool {
-        let pipe = Pipe()
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: python)
-        proc.arguments = ["-c", "import psd_tools; print('OK')"]
-        proc.standardOutput = pipe
-        proc.standardError = pipe
-
-        do {
-            try proc.run()
-            proc.waitUntilExit()
-            if proc.terminationStatus == 0 {
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                let out = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
-                return out == "OK"
+        if !pythonExecutable {
+            self.hasPsdTools = false
+            self.environmentSummary = "[\(modeStr)] Python: 未找到可用 python3 · ⚠︎ 未找到可用 python3"
+        } else {
+            // 首屏快速先标记可用，后台线程 10s 超时精确自检
+            self.hasPsdTools = true
+            self.environmentSummary = "[\(modeStr)] Python: \(detectedPython) · 核心环境自检中..."
+            DispatchQueue.global(qos: .userInitiated).async { [detectedPython, modeStr] in
+                let ok = AppConfig.checkPsdTools(python: detectedPython)
+                DispatchQueue.main.async {
+                    AppConfig.shared.hasPsdTools = ok
+                    let depStr = ok ? "psd-tools 核心引擎正常" : "⚠︎ 缺失 psd-tools"
+                    AppConfig.shared.environmentSummary = "[\(modeStr)] Python: \(detectedPython) · \(depStr)"
+                    NotificationCenter.default.post(name: NSNotification.Name("AppConfigEnvironmentUpdated"), object: nil)
+                }
             }
-            return false
-        } catch {
-            return false
         }
     }
 
+    public var isStandalonePortableReady: Bool {
+        return isPortableEnvironment && hasPsdTools && FileManager.default.isExecutableFile(atPath: pythonPath)
+    }
+
+    // FCPX-015: 10s 超时 + 双管道并发异步排空，彻底杜绝主线程卡顿与大输出死锁
+    public static func checkPsdTools(python: String) -> Bool {
+        guard !python.isEmpty, FileManager.default.isExecutableFile(atPath: python) else {
+            return false
+        }
+        let outPipe = Pipe()
+        let errPipe = Pipe()
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: python)
+        proc.arguments = ["-c", "import psd_tools; print('OK')"]
+        proc.standardOutput = outPipe
+        proc.standardError = errPipe
+
+        var outData = Data()
+        var errData = Data()
+        let group = DispatchGroup()
+
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            outData = outPipe.fileHandleForReading.readDataToEndOfFile()
+            group.leave()
+        }
+
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            group.leave()
+        }
+
+        do {
+            try proc.run()
+        } catch {
+            return false
+        }
+
+        let timeout = group.wait(timeout: .now() + 10.0)
+        if timeout == .timedOut {
+            proc.terminate()
+            usleep(200_000)
+            if proc.isRunning { kill(proc.processIdentifier, SIGKILL) }
+            return false
+        }
+
+        proc.waitUntilExit()
+        if proc.terminationStatus == 0 {
+            let out = String(data: outData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return out == "OK"
+        } else {
+            if !errData.isEmpty, let errStr = String(data: errData, encoding: .utf8) {
+                _ = errStr // 保留 stderr 排空防死锁
+            }
+        }
+        return false
+    }
+
     public func evaluateEnvironment() -> (isReady: Bool, summary: String) {
-        let ready = FileManager.default.fileExists(atPath: pythonPath) &&
+        let pythonExecutable = !pythonPath.isEmpty && FileManager.default.isExecutableFile(atPath: pythonPath)
+        let ready = pythonExecutable &&
                     FileManager.default.fileExists(atPath: bridgeScriptPath) &&
                     hasPsdTools
         return (ready, environmentSummary)

@@ -254,11 +254,30 @@ public final class EnvironmentCloner {
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
         proc.arguments = ["-c", "-k", stagingDir, finalOut]
+        let errPipe = Pipe()
+        proc.standardError = errPipe
+
+        var errData = Data()
+        let group = DispatchGroup()
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            group.leave()
+        }
+
         try proc.run()
+        let timeout = group.wait(timeout: .now() + 180.0)
+        if timeout == .timedOut {
+            proc.terminate()
+            usleep(200_000)
+            if proc.isRunning { kill(proc.processIdentifier, SIGKILL) }
+            throw EnvironmentClonerError.packagingFailed("生成 .fcpxpack 归档包超时 (180s)")
+        }
         proc.waitUntilExit()
 
         guard proc.terminationStatus == 0, fm.fileExists(atPath: finalOut) else {
-            throw EnvironmentClonerError.packagingFailed("生成 .fcpxpack 归档包失败")
+            let errMsg = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw EnvironmentClonerError.packagingFailed("生成 .fcpxpack 归档包失败: \(errMsg.isEmpty ? "状态码 \(proc.terminationStatus)" : errMsg)")
         }
 
         let packData = try Data(contentsOf: URL(fileURLWithPath: finalOut))
@@ -286,11 +305,30 @@ public final class EnvironmentCloner {
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
         proc.arguments = ["-x", "-k", packagePath, sandboxDir]
+        let errPipe = Pipe()
+        proc.standardError = errPipe
+
+        var errData = Data()
+        let group = DispatchGroup()
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            group.leave()
+        }
+
         try proc.run()
+        let timeout = group.wait(timeout: .now() + 180.0)
+        if timeout == .timedOut {
+            proc.terminate()
+            usleep(200_000)
+            if proc.isRunning { kill(proc.processIdentifier, SIGKILL) }
+            throw EnvironmentClonerError.invalidPackage("解压 .fcpxpack 超时 (180s)")
+        }
         proc.waitUntilExit()
 
         guard proc.terminationStatus == 0 else {
-            throw EnvironmentClonerError.invalidPackage("解压 .fcpxpack 失败")
+            let errMsg = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw EnvironmentClonerError.invalidPackage("解压 .fcpxpack 失败: \(errMsg.isEmpty ? "状态码 \(proc.terminationStatus)" : errMsg)")
         }
 
         var installedTemplates = 0

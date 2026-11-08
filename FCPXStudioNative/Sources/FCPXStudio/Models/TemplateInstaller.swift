@@ -179,13 +179,32 @@ public class TemplateInstaller {
         process.arguments = ["-xk", zipPath, destinationDir]
         let pipe = Pipe()
         process.standardError = pipe
+
+        var errData = Data()
+        let group = DispatchGroup()
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            errData = pipe.fileHandleForReading.readDataToEndOfFile()
+            group.leave()
+        }
+
         try process.run()
+
+        // 60s 超时时间窗，避免损坏 zip 导致 ditto 进程永久挂起
+        let timeout = group.wait(timeout: .now() + 60.0)
+        if timeout == .timedOut {
+            process.terminate()
+            usleep(200_000)
+            if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+            throw TemplateInstallerError.unzipFailed("解压超时 (超过 60 秒)")
+        }
+
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            let errData = pipe.fileHandleForReading.readDataToEndOfFile()
-            let errMsg = String(data: errData, encoding: .utf8) ?? "code \(process.terminationStatus)"
-            throw TemplateInstallerError.unzipFailed(errMsg)
+            let errMsg = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? "code \(process.terminationStatus)"
+            throw TemplateInstallerError.unzipFailed(errMsg.isEmpty ? "code \(process.terminationStatus)" : errMsg)
         }
     }
 

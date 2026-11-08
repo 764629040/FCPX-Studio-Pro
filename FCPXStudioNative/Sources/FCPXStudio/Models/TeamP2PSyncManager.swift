@@ -599,11 +599,32 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
             let proc = Process()
             proc.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
             proc.arguments = ["-c", "-k", "--keepParent", path, tempZip]
+            let errPipe = Pipe()
+            proc.standardError = errPipe
+
+            var errData = Data()
+            let group = DispatchGroup()
+            group.enter()
+            DispatchQueue.global(qos: .userInitiated).async {
+                errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                group.leave()
+            }
+
             try proc.run()
+            let timeout = group.wait(timeout: .now() + 60.0)
+            if timeout == .timedOut {
+                proc.terminate()
+                usleep(200_000)
+                if proc.isRunning { kill(proc.processIdentifier, SIGKILL) }
+                throw TeamP2PError.packagingFailed("ditto 打包模板目录超时 (60s)")
+            }
             proc.waitUntilExit()
 
             guard proc.terminationStatus == 0, fm.fileExists(atPath: tempZip) else {
-                throw TeamP2PError.packagingFailed("ditto 打包模板目录失败")
+                let errString = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let lastLine = errString.components(separatedBy: .newlines).last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) ?? ""
+                let detail = lastLine.isEmpty ? "状态码 \(proc.terminationStatus)" : lastLine
+                throw TeamP2PError.packagingFailed("ditto 打包模板目录失败: \(detail)")
             }
             payloadData = try Data(contentsOf: URL(fileURLWithPath: tempZip))
         }
