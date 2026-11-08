@@ -604,29 +604,57 @@ public final class MainWindowController: NSWindowController,
 
     // MARK: – Save & Export (安全检查、多路径自适应与异步调度)
     public func saveCurrentTemplate() {
-        guard let path = currentPsdPath else { return }
+        guard let path = currentPsdPath else {
+            showAlert(title: "提示", msg: "未选择任何 PSD 文件，请先从左侧列表选择或拖入 PSD。")
+            return
+        }
+        guard !canvasView.layers.isEmpty else {
+            showAlert(title: "提示", msg: "当前 PSD 没有任何可导出的有效图层。")
+            return
+        }
+
         let resolved = AppConfig.shared.resolveExportDestination()
         let base = (path as NSString).lastPathComponent.replacingOccurrences(of: ".psd", with: "")
         let outDir = "\(resolved.targetDir)/\(base)"
 
-        let ok = MotionBuilderSocket.shared.buildTemplate(
-            psdPath: path,
-            outputDir: outDir,
-            templateName: base,
-            layers: canvasView.layers
-        )
-        if ok {
-            if resolved.isExternal, let extRoot = resolved.externalRoot {
-                _ = SymlinkSocket.shared.linkToSystem(
-                    category: "Titles.localized",
-                    groupName: "PSD婚礼字幕",
-                    externalRoot: extRoot
-                )
+        // FCPX-001: 保存整体进入后台异步队列，禁用按钮防止重入，彻底消除主线程阻塞与彩虹球
+        inspectorView.saveButton?.isEnabled = false
+        inspectorView.batchExportButton?.isEnabled = false
+        let originalSaveTitle = inspectorView.saveButton?.title ?? " 保存当前模板至 FCPX"
+        inspectorView.saveButton?.title = " 正在生成模板…"
+
+        let layersSnapshot = canvasView.layers
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let buildResult = MotionBuilderSocket.shared.buildTemplateResult(
+                psdPath: path,
+                outputDir: outDir,
+                templateName: base,
+                layers: layersSnapshot,
+                timeout: 180.0
+            )
+
+            DispatchQueue.main.async {
+                self.inspectorView.saveButton?.isEnabled = true
+                self.inspectorView.batchExportButton?.isEnabled = true
+                self.inspectorView.saveButton?.title = originalSaveTitle
+
+                if buildResult.success {
+                    if resolved.isExternal, let extRoot = resolved.externalRoot {
+                        _ = SymlinkSocket.shared.linkToSystem(
+                            category: "Titles.localized",
+                            groupName: "PSD婚礼字幕",
+                            externalRoot: extRoot
+                        )
+                    }
+                    let note = resolved.fallbackUsed ? "\n(未检测到可用外置存储，已自动无缝降级保存至本地系统盘)" : "\n(已挂载至 Final Cut Pro)"
+                    self.showAlert(title: "安装完成 ✓", msg: "模板已生成：\n\(outDir)\(note)\n(若此前已有同名模板，系统已自动完成安全备份)")
+                } else {
+                    // FCPX-004: 结构化回传具体失败原因
+                    let detailMsg = buildResult.errorMessage ?? "生成 Motion 模板时发生未知错误，请查看诊断报告。"
+                    self.showAlert(title: "安装失败", msg: "生成 Motion 模板失败：\n\(detailMsg)")
+                }
             }
-            let note = resolved.fallbackUsed ? "\n(未检测到可用外置存储，已自动无缝降级保存至本地系统盘)" : "\n(已挂载至 Final Cut Pro)"
-            showAlert(title: "安装完成 ✓", msg: "模板已生成：\n\(outDir)\(note)\n(若此前已有同名模板，系统已自动完成安全备份)")
-        } else {
-            showAlert(title: "安装失败", msg: "生成 Motion 模板时发生错误，请查看诊断报告。")
         }
     }
 

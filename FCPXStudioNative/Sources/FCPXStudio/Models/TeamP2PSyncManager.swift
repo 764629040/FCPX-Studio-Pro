@@ -146,6 +146,11 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
     public private(set) var isListening: Bool = false
     public private(set) var isBrowsing: Bool = false
 
+    // FCPX-009: 接收端白名单与用户授权确认机制
+    public var incomingConfirmationHandler: ((_ senderName: String, _ clientIP: String, _ manifest: P2PManifest) -> Bool)?
+    public var allowedPeerAddresses: Set<String> = []
+    public var requireUserConfirmation: Bool = true
+
     private var serverSocketFd: Int32 = -1
     private var netService: NetService?
     private var netServiceBrowser: NetServiceBrowser?
@@ -188,7 +193,8 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
 
         let browser = NetServiceBrowser()
         browser.delegate = self
-        browser.includesPeerToPeer = true
+        // FCPX-009: 默认关闭 Peer-to-Peer 杂散网络，仅限受信任局域网
+        browser.includesPeerToPeer = false
         browser.searchForServices(ofType: TeamP2PSyncManager.serviceType, inDomain: "local.")
         self.netServiceBrowser = browser
     }
@@ -352,7 +358,8 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
         let service = NetService(domain: "local.", type: TeamP2PSyncManager.serviceType,
                                  name: self.localDeviceName, port: Int32(self.localPort))
         service.delegate = self
-        service.includesPeerToPeer = true
+        // FCPX-009: 默认关闭 Peer-to-Peer 杂散网络
+        service.includesPeerToPeer = false
         service.publish()
         self.netService = service
 
@@ -446,12 +453,36 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
             return
         }
 
-        // 5. 读取 Payload 数据
+        // 5. 读取 Payload 数据 (FCPX-009: 设 500MB 硬上限防内存溢出)
         let payloadSize = manifest.payloadSize
-        guard payloadSize >= 0,
+        let maxPayloadLimit = 500 * 1024 * 1024
+        guard payloadSize > 0 && payloadSize <= maxPayloadLimit,
               let payloadData = readExact(fd: clientFd, count: payloadSize) else {
-            sendResponse(fd: clientFd, text: "ERR:READ_PAYLOAD_FAILED\n")
+            sendResponse(fd: clientFd, text: "ERR:PAYLOAD_SIZE_LIMIT_EXCEEDED\n")
             return
+        }
+
+        // FCPX-009: 对端身份校验与用户确认防线
+        if requireUserConfirmation {
+            let isWhitelisted = allowedPeerAddresses.contains(clientIP)
+            if !isWhitelisted {
+                if let handler = incomingConfirmationHandler {
+                    let approved = handler(manifest.senderName, clientIP, manifest)
+                    if !approved {
+                        sendResponse(fd: clientFd, text: "ERR:REJECTED_BY_USER\n")
+                        recordTransfer(
+                            direction: .receive,
+                            targetDevice: "\(manifest.senderName) (\(clientIP))",
+                            itemName: manifest.templateName,
+                            category: manifest.category,
+                            sizeBytes: Int64(payloadSize),
+                            status: "用户拦截：未授权接收",
+                            durationMs: Date().timeIntervalSince(start) * 1000
+                        )
+                        return
+                    }
+                }
+            }
         }
 
         // 6. SHA-256 硬件校验

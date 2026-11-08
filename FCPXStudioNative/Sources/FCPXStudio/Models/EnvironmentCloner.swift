@@ -328,6 +328,7 @@ public final class EnvironmentCloner {
                         let srcItem = (subSrc as NSString).appendingPathComponent(item)
                         var dstItem = (subDst as NSString).appendingPathComponent(item)
 
+                        var existingBackupPath: String? = nil
                         if fm.fileExists(atPath: dstItem) {
                             switch conflictPolicy {
                             case .skip:
@@ -335,7 +336,10 @@ public final class EnvironmentCloner {
                                 details.append("跳过模板：\(cat)/\(sub)/\(item)")
                                 continue
                             case .overwrite:
-                                try fm.removeItem(atPath: dstItem)
+                                // FCPX-008: 先原子移动至临时备份，copy 成功后再清理；失败自动回滚
+                                let bkp = "\(dstItem)_importbak_\(UUID().uuidString)"
+                                try fm.moveItem(atPath: dstItem, toPath: bkp)
+                                existingBackupPath = bkp
                             case .keepBoth:
                                 let base = (item as NSString).deletingPathExtension
                                 let ext = (item as NSString).pathExtension
@@ -344,9 +348,21 @@ public final class EnvironmentCloner {
                             }
                         }
 
-                        try fm.copyItem(atPath: srcItem, toPath: dstItem)
-                        installedTemplates += 1
-                        details.append("已安装模板：\(cat)/\(sub)/\(item)")
+                        do {
+                            try fm.copyItem(atPath: srcItem, toPath: dstItem)
+                            if let bkp = existingBackupPath {
+                                try? fm.removeItem(atPath: bkp)
+                            }
+                            installedTemplates += 1
+                            details.append("已安装模板：\(cat)/\(sub)/\(item)")
+                        } catch {
+                            // 失败回滚保护原模板
+                            if let bkp = existingBackupPath, fm.fileExists(atPath: bkp) {
+                                try? fm.removeItem(atPath: dstItem)
+                                try? fm.moveItem(atPath: bkp, toPath: dstItem)
+                            }
+                            throw error
+                        }
                     }
                 }
             }

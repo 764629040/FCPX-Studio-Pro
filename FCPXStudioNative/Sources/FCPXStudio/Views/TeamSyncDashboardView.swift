@@ -598,19 +598,33 @@ public final class TeamSyncDashboardView: NSView,
         savePanel.nameFieldStringValue = "FCPX_Studio_Production_Env_\(Date().formattedDateString).fcpxpack"
 
         if savePanel.runModal() == .OK, let url = savePanel.url {
-            do {
-                let manifest = try EnvironmentCloner.shared.exportPackage(
-                    categories: cats,
-                    includeLUTs: incLUT,
-                    includeProfiles: incProf,
-                    outputPath: url.path
-                )
-                let mb = Double(manifest.totalSizeBytes) / (1024.0 * 1024.0)
-                exportStatusLabel.stringValue = "✅ 成功导出：\(manifest.templateCount) 款模板 · \(manifest.lutCount) 款 LUT · \(manifest.profileCount) 组情境 (\(String(format: "%.2f", mb)) MB)"
-                exportStatusLabel.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
-            } catch {
-                exportStatusLabel.stringValue = "❌ 导出失败：\(error.localizedDescription)"
-                exportStatusLabel.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+            // FCPX-012: 导出异步化与进度提示
+            exportPackageBtn.isEnabled = false
+            exportStatusLabel.stringValue = "⏳ 正在打包并生成环境克隆包，请稍候…"
+            exportStatusLabel.textColor = NSColor.systemOrange
+
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                do {
+                    let manifest = try EnvironmentCloner.shared.exportPackage(
+                        categories: cats,
+                        includeLUTs: incLUT,
+                        includeProfiles: incProf,
+                        outputPath: url.path
+                    )
+                    let mb = Double(manifest.totalSizeBytes) / (1024.0 * 1024.0)
+                    DispatchQueue.main.async {
+                        self.exportPackageBtn.isEnabled = true
+                        self.exportStatusLabel.stringValue = "✅ 成功导出：\(manifest.templateCount) 款模板 · \(manifest.lutCount) 款 LUT · \(manifest.profileCount) 组情境 (\(String(format: "%.2f", mb)) MB)"
+                        self.exportStatusLabel.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.exportPackageBtn.isEnabled = true
+                        self.exportStatusLabel.stringValue = "❌ 导出失败：\(error.localizedDescription)"
+                        self.exportStatusLabel.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+                    }
+                }
             }
         }
     }
@@ -634,14 +648,28 @@ public final class TeamSyncDashboardView: NSView,
             default: policy = .overwrite
             }
 
-            do {
-                let summary = try EnvironmentCloner.shared.importPackage(packagePath: url.path, conflictPolicy: policy)
-                importStatusLabel.stringValue = "✅ 部署完成：\(summary.installedTemplatesCount) 模板 · \(summary.installedLUTsCount) LUT · \(summary.installedProfilesCount) 情境 (跳过 \(summary.skippedCount))"
-                importStatusLabel.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
-                refreshData()
-            } catch {
-                importStatusLabel.stringValue = "❌ 导入失败：\(error.localizedDescription)"
-                importStatusLabel.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+            // FCPX-012: 导入部署异步化与进度提示
+            importPackageBtn.isEnabled = false
+            importStatusLabel.stringValue = "⏳ 正在解析并部署克隆包，请稍候…"
+            importStatusLabel.textColor = NSColor.systemOrange
+
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                do {
+                    let summary = try EnvironmentCloner.shared.importPackage(packagePath: url.path, conflictPolicy: policy)
+                    DispatchQueue.main.async {
+                        self.importPackageBtn.isEnabled = true
+                        self.importStatusLabel.stringValue = "✅ 部署完成：\(summary.installedTemplatesCount) 模板 · \(summary.installedLUTsCount) LUT · \(summary.installedProfilesCount) 情境 (跳过 \(summary.skippedCount))"
+                        self.importStatusLabel.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
+                        self.refreshData()
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.importPackageBtn.isEnabled = true
+                        self.importStatusLabel.stringValue = "❌ 导入失败：\(error.localizedDescription)"
+                        self.importStatusLabel.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+                    }
+                }
             }
         }
     }

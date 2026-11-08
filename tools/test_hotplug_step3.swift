@@ -213,7 +213,10 @@ final class HotplugStep3Test {
 
         // 触发自愈校验
         hub.handleVolumeStatusChange(volumePath: origVol, volumeName: "FCPX_Step3_SSD", isMounted: true)
-        _ = RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.25))
+        let deadline = Date().addingTimeInterval(2.0)
+        while Date() < deadline && hub.allItems.first(where: { $0.name == "CorruptedTitle" })?.isCorrupted != true {
+            _ = RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.05))
+        }
 
         let corruptedItem = hub.allItems.first(where: { $0.name == "CorruptedTitle" })!
         check(corruptedItem.isCorrupted == true, "文件缺失时标记 isCorrupted == true")

@@ -682,15 +682,37 @@ public final class StorageMigrationManager {
             try fm.createDirectory(atPath: root, withIntermediateDirectories: true)
         }
 
+        // FCPX-007: 全量搬家安全防线，杜绝本地原库静默丢失
+        let ts = Int(Date().timeIntervalSince1970)
+        let rootBackup = "\(root)_bak_\(ts)"
+
         if !fm.fileExists(atPath: targetRoot) {
             try fm.moveItem(atPath: root, toPath: targetRoot)
+        } else {
+            // 外置目标已存在同名库：安全合并子分类与素材，先备份本地
+            if let subItems = try? fm.contentsOfDirectory(atPath: root) {
+                for item in subItems {
+                    let srcSub = "\(root)/\(item)"
+                    let dstSub = "\(targetRoot)/\(item)"
+                    if !fm.fileExists(atPath: dstSub) {
+                        try? fm.moveItem(atPath: srcSub, toPath: dstSub)
+                    }
+                }
+            }
+            if fm.fileExists(atPath: root) {
+                try fm.moveItem(atPath: root, toPath: rootBackup)
+            }
         }
 
-        if fm.fileExists(atPath: root) {
-            try fm.removeItem(atPath: root)
+        do {
+            try fm.createSymbolicLink(atPath: root, withDestinationPath: targetRoot)
+        } catch {
+            // 软链接创建失败时回滚本地备份
+            if fm.fileExists(atPath: rootBackup) && !fm.fileExists(atPath: root) {
+                try? fm.moveItem(atPath: rootBackup, toPath: root)
+            }
+            throw MigrationError.ioFailure("建立全量软链接失败，已安全回滚: \(error.localizedDescription)")
         }
-
-        try fm.createSymbolicLink(atPath: root, withDestinationPath: targetRoot)
 
         guard let finalDest = try? fm.destinationOfSymbolicLink(atPath: root), finalDest == targetRoot else {
             throw MigrationError.verificationFailed("软链接建立校验失败: \(root) -> \(targetRoot)")
@@ -739,10 +761,20 @@ public final class StorageMigrationManager {
         try fm.createDirectory(atPath: "\(toVolumePath)/Motion Templates.localized", withIntermediateDirectories: true)
 
         if fm.fileExists(atPath: catPath) && (try? fm.destinationOfSymbolicLink(atPath: catPath)) == nil {
+            let catTs = Int(Date().timeIntervalSince1970)
+            let backupTargetCat = "\(targetCat)_bak_\(catTs)"
             if fm.fileExists(atPath: targetCat) {
-                try fm.removeItem(atPath: targetCat)
+                // FCPX-006: 目标已存在时原子移入备份目录，绝不静默 removeItem
+                try fm.moveItem(atPath: targetCat, toPath: backupTargetCat)
             }
-            try fm.moveItem(atPath: catPath, toPath: targetCat)
+            do {
+                try fm.moveItem(atPath: catPath, toPath: targetCat)
+            } catch {
+                if fm.fileExists(atPath: backupTargetCat) && !fm.fileExists(atPath: targetCat) {
+                    try? fm.moveItem(atPath: backupTargetCat, toPath: targetCat)
+                }
+                throw error
+            }
         } else {
             try? fm.removeItem(atPath: catPath)
             if !fm.fileExists(atPath: targetCat) {
@@ -766,7 +798,13 @@ public final class StorageMigrationManager {
         }
 
         try fm.removeItem(atPath: catPath)
-        try fm.moveItem(atPath: target, toPath: catPath)
+        do {
+            try fm.moveItem(atPath: target, toPath: catPath)
+        } catch {
+            // FCPX-030: 失败时重建软链接兜底，防止本地分类直接消失
+            try? fm.createSymbolicLink(atPath: catPath, withDestinationPath: target)
+            throw MigrationError.ioFailure("还原分类至本地失败，已自动恢复外置软链接: \(error.localizedDescription)")
+        }
         return catPath
     }
 }

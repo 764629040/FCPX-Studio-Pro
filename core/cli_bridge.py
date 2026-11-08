@@ -107,12 +107,37 @@ def handle_build(payload_json_file: str):
             data = json.load(f)
 
         psd_path = data.get("psd_path", "")
-        output_dir = data["output_dir"]
-        template_name = data["template_name"]
+        output_dir = str(data.get("output_dir", "")).strip()
+        if not output_dir:
+            print(json.dumps({"status": "error", "message": "output_dir 不能为空"}, ensure_ascii=False))
+            sys.exit(1)
+
+        template_name = str(data.get("template_name", "")).strip()
+        if not template_name:
+            print(json.dumps({"status": "error", "message": "template_name 不能为空"}, ensure_ascii=False))
+            sys.exit(1)
+
         layers_raw = data.get("layers", [])
+        if not layers_raw:
+            print(json.dumps({"status": "error", "message": "layers 列表为空，无法构建无图层的空白模板"}, ensure_ascii=False))
+            sys.exit(1)
 
         layers_info = []
         for d in layers_raw:
+            raw_bbox = d.get("psd_bbox", (0, 0, 0, 0))
+            if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
+                psd_bbox = tuple(float(x) for x in raw_bbox)
+            else:
+                psd_bbox = (0.0, 0.0, 0.0, 0.0)
+
+            raw_pos = d.get("motion_pos", (0, 0))
+            if isinstance(raw_pos, (list, tuple)) and len(raw_pos) >= 2:
+                motion_pos = (float(raw_pos[0]), float(raw_pos[1]))
+            elif isinstance(raw_pos, (list, tuple)) and len(raw_pos) == 1:
+                motion_pos = (float(raw_pos[0]), 0.0)
+            else:
+                motion_pos = (0.0, 0.0)
+
             info = PSDLayerInfo(
                 index=d.get("index", 1),
                 name=d.get("name", ""),
@@ -121,8 +146,8 @@ def handle_build(payload_json_file: str):
                 font_name=d.get("font_name", "Helvetica"),
                 font_size=float(d.get("font_size", 36.0)),
                 tracking=float(d.get("tracking", 0.0)),
-                psd_bbox=tuple(d.get("psd_bbox", (0, 0, 0, 0))),
-                motion_pos=tuple(d.get("motion_pos", (0, 0))),
+                psd_bbox=psd_bbox,
+                motion_pos=motion_pos,
                 visible=bool(d.get("visible", True)),
                 is_published=bool(d.get("is_published", True)),
                 rotation=float(d.get("rotation", 0.0)),

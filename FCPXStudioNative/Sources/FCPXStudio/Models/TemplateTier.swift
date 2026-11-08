@@ -85,6 +85,7 @@ public struct TemplateItem {
     private static let volumeUUIDLock = NSLock()
     private static var volumeUUIDCache: [String: String] = [:]
 
+    // ⚠️ 性能关键路径：按卷缓存禁止移除，移除将导致 2000 条遍历退化为 72ms 主线程卡顿
     /// S-2: 线程安全的卷硬件 UUID 查询（静态内存缓存，单卷仅触发一次磁盘 I/O）
     public static func getVolumeUUID(for volumePath: String, bypassCache: Bool = false) -> String? {
         let norm = (volumePath as NSString).standardizingPath

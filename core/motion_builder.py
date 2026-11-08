@@ -270,7 +270,9 @@ class MotionBuilder:
 
                 p_attr = ET.SubElement(sn_elem, "parameter", {"name": "属性", "id": "1", "flags": "8589938704"})
                 p_trans = ET.SubElement(p_attr, "parameter", {"name": "变换", "id": "100", "flags": "8589938704"})
-                mx, my = info.motion_pos
+                mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
+                mx = float(mpos[0]) if len(mpos) > 0 else 0.0
+                my = float(mpos[1]) if len(mpos) > 1 else 0.0
                 p_pos = ET.SubElement(p_trans, "parameter", {"name": "位置", "id": "101", "flags": "8589938704"})
                 ET.SubElement(p_pos, "parameter", {"name": "X", "id": "1", "flags": "8606711824", "default": "0", "value": str(round(mx, 2))})
                 ET.SubElement(p_pos, "parameter", {"name": "Y", "id": "2", "flags": "8606711824", "default": "0", "value": str(round(my, 2))})
@@ -439,7 +441,9 @@ class MotionBuilder:
                         })
 
                 # 坐标 Position X, Y (中心笛卡尔坐标 + 非居中锚点坐标补偿)
-                mx, my = info.motion_pos
+                mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
+                mx = float(mpos[0]) if len(mpos) > 0 else 0.0
+                my = float(mpos[1]) if len(mpos) > 1 else 0.0
                 rot_deg = float(getattr(info, "rotation", 0.0) or 0.0)
                 comp_x, comp_y = mx, my
                 if align_str in ("left", "right"):
@@ -603,7 +607,27 @@ class MotionBuilder:
             _media_count,
         )
 
+        if not output_dir or not str(output_dir).strip():
+            raise ValueError("output_dir 不能为空")
+
         output_dir = os.path.abspath(output_dir)
+        norm_dir = os.path.realpath(output_dir)
+        cwd_dir = os.path.realpath(os.getcwd())
+
+        # FCPX-005 (a): 检查是否为敏感系统路径或当前工作目录
+        sensitive_roots = {"/", "/System", "/Library", "/Applications", "/Users", "/bin", "/sbin", "/usr", "/var", "/tmp"}
+        if norm_dir in sensitive_roots or norm_dir == cwd_dir:
+            raise ValueError(f"output_dir 指向受保护的敏感路径或当前工作目录，已安全拦截: {output_dir}")
+
+        # FCPX-005 (b): 目标目录若已存在，必须验证是否是有效 Motion 模板目录
+        if os.path.exists(output_dir):
+            if not os.path.isdir(output_dir):
+                raise ValueError(f"目标路径已存在且为普通文件，禁止移走覆盖: {output_dir}")
+            existing_files = os.listdir(output_dir)
+            if existing_files:
+                has_motion = any(f.endswith((".moti", ".motn", ".mofd", ".motr")) for f in existing_files)
+                if not has_motion:
+                    raise ValueError(f"目标目录已存在但未检测到任何 Motion 模板文件 (.moti/.motn)，禁止静默移走非模板目录: {output_dir}")
 
         # ── Pre-flight 检查 1: 验证外置存储卷就绪状态 ──
         if output_dir.startswith("/Volumes/"):

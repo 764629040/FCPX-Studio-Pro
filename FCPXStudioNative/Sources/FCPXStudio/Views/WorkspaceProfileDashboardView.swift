@@ -156,11 +156,8 @@ public final class WorkspaceProfileCardView: NSView {
     }
 
     public override func mouseDown(with event: NSEvent) {
+        // FCPX-011: 点击卡片仅选中当前情境查看矩阵，激活必须点击专属激活按钮并二次确认
         onSelect?()
-        if !isActive {
-            showLoading(true)
-            onActivate?()
-        }
     }
 }
 
@@ -723,6 +720,18 @@ public final class WorkspaceProfileDashboardView: NSView,
             return
         }
         guard let p = profiles.first(where: { $0.id == id }) else { return }
+
+        // FCPX-011: 激活专属二次确认弹窗
+        let confirmAlert = NSAlert()
+        confirmAlert.messageText = "激活情境「\(p.name)」"
+        confirmAlert.informativeText = "激活后将根据情境规则临时隔离非关联插件（添加 .disabled 后缀），加速 FCPX 启动。原插件文件完好无损，随时可一键全开恢复。\n\n是否确认激活此情境？"
+        confirmAlert.addButton(withTitle: "确认激活")
+        confirmAlert.addButton(withTitle: "取消")
+        if confirmAlert.runModal() != .alertFirstButtonReturn {
+            updateCardsFlow()
+            return
+        }
+
         spinner.startAnimation(nil)
         statusLabel.stringValue = "正在激活情境「\(p.name)」并隔离插件..."
 

@@ -55,6 +55,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     public var hiddenLayersCheckbox: NSButton!
     public private(set) var fontDropPromptBox: NSBox!
     public private(set) var fontDropPromptLabel: NSTextField!
+    public private(set) var saveButton: NSButton?
+    public private(set) var batchExportButton: NSButton?
 
     public override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -357,6 +359,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         saveBtn.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
         saveBtn.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
         saveBtn.heightAnchor.constraint(equalToConstant: 28).isActive = true
+        self.saveButton = saveBtn
 
         let exportBtn = NSButton(title: " 批量导出全套模板", target: self, action: #selector(onBatchExportAction))
         exportBtn.image = NSImage(systemSymbolName: "arrow.up.forward.app", accessibilityDescription: "批量导出")
@@ -368,6 +371,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         exportBtn.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
         exportBtn.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
         exportBtn.heightAnchor.constraint(equalToConstant: 28).isActive = true
+        self.batchExportButton = exportBtn
     }
 
     // MARK: - @IBAction 动作插口
@@ -409,6 +413,13 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         layer.publishPosition = (publishPosCheck.state == .on)
         layer.publishRotation = (publishRotCheck.state == .on)
         layer.publishScale = (publishScaleCheck.state == .on)
+    }
+
+    @objc private func onTablePublishToggled(_ sender: NSButton) {
+        let row = sender.tag
+        guard row >= 0 && row < layers.count else { return }
+        layers[row].isPublished = (sender.state == .on)
+        onLayerModified?(layers[row])
     }
 
     @objc public func onSaveCurrentTemplateAction(_ sender: Any) {
@@ -624,7 +635,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             tf.font = .systemFont(ofSize: 11)
             return tf
         } else if id == "pub" {
-            let btn = NSButton(checkboxWithTitle: "发布", target: nil, action: nil)
+            let btn = NSButton(checkboxWithTitle: "发布", target: self, action: #selector(onTablePublishToggled(_:)))
+            btn.tag = row
             btn.state = layer.isPublished ? .on : .off
             return btn
         }
