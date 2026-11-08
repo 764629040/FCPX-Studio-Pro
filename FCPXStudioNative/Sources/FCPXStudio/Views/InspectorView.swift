@@ -173,10 +173,10 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
         let tableScroll = NSScrollView()
         tableScroll.translatesAutoresizingMaskIntoConstraints = false
-        tableScroll.heightAnchor.constraint(equalToConstant: 140).isActive = true
+        tableScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 180).isActive = true
         tableScroll.hasVerticalScroller = true
 
-        layerTableView = NSTableView(frame: NSRect(x: 0, y: 0, width: 330, height: 140))
+        layerTableView = NSTableView(frame: NSRect(x: 0, y: 0, width: 330, height: 180))
         layerTableView.autoresizingMask = [.width, .height]
         layerTableView.intercellSpacing = NSSize(width: 0, height: 3)
 
@@ -244,12 +244,12 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
         // ── 2. Motion 属性区块 ──
         let propTitle = NSTextField(labelWithString: "选中图层 Motion 属性")
-        propTitle.font = .systemFont(ofSize: 12, weight: .bold)
-        propTitle.textColor = NSColor(calibratedRed: 0.25, green: 0.65, blue: 1.0, alpha: 1.0)
+        propTitle.font = TypeScale.bodyBold
+        propTitle.textColor = .white
         mainStack.addArrangedSubview(propTitle)
 
         // 横竖排一键切换按钮
-        toggleOrientationButton = NSButton(title: " 转为横排版式", target: self, action: #selector(onOrientationToggled))
+        toggleOrientationButton = NSButton(title: "转为横排版式", target: self, action: #selector(onOrientationToggled))
         toggleOrientationButton.image = NSImage(systemSymbolName: "text.aligncenter", accessibilityDescription: "转为横排")
         toggleOrientationButton.imagePosition = .imageLeading
         toggleOrientationButton.bezelStyle = .rounded

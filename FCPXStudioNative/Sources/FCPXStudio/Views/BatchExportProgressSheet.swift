@@ -81,10 +81,11 @@ public final class BatchExportProgressSheet: NSWindow, NSTableViewDataSource, NS
         let contentRect = NSRect(x: 0, y: 0, width: 580, height: 440)
         super.init(
             contentRect: contentRect,
-            styleMask: [.titled, .fullSizeContentView],
+            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
+        self.minSize = NSSize(width: 520, height: 380)
 
         self.isReleasedWhenClosed = false
         self.titlebarAppearsTransparent = true
@@ -117,22 +118,22 @@ public final class BatchExportProgressSheet: NSWindow, NSTableViewDataSource, NS
         ])
 
         // 1. 顶部标题与图标
-        titleLabel = NSTextField(labelWithString: "🚀 批量模板导出与 FCPX 自动挂载")
-        titleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        titleLabel = NSTextField(labelWithString: "批量模板导出与 FCPX 自动挂载")
+        titleLabel.font = TypeScale.bodyBold
         titleLabel.textColor = .white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(titleLabel)
 
         subtitleLabel = NSTextField(labelWithString: "正在调度后台异步引擎，平滑生成 Motion XML 模板...")
-        subtitleLabel.font = .systemFont(ofSize: 11)
+        subtitleLabel.font = TypeScale.footnote
         subtitleLabel.textColor = NSColor(calibratedWhite: 0.75, alpha: 1.0)
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(subtitleLabel)
 
         let shortPath = (targetDirectory as NSString).abbreviatingWithTildeInPath
-        destinationLabel = NSTextField(labelWithString: "📁 输出位置: \(shortPath.isEmpty ? "智能自适应路径" : shortPath)")
-        destinationLabel.font = .systemFont(ofSize: 10, weight: .medium)
-        destinationLabel.textColor = NSColor(calibratedRed: 0.4, green: 0.75, blue: 1.0, alpha: 1.0)
+        destinationLabel = NSTextField(labelWithString: "输出位置: \(shortPath.isEmpty ? "智能自适应路径" : shortPath)")
+        destinationLabel.font = TypeScale.captionMedium
+        destinationLabel.textColor = ColorToken.accentBlue
         destinationLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(destinationLabel)
 
@@ -174,14 +175,22 @@ public final class BatchExportProgressSheet: NSWindow, NSTableViewDataSource, NS
         let colStatus = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("status"))
         colStatus.title = "状态"
         colStatus.width = 45
+        colStatus.minWidth = 45
+        colStatus.maxWidth = 45
+        colStatus.resizingMask = []
 
         let colFile = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("file"))
         colFile.title = "模板文件名"
         colFile.width = 160
+        colFile.minWidth = 140
+        colFile.maxWidth = 180
+        colFile.resizingMask = []
 
         let colMsg = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("msg"))
         colMsg.title = "详情流水"
         colMsg.width = 290
+        colMsg.minWidth = 200
+        colMsg.resizingMask = [.autoresizingMask]
 
         tableView.addTableColumn(colStatus)
         tableView.addTableColumn(colFile)

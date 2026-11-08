@@ -78,15 +78,15 @@ public final class CleanerDashboardView: NSView,
         scanButton = NSButton(title: "🔄 扫描资源库", target: self, action: #selector(onScanClicked))
         scanButton.bezelStyle = .rounded
 
-        addLibraryButton = NSButton(title: "📂 添加资源库…", target: self, action: #selector(onAddLibraryClicked))
+        addLibraryButton = NSButton(title: "添加资源库…", target: self, action: #selector(onAddLibraryClicked))
         addLibraryButton.bezelStyle = .rounded
 
-        openTrashButton = NSButton(title: "🗑️ 打开废纸篓", target: self, action: #selector(onOpenTrashClicked))
+        openTrashButton = NSButton(title: "打开废纸篓", target: self, action: #selector(onOpenTrashClicked))
         openTrashButton.bezelStyle = .rounded
 
-        statusSummaryLabel = NSTextField(labelWithString: "正在就绪… 支持将剪辑盘的任意 .fcpbundle 拖拽至此处扫描")
+        statusSummaryLabel = NSTextField(labelWithString: "已就绪 · 可将剪辑盘 .fcpbundle 拖入扫描")
         statusSummaryLabel.textColor = .secondaryLabelColor
-        statusSummaryLabel.font = .systemFont(ofSize: 12)
+        statusSummaryLabel.font = TypeScale.footnote
 
         spinner = NSProgressIndicator()
         spinner.style = .spinning
@@ -110,13 +110,16 @@ public final class CleanerDashboardView: NSView,
         mainStack.addArrangedSubview(splitStack)
 
         splitStack.widthAnchor.constraint(equalTo: mainStack.widthAnchor).isActive = true
-        splitStack.heightAnchor.constraint(equalTo: mainStack.heightAnchor, constant: -50).isActive = true
+        topBar.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        splitStack.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         // 左侧：资源库表格容器
         let leftBox = NSView()
         leftBox.wantsLayer = true
-        leftBox.layer?.backgroundColor = NSColor(red: 0.11, green: 0.12, blue: 0.15, alpha: 1.0).cgColor
-        leftBox.layer?.cornerRadius = 8
+        leftBox.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        leftBox.layer?.cornerRadius = CornerRadius.card
+        leftBox.layer?.borderWidth = 0.8
+        leftBox.layer?.borderColor = ColorToken.cardBorder.cgColor
         leftBox.translatesAutoresizingMaskIntoConstraints = false
 
         let scroll = NSScrollView()
@@ -133,8 +136,9 @@ public final class CleanerDashboardView: NSView,
 
         libraryTableView = NSTableView()
         libraryTableView.headerView = NSTableHeaderView()
-        libraryTableView.rowHeight = 36
-        libraryTableView.usesAlternatingRowBackgroundColors = true
+        libraryTableView.rowHeight = 32
+        libraryTableView.gridStyleMask = .solidHorizontalGridLineMask
+        libraryTableView.usesAlternatingRowBackgroundColors = false
         libraryTableView.dataSource = self
         libraryTableView.delegate = self
 
@@ -163,32 +167,41 @@ public final class CleanerDashboardView: NSView,
         splitStack.addArrangedSubview(leftBox)
         leftBox.widthAnchor.constraint(equalTo: splitStack.widthAnchor, multiplier: 0.52).isActive = true
 
-        // 右侧：瘦身详情与操作面板
+        // 右侧：瘦身详情与操作面板 (UI-G043)
         let rightBox = NSView()
         rightBox.wantsLayer = true
-        rightBox.layer?.backgroundColor = NSColor(red: 0.11, green: 0.12, blue: 0.15, alpha: 1.0).cgColor
-        rightBox.layer?.cornerRadius = 8
+        rightBox.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        rightBox.layer?.cornerRadius = CornerRadius.card
+        rightBox.layer?.borderWidth = 0.8
+        rightBox.layer?.borderColor = ColorToken.cardBorder.cgColor
         rightBox.translatesAutoresizingMaskIntoConstraints = false
+
+        let rightScroll = NSScrollView()
+        rightScroll.drawsBackground = false
+        rightScroll.hasVerticalScroller = true
+        rightScroll.translatesAutoresizingMaskIntoConstraints = false
+        rightBox.addSubview(rightScroll)
 
         let rightStack = NSStackView()
         rightStack.orientation = .vertical
         rightStack.alignment = .leading
         rightStack.spacing = 10
         rightStack.translatesAutoresizingMaskIntoConstraints = false
-        rightBox.addSubview(rightStack)
+        rightScroll.documentView = rightStack
 
         NSLayoutConstraint.activate([
-            rightStack.topAnchor.constraint(equalTo: rightBox.topAnchor, constant: 14),
-            rightStack.leadingAnchor.constraint(equalTo: rightBox.leadingAnchor, constant: 14),
-            rightStack.trailingAnchor.constraint(equalTo: rightBox.trailingAnchor, constant: -14),
-            rightStack.bottomAnchor.constraint(lessThanOrEqualTo: rightBox.bottomAnchor, constant: -14)
+            rightScroll.topAnchor.constraint(equalTo: rightBox.topAnchor, constant: 14),
+            rightScroll.leadingAnchor.constraint(equalTo: rightBox.leadingAnchor, constant: 14),
+            rightScroll.trailingAnchor.constraint(equalTo: rightBox.trailingAnchor, constant: -14),
+            rightScroll.bottomAnchor.constraint(equalTo: rightBox.bottomAnchor, constant: -14),
+            rightStack.widthAnchor.constraint(equalTo: rightScroll.widthAnchor)
         ])
 
         detailTitleLabel = NSTextField(labelWithString: "未选择资源库")
-        detailTitleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        detailTitleLabel.font = TypeScale.metricTitle
 
         detailPathLabel = NSTextField(labelWithString: "")
-        detailPathLabel.font = .systemFont(ofSize: 11)
+        detailPathLabel.font = TypeScale.footnote
         detailPathLabel.textColor = .secondaryLabelColor
         detailPathLabel.lineBreakMode = .byTruncatingMiddle
 
@@ -198,13 +211,13 @@ public final class CleanerDashboardView: NSView,
         storageBarView.heightAnchor.constraint(equalToConstant: 20).isActive = true
 
         // 安全提示
-        detailOriginalMediaLabel = NSTextField(labelWithString: "🛡️ 原始素材: -- (最高安全级别，100% 绝对保护)")
-        detailOriginalMediaLabel.font = .systemFont(ofSize: 12)
-        detailOriginalMediaLabel.textColor = NSColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 1.0)
+        detailOriginalMediaLabel = NSTextField(labelWithString: "原始素材: -- (最高安全级别，100% 绝对保护)")
+        detailOriginalMediaLabel.font = TypeScale.footnote
+        detailOriginalMediaLabel.textColor = ColorToken.successGreen
 
-        detailCleanableLabel = NSTextField(labelWithString: "🧹 可安全瘦身: --")
-        detailCleanableLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        detailCleanableLabel.textColor = NSColor(red: 1.0, green: 0.6, blue: 0.2, alpha: 1.0)
+        detailCleanableLabel = NSTextField(labelWithString: "可安全清理: --")
+        detailCleanableLabel.font = TypeScale.bodyBold
+        detailCleanableLabel.textColor = ColorToken.warningAmber
 
         // 缓存细项勾选列表
         categoryStackView = NSStackView()
@@ -218,14 +231,14 @@ public final class CleanerDashboardView: NSView,
         actionRow.orientation = .horizontal
         actionRow.spacing = 10
 
-        cleanAllButton = NSButton(title: "⚡ 一键安全瘦身 (Safe Clean All)", target: self, action: #selector(onCleanAllClicked))
+        cleanAllButton = NSButton(title: "安全清理全部缓存", target: self, action: #selector(onCleanAllClicked))
         cleanAllButton.bezelStyle = .rounded
-        cleanAllButton.contentTintColor = NSColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 1.0)
+        cleanAllButton.contentTintColor = ColorToken.successGreen
 
-        cleanSelectedButton = NSButton(title: "🧹 清理所选缓存", target: self, action: #selector(onCleanSelectedClicked))
+        cleanSelectedButton = NSButton(title: "清理所选缓存", target: self, action: #selector(onCleanSelectedClicked))
         cleanSelectedButton.bezelStyle = .rounded
 
-        revealButton = NSButton(title: "🔍 在访达中定位", target: self, action: #selector(onRevealClicked))
+        revealButton = NSButton(title: "在访达中显示", target: self, action: #selector(onRevealClicked))
         revealButton.bezelStyle = .rounded
 
         actionRow.addArrangedSubview(cleanAllButton)

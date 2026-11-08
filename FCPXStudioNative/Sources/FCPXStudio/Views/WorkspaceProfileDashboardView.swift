@@ -78,9 +78,10 @@ public final class WorkspaceProfileCardView: NSView {
         iconLabel.font = .systemFont(ofSize: 16)
         headerRow.addArrangedSubview(iconLabel)
 
-        let nameLabel = NSTextField(labelWithString: profile.name.components(separatedBy: " ").first ?? profile.name)
-        nameLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        let nameLabel = NSTextField(labelWithString: profile.name)
+        nameLabel.font = TypeScale.bodyBold
         nameLabel.textColor = .white
+        nameLabel.lineBreakMode = .byTruncatingTail
         headerRow.addArrangedSubview(nameLabel)
 
         let spacer = NSView()
@@ -258,7 +259,7 @@ public final class WorkspaceProfileDashboardView: NSView,
     // MARK: – UI Setup
     private func setupUI() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.11, alpha: 0.35).cgColor
+        layer?.backgroundColor = ColorToken.panelBg.cgColor
 
         let mainStack = NSStackView()
         mainStack.orientation = .vertical
@@ -287,13 +288,13 @@ public final class WorkspaceProfileDashboardView: NSView,
         titleBox.alignment = .leading
         titleBox.spacing = 2
 
-        let mainTitle = NSTextField(labelWithString: "🗂️ 多工作区情境隔离配置系统 (Workspace Context Isolation)")
-        mainTitle.font = .systemFont(ofSize: 15, weight: .heavy)
+        let mainTitle = NSTextField(labelWithString: "多工作区情境隔离配置系统 (Workspace Context Isolation)")
+        mainTitle.font = TypeScale.bodyBold
         mainTitle.textColor = .white
         titleBox.addArrangedSubview(mainTitle)
 
         let subTitle = NSTextField(labelWithString: "按影视项目情境按需启停插件 · FCPX 启动提速 5~10x · 毫秒级 .disabled 隔离 · 一键无损全开")
-        subTitle.font = .systemFont(ofSize: 11)
+        subTitle.font = TypeScale.footnote
         subTitle.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         titleBox.addArrangedSubview(subTitle)
 
@@ -303,24 +304,24 @@ public final class WorkspaceProfileDashboardView: NSView,
         spacer1.setContentHuggingPriority(.defaultLow, for: .horizontal)
         topBar.addArrangedSubview(spacer1)
 
-        addProfileButton = NSButton(title: "➕ 新建情境", target: self, action: #selector(onAddProfileClicked))
+        addProfileButton = NSButton(title: "新建情境", target: self, action: #selector(onAddProfileClicked))
         addProfileButton.bezelStyle = .rounded
         topBar.addArrangedSubview(addProfileButton)
 
-        duplicateButton = NSButton(title: "📋 复制情境", target: self, action: #selector(onDuplicateClicked))
+        duplicateButton = NSButton(title: "复制情境", target: self, action: #selector(onDuplicateClicked))
         duplicateButton.bezelStyle = .rounded
         topBar.addArrangedSubview(duplicateButton)
 
-        deleteButton = NSButton(title: "🗑️ 删除情境", target: self, action: #selector(onDeleteClicked))
+        deleteButton = NSButton(title: "删除情境", target: self, action: #selector(onDeleteClicked))
         deleteButton.bezelStyle = .rounded
         topBar.addArrangedSubview(deleteButton)
 
-        resetAllButton = NSButton(title: "🌟 一键全开恢复", target: self, action: #selector(onResetAllClicked))
+        resetAllButton = NSButton(title: "还原全部启用", target: self, action: #selector(onResetAllClicked))
         resetAllButton.bezelStyle = .rounded
-        resetAllButton.contentTintColor = NSColor(calibratedRed: 0.45, green: 0.85, blue: 0.55, alpha: 1.0)
+        resetAllButton.contentTintColor = ColorToken.successGreen
         topBar.addArrangedSubview(resetAllButton)
 
-        refreshButton = NSButton(title: "🔄 刷新", target: self, action: #selector(onRefreshClicked))
+        refreshButton = NSButton(title: "刷新", target: self, action: #selector(onRefreshClicked))
         refreshButton.bezelStyle = .rounded
         topBar.addArrangedSubview(refreshButton)
 
@@ -363,7 +364,7 @@ public final class WorkspaceProfileDashboardView: NSView,
         cardsRow.translatesAutoresizingMaskIntoConstraints = false
         mainStack.addArrangedSubview(cardsRow)
         cardsRow.widthAnchor.constraint(equalTo: mainStack.widthAnchor).isActive = true
-        cardsRow.heightAnchor.constraint(equalToConstant: 68).isActive = true
+        cardsRow.heightAnchor.constraint(equalToConstant: 72).isActive = true
 
         let card1 = makeMetricCard(title: "当前激活情境", icon: "⚡️")
         activeProfileValueLabel = card1.1
@@ -477,7 +478,7 @@ public final class WorkspaceProfileDashboardView: NSView,
         matrixToolBar.addArrangedSubview(spacer2)
 
         searchField = NSSearchField()
-        searchField.placeholderString = "🔍 搜索模板名称..."
+        searchField.placeholderString = "搜索模板名称..."
         searchField.target = self
         searchField.action = #selector(onFilterChanged)
         searchField.widthAnchor.constraint(equalToConstant: 180).isActive = true
@@ -559,9 +560,9 @@ public final class WorkspaceProfileDashboardView: NSView,
     private func makeMetricCard(title: String, icon: String) -> (NSView, NSTextField) {
         let card = NSView()
         card.wantsLayer = true
-        card.layer?.cornerRadius = 8
-        card.layer?.backgroundColor = NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.15, alpha: 1.0).cgColor
-        card.layer?.borderColor = NSColor(calibratedWhite: 0.19, alpha: 1.0).cgColor
+        card.layer?.cornerRadius = CornerRadius.card
+        card.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        card.layer?.borderColor = ColorToken.cardBorder.cgColor
         card.layer?.borderWidth = 1
 
         let vStack = NSStackView()
@@ -584,25 +585,25 @@ public final class WorkspaceProfileDashboardView: NSView,
         hTitle.alignment = .centerY
 
         let iconLabel = NSTextField(labelWithString: icon)
-        iconLabel.font = .systemFont(ofSize: 12)
+        iconLabel.font = TypeScale.footnote
         hTitle.addArrangedSubview(iconLabel)
 
         let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        titleLabel.font = TypeScale.footnoteMedium
         titleLabel.textColor = NSColor(calibratedWhite: 0.55, alpha: 1.0)
         hTitle.addArrangedSubview(titleLabel)
 
         vStack.addArrangedSubview(hTitle)
 
         let valueLabel = NSTextField(labelWithString: "--")
-        valueLabel.font = .systemFont(ofSize: 15, weight: .heavy)
+        valueLabel.font = TypeScale.metricTitle
         valueLabel.textColor = .white
         vStack.addArrangedSubview(valueLabel)
 
         return (card, valueLabel)
     }
 
-    // MARK: – 数据刷新与更新
+    // MARK: – 数据刷新与更新 (UI-G046)
     public func refreshData() {
         let mgr = WorkspaceProfileManager.shared
         mgr.reload()
@@ -612,17 +613,31 @@ public final class WorkspaceProfileDashboardView: NSView,
             selectedProfileId = mgr.activeProfileId
         }
 
-        // 扫描模板
-        var scanned: [TemplateItem] = []
-        for cat in TemplateTierScanner.categories {
-            let res = TemplateTierScanner.scan(category: cat, roots: .resolve(), lazySizes: true)
-            scanned.append(contentsOf: res.items)
-        }
-        allTemplates = scanned
-
-        applyFilter()
         updateCardsFlow()
         updateDashboardMetrics()
+
+        if !allTemplates.isEmpty {
+            applyFilter()
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var scanned: [TemplateItem] = []
+            for cat in TemplateTierScanner.categories {
+                if let cached = AssetCacheManager.shared.getTemplates(category: cat) {
+                    scanned.append(contentsOf: cached.items)
+                } else {
+                    let res = TemplateTierScanner.scan(category: cat, roots: .resolve(), lazySizes: true)
+                    scanned.append(contentsOf: res.items)
+                }
+            }
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.allTemplates = scanned
+                self.applyFilter()
+                self.updateDashboardMetrics()
+            }
+        }
     }
 
     private func updateCardsFlow() {

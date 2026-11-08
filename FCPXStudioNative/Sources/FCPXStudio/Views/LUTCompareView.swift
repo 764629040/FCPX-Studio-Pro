@@ -338,8 +338,31 @@ public final class LUTCompareView: NSView {
     public override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         guard let pboard = sender.draggingPasteboard.propertyList(forType: .fileURL) as? String,
               let url = URL(string: pboard) else {
+            flashRejectionBorder()
+            return false
+        }
+        let ext = url.pathExtension.lowercased()
+        guard ["jpg", "jpeg", "png", "tiff", "tif", "heic"].contains(ext) else {
+            flashRejectionBorder()
+            let alert = NSAlert()
+            alert.messageText = "不支持的文件格式"
+            alert.informativeText = "仅支持拖入测试图片格式：.jpg, .jpeg, .png, .tiff, .heic"
+            alert.alertStyle = .warning
+            alert.runModal()
             return false
         }
         return setOriginalImageFromPath(url.path)
+    }
+
+    private func flashRejectionBorder() {
+        wantsLayer = true
+        let originalBorder = layer?.borderColor
+        let originalWidth = layer?.borderWidth ?? 0
+        layer?.borderColor = NSColor.systemRed.cgColor
+        layer?.borderWidth = 2.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            self?.layer?.borderColor = originalBorder
+            self?.layer?.borderWidth = originalWidth
+        }
     }
 }

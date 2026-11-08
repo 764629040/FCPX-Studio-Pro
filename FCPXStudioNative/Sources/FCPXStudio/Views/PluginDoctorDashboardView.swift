@@ -80,13 +80,13 @@ public final class PluginDoctorDashboardView: NSView,
         titleBox.alignment = .leading
         titleBox.spacing = 2
 
-        let mainTitle = NSTextField(labelWithString: "🩺 幽灵插件智能体检与断链自愈医生")
-        mainTitle.font = .systemFont(ofSize: 15, weight: .heavy)
+        let mainTitle = NSTextField(labelWithString: "幽灵插件智能体检与断链自愈医生")
+        mainTitle.font = TypeScale.bodyBold
         mainTitle.textColor = .white
         titleBox.addArrangedSubview(mainTitle)
 
         let subTitle = NSTextField(labelWithString: "深度扫描三大病症：悬空断链 · 破损 XML · 贴图缺失 ｜ 秒级重连自愈 ｜ 零风险安全隔离")
-        subTitle.font = .systemFont(ofSize: 11)
+        subTitle.font = TypeScale.footnote
         subTitle.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         titleBox.addArrangedSubview(subTitle)
 
@@ -96,18 +96,18 @@ public final class PluginDoctorDashboardView: NSView,
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         topBar.addArrangedSubview(spacer)
 
-        scanButton = NSButton(title: "🩺 全面体检", target: self, action: #selector(onScanClicked))
+        scanButton = NSButton(title: "全面体检", target: self, action: #selector(onScanClicked))
         scanButton.bezelStyle = .rounded
 
-        relinkAllButton = NSButton(title: "⚡️ 一键智能自愈", target: self, action: #selector(onRelinkAllClicked))
+        relinkAllButton = NSButton(title: "智能自愈", target: self, action: #selector(onRelinkAllClicked))
         relinkAllButton.bezelStyle = .rounded
         relinkAllButton.contentTintColor = NSColor.systemGreen
 
-        quarantineAllButton = NSButton(title: "🛡️ 一键隔离破损", target: self, action: #selector(onQuarantineAllClicked))
+        quarantineAllButton = NSButton(title: "隔离破损", target: self, action: #selector(onQuarantineAllClicked))
         quarantineAllButton.bezelStyle = .rounded
         quarantineAllButton.contentTintColor = NSColor.systemOrange
 
-        restoreAllButton = NSButton(title: "↩️ 一键还原隔离", target: self, action: #selector(onRestoreAllClicked))
+        restoreAllButton = NSButton(title: "还原隔离", target: self, action: #selector(onRestoreAllClicked))
         restoreAllButton.bezelStyle = .rounded
 
         spinner = NSProgressIndicator()
@@ -132,16 +132,16 @@ public final class PluginDoctorDashboardView: NSView,
         cardsStack.widthAnchor.constraint(equalTo: mainStack.widthAnchor).isActive = true
         cardsStack.heightAnchor.constraint(equalToConstant: 72).isActive = true
 
-        let (card1, v1, r1) = makeMetricCard(title: "健康体检评分", defaultVal: "100", sub: "🟢 运行良好")
+        let (card1, v1, r1) = makeMetricCard(title: "健康体检评分", defaultVal: "100", sub: "运行良好")
         scoreCardValueLabel = v1
         scoreCardRatingLabel = r1
         cardsStack.addArrangedSubview(card1)
 
-        let (card2, v2, _) = makeMetricCard(title: "🔗 悬空断链病症", defaultVal: "0", sub: "外置盘移动或脱机")
+        let (card2, v2, _) = makeMetricCard(title: "悬空断链病症", defaultVal: "0", sub: "外置盘移动或脱机")
         danglingCardLabel = v2
         cardsStack.addArrangedSubview(card2)
 
-        let (card3, v3, _) = makeMetricCard(title: "📄 破损 XML 模板", defaultVal: "0", sub: "0 字节或语法损毁")
+        let (card3, v3, _) = makeMetricCard(title: "破损 XML 模板", defaultVal: "0", sub: "0 字节或语法损毁")
         corruptedCardLabel = v3
         cardsStack.addArrangedSubview(card3)
 
@@ -158,13 +158,17 @@ public final class PluginDoctorDashboardView: NSView,
         // 4. 故障诊断列表容器
         let listContainer = NSView()
         listContainer.wantsLayer = true
-        listContainer.layer?.backgroundColor = NSColor(red: 0.11, green: 0.12, blue: 0.15, alpha: 1.0).cgColor
-        listContainer.layer?.cornerRadius = 8
+        listContainer.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        listContainer.layer?.cornerRadius = CornerRadius.card
+        listContainer.layer?.borderWidth = 0.8
+        listContainer.layer?.borderColor = ColorToken.cardBorder.cgColor
         listContainer.translatesAutoresizingMaskIntoConstraints = false
         mainStack.addArrangedSubview(listContainer)
 
         listContainer.widthAnchor.constraint(equalTo: mainStack.widthAnchor).isActive = true
-        listContainer.heightAnchor.constraint(equalTo: mainStack.heightAnchor, constant: -170).isActive = true
+        topBar.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        cardsStack.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        listContainer.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         let scroll = NSScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
@@ -181,7 +185,8 @@ public final class PluginDoctorDashboardView: NSView,
         issuesTableView = NSTableView()
         issuesTableView.headerView = NSTableHeaderView()
         issuesTableView.rowHeight = 32
-        issuesTableView.usesAlternatingRowBackgroundColors = true
+        issuesTableView.gridStyleMask = .solidHorizontalGridLineMask
+        issuesTableView.usesAlternatingRowBackgroundColors = false
         issuesTableView.dataSource = self
         issuesTableView.delegate = self
 
@@ -218,8 +223,8 @@ public final class PluginDoctorDashboardView: NSView,
         scroll.documentView = issuesTableView
 
         // 5. 空白健康状态占位
-        emptyHintLabel = NSTextField(labelWithString: "🎉 完美状态！未检出任何悬空断链、破损 XML 或缺失贴图。")
-        emptyHintLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        emptyHintLabel = NSTextField(labelWithString: "完美状态！未检出任何悬空断链、破损 XML 或缺失贴图。")
+        emptyHintLabel.font = TypeScale.bodyBold
         emptyHintLabel.textColor = NSColor.systemGreen
         emptyHintLabel.alignment = .center
         emptyHintLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -234,10 +239,10 @@ public final class PluginDoctorDashboardView: NSView,
     private func makeMetricCard(title: String, defaultVal: String, sub: String) -> (NSView, NSTextField, NSTextField) {
         let box = NSView()
         box.wantsLayer = true
-        box.layer?.backgroundColor = NSColor(red: 0.12, green: 0.13, blue: 0.17, alpha: 1.0).cgColor
-        box.layer?.cornerRadius = 8
+        box.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        box.layer?.cornerRadius = CornerRadius.card
         box.layer?.borderWidth = 1.0
-        box.layer?.borderColor = NSColor(white: 0.18, alpha: 1.0).cgColor
+        box.layer?.borderColor = ColorToken.cardBorder.cgColor
 
         let stack = NSStackView()
         stack.orientation = .vertical
@@ -254,17 +259,17 @@ public final class PluginDoctorDashboardView: NSView,
         ])
 
         let titleLbl = NSTextField(labelWithString: title)
-        titleLbl.font = .systemFont(ofSize: 10, weight: .bold)
+        titleLbl.font = TypeScale.captionMedium
         titleLbl.textColor = NSColor(calibratedWhite: 0.55, alpha: 1.0)
         stack.addArrangedSubview(titleLbl)
 
         let valLbl = NSTextField(labelWithString: defaultVal)
-        valLbl.font = .systemFont(ofSize: 18, weight: .heavy)
+        valLbl.font = TypeScale.metricTitle
         valLbl.textColor = .white
         stack.addArrangedSubview(valLbl)
 
         let subLbl = NSTextField(labelWithString: sub)
-        subLbl.font = .systemFont(ofSize: 10)
+        subLbl.font = TypeScale.caption
         subLbl.textColor = NSColor(calibratedWhite: 0.50, alpha: 1.0)
         stack.addArrangedSubview(subLbl)
 

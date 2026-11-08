@@ -97,22 +97,22 @@ public final class StorageMigrationDashboardView: NSView,
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         topBar.addArrangedSubview(spacer)
 
-        refreshButton = NSButton(title: " 刷新", target: self, action: #selector(onRefreshClicked))
+        refreshButton = NSButton(title: "刷新", target: self, action: #selector(onRefreshClicked))
         refreshButton.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "刷新")
         refreshButton.imagePosition = .imageLeading
         refreshButton.bezelStyle = .rounded
         topBar.addArrangedSubview(refreshButton)
 
-        migrateAllButton = NSButton(title: " 一键搬家至外置卷 (0占用)", target: self, action: #selector(onMigrateAllClicked))
-        migrateAllButton.image = NSImage(systemSymbolName: "arrow.up.forward.app.fill", accessibilityDescription: "一键搬家")
+        migrateAllButton = NSButton(title: "迁移至外置卷 (0占用)", target: self, action: #selector(onMigrateAllClicked))
+        migrateAllButton.image = NSImage(systemSymbolName: "arrow.up.forward.app.fill", accessibilityDescription: "迁移")
         migrateAllButton.imagePosition = .imageLeading
         migrateAllButton.bezelStyle = .rounded
         migrateAllButton.wantsLayer = true
-        migrateAllButton.contentTintColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
+        migrateAllButton.contentTintColor = ColorToken.successGreen
         topBar.addArrangedSubview(migrateAllButton)
 
-        restoreAllButton = NSButton(title: " 还原至内置盘", target: self, action: #selector(onRestoreAllClicked))
-        restoreAllButton.image = NSImage(systemSymbolName: "arrow.uturn.backward", accessibilityDescription: "还原")
+        restoreAllButton = NSButton(title: "迁回至内置盘", target: self, action: #selector(onRestoreAllClicked))
+        restoreAllButton.image = NSImage(systemSymbolName: "arrow.uturn.backward", accessibilityDescription: "迁回")
         restoreAllButton.imagePosition = .imageLeading
         restoreAllButton.bezelStyle = .rounded
         topBar.addArrangedSubview(restoreAllButton)
@@ -193,9 +193,10 @@ public final class StorageMigrationDashboardView: NSView,
 
         categoryTableView = NSTableView()
         categoryTableView.headerView = NSTableHeaderView()
-        categoryTableView.rowHeight = 36
+        categoryTableView.rowHeight = 32
         categoryTableView.gridColor = NSColor(calibratedWhite: 0.16, alpha: 1.0)
         categoryTableView.gridStyleMask = [.solidHorizontalGridLineMask]
+        categoryTableView.usesAlternatingRowBackgroundColors = false
         categoryTableView.backgroundColor = NSColor(calibratedRed: 0.09, green: 0.10, blue: 0.12, alpha: 1.0)
 
         let colCategory = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("category"))
@@ -237,10 +238,10 @@ public final class StorageMigrationDashboardView: NSView,
     private func makeMetricCard(title: String, sfSymbol: String) -> (NSView, NSTextField) {
         let card = NSView()
         card.wantsLayer = true
-        card.layer?.backgroundColor = NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.15, alpha: 0.85).cgColor
-        card.layer?.cornerRadius = 8
+        card.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        card.layer?.cornerRadius = CornerRadius.card
         card.layer?.borderWidth = 1.0
-        card.layer?.borderColor = NSColor(white: 1.0, alpha: 0.12).cgColor
+        card.layer?.borderColor = ColorToken.cardBorder.cgColor
 
         let stack = NSStackView()
         stack.orientation = .vertical
@@ -263,21 +264,21 @@ public final class StorageMigrationDashboardView: NSView,
 
         let iconView = NSImageView()
         iconView.image = NSImage(systemSymbolName: sfSymbol, accessibilityDescription: title)
-        iconView.contentTintColor = NSColor(calibratedRed: 0.45, green: 0.72, blue: 1.0, alpha: 0.95)
+        iconView.contentTintColor = ColorToken.accentBlue
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.widthAnchor.constraint(equalToConstant: 14).isActive = true
         iconView.heightAnchor.constraint(equalToConstant: 14).isActive = true
         topRow.addArrangedSubview(iconView)
 
         let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        titleLabel.font = TypeScale.footnoteMedium
         titleLabel.textColor = NSColor(calibratedWhite: 0.65, alpha: 1.0)
         topRow.addArrangedSubview(titleLabel)
 
         stack.addArrangedSubview(topRow)
 
         let valLabel = NSTextField(labelWithString: "—")
-        valLabel.font = .monospacedDigitSystemFont(ofSize: 17, weight: .bold)
+        valLabel.font = TypeScale.metricTitle
         valLabel.textColor = .white
         stack.addArrangedSubview(valLabel)
 

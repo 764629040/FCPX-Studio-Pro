@@ -165,13 +165,13 @@ public final class TeamSyncDashboardView: NSView,
         titleBox.alignment = .leading
         titleBox.spacing = 2
 
-        let title = NSTextField(labelWithString: "🚀 团队资产免流量分发与环境克隆 (Team P2P Sync & Environment Cloner)")
-        title.font = .systemFont(ofSize: 15, weight: .heavy)
+        let title = NSTextField(labelWithString: "团队资产免流量分发与环境克隆 (Team P2P Sync & Environment Cloner)")
+        title.font = TypeScale.bodyBold
         title.textColor = .white
         titleBox.addArrangedSubview(title)
 
         let sub = NSTextField(labelWithString: "基于 Bonjour 局域网自发现与 TCP 直传 · SHA-256 硬件校验 · 生产环境一键打包克隆与秒级部署")
-        sub.font = .systemFont(ofSize: 10)
+        sub.font = TypeScale.footnote
         sub.textColor = NSColor(calibratedWhite: 0.55, alpha: 1.0)
         titleBox.addArrangedSubview(sub)
         topStack.addArrangedSubview(titleBox)
@@ -246,7 +246,9 @@ public final class TeamSyncDashboardView: NSView,
         radarTableView = NSTableView()
         radarTableView.backgroundColor = NSColor(calibratedRed: 0.09, green: 0.10, blue: 0.12, alpha: 1.0)
         radarTableView.headerView = NSTableHeaderView()
-        radarTableView.rowHeight = 28
+        radarTableView.rowHeight = 32
+        radarTableView.gridStyleMask = .solidHorizontalGridLineMask
+        radarTableView.usesAlternatingRowBackgroundColors = false
         radarTableView.dataSource = self
         radarTableView.delegate = self
 
@@ -276,7 +278,7 @@ public final class TeamSyncDashboardView: NSView,
         NSLayoutConstraint.activate([
             tableScroll.leadingAnchor.constraint(equalTo: stack.leadingAnchor),
             tableScroll.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-            tableScroll.heightAnchor.constraint(equalToConstant: 120)
+            tableScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 160)
         ])
 
         return card
@@ -475,7 +477,7 @@ public final class TeamSyncDashboardView: NSView,
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         headerRow.addArrangedSubview(spacer)
 
-        let clearBtn = makeProButton(title: "🗑️ 清空日志", target: self, action: #selector(onClearHistoryClicked))
+        let clearBtn = makeProButton(title: "清空日志", target: self, action: #selector(onClearHistoryClicked))
         headerRow.addArrangedSubview(clearBtn)
         stack.addArrangedSubview(headerRow)
 
@@ -489,7 +491,9 @@ public final class TeamSyncDashboardView: NSView,
         historyTableView = NSTableView()
         historyTableView.backgroundColor = NSColor(calibratedRed: 0.09, green: 0.10, blue: 0.12, alpha: 1.0)
         historyTableView.headerView = NSTableHeaderView()
-        historyTableView.rowHeight = 24
+        historyTableView.rowHeight = 26
+        historyTableView.gridStyleMask = .solidHorizontalGridLineMask
+        historyTableView.usesAlternatingRowBackgroundColors = false
         historyTableView.dataSource = self
         historyTableView.delegate = self
 
@@ -534,7 +538,7 @@ public final class TeamSyncDashboardView: NSView,
         NSLayoutConstraint.activate([
             tableScroll.leadingAnchor.constraint(equalTo: stack.leadingAnchor),
             tableScroll.trailingAnchor.constraint(equalTo: stack.trailingAnchor),
-            tableScroll.heightAnchor.constraint(equalToConstant: 160)
+            tableScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 200)
         ])
 
         return card
@@ -686,8 +690,17 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     @objc private func onClearHistoryClicked() {
-        TeamP2PSyncManager.shared.clearTransferHistory()
-        refreshData()
+        let count = history.count
+        guard count > 0 else { return }
+        let alert = NSAlert()
+        alert.messageText = "清空传输记录"
+        alert.informativeText = "将清空 \(count) 条传输记录，此操作不可撤销。\n是否确认？"
+        alert.addButton(withTitle: "确认清空")
+        alert.addButton(withTitle: "取消")
+        if alert.runModal() == .alertFirstButtonReturn {
+            TeamP2PSyncManager.shared.clearTransferHistory()
+            refreshData()
+        }
     }
 
     // MARK: – TableView DataSource & Delegate
@@ -841,10 +854,10 @@ public final class TeamSyncDashboardView: NSView,
     private func makeCardView(height: CGFloat) -> NSView {
         let card = NSView()
         card.wantsLayer = true
-        card.layer?.backgroundColor = NSColor(calibratedRed: 0.10, green: 0.11, blue: 0.13, alpha: 1.0).cgColor
-        card.layer?.cornerRadius = 8
+        card.layer?.backgroundColor = ColorToken.panelBg.cgColor
+        card.layer?.cornerRadius = CornerRadius.card
         card.layer?.borderWidth = 0.8
-        card.layer?.borderColor = NSColor(calibratedWhite: 0.22, alpha: 1.0).cgColor
+        card.layer?.borderColor = ColorToken.cardBorder.cgColor
         card.translatesAutoresizingMaskIntoConstraints = false
         card.heightAnchor.constraint(equalToConstant: height).isActive = true
         return card
@@ -853,10 +866,10 @@ public final class TeamSyncDashboardView: NSView,
     private func makeSubBox(title: String) -> NSView {
         let v = NSView()
         v.wantsLayer = true
-        v.layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
-        v.layer?.cornerRadius = 6
+        v.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
+        v.layer?.cornerRadius = CornerRadius.card
         v.layer?.borderWidth = 0.6
-        v.layer?.borderColor = NSColor(calibratedWhite: 0.20, alpha: 1.0).cgColor
+        v.layer?.borderColor = ColorToken.cardBorder.cgColor
 
         let t = NSTextField(labelWithString: title)
         t.font = .systemFont(ofSize: 11, weight: .bold)

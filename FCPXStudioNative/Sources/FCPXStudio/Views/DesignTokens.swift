@@ -46,4 +46,12 @@ public enum ColorToken {
     /// 表格与网格底色
     public static let tableRowBg = NSColor(calibratedWhite: 0.12, alpha: 0.6)
     public static let tableAlternateRowBg = NSColor(calibratedWhite: 0.15, alpha: 0.6)
+    
+    /// 面板与侧栏磨砂底色
+    public static let panelBg = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.12, alpha: 0.45)
+    public static let subpanelBg = NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.16, alpha: 0.35)
+    public static let activePillBg = NSColor(calibratedRed: 0.16, green: 0.22, blue: 0.38, alpha: 1.0)
+    public static let successGreen = NSColor(calibratedRed: 0.28, green: 0.86, blue: 0.55, alpha: 1.0)
+    public static let warningAmber = NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.28, alpha: 1.0)
+    public static let alertRed = NSColor(calibratedRed: 1.0, green: 0.45, blue: 0.45, alpha: 1.0)
 }

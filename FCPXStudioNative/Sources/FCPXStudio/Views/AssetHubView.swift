@@ -58,10 +58,10 @@ public final class GroupTableRowView: NSTableRowView {
     public override func drawSelection(in dirtyRect: NSRect) {
         if selectionHighlightStyle != .none {
             let selectionRect = NSInsetRect(bounds, 3, 2)
-            let path = NSBezierPath(roundedRect: selectionRect, xRadius: 6, yRadius: 6)
-            NSColor(calibratedRed: 0.18, green: 0.48, blue: 0.95, alpha: 0.32).setFill()
+            let path = NSBezierPath(roundedRect: selectionRect, xRadius: CornerRadius.card, yRadius: CornerRadius.card)
+            ColorToken.softBlue.setFill()
             path.fill()
-            NSColor(calibratedRed: 0.35, green: 0.65, blue: 1.0, alpha: 0.60).setStroke()
+            ColorToken.accentBlue.setStroke()
             path.lineWidth = 0.5
             path.stroke()
         }
@@ -108,10 +108,10 @@ public final class LicenseStatusCardView: NSView {
 
     private func buildUI() {
         wantsLayer = true
-        layer?.cornerRadius = 8
-        layer?.backgroundColor = NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.16, alpha: 0.50).cgColor
+        layer?.cornerRadius = CornerRadius.card
+        layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         layer?.borderWidth = 0.8
-        layer?.borderColor = NSColor(white: 1.0, alpha: 0.12).cgColor
+        layer?.borderColor = ColorToken.cardBorder.cgColor
 
         let mainStack = NSStackView()
         mainStack.orientation = .vertical
@@ -127,8 +127,8 @@ public final class LicenseStatusCardView: NSView {
         machineRow.spacing = 4
 
         machineCodeLabel = NSTextField(labelWithString: "【机器码】 \(LicenseManager.shared.machineCode)")
-        machineCodeLabel.font = .monospacedSystemFont(ofSize: 9.5, weight: .semibold)
-        machineCodeLabel.textColor = NSColor(calibratedRed: 0.40, green: 0.75, blue: 1.0, alpha: 1.0)
+        machineCodeLabel.font = TypeScale.caption
+        machineCodeLabel.textColor = ColorToken.accentBlue
         machineRow.addArrangedSubview(machineCodeLabel)
 
         copyButton = NSButton(title: "复制", target: self, action: #selector(onCopyMachineCode))
@@ -136,8 +136,8 @@ public final class LicenseStatusCardView: NSView {
         copyButton.imagePosition = .imageLeading
         copyButton.bezelStyle = .inline
         copyButton.isBordered = false
-        copyButton.font = .systemFont(ofSize: 9.0, weight: .medium)
-        copyButton.contentTintColor = NSColor(calibratedRed: 0.60, green: 0.85, blue: 1.0, alpha: 1.0)
+        copyButton.font = TypeScale.caption
+        copyButton.contentTintColor = ColorToken.accentBlue
         copyButton.toolTip = "一键复制机器唯一码到剪贴板"
         machineRow.addArrangedSubview(copyButton)
 
@@ -150,19 +150,19 @@ public final class LicenseStatusCardView: NSView {
         statusRow.spacing = 6
 
         statusBadgeLabel = NSTextField(labelWithString: "")
-        statusBadgeLabel.font = .systemFont(ofSize: 9.5, weight: .bold)
+        statusBadgeLabel.font = TypeScale.captionMedium
         statusRow.addArrangedSubview(statusBadgeLabel)
 
-        toggleActionButton = NSButton(title: "🔑 激活", target: self, action: #selector(onToggleActionClicked))
+        toggleActionButton = NSButton(title: "激活", target: self, action: #selector(onToggleActionClicked))
         toggleActionButton.bezelStyle = .roundRect
-        toggleActionButton.font = .systemFont(ofSize: 9.5, weight: .bold)
+        toggleActionButton.font = TypeScale.captionMedium
         statusRow.addArrangedSubview(toggleActionButton)
 
         mainStack.addArrangedSubview(statusRow)
 
         // 3. FCPX 版本检测与用时
         fcpxVersionLabel = NSTextField(labelWithString: "Final Cut Pro 检测就绪")
-        fcpxVersionLabel.font = .systemFont(ofSize: 9.0, weight: .regular)
+        fcpxVersionLabel.font = TypeScale.caption
         fcpxVersionLabel.textColor = NSColor(calibratedWhite: 0.75, alpha: 1.0)
         mainStack.addArrangedSubview(fcpxVersionLabel)
 
@@ -174,10 +174,10 @@ public final class LicenseStatusCardView: NSView {
         // 4. 内嵌轻量输入激活面板
         drawerBox = NSView()
         drawerBox.wantsLayer = true
-        drawerBox.layer?.cornerRadius = 6
-        drawerBox.layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.14, alpha: 0.65).cgColor
+        drawerBox.layer?.cornerRadius = CornerRadius.card
+        drawerBox.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         drawerBox.layer?.borderWidth = 0.5
-        drawerBox.layer?.borderColor = NSColor(calibratedRed: 0.25, green: 0.45, blue: 0.75, alpha: 0.50).cgColor
+        drawerBox.layer?.borderColor = ColorToken.accentBlue.withAlphaComponent(0.5).cgColor
         drawerBox.isHidden = true
         drawerBox.translatesAutoresizingMaskIntoConstraints = false
 
@@ -209,19 +209,19 @@ public final class LicenseStatusCardView: NSView {
 
         confirmActivateBtn = NSButton(title: "立即激活", target: self, action: #selector(onConfirmActivateClicked))
         confirmActivateBtn.bezelStyle = .roundRect
-        confirmActivateBtn.font = .systemFont(ofSize: 9.5, weight: .bold)
+        confirmActivateBtn.font = TypeScale.captionMedium
         drawerBtnRow.addArrangedSubview(confirmActivateBtn)
 
         let cancelBtn = NSButton(title: "收起", target: self, action: #selector(onCancelDrawerClicked))
         cancelBtn.bezelStyle = .roundRect
-        cancelBtn.font = .systemFont(ofSize: 9.5)
+        cancelBtn.font = TypeScale.caption
         drawerBtnRow.addArrangedSubview(cancelBtn)
 
         drawerStack.addArrangedSubview(drawerBtnRow)
 
         messageLabel = NSTextField(labelWithString: "")
-        messageLabel.font = .systemFont(ofSize: 8.5)
-        messageLabel.textColor = NSColor(calibratedRed: 1.0, green: 0.45, blue: 0.45, alpha: 1.0)
+        messageLabel.font = TypeScale.caption
+        messageLabel.textColor = ColorToken.alertRed
         drawerStack.addArrangedSubview(messageLabel)
 
         mainStack.addArrangedSubview(drawerBox)
@@ -249,7 +249,7 @@ public final class LicenseStatusCardView: NSView {
         machineCodeLabel.stringValue = "【机器码】 \(LicenseManager.shared.machineCode)"
         if LicenseManager.shared.isProLicensed {
             statusBadgeLabel.stringValue = "永久商用授权"
-            statusBadgeLabel.textColor = NSColor(calibratedRed: 0.30, green: 0.90, blue: 0.50, alpha: 1.0)
+            statusBadgeLabel.textColor = ColorToken.successGreen
             toggleActionButton.title = "已授权"
             toggleActionButton.toolTip = "当前已拥有全量商业旗舰版授权"
             if isDrawerExpanded {
@@ -257,7 +257,7 @@ public final class LicenseStatusCardView: NSView {
             }
         } else {
             statusBadgeLabel.stringValue = "试用体验版"
-            statusBadgeLabel.textColor = NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.28, alpha: 1.0)
+            statusBadgeLabel.textColor = ColorToken.warningAmber
             toggleActionButton.title = "激活"
             toggleActionButton.toolTip = "输入商业授权代码解锁全量功能"
         }
@@ -528,7 +528,7 @@ public final class AssetHubView: NSVisualEffectView,
         blendingMode = .behindWindow
         state = .active
         appearance = NSAppearance(named: .darkAqua)
-        layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.11, alpha: 0.35).cgColor
+        layer?.backgroundColor = ColorToken.panelBg.cgColor
         registerForDraggedTypes([.fileURL])
 
         // 兼容原测试/控制器的顶栏分段控制器（隐藏桥接保留契约）
@@ -551,7 +551,7 @@ public final class AssetHubView: NSVisualEffectView,
         sidebarVEV.appearance = NSAppearance(named: .darkAqua)
         sidebarVEV.wantsLayer = true
         sidebarVEV.layer?.borderWidth = 1.0
-        sidebarVEV.layer?.borderColor = NSColor(white: 1.0, alpha: 0.10).cgColor
+        sidebarVEV.layer?.borderColor = ColorToken.cardBorder.cgColor
         sidebarVEV.translatesAutoresizingMaskIntoConstraints = false
         sidebarView = sidebarVEV
         addSubview(sidebarView)
@@ -606,8 +606,8 @@ public final class AssetHubView: NSVisualEffectView,
         brandBox.spacing = 4
 
         let brandTitle = NSTextField(labelWithString: "✦ FCPX STUDIO PRO")
-        brandTitle.font = .systemFont(ofSize: 13.5, weight: .heavy)
-        brandTitle.textColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 1.0, alpha: 1.0)
+        brandTitle.font = TypeScale.bodyBold
+        brandTitle.textColor = ColorToken.accentBlue
         brandBox.addArrangedSubview(brandTitle)
 
         let brandSub = NSTextField(labelWithString: "专业模板与性能工作站")
@@ -654,24 +654,24 @@ public final class AssetHubView: NSVisualEffectView,
         // 底部外置移动硬盘挂载指示栏 (R52 椭圆胶囊 Pill Shape, cornerRadius = 22, height = 44)
         let footerBox = NSView()
         footerBox.wantsLayer = true
-        footerBox.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.14, blue: 0.18, alpha: 0.45).cgColor
-        footerBox.layer?.cornerRadius = 22
+        footerBox.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
+        footerBox.layer?.cornerRadius = CornerRadius.capsule
         footerBox.layer?.borderWidth = 0.8
-        footerBox.layer?.borderColor = NSColor(white: 1.0, alpha: 0.12).cgColor
+        footerBox.layer?.borderColor = ColorToken.cardBorder.cgColor
         footerBox.translatesAutoresizingMaskIntoConstraints = false
         sidebarView.addSubview(footerBox)
 
         let driveIconView = NSImageView()
         driveIconView.image = NSImage(systemSymbolName: "externaldrive.fill", accessibilityDescription: "外置存储")
-        driveIconView.contentTintColor = NSColor(calibratedRed: 0.28, green: 0.86, blue: 0.55, alpha: 1.0)
+        driveIconView.contentTintColor = ColorToken.successGreen
         driveIconView.translatesAutoresizingMaskIntoConstraints = false
         footerBox.addSubview(driveIconView)
 
         let breathingDot = NSView()
         breathingDot.wantsLayer = true
-        breathingDot.layer?.cornerRadius = 3.5
-        breathingDot.layer?.backgroundColor = NSColor(calibratedRed: 0.28, green: 0.88, blue: 0.55, alpha: 1.0).cgColor
-        breathingDot.layer?.shadowColor = NSColor(calibratedRed: 0.28, green: 0.88, blue: 0.55, alpha: 0.8).cgColor
+        breathingDot.layer?.cornerRadius = CornerRadius.badge
+        breathingDot.layer?.backgroundColor = ColorToken.successGreen.cgColor
+        breathingDot.layer?.shadowColor = ColorToken.successGreen.withAlphaComponent(0.8).cgColor
         breathingDot.layer?.shadowRadius = 4.0
         breathingDot.layer?.shadowOpacity = 1.0
         breathingDot.layer?.shadowOffset = .zero
@@ -744,12 +744,12 @@ public final class AssetHubView: NSVisualEffectView,
         btn.bezelStyle = .regularSquare
         btn.isBordered = false
         btn.wantsLayer = true
-        btn.layer?.cornerRadius = 6
+        btn.layer?.cornerRadius = CornerRadius.card
         btn.alignment = .left
         btn.image = NSImage(systemSymbolName: icon, accessibilityDescription: title)
         btn.imagePosition = .imageLeading
         btn.imageScaling = .scaleProportionallyDown
-        btn.font = .systemFont(ofSize: 12, weight: .medium)
+        btn.font = TypeScale.body
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.heightAnchor.constraint(equalToConstant: 32).isActive = true
         btn.widthAnchor.constraint(equalToConstant: 190).isActive = true
@@ -799,8 +799,8 @@ public final class AssetHubView: NSVisualEffectView,
     private func updateSidebarSelection() {
         for btn in sidebarButtons {
             if btn.tag == currentSidebarIndex {
-                btn.layer?.backgroundColor = NSColor(calibratedRed: 0.16, green: 0.22, blue: 0.38, alpha: 1.0).cgColor
-                btn.contentTintColor = NSColor(calibratedRed: 0.45, green: 0.75, blue: 1.0, alpha: 1.0)
+                btn.layer?.backgroundColor = ColorToken.activePillBg.cgColor
+                btn.contentTintColor = ColorToken.accentBlue
             } else {
                 btn.layer?.backgroundColor = NSColor.clear.cgColor
                 btn.contentTintColor = NSColor(calibratedWhite: 0.82, alpha: 1.0)
@@ -906,18 +906,18 @@ public final class AssetHubView: NSVisualEffectView,
         // ═══════════════════════════════════════════════════════════
         middleColumnView = NSView()
         middleColumnView.wantsLayer = true
-        middleColumnView.layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.12, alpha: 0.45).cgColor
+        middleColumnView.layer?.backgroundColor = ColorToken.panelBg.cgColor
         middleColumnView.layer?.borderWidth = 0.5
-        middleColumnView.layer?.borderColor = NSColor(white: 1.0, alpha: 0.08).cgColor
+        middleColumnView.layer?.borderColor = ColorToken.cardBorder.cgColor
         middleColumnView.translatesAutoresizingMaskIntoConstraints = false
         templateContainerView.addSubview(middleColumnView)
 
         // 1. 顶部分类切换胶囊（字幕、发生器、效果、转场）
         let capsuleBar = NSView()
         capsuleBar.wantsLayer = true
-        capsuleBar.layer?.backgroundColor = NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.16, alpha: 0.35).cgColor
+        capsuleBar.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         capsuleBar.layer?.borderWidth = 0.5
-        capsuleBar.layer?.borderColor = NSColor(white: 1.0, alpha: 0.06).cgColor
+        capsuleBar.layer?.borderColor = ColorToken.cardBorder.cgColor
         capsuleBar.translatesAutoresizingMaskIntoConstraints = false
         middleColumnView.addSubview(capsuleBar)
 
@@ -929,16 +929,16 @@ public final class AssetHubView: NSVisualEffectView,
         )
         categoryCapsuleControl.selectedSegment = 0
         categoryCapsuleControl.segmentStyle = .capsule
-        categoryCapsuleControl.font = .systemFont(ofSize: 11, weight: .semibold)
+        categoryCapsuleControl.font = TypeScale.footnoteMedium
         categoryCapsuleControl.translatesAutoresizingMaskIntoConstraints = false
         capsuleBar.addSubview(categoryCapsuleControl)
 
         // 2. 分组操作工具栏（访达、重命名、删除、新建）
         groupToolbarView = NSView()
         groupToolbarView.wantsLayer = true
-        groupToolbarView.layer?.backgroundColor = NSColor(calibratedRed: 0.09, green: 0.11, blue: 0.14, alpha: 0.35).cgColor
+        groupToolbarView.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         groupToolbarView.layer?.borderWidth = 0.5
-        groupToolbarView.layer?.borderColor = NSColor(white: 1.0, alpha: 0.06).cgColor
+        groupToolbarView.layer?.borderColor = ColorToken.cardBorder.cgColor
         groupToolbarView.translatesAutoresizingMaskIntoConstraints = false
         middleColumnView.addSubview(groupToolbarView)
 
@@ -1054,7 +1054,7 @@ public final class AssetHubView: NSVisualEffectView,
         // ═══════════════════════════════════════════════════════════
         rightColumnView = NSView()
         rightColumnView.wantsLayer = true
-        rightColumnView.layer?.backgroundColor = NSColor(calibratedRed: 0.07, green: 0.08, blue: 0.10, alpha: 0.35).cgColor
+        rightColumnView.layer?.backgroundColor = ColorToken.panelBg.cgColor
         rightColumnView.translatesAutoresizingMaskIntoConstraints = false
         templateContainerView.addSubview(rightColumnView)
 
@@ -1068,9 +1068,9 @@ public final class AssetHubView: NSVisualEffectView,
         // 1. 顶部面包屑 (Breadcrumb: 高度 44pt)
         let breadcrumbBar = NSView()
         breadcrumbBar.wantsLayer = true
-        breadcrumbBar.layer?.backgroundColor = NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.16, alpha: 0.35).cgColor
+        breadcrumbBar.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         breadcrumbBar.layer?.borderWidth = 0.5
-        breadcrumbBar.layer?.borderColor = NSColor(white: 1.0, alpha: 0.06).cgColor
+        breadcrumbBar.layer?.borderColor = ColorToken.cardBorder.cgColor
         breadcrumbBar.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(breadcrumbBar)
 
@@ -1087,9 +1087,9 @@ public final class AssetHubView: NSVisualEffectView,
         // 2. 批量操作工具栏 (Batch Toolbar: 高度 34pt)
         rightToolbarView = NSView()
         rightToolbarView.wantsLayer = true
-        rightToolbarView.layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.13, alpha: 0.35).cgColor
+        rightToolbarView.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
         rightToolbarView.layer?.borderWidth = 0.5
-        rightToolbarView.layer?.borderColor = NSColor(white: 1.0, alpha: 0.06).cgColor
+        rightToolbarView.layer?.borderColor = ColorToken.cardBorder.cgColor
         rightToolbarView.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(rightToolbarView)
 
@@ -1248,7 +1248,7 @@ public final class AssetHubView: NSVisualEffectView,
         pluginTableView = NSTableView(frame: NSRect(x: 0, y: 0, width: 900, height: 400))
         pluginTableView.autoresizingMask = [.width, .height]
         pluginTableView.usesAlternatingRowBackgroundColors = false
-        pluginTableView.backgroundColor = NSColor(calibratedRed: 0.06, green: 0.07, blue: 0.08, alpha: 1)
+        pluginTableView.backgroundColor = .clear
 
         let colName = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("name"))
         colName.title = "模板名称"
@@ -1388,12 +1388,16 @@ public final class AssetHubView: NSVisualEffectView,
             dropStack.centerYAnchor.constraint(equalTo: dropOverlayView.centerYAnchor)
         ])
 
-        let iconLabel = NSTextField(labelWithString: "📦")
-        iconLabel.font = .systemFont(ofSize: 44)
-        dropStack.addArrangedSubview(iconLabel)
+        let iconView = NSImageView()
+        iconView.image = NSImage(systemSymbolName: "shippingbox.fill", accessibilityDescription: nil)
+        iconView.contentTintColor = ColorToken.accentBlue
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        iconView.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        dropStack.addArrangedSubview(iconView)
 
         let titleLabel = NSTextField(labelWithString: "释放以自动安装至当前分类")
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
+        titleLabel.font = TypeScale.metricTitle
         titleLabel.textColor = .white
         dropStack.addArrangedSubview(titleLabel)
 
@@ -1819,13 +1823,13 @@ public final class AssetHubView: NSVisualEffectView,
             btnMore.bezelStyle = .regularSquare
             btnMore.isBordered = false
             btnMore.wantsLayer = true
-            btnMore.layer?.cornerRadius = 14
+            btnMore.layer?.cornerRadius = CornerRadius.capsule
             btnMore.layer?.masksToBounds = true
-            btnMore.layer?.backgroundColor = NSColor(calibratedRed: 0.14, green: 0.22, blue: 0.36, alpha: 0.9).cgColor
-            btnMore.layer?.borderColor = NSColor(calibratedRed: 0.28, green: 0.48, blue: 0.78, alpha: 0.8).cgColor
+            btnMore.layer?.backgroundColor = ColorToken.activePillBg.cgColor
+            btnMore.layer?.borderColor = ColorToken.accentBlue.cgColor
             btnMore.layer?.borderWidth = 1.0
-            btnMore.font = .systemFont(ofSize: 12, weight: .bold)
-            btnMore.contentTintColor = NSColor(calibratedRed: 0.55, green: 0.82, blue: 1.0, alpha: 1.0)
+            btnMore.font = TypeScale.bodyBold
+            btnMore.contentTintColor = ColorToken.accentBlue
             btnMore.translatesAutoresizingMaskIntoConstraints = false
             btnMore.heightAnchor.constraint(equalToConstant: 32).isActive = true
             btnMore.widthAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
@@ -1838,12 +1842,12 @@ public final class AssetHubView: NSVisualEffectView,
             btnAll.bezelStyle = .regularSquare
             btnAll.isBordered = false
             btnAll.wantsLayer = true
-            btnAll.layer?.cornerRadius = 14
+            btnAll.layer?.cornerRadius = CornerRadius.capsule
             btnAll.layer?.masksToBounds = true
             btnAll.layer?.backgroundColor = NSColor(calibratedWhite: 0.16, alpha: 0.9).cgColor
             btnAll.layer?.borderColor = NSColor(calibratedWhite: 0.28, alpha: 0.8).cgColor
             btnAll.layer?.borderWidth = 1.0
-            btnAll.font = .systemFont(ofSize: 12, weight: .medium)
+            btnAll.font = TypeScale.footnoteMedium
             btnAll.contentTintColor = NSColor(calibratedWhite: 0.85, alpha: 1.0)
             btnAll.translatesAutoresizingMaskIntoConstraints = false
             btnAll.heightAnchor.constraint(equalToConstant: 32).isActive = true
@@ -2110,7 +2114,7 @@ public final class AssetHubView: NSVisualEffectView,
             TemplateMigrator.handleVolumeEvent(volumePath: vol.path, isMounted: true)
         }
         refreshList()
-        showAlert(title: "磁盘状态检测", message: "已触发外置存储挂载探测，素材状态已刷新。")
+        showAlert(title: "磁盘状态检测", message: "已触发外置存储挂载探测，模板状态已刷新。")
     }
 
     @objc private func onCardDeleteMenu(_ sender: NSMenuItem) {
@@ -2277,8 +2281,8 @@ public final class AssetHubView: NSVisualEffectView,
         lutToolbar.translatesAutoresizingMaskIntoConstraints = false
         lutContainerView.addSubview(lutToolbar)
 
-        let titleLabel = NSTextField(labelWithString: "🎞️ 3D LUT 调色引擎")
-        titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
+        let titleLabel = NSTextField(labelWithString: "3D LUT 调色引擎")
+        titleLabel.font = TypeScale.bodyBold
         titleLabel.textColor = .white
         lutToolbar.addArrangedSubview(titleLabel)
 
@@ -2412,8 +2416,8 @@ public final class AssetHubView: NSVisualEffectView,
         audioToolbar.translatesAutoresizingMaskIntoConstraints = false
         audioContainerView.addSubview(audioToolbar)
 
-        let titleLabel = NSTextField(labelWithString: "🎵 影视级音效库")
-        titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
+        let titleLabel = NSTextField(labelWithString: "影视级音效库")
+        titleLabel.font = TypeScale.bodyBold
         titleLabel.textColor = .white
         audioToolbar.addArrangedSubview(titleLabel)
 
@@ -2496,12 +2500,12 @@ public final class AssetHubView: NSVisualEffectView,
         ])
 
         audioTitleLabel = NSTextField(labelWithString: "未选定音效")
-        audioTitleLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        audioTitleLabel.font = TypeScale.metricTitle
         audioTitleLabel.textColor = .white
         cardStack.addArrangedSubview(audioTitleLabel)
 
         audioMetaLabel = NSTextField(labelWithString: "请在左侧列表中点击选择要试听的音效条目")
-        audioMetaLabel.font = .systemFont(ofSize: 12)
+        audioMetaLabel.font = TypeScale.footnote
         audioMetaLabel.textColor = NSColor(calibratedWhite: 0.7, alpha: 1.0)
         cardStack.addArrangedSubview(audioMetaLabel)
 
@@ -2520,12 +2524,13 @@ public final class AssetHubView: NSVisualEffectView,
         ctrlBox.orientation = .horizontal
         ctrlBox.spacing = 12
 
-        audioPlayBtn = NSButton(title: "▶ 试听播放", target: self, action: #selector(onAudioPlayToggle))
+        audioPlayBtn = NSButton(title: "试听播放", target: self, action: #selector(onAudioPlayToggle))
         audioPlayBtn.bezelStyle = .rounded
-        audioPlayBtn.font = .systemFont(ofSize: 12, weight: .bold)
+        audioPlayBtn.font = TypeScale.bodyBold
+        audioPlayBtn.toolTip = "请先在左侧选择一条音效"
         ctrlBox.addArrangedSubview(audioPlayBtn)
 
-        audioStopBtn = NSButton(title: "⏹ 停止", target: self, action: #selector(onAudioStopClicked))
+        audioStopBtn = NSButton(title: "停止", target: self, action: #selector(onAudioStopClicked))
         audioStopBtn.bezelStyle = .rounded
         ctrlBox.addArrangedSubview(audioStopBtn)
 
@@ -2871,7 +2876,7 @@ public final class AssetHubView: NSVisualEffectView,
     @objc public func onAudioPlayToggle() {
         if AudioManager.shared.isPlaying {
             AudioManager.shared.pause()
-            audioPlayBtn?.title = "▶ 播放"
+            audioPlayBtn?.title = "播放"
         } else {
             if let item = selectedAudioItem {
                 playAudioItem(item)
@@ -2901,16 +2906,16 @@ public final class AssetHubView: NSVisualEffectView,
                 self.audioTimeLabel?.stringValue = String(format: "%02d:%02d.%01d / %02d:%02d.%01d", curM, curS, curMs, totM, totS, totMs)
             },
             onFinish: { [weak self] in
-                self?.audioPlayBtn?.title = "▶ 试听播放"
+                self?.audioPlayBtn?.title = "试听播放"
                 self?.audioWaveformView?.playbackProgress = 0.0
             }
         )
-        audioPlayBtn?.title = "⏸ 暂停"
+        audioPlayBtn?.title = "暂停"
     }
 
     @objc public func onAudioStopClicked() {
         AudioManager.shared.stop()
-        audioPlayBtn?.title = "▶ 试听播放"
+        audioPlayBtn?.title = "试听播放"
         audioWaveformView?.playbackProgress = 0.0
         if let item = selectedAudioItem {
             audioTimeLabel?.stringValue = "00:00.0 / \(item.durationFormatted)"
@@ -3402,11 +3407,11 @@ public final class AssetHubView: NSVisualEffectView,
             btn.bezelStyle = .regularSquare
             btn.isBordered = false
             btn.wantsLayer = true
-            btn.layer?.cornerRadius = 12
+            btn.layer?.cornerRadius = CornerRadius.capsule
             btn.layer?.masksToBounds = true
-            btn.font = .systemFont(ofSize: 11, weight: isSelected ? .bold : .medium)
+            btn.font = isSelected ? TypeScale.footnoteMedium : TypeScale.footnote
             if isSelected {
-                btn.layer?.backgroundColor = NSColor(calibratedRed: 0.20, green: 0.38, blue: 0.68, alpha: 1.0).cgColor
+                btn.layer?.backgroundColor = ColorToken.primaryBlue.cgColor
                 btn.contentTintColor = .white
             } else {
                 btn.layer?.backgroundColor = NSColor(calibratedWhite: 0.14, alpha: 1.0).cgColor
@@ -3430,9 +3435,9 @@ public final class AssetHubView: NSVisualEffectView,
     public func updateSubCategoryFilterBarSelection() {
         for btn in subCategoryButtons {
             let isSelected = (btn.identifier?.rawValue == currentSubCategoryFilter)
-            btn.font = .systemFont(ofSize: 11, weight: isSelected ? .bold : .medium)
+            btn.font = isSelected ? TypeScale.footnoteMedium : TypeScale.footnote
             if isSelected {
-                btn.layer?.backgroundColor = NSColor(calibratedRed: 0.20, green: 0.38, blue: 0.68, alpha: 1.0).cgColor
+                btn.layer?.backgroundColor = ColorToken.primaryBlue.cgColor
                 btn.contentTintColor = .white
             } else {
                 btn.layer?.backgroundColor = NSColor(calibratedWhite: 0.14, alpha: 1.0).cgColor
@@ -3736,7 +3741,7 @@ public final class AssetHubView: NSVisualEffectView,
             switch colId {
             case "groupName":
                 label.stringValue = grp.name
-                label.font = .systemFont(ofSize: 12, weight: isSel ? .bold : .medium)
+                label.font = isSel ? TypeScale.bodyBold : TypeScale.body
                 label.textColor = isSel ? .white : NSColor(calibratedWhite: 0.90, alpha: 1.0)
                 label.cell?.lineBreakMode = .byTruncatingTail
                 NSLayoutConstraint.activate([
@@ -3747,7 +3752,7 @@ public final class AssetHubView: NSVisualEffectView,
             case "groupCount":
                 label.stringValue = "\(grp.count)"
                 label.font = .monospacedDigitSystemFont(ofSize: 11, weight: isSel ? .bold : .regular)
-                label.textColor = isSel ? NSColor(calibratedRed: 0.38, green: 0.82, blue: 1.0, alpha: 1.0) : NSColor(calibratedWhite: 0.65, alpha: 1.0)
+                label.textColor = isSel ? ColorToken.accentBlue : NSColor(calibratedWhite: 0.65, alpha: 1.0)
                 label.alignment = .center
                 NSLayoutConstraint.activate([
                     label.leadingAnchor.constraint(equalTo: cellView.leadingAnchor),
@@ -3774,8 +3779,8 @@ public final class AssetHubView: NSVisualEffectView,
                     }
                 }()
                 label.stringValue = tierBadge + (isSel ? " ▶" : "")
-                label.font = .systemFont(ofSize: 10.5, weight: isSel ? .bold : .regular)
-                label.textColor = isSel ? NSColor(calibratedRed: 0.40, green: 0.85, blue: 1.0, alpha: 1.0) : NSColor(calibratedWhite: 0.70, alpha: 1.0)
+                label.font = TypeScale.caption
+                label.textColor = isSel ? ColorToken.accentBlue : NSColor(calibratedWhite: 0.70, alpha: 1.0)
                 label.alignment = .center
                 NSLayoutConstraint.activate([
                     label.leadingAnchor.constraint(equalTo: cellView.leadingAnchor),
@@ -3838,7 +3843,7 @@ public final class AssetHubView: NSVisualEffectView,
             } else {
                 cell.stringValue = p.name
             }
-            cell.font = .systemFont(ofSize: 12, weight: .bold)
+            cell.font = TypeScale.bodyBold
             cell.textColor = p.isEnabled ? .white : NSColor(calibratedWhite: 0.5, alpha: 1.0)
             cell.toolTip = p.path
             return cell
@@ -3864,7 +3869,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         case "tier":
             let cell = NSTextField(labelWithString: p.tier.badgeText)
-            cell.font = .systemFont(ofSize: 12, weight: .medium)
+            cell.font = TypeScale.footnoteMedium
             cell.toolTip = p.path
             return cell
 

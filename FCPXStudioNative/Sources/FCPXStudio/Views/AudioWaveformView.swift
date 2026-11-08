@@ -100,6 +100,20 @@ public final class AudioWaveformView: NSView {
         let targetBounds = bounds
         guard targetBounds.width > 0, targetBounds.height > 0 else { return }
 
+        // UI-G040: amplitudes 为空时居中显示"无音频数据"，不绘制误导性中心线
+        if amplitudes.isEmpty {
+            let emptyText = "无音频数据"
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: TypeScale.footnote,
+                .foregroundColor: NSColor(calibratedWhite: 0.45, alpha: 1.0)
+            ]
+            let strSize = (emptyText as NSString).size(withAttributes: attrs)
+            let drawPoint = NSPoint(x: (targetBounds.width - strSize.width) / 2.0,
+                                    y: (targetBounds.height - strSize.height) / 2.0)
+            (emptyText as NSString).draw(at: drawPoint, withAttributes: attrs)
+            return
+        }
+
         let midY = targetBounds.midY
         let maxHeight = (targetBounds.height - 12) / 2.0
 
