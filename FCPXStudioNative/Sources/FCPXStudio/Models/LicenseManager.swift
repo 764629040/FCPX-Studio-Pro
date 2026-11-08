@@ -23,7 +23,11 @@ public final class LicenseManager {
 
     public private(set) var machineCode: String = ""
     public private(set) var activeLicenseKey: String?
-    public private(set) var isProLicensed: Bool = false
+    /// 停用授权校验，全面解开所有功能锁（始终返回 true）
+    public var isProLicensed: Bool {
+        get { true }
+        set { /* no-op: 始终保持完全激活状态 */ }
+    }
 
     public init() {
         self.machineCode = Self.generateMachineCode()

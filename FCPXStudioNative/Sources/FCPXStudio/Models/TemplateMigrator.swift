@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 
 // ═══════════════════════════════════════════════════════════════
@@ -91,8 +90,6 @@ public final class TemplateMigrator {
 
     private static let lock = NSRecursiveLock()
     private static var _offlineVolumes: Set<String> = []
-    private static var isMonitoring: Bool = false
-    private static var observerTokens: [Any] = []
 
     /// 当前系统已记录的离线卷集合
     public static var offlineVolumes: Set<String> {
@@ -113,58 +110,21 @@ public final class TemplateMigrator {
         set { Self.offlineVolumes = newValue }
     }
 
-    public init() {
-        Self.startMonitoringVolumes()
-    }
+    /// 纯初始化，杜绝隐式启动监听副作用
+    public init() {}
 
-    /// 启动卷挂载/卸载监听（通过 NSWorkspace.shared.notificationCenter）
+    /// 显式幂等启动卷挂载/卸载监听（桥接至 Sockets 层 VolumeMonitor）
     public static func startMonitoringVolumes() {
-        lock.lock()
-        defer { lock.unlock() }
-        guard !isMonitoring else { return }
-        isMonitoring = true
-
-        let center = NSWorkspace.shared.notificationCenter
-        let unmountToken = center.addObserver(
-            forName: NSWorkspace.didUnmountNotification,
-            object: nil,
-            queue: .main
-        ) { notification in
-            handleVolumeNotification(notification, isMounted: false)
-        }
-
-        let mountToken = center.addObserver(
-            forName: NSWorkspace.didMountNotification,
-            object: nil,
-            queue: .main
-        ) { notification in
-            handleVolumeNotification(notification, isMounted: true)
-        }
-
-        observerTokens = [unmountToken, mountToken]
+        VolumeMonitor.shared.startMonitoring()
     }
 
     public func startMonitoringVolumes() {
         Self.startMonitoringVolumes()
     }
 
-    private static func extractVolumePath(from notification: Notification) -> String? {
-        if let url = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL {
-            return (url.path as NSString).standardizingPath
-        }
-        if let urlStr = notification.userInfo?["NSWorkspaceVolumeURLUserInfoKey"] as? URL {
-            return (urlStr.path as NSString).standardizingPath
-        }
-        if let path = notification.userInfo?["NSDevicePath"] as? String {
-            return (path as NSString).standardizingPath
-        }
-        return nil
-    }
-
-    private static func handleVolumeNotification(_ notification: Notification, isMounted: Bool) {
-        guard let volumePath = extractVolumePath(from: notification) else { return }
+    /// 接收 VolumeMonitor 桥接转发的卷事件并更新状态
+    public static func handleVolumeEvent(volumePath: String, isMounted: Bool) {
         let normPath = (volumePath as NSString).standardizingPath
-
         lock.lock()
         if isMounted {
             _offlineVolumes.remove(normPath)
@@ -177,9 +137,10 @@ public final class TemplateMigrator {
         postVolumeChange(volumePath: normPath, isMounted: isMounted, affectedCount: count)
     }
 
-    /// 广播卷状态变更通知，userInfo 包含卷信息与受影响模板数量
+    /// 广播卷状态变更通知，userInfo 包含卷信息、UUID 与受影响模板数量
     public static func postVolumeChange(volumePath: String, isMounted: Bool, affectedCount: Int) {
         let normPath = (volumePath as NSString).standardizingPath
+        TemplateItem.invalidateVolumeUUIDCache(for: normPath)
         lock.lock()
         if isMounted {
             _offlineVolumes.remove(normPath)
@@ -189,13 +150,17 @@ public final class TemplateMigrator {
         lock.unlock()
 
         let volName = (normPath as NSString).lastPathComponent
-        let userInfo: [String: Any] = [
+        let volumeUUID = isMounted ? TemplateItem.getVolumeUUID(for: normPath) : nil
+        var userInfo: [String: Any] = [
             TemplateMigrator.volumePathUserInfoKey: normPath,
             TemplateMigrator.isMountedUserInfoKey: isMounted,
             TemplateMigrator.affectedCountUserInfoKey: affectedCount,
             "volumeName": volName,
             "isOffline": !isMounted
         ]
+        if let uuid = volumeUUID {
+            userInfo["volumeUUID"] = uuid
+        }
         NotificationCenter.default.post(
             name: TemplateMigrator.volumeStatusDidChangeNotification,
             object: nil,
@@ -229,6 +194,13 @@ public final class TemplateMigrator {
 
         if let tp = targetPath {
             let normalizedTarget = (tp as NSString).standardizingPath
+            for vol in currentOffline {
+                if normalizedTarget == vol || normalizedTarget.hasPrefix(vol + "/") {
+                    return true
+                }
+            }
+        } else if let dest = try? FileManager.default.destinationOfSymbolicLink(atPath: normalizedPath) {
+            let normalizedTarget = (dest as NSString).standardizingPath
             for vol in currentOffline {
                 if normalizedTarget == vol || normalizedTarget.hasPrefix(vol + "/") {
                     return true

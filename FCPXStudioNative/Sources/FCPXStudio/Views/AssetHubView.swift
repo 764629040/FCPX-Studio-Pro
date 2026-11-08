@@ -485,6 +485,7 @@ public final class AssetHubView: NSVisualEffectView,
     // MARK: – Init
     public override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
+        migrator.startMonitoringVolumes()
         setupUI()
         refreshList()
         NotificationCenter.default.addObserver(self, selector: #selector(onPolicyChanged),
@@ -495,6 +496,7 @@ public final class AssetHubView: NSVisualEffectView,
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
+        migrator.startMonitoringVolumes()
         setupUI()
         refreshList()
         NotificationCenter.default.addObserver(self, selector: #selector(onPolicyChanged),
@@ -612,15 +614,15 @@ public final class AssetHubView: NSVisualEffectView,
         brandSub.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         brandBox.addArrangedSubview(brandSub)
 
-        // R52 品牌商用授权看板卡片（机器唯一码、一键复制、激活按钮与内嵌轻量输入激活面板）
+        // R52 品牌商用授权看板卡片（保留实例以防已有代码调用发生 nil 崩溃，但设为 hidden 且不上屏）
         licenseCardView = LicenseStatusCardView()
+        licenseCardView.isHidden = true
         licenseCardView.translatesAutoresizingMaskIntoConstraints = false
         licenseCardView.widthAnchor.constraint(equalToConstant: 200).isActive = true
         licenseCardView.fcpxVersionLabel.stringValue = Self.detectFCPXVersion()
         licenseCardView.onLicenseChanged = { [weak self] in
             self?.refreshList()
         }
-        brandBox.addArrangedSubview(licenseCardView)
 
         sideStack.addArrangedSubview(brandBox)
         sideStack.setCustomSpacing(14, after: brandBox)
@@ -1739,7 +1741,7 @@ public final class AssetHubView: NSVisualEffectView,
             let x = margin + CGFloat(col) * (cardW + spacing)
             let y = margin + CGFloat(row) * (cardH + spacing)
             card.frame = NSRect(x: x, y: y, width: cardW, height: cardH)
-            if card.item.path != item.path || card.item.name != item.name || card.item.isEnabled != item.isEnabled || card.item.isOffline != item.isOffline {
+            if card.item.path != item.path || card.item.name != item.name || card.item.isEnabled != item.isEnabled || card.item.isOffline != item.isOffline || card.item.isCorrupted != item.isCorrupted || card.item.isMismatchedDisk != item.isMismatchedDisk {
                 card.item = item
             }
         }
@@ -1879,9 +1881,24 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     public func toggleTemplateItem(_ item: TemplateItem) {
-        if item.isOffline {
+        if item.isMismatchedDisk {
             if !suppressAlertsForTesting {
-                showAlert(title: "素材处于离线磁盘", message: "外置磁盘已断开，模板「\(item.name)」受离线容灾保护，禁止修改启停状态。")
+                let alert = NSAlert()
+                alert.messageText = "强制绑定外置卷"
+                alert.informativeText = "素材「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n是否信任并强制绑定当前挂载卷？"
+                alert.addButton(withTitle: "强制绑定")
+                alert.addButton(withTitle: "取消")
+                if alert.runModal() == .alertFirstButtonReturn {
+                    forceBindVolume(for: item, skipConfirmation: true)
+                }
+            }
+            return
+        }
+
+        if item.isOffline || item.isCorrupted || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
+            if !suppressAlertsForTesting {
+                let reason = item.isCorrupted ? "素材文件损坏或缺失" : "外置磁盘已断开"
+                showAlert(title: "素材不可操作", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止修改启停状态。")
             }
             return
         }
@@ -1916,10 +1933,11 @@ public final class AssetHubView: NSVisualEffectView,
     public var suppressAlertsForTesting: Bool = false
 
     public func deleteTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
-        // 0. 离线素材容灾保护拦截（禁止物理删除断链项）
-        if item.isOffline || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
+        // 0. 离线素材容灾保护拦截（禁止物理删除断链/损坏/异盘项）
+        if item.isOffline || item.isCorrupted || item.isMismatchedDisk || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
             if !suppressAlertsForTesting {
-                showAlert(title: "素材处于离线磁盘", message: "外置磁盘已断开，模板「\(item.name)」受离线容灾保护，禁止物理删除。请先连接对应磁盘。")
+                let reason = item.isMismatchedDisk ? "挂载卷与素材 UUID 不匹配" : (item.isCorrupted ? "素材文件损坏或缺失" : "外置磁盘已断开")
+                showAlert(title: "素材处于故障/离线状态", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止物理删除。请先连接对应磁盘。")
             }
             return
         }
@@ -1980,7 +1998,27 @@ public final class AssetHubView: NSVisualEffectView,
 
     public func makeTemplateActionMenu(for item: TemplateItem) -> NSMenu {
         let menu = NSMenu()
-        if item.isOffline {
+        if item.isMismatchedDisk {
+            let warnItem = NSMenuItem(title: "🚫 异盘同名（UUID 不匹配，禁止操作）", action: nil, keyEquivalent: "")
+            warnItem.isEnabled = false
+            menu.addItem(warnItem)
+            menu.addItem(NSMenuItem.separator())
+            let bindItem = NSMenuItem(title: "⚡️ 信任并强制绑定此卷…", action: #selector(onForceBindVolumeMenu(_:)), keyEquivalent: "")
+            bindItem.target = self
+            bindItem.representedObject = item
+            menu.addItem(bindItem)
+            return menu
+        } else if item.isCorrupted {
+            let warnItem = NSMenuItem(title: "❌ 素材损坏/丢失（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
+            warnItem.isEnabled = false
+            menu.addItem(warnItem)
+            menu.addItem(NSMenuItem.separator())
+            let recheckItem = NSMenuItem(title: "🔍 重新校验文件存在性…", action: #selector(onRecheckCorruptedMenu(_:)), keyEquivalent: "")
+            recheckItem.target = self
+            recheckItem.representedObject = item
+            menu.addItem(recheckItem)
+            return menu
+        } else if item.isOffline {
             let offlineItem = NSMenuItem(title: "⚠️ 磁盘离线（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
             offlineItem.isEnabled = false
             menu.addItem(offlineItem)
@@ -2034,6 +2072,123 @@ public final class AssetHubView: NSVisualEffectView,
     @objc private func onCardRenameMenu(_ sender: NSMenuItem) {
         guard let item = sender.representedObject as? TemplateItem else { return }
         showRenameDialog(for: item)
+    }
+
+    @objc private func onForceBindVolumeMenu(_ sender: NSMenuItem) {
+        guard let item = sender.representedObject as? TemplateItem else { return }
+        forceBindVolume(for: item, skipConfirmation: false)
+    }
+
+    @objc private func onRecheckCorruptedMenu(_ sender: NSMenuItem) {
+        guard let item = sender.representedObject as? TemplateItem else { return }
+        recheckCorruptedItem(item)
+    }
+
+    public func forceBindVolume(for item: TemplateItem, skipConfirmation: Bool = false) {
+        if !skipConfirmation && !suppressAlertsForTesting {
+            let alert = NSAlert()
+            alert.messageText = "强制绑定外置卷"
+            alert.informativeText = "素材「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n强制绑定将更新素材记录的卷 UUID，并重新校验主文件物理状态。\n\n是否继续？"
+            alert.addButton(withTitle: "强制绑定")
+            alert.addButton(withTitle: "取消")
+            if alert.runModal() != .alertFirstButtonReturn {
+                return
+            }
+        }
+
+        let volPath: String
+        if let vp = item.volumePath, !vp.isEmpty {
+            volPath = vp
+        } else {
+            let comps = (item.targetPath as NSString).pathComponents
+            if comps.count >= 3 && comps[1] == "Volumes" {
+                volPath = "/Volumes/\(comps[2])"
+            } else {
+                volPath = ""
+            }
+        }
+        let currentUUID = TemplateItem.getVolumeUUID(for: volPath)
+
+        var updated = item
+        updated.volumeUUID = currentUUID
+        updated.isMismatchedDisk = false
+        if FileManager.default.fileExists(atPath: updated.targetPath) {
+            updated.isOffline = false
+            updated.isCorrupted = false
+        } else {
+            updated.isOffline = false
+            updated.isCorrupted = true
+        }
+
+        if let idx = allItems.firstIndex(where: { $0.path == item.path }) {
+            allItems[idx] = updated
+        }
+        AssetCacheManager.shared.syncItemsState(from: allItems)
+
+        let itemMap = TemplateItem.buildItemIndex(from: allItems)
+        for i in 0..<plugins.count {
+            if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
+                plugins[i] = matched
+            }
+        }
+        for g in 0..<groupItems.count {
+            for i in 0..<groupItems[g].items.count {
+                if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
+                    groupItems[g].items[i] = matched
+                }
+            }
+        }
+        for card in cardViews {
+            if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
+                card.item = matched
+            }
+        }
+        reloadCardGrid(resetPaging: false)
+
+        let msg = "已强制绑定卷并更新素材「\(item.name)」状态"
+        statusLabel?.stringValue = msg
+        updateStatusLine(overrideMessage: msg)
+    }
+
+    public func recheckCorruptedItem(_ item: TemplateItem) {
+        var updated = item
+        if FileManager.default.fileExists(atPath: item.targetPath) {
+            updated.isCorrupted = false
+            updated.isOffline = false
+            let msg = "素材「\(item.name)」主文件校验通过，已成功恢复在线 ✓"
+            statusLabel?.stringValue = msg
+            updateStatusLine(overrideMessage: msg)
+        } else {
+            updated.isCorrupted = true
+            let msg = "素材「\(item.name)」主文件依然缺失，保持损坏保护状态"
+            statusLabel?.stringValue = msg
+            updateStatusLine(overrideMessage: msg)
+        }
+
+        if let idx = allItems.firstIndex(where: { $0.path == item.path }) {
+            allItems[idx] = updated
+        }
+        AssetCacheManager.shared.syncItemsState(from: allItems)
+
+        let itemMap = TemplateItem.buildItemIndex(from: allItems)
+        for i in 0..<plugins.count {
+            if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
+                plugins[i] = matched
+            }
+        }
+        for g in 0..<groupItems.count {
+            for i in 0..<groupItems[g].items.count {
+                if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
+                    groupItems[g].items[i] = matched
+                }
+            }
+        }
+        for card in cardViews {
+            if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
+                card.item = matched
+            }
+        }
+        reloadCardGrid(resetPaging: false)
     }
 
     @objc private func onCardRevealMenu(_ sender: NSMenuItem) {
@@ -2822,18 +2977,21 @@ public final class AssetHubView: NSVisualEffectView,
         let volumePath = (userInfo[TemplateMigrator.volumePathUserInfoKey] as? String) ?? (userInfo["volumePath"] as? String) ?? ""
         let isMounted = (userInfo[TemplateMigrator.isMountedUserInfoKey] as? Bool) ?? (userInfo["isMounted"] as? Bool) ?? true
         let volumeName = (userInfo["volumeName"] as? String) ?? (volumePath as NSString).lastPathComponent
+        let volumeUUID = userInfo["volumeUUID"] as? String
 
         if Thread.isMainThread {
-            self.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted)
+            self.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted, volumeUUID: volumeUUID)
         } else {
             DispatchQueue.main.async { [weak self] in
-                self?.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted)
+                self?.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted, volumeUUID: volumeUUID)
             }
         }
     }
 
-    public func handleVolumeStatusChange(volumePath: String, volumeName: String, isMounted: Bool) {
+    public func handleVolumeStatusChange(volumePath: String, volumeName: String, isMounted: Bool, volumeUUID: String? = nil) {
         let normVol = (volumePath as NSString).standardizingPath
+        let normVolPrefix = normVol.hasSuffix("/") ? normVol : normVol + "/"
+        let mountedUUID = (volumeUUID != nil && !volumeUUID!.isEmpty) ? volumeUUID : TemplateItem.getVolumeUUID(for: normVol, bypassCache: isMounted)
         var affectedCount = 0
 
         if !isMounted {
@@ -2841,7 +2999,7 @@ public final class AssetHubView: NSVisualEffectView,
             for i in 0..<allItems.count {
                 let p = (allItems[i].path as NSString).standardizingPath
                 let tp = (allItems[i].targetPath as NSString).standardizingPath
-                let matchesVolume = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/")))
+                let matchesVolume = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVolPrefix) || tp == normVol || tp.hasPrefix(normVolPrefix)))
                 let isOffline = matchesVolume || migrator.isPathOffline(allItems[i].path, targetPath: allItems[i].targetPath)
 
                 if isOffline {
@@ -2853,21 +3011,20 @@ public final class AssetHubView: NSVisualEffectView,
                 }
             }
 
-            // O(n) 高性能字典索引：避免 O(n²) 暴力线性扫描导致主线程卡顿
-            var itemMap: [String: TemplateItem] = [:]
-            itemMap.reserveCapacity(allItems.count * 2)
-            for item in allItems {
-                itemMap["\(item.path)|\(item.targetPath)"] = item
-                if itemMap[item.path] == nil {
-                    itemMap[item.path] = item
-                }
-            }
+            // 同步全局内存缓存 (M-5: syncItemsState 已全量同步)
+            AssetCacheManager.shared.syncItemsState(from: allItems)
+
+            // O(n) 高性能字典索引 (M-6, M-7, S-3: 统一使用 buildItemIndex)
+            let itemMap = TemplateItem.buildItemIndex(from: allItems)
 
             // 同步更新当前 filtered plugins (O(1) 字典查表)
             for i in 0..<plugins.count {
                 if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
                     plugins[i].isOffline = matched.isOffline
+                    plugins[i].isCorrupted = matched.isCorrupted
+                    plugins[i].isMismatchedDisk = matched.isMismatchedDisk
                     plugins[i].volumePath = matched.volumePath
+                    plugins[i].volumeUUID = matched.volumeUUID
                 }
             }
 
@@ -2876,7 +3033,10 @@ public final class AssetHubView: NSVisualEffectView,
                 for i in 0..<groupItems[g].items.count {
                     if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
                         groupItems[g].items[i].isOffline = matched.isOffline
+                        groupItems[g].items[i].isCorrupted = matched.isCorrupted
+                        groupItems[g].items[i].isMismatchedDisk = matched.isMismatchedDisk
                         groupItems[g].items[i].volumePath = matched.volumePath
+                        groupItems[g].items[i].volumeUUID = matched.volumeUUID
                     }
                 }
             }
@@ -2895,35 +3055,86 @@ public final class AssetHubView: NSVisualEffectView,
             statusLabel?.stringValue = msg
             updateStatusLine(overrideMessage: msg)
         } else {
-            // 外置卷挂载/恢复：恢复在线状态
+            // 外置卷挂载/恢复：自愈与一致性校验
             var restoredCount = 0
+            var mismatchedCount = 0
+            var pendingCheckPaths: [String] = []
+
             for i in 0..<allItems.count {
                 let p = (allItems[i].path as NSString).standardizingPath
                 let tp = (allItems[i].targetPath as NSString).standardizingPath
-                let matchesVolume = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/")))
+                let itemVol = allItems[i].volumePath.map { ($0 as NSString).standardizingPath }
+                let itemUUID = allItems[i].volumeUUID
 
-                if matchesVolume || allItems[i].volumePath == normVol {
-                    if allItems[i].isOffline {
+                // 判定是否关联此挂载事件：UUID 匹配 或 卷挂载路径前缀匹配
+                let uuidMatches = (itemUUID != nil && mountedUUID != nil && !itemUUID!.isEmpty && itemUUID == mountedUUID)
+                let pathMatches = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVolPrefix) || tp == normVol || tp.hasPrefix(normVolPrefix)))
+                let volMatches = (itemVol != nil && itemVol == normVol)
+
+                if uuidMatches {
+                    // 原盘重连：UUID 匹配
+                    // 场景 b: 卷改名/漂移（如原挂载点为 /Volumes/Disk，现挂载到 /Volumes/Disk 1）
+                    if let oldVol = itemVol, oldVol != normVol, !oldVol.isEmpty {
+                        let oldPrefix = oldVol.hasSuffix("/") ? oldVol : oldVol + "/"
+                        let newPrefix = normVolPrefix
+                        if allItems[i].targetPath.hasPrefix(oldPrefix) {
+                            allItems[i].targetPath = newPrefix + allItems[i].targetPath.dropFirst(oldPrefix.count)
+                        } else if allItems[i].targetPath == oldVol {
+                            allItems[i].targetPath = normVol
+                        }
+                        if allItems[i].path.hasPrefix(oldPrefix) {
+                            allItems[i].path = newPrefix + allItems[i].path.dropFirst(oldPrefix.count)
+                        } else if allItems[i].path == oldVol {
+                            allItems[i].path = normVol
+                        }
+
+                        // Critical 3: 软链接物理指向原子重写
+                        if allItems[i].isSymlink && allItems[i].path != allItems[i].targetPath {
+                            try? FileManager.default.removeItem(atPath: allItems[i].path)
+                            try? FileManager.default.createSymbolicLink(atPath: allItems[i].path, withDestinationPath: allItems[i].targetPath)
+                        }
+                    }
+                    allItems[i].volumePath = normVol
+                    allItems[i].volumeUUID = mountedUUID
+
+                    // S-1: 主线程乐观置位恢复在线（0ms 同步磁盘 I/O）
+                    allItems[i].isOffline = false
+                    allItems[i].isCorrupted = false
+                    allItems[i].isMismatchedDisk = false
+                    restoredCount += 1
+                    pendingCheckPaths.append(allItems[i].targetPath)
+                } else if pathMatches || volMatches {
+                    // Critical 1: 异盘 UUID 空门防线修复
+                    // 原素材具有 UUID，但新挂载卷无 UUID 或 UUID 不符：严密防线，坚决拒访！
+                    if let originalUUID = itemUUID, !originalUUID.isEmpty {
+                        allItems[i].isOffline = true
+                        allItems[i].isMismatchedDisk = true
+                        allItems[i].isCorrupted = false
+                        mismatchedCount += 1
+                    } else {
+                        // 无既有冲突 UUID 记录，绑定当前卷 UUID
+                        if allItems[i].volumeUUID == nil {
+                            allItems[i].volumeUUID = mountedUUID
+                        }
+                        allItems[i].volumePath = normVol
                         allItems[i].isOffline = false
+                        allItems[i].isCorrupted = false
+                        allItems[i].isMismatchedDisk = false
                         restoredCount += 1
+                        pendingCheckPaths.append(allItems[i].targetPath)
                     }
                 }
             }
 
-            // O(n) 高性能字典索引：避免 O(n²) 暴力线性扫描导致主线程卡顿
-            var itemMap: [String: TemplateItem] = [:]
-            itemMap.reserveCapacity(allItems.count * 2)
-            for item in allItems {
-                itemMap["\(item.path)|\(item.targetPath)"] = item
-                if itemMap[item.path] == nil {
-                    itemMap[item.path] = item
-                }
-            }
+            // 同步内存缓存 (M-5)
+            AssetCacheManager.shared.syncItemsState(from: allItems)
+
+            // 统一字典索引更新 UI (M-6, M-7, S-3)
+            let itemMap = TemplateItem.buildItemIndex(from: allItems)
 
             for i in 0..<plugins.count {
                 if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
-                    plugins[i].isOffline = matched.isOffline
-                    plugins[i].volumePath = matched.volumePath
+                    plugins[i] = matched
                 }
             }
 
@@ -2931,8 +3142,7 @@ public final class AssetHubView: NSVisualEffectView,
             for g in 0..<groupItems.count {
                 for i in 0..<groupItems[g].items.count {
                     if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
-                        groupItems[g].items[i].isOffline = matched.isOffline
-                        groupItems[g].items[i].volumePath = matched.volumePath
+                        groupItems[g].items[i] = matched
                     }
                 }
             }
@@ -2945,9 +3155,63 @@ public final class AssetHubView: NSVisualEffectView,
             reloadCardGrid(resetPaging: false)
 
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
-            let msg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
+            let msg: String
+            if mismatchedCount > 0 {
+                msg = "🚫 挂载卷 [\(displayName)] 与原素材盘 UUID 不符，拒绝绑定 (\(mismatchedCount) 套素材已防护)"
+            } else {
+                msg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
+            }
             statusLabel?.stringValue = msg
             updateStatusLine(overrideMessage: msg)
+
+            // S-1: 异步后台校验物理文件存在性，绝不阻塞主线程
+            if !pendingCheckPaths.isEmpty {
+                let targetsToCheck = pendingCheckPaths
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    var missingSet = Set<String>()
+                    for target in targetsToCheck {
+                        if !FileManager.default.fileExists(atPath: target) {
+                            missingSet.insert(target)
+                        }
+                    }
+                    if !missingSet.isEmpty {
+                        DispatchQueue.main.async { [weak self] in
+                            guard let self = self else { return }
+                            var corruptedCount = 0
+                            for i in 0..<self.allItems.count {
+                                if missingSet.contains(self.allItems[i].targetPath) {
+                                    self.allItems[i].isCorrupted = true
+                                    self.allItems[i].isOffline = false
+                                    corruptedCount += 1
+                                }
+                            }
+                            AssetCacheManager.shared.syncItemsState(from: self.allItems)
+                            let updatedMap = TemplateItem.buildItemIndex(from: self.allItems)
+                            for i in 0..<self.plugins.count {
+                                if let matched = updatedMap["\(self.plugins[i].path)|\(self.plugins[i].targetPath)"] ?? updatedMap[self.plugins[i].path] {
+                                    self.plugins[i] = matched
+                                }
+                            }
+                            for g in 0..<self.groupItems.count {
+                                for i in 0..<self.groupItems[g].items.count {
+                                    if let matched = updatedMap["\(self.groupItems[g].items[i].path)|\(self.groupItems[g].items[i].targetPath)"] ?? updatedMap[self.groupItems[g].items[i].path] {
+                                        self.groupItems[g].items[i] = matched
+                                    }
+                                }
+                            }
+                            for card in self.cardViews {
+                                if let matched = updatedMap["\(card.item.path)|\(card.item.targetPath)"] ?? updatedMap[card.item.path] {
+                                    card.item = matched
+                                }
+                            }
+                            self.reloadCardGrid(resetPaging: false)
+                            let corruptedMsg = "⚠️ 外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套素材标红告警"
+                            self.statusLabel?.stringValue = corruptedMsg
+                            self.updateStatusLine(overrideMessage: corruptedMsg)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -2957,7 +3221,14 @@ public final class AssetHubView: NSVisualEffectView,
         let startTime = CACurrentMediaTime()
         // 1. 优先秒级从内存缓存获取（0ms 响应，消除彩虹圈）
         if let cached = AssetCacheManager.shared.getTemplates(category: currentCategory) {
-            allItems = cached.items
+            let dyedItems = cached.items.map { it -> TemplateItem in
+                var updated = it
+                if self.migrator.isPathOffline(it.path, targetPath: it.targetPath) {
+                    updated.isOffline = true
+                }
+                return updated
+            }
+            allItems = dyedItems
             roots = cached.roots
             tierNotes = cached.tierNotes
             updateSubCategoryFilterBar()
@@ -2974,7 +3245,14 @@ public final class AssetHubView: NSVisualEffectView,
             guard let self = self else { return }
             if self.suppressAlertsForTesting && !self.allItems.isEmpty { return }
             self.spinner?.stopAnimation(nil)
-            self.allItems = result.items
+            let dyedItems = result.items.map { it -> TemplateItem in
+                var updated = it
+                if self.migrator.isPathOffline(it.path, targetPath: it.targetPath) {
+                    updated.isOffline = true
+                }
+                return updated
+            }
+            self.allItems = dyedItems
             self.roots = result.roots
             self.tierNotes = result.tierNotes
             self.updateSubCategoryFilterBar()

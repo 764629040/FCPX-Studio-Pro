@@ -69,15 +69,72 @@ public struct TemplateItem {
     public var subCategory: String
     public let tier: TemplateTier
     /// 该层级根目录下的真实路径（可能是软链接本体）
-    public let path: String
+    public var path: String
     /// 软链接解析后的目标；非软链接时等于 path
-    public let targetPath: String
+    public var targetPath: String
     public let isSymlink: Bool
     public let targetAvailable: Bool
     public var sizeMB: Double
     public var isEnabled: Bool
     public var isOffline: Bool = false
     public var volumePath: String? = nil
+    public var volumeUUID: String? = nil
+    public var isCorrupted: Bool = false
+    public var isMismatchedDisk: Bool = false
+
+    private static let volumeUUIDLock = NSLock()
+    private static var volumeUUIDCache: [String: String] = [:]
+
+    /// S-2: 线程安全的卷硬件 UUID 查询（静态内存缓存，单卷仅触发一次磁盘 I/O）
+    public static func getVolumeUUID(for volumePath: String, bypassCache: Bool = false) -> String? {
+        let norm = (volumePath as NSString).standardizingPath
+        guard !norm.isEmpty else { return nil }
+        if !bypassCache {
+            volumeUUIDLock.lock()
+            if let cached = volumeUUIDCache[norm] {
+                volumeUUIDLock.unlock()
+                return cached
+            }
+            volumeUUIDLock.unlock()
+        }
+
+        let url = URL(fileURLWithPath: norm)
+        guard let values = try? url.resourceValues(forKeys: [.volumeUUIDStringKey]),
+              let uuid = values.volumeUUIDString else { return nil }
+
+        volumeUUIDLock.lock()
+        volumeUUIDCache[norm] = uuid
+        volumeUUIDLock.unlock()
+        return uuid
+    }
+
+    /// 卷插拔时失效路径 UUID 缓存，防止异盘挂载到同一挂载点时返回脏缓存
+    public static func invalidateVolumeUUIDCache(for volumePath: String? = nil) {
+        volumeUUIDLock.lock()
+        defer { volumeUUIDLock.unlock() }
+        if let path = volumePath {
+            let norm = (path as NSString).standardizingPath
+            volumeUUIDCache.removeValue(forKey: norm)
+        } else {
+            volumeUUIDCache.removeAll()
+        }
+    }
+
+    /// M-6 / M-7: 公共高性能素材索引构建器（仅使用 compositeKey 与 path 两级强唯一键，保持首项优先语义）
+    public static func buildItemIndex(from items: [TemplateItem]) -> [String: TemplateItem] {
+        var index: [String: TemplateItem] = [:]
+        index.reserveCapacity(items.count * 2)
+        for item in items {
+            let compositeKey = "\(item.path)|\(item.targetPath)"
+            if index[compositeKey] == nil {
+                index[compositeKey] = item
+            }
+            if index[item.path] == nil {
+                index[item.path] = item
+            }
+        }
+        return index
+    }
 
     public var diskForm: DiskForm {
         isSymlink
@@ -87,7 +144,8 @@ public struct TemplateItem {
 
     public init(name: String, category: String, subCategory: String = "", tier: TemplateTier, path: String,
                 targetPath: String, isSymlink: Bool, targetAvailable: Bool, sizeMB: Double,
-                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil) {
+                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil,
+                volumeUUID: String? = nil, isCorrupted: Bool = false, isMismatchedDisk: Bool = false) {
         self.name = name
         self.category = category
         self.subCategory = subCategory
@@ -99,6 +157,9 @@ public struct TemplateItem {
         self.sizeMB = sizeMB
         self.isEnabled = isEnabled
         self.isOffline = isOffline
+        self.isCorrupted = isCorrupted
+        self.isMismatchedDisk = isMismatchedDisk
+
         if let volumePath = volumePath {
             self.volumePath = volumePath
         } else if targetPath.hasPrefix("/Volumes/") {
@@ -110,15 +171,54 @@ public struct TemplateItem {
         } else {
             self.volumePath = nil
         }
+
+        if let volumeUUID = volumeUUID {
+            self.volumeUUID = volumeUUID
+        } else if let vp = self.volumePath {
+            self.volumeUUID = Self.getVolumeUUID(for: vp)
+        } else {
+            self.volumeUUID = nil
+        }
     }
 
     public init(name: String, category: String, tier: TemplateTier, path: String,
                 targetPath: String, isSymlink: Bool, targetAvailable: Bool, sizeMB: Double,
-                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil) {
+                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil,
+                volumeUUID: String? = nil, isCorrupted: Bool = false, isMismatchedDisk: Bool = false) {
         self.init(name: name, category: category, subCategory: "", tier: tier, path: path,
                   targetPath: targetPath, isSymlink: isSymlink, targetAvailable: targetAvailable,
-                  sizeMB: sizeMB, isEnabled: isEnabled, isOffline: isOffline, volumePath: volumePath)
+                  sizeMB: sizeMB, isEnabled: isEnabled, isOffline: isOffline, volumePath: volumePath,
+                  volumeUUID: volumeUUID, isCorrupted: isCorrupted, isMismatchedDisk: isMismatchedDisk)
     }
+}
+
+// MARK: – U-10 全局状态色板收敛 (StatusPalette)
+
+public struct StatusPalette {
+    /// 中性离线灰
+    public static let offlineGray = NSColor(calibratedRed: 0.50, green: 0.52, blue: 0.56, alpha: 1.0)
+    public static let offlineBg = NSColor(calibratedRed: 0.22, green: 0.24, blue: 0.27, alpha: 0.95)
+    public static let offlineBorder = NSColor(calibratedWhite: 0.28, alpha: 0.6)
+
+    /// 警示红（损坏/丢失、严重故障）
+    public static let alertRed = NSColor(calibratedRed: 0.95, green: 0.35, blue: 0.35, alpha: 1.0)
+    public static let alertRedBg = NSColor(calibratedRed: 0.85, green: 0.20, blue: 0.20, alpha: 0.95)
+    public static let alertRedBorder = NSColor(calibratedRed: 0.85, green: 0.20, blue: 0.20, alpha: 0.8)
+
+    /// 琥珀橙（异盘同名、隔离保护）
+    public static let amberOrange = NSColor(calibratedRed: 0.95, green: 0.58, blue: 0.12, alpha: 1.0)
+    public static let amberOrangeBg = NSColor(calibratedRed: 0.92, green: 0.55, blue: 0.10, alpha: 0.95)
+    public static let amberOrangeBorder = NSColor(calibratedRed: 0.95, green: 0.58, blue: 0.12, alpha: 0.8)
+
+    /// 启用绿
+    public static let successGreen = NSColor(calibratedRed: 0.28, green: 0.78, blue: 0.42, alpha: 1.0)
+    public static let successGreenBg = NSColor(calibratedRed: 0.12, green: 0.32, blue: 0.18, alpha: 0.9)
+    public static let successGreenBorder = NSColor(calibratedRed: 0.25, green: 0.65, blue: 0.35, alpha: 1.0)
+
+    /// 停用中性灰
+    public static let disabledBg = NSColor(calibratedWhite: 0.18, alpha: 0.9)
+    public static let disabledBorder = NSColor(calibratedWhite: 0.32, alpha: 1.0)
+    public static let cardBorderNormal = NSColor(calibratedWhite: 0.20, alpha: 1.0)
 }
 
 // MARK: – 三级根目录

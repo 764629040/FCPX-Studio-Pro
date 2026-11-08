@@ -120,6 +120,64 @@ public final class AssetCacheManager {
         return count
     }
 
+    /// P2: 离线容灾多级内存缓存同步，确保切换 Tab / 分类时不会被旧缓存冲掉离线标记
+    public func markVolumeOffline(volumePath: String, isOffline: Bool) {
+        lock.lock()
+        defer { lock.unlock() }
+        let normVol = (volumePath as NSString).standardizingPath
+        guard !normVol.isEmpty else { return }
+
+        for (cat, result) in templateCache {
+            var modified = false
+            var updatedItems = result.items
+            for i in 0..<updatedItems.count {
+                let p = (updatedItems[i].path as NSString).standardizingPath
+                let tp = (updatedItems[i].targetPath as NSString).standardizingPath
+                let matches = (p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/"))
+                if matches {
+                    if updatedItems[i].isOffline != isOffline {
+                        updatedItems[i].isOffline = isOffline
+                        if isOffline {
+                            if updatedItems[i].volumePath == nil || updatedItems[i].volumePath?.isEmpty == true {
+                                updatedItems[i].volumePath = normVol
+                            }
+                        }
+                        modified = true
+                    }
+                }
+            }
+            if modified {
+                templateCache[cat] = TemplateScanResult(
+                    items: updatedItems,
+                    tierNotes: result.tierNotes,
+                    roots: result.roots
+                )
+            }
+        }
+    }
+
+    /// P2 Step 3: 一致性校验与状态同步，确保缓存层与主界面全量数据完全一致 (S-3: 仅使用强唯一键查表)
+    public func syncItemsState(from items: [TemplateItem]) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let itemMap = TemplateItem.buildItemIndex(from: items)
+
+        for (cat, result) in templateCache {
+            var updated = result.items
+            var changed = false
+            for i in 0..<updated.count {
+                if let matched = itemMap["\(updated[i].path)|\(updated[i].targetPath)"] ?? itemMap[updated[i].path] {
+                    updated[i] = matched
+                    changed = true
+                }
+            }
+            if changed {
+                templateCache[cat] = TemplateScanResult(items: updated, tierNotes: result.tierNotes, roots: result.roots)
+            }
+        }
+    }
+
     // MARK: – 3D LUT 缓存
 
     public func getLUTs() -> [LUTItem]? {

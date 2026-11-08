@@ -159,7 +159,8 @@ final class HotplugTest {
         let migrator = TemplateMigrator.shared
         TemplateMigrator.startMonitoringVolumes()
         check(!migrator.isPathOffline(item1.path), "初态 isPathOffline(item1.path) 为 false")
-        check(!migrator.isPathOffline(item2.path, targetPath: item2.targetPath), "初态 isPathOffline(item2.path, targetPath: item2.targetPath)（软链接）为 false")
+        check(!migrator.isPathOffline(item2.path), "初态 isPathOffline(item2.path)（单参数软链接）为 false")
+        check(!migrator.isPathOffline(item2.path, targetPath: item2.targetPath), "初态 isPathOffline(item2.path, targetPath) 为 false")
         check(!migrator.isPathOffline(item3.path), "初态 isPathOffline(item3.path)（本地实体）为 false")
 
         // 4. 构建 AssetHubView 与 ResourceCardView UI 绑定
@@ -238,7 +239,8 @@ final class HotplugTest {
         check(receivedNotificationIsMounted == false, "通知指示 isMounted == false")
 
         check(migrator.isPathOffline(item1.path), "migrator.isPathOffline 成功判定外置素材 1 为离线")
-        check(migrator.isPathOffline(item2.path, targetPath: item2.targetPath), "migrator.isPathOffline 成功判定外置软链接素材 2 为离线")
+        check(migrator.isPathOffline(item2.path), "migrator.isPathOffline 单参数快速解析软链接成功判定外置素材 2 为离线")
+        check(migrator.isPathOffline(item2.path, targetPath: item2.targetPath), "migrator.isPathOffline 双参数成功判定外置软链接素材 2 为离线")
         check(!migrator.isPathOffline(item3.path), "本地素材 3 判定未受影响，依然在线")
 
         // 核心判据：资产索引不丢失！

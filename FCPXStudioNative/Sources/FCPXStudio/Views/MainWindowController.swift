@@ -363,6 +363,7 @@ public final class MainWindowController: NSWindowController,
     private func showEngine(index: Int) {
         engine1Container?.isHidden = (index != 0)
         assetHubView?.isHidden     = (index != 1)
+        comparisonSegmentedControl?.isHidden = (index != 0)
         if index == 0 {
             DispatchQueue.main.async { [weak self] in
                 self?.canvasView?.fitArtboard()
