@@ -12,6 +12,20 @@ import time
 import shutil
 import hashlib
 import tempfile
+import traceback
+
+# UI-O026: 增加日志落盘能力，确保错误堆栈与执行全过程可查
+def _write_build_log(content: str) -> str:
+    log_dir = os.path.expanduser("~/Library/Logs/FCPXStudio")
+    os.makedirs(log_dir, exist_ok=True)
+    ts = int(time.time())
+    log_path = os.path.join(log_dir, f"build_{ts}.log")
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return log_path
+    except Exception:
+        return ""
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
@@ -94,7 +108,12 @@ def handle_parse(psd_path: str, include_hidden: bool = False):
         }
         print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
-        print(json.dumps({"status": "error", "message": f"解析 PSD 异常: {str(e)}"}, ensure_ascii=False))
+        tb = traceback.format_exc()
+        log_path = _write_build_log(f"parse error: {str(e)}\n\n{tb}")
+        err_resp = {"status": "error", "message": f"解析 PSD 异常: {str(e)}"}
+        if log_path:
+            err_resp["log_path"] = log_path
+        print(json.dumps(err_resp, ensure_ascii=False))
         sys.exit(1)
 
 def handle_build(payload_json_file: str):
@@ -192,10 +211,20 @@ def handle_build(payload_json_file: str):
         print(json.dumps(resp, ensure_ascii=False))
     except KeyError as e:
         field = str(e).strip("'\"")
-        print(json.dumps({"status": "error", "message": f"构建配置缺少必填字段 {field}"}, ensure_ascii=False))
+        tb = traceback.format_exc()
+        log_path = _write_build_log(f"KeyError: {field}\n\n{tb}")
+        err_resp = {"status": "error", "message": f"构建配置缺少必填字段 {field}"}
+        if log_path:
+            err_resp["log_path"] = log_path
+        print(json.dumps(err_resp, ensure_ascii=False))
         sys.exit(1)
     except Exception as e:
-        print(json.dumps({"status": "error", "message": f"生成模板失败: {str(e)}"}, ensure_ascii=False))
+        tb = traceback.format_exc()
+        log_path = _write_build_log(f"Exception: {str(e)}\n\n{tb}")
+        err_resp = {"status": "error", "message": f"生成模板失败: {str(e)}"}
+        if log_path:
+            err_resp["log_path"] = log_path
+        print(json.dumps(err_resp, ensure_ascii=False))
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -55,3 +55,39 @@ public enum ColorToken {
     public static let warningAmber = NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.28, alpha: 1.0)
     public static let alertRed = NSColor(calibratedRed: 1.0, green: 0.45, blue: 0.45, alpha: 1.0)
 }
+
+// UI-O016: 统一 hover 响应按钮，支持主按钮与危险按钮鼠标悬停背景渐变反馈
+public class HoverButton: NSButton {
+    public var normalBgColor: NSColor? {
+        didSet {
+            wantsLayer = true
+            layer?.backgroundColor = normalBgColor?.cgColor
+        }
+    }
+    public var hoverBgColor: NSColor?
+    private var trackingArea: NSTrackingArea?
+
+    public override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let ta = trackingArea { removeTrackingArea(ta) }
+        let ta = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeInActiveApp, .inVisibleRect], owner: self, userInfo: nil)
+        addTrackingArea(ta)
+        trackingArea = ta
+    }
+
+    public override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        if isEnabled, let hover = hoverBgColor {
+            wantsLayer = true
+            layer?.backgroundColor = hover.cgColor
+        }
+    }
+
+    public override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        if let normal = normalBgColor {
+            wantsLayer = true
+            layer?.backgroundColor = normal.cgColor
+        }
+    }
+}

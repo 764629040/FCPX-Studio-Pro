@@ -428,7 +428,13 @@ public enum TemplateTierScanner {
             if hasTemplateFile {
                 let dirName = (logicalDir as NSString).lastPathComponent
                 let isEnabled = !dirName.hasSuffix(".disabled")
-                let cleanDirName = isEnabled ? dirName : String(dirName.dropLast(9))
+                // UI-O024: 严格判定 .disabled 后缀并加长度断言，避免误截用户自定义同名目录
+                let cleanDirName: String
+                if !isEnabled && dirName.hasSuffix(".disabled") && dirName.count > 9 {
+                    cleanDirName = String(dirName.dropLast(9))
+                } else {
+                    cleanDirName = dirName
+                }
                 let displayName = templateFileStem.isEmpty ? cleanDirName : templateFileStem
                 let targetExists = fm.fileExists(atPath: targetDir)
 
@@ -490,7 +496,13 @@ public enum TemplateTierScanner {
                     return foundItems
                 }
                 let isEnabled = !dirName.hasSuffix(".disabled")
-                let cleanDirName = isEnabled ? dirName : String(dirName.dropLast(9))
+                // UI-O024: 严格判定 .disabled 后缀并加长度断言
+                let cleanDirName: String
+                if !isEnabled && dirName.hasSuffix(".disabled") && dirName.count > 9 {
+                    cleanDirName = String(dirName.dropLast(9))
+                } else {
+                    cleanDirName = dirName
+                }
                 let targetExists = fm.fileExists(atPath: targetDir)
 
                 var sizeMB: Double = 0.0

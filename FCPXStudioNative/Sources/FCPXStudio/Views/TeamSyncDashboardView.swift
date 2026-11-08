@@ -610,7 +610,10 @@ public final class TeamSyncDashboardView: NSView,
         let savePanel = NSSavePanel()
         savePanel.title = "导出 FCPX 生产环境克隆包"
         savePanel.allowedContentTypes = [UTType(filenameExtension: "fcpxpack") ?? .data]
-        savePanel.nameFieldStringValue = "FCPX_Studio_Production_Env_\(Date().formattedDateString).fcpxpack"
+        // UI-O017: 统一命名格式 FCPXStudio_ProductionEnv_yyyyMMdd_HHmmss.fcpxpack
+        let df = DateFormatter()
+        df.dateFormat = "yyyyMMdd_HHmmss"
+        savePanel.nameFieldStringValue = "FCPXStudio_ProductionEnv_\(df.string(from: Date())).fcpxpack"
 
         if savePanel.runModal() == .OK, let url = savePanel.url {
             // FCPX-012: 导出异步化与进度提示

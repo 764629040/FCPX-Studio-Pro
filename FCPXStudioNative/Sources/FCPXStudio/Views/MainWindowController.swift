@@ -154,9 +154,10 @@ public final class MainWindowController: NSWindowController,
         let trafficLightPadding: CGFloat = 84
         let segW: CGFloat = 390
         let segH: CGFloat = 28
+        // UI-O001: 改用原生 image+title，无手写前导空格
         segmentedControl = NSSegmentedControl(
-            labels: ["  设计器 (PSD → Motion)",
-                     "  素材库与管理中心"],
+            labels: ["设计器 (PSD → Motion)",
+                     "素材库与管理中心"],
             trackingMode: .selectOne,
             target: self,
             action: #selector(onSegmentChanged)
@@ -667,7 +668,9 @@ public final class MainWindowController: NSWindowController,
                         )
                     }
                     let note = resolved.fallbackUsed ? "\n(未检测到可用外置存储，已自动无缝降级保存至本地系统盘)" : "\n(已挂载至 Final Cut Pro)"
-                    self.showAlert(title: "安装完成 ✓", msg: "模板已生成：\n\(outDir)\(note)\n(若此前已有同名模板，系统已自动完成安全备份)")
+                    // UI-O003: 统一使用 systemSymbol 图标，不再硬编码字符 ✓
+                    let checkIcon = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "完成")
+                    self.showAlert(title: "安装完成", msg: "模板已生成：\n\(outDir)\(note)\n(若此前已有同名模板，系统已自动完成安全备份)", style: .informational, icon: checkIcon)
                 } else {
                     // FCPX-004: 结构化回传具体失败原因
                     let detailMsg = buildResult.errorMessage ?? "生成 Motion 模板时发生未知错误，请查看诊断报告。"
@@ -775,10 +778,14 @@ public final class MainWindowController: NSWindowController,
         }
     }
 
-    private func showAlert(title: String, msg: String) {
+    private func showAlert(title: String, msg: String, style: NSAlert.Style = .informational, icon: NSImage? = nil) {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = msg
+        alert.alertStyle = style
+        if let icon = icon {
+            alert.icon = icon
+        }
         alert.runModal()
     }
 

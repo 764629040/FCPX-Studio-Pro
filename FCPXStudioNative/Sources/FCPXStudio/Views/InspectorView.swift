@@ -226,7 +226,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         lockBannerBox.layer?.borderColor = NSColor(calibratedRed: 0.85, green: 0.65, blue: 0.2, alpha: 0.8).cgColor
         lockBannerBox.isHidden = true
 
-        lockBannerLabel = NSTextField(labelWithString: "🔒 图层已锁定，解锁后可修改属性")
+        // UI-O014: 缩短文案并支持尾部截断，280pt 宽窄栏完整可见
+        lockBannerLabel = NSTextField(labelWithString: "🔒 图层已锁定 (⌘L 解锁)")
+        lockBannerLabel.lineBreakMode = .byTruncatingTail
         lockBannerLabel.font = .systemFont(ofSize: 11, weight: .semibold)
         lockBannerLabel.textColor = NSColor(calibratedRed: 1.0, green: 0.82, blue: 0.35, alpha: 1.0)
         lockBannerLabel.translatesAutoresizingMaskIntoConstraints = false

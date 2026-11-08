@@ -80,7 +80,8 @@ public final class PluginDoctorDashboardView: NSView,
         titleBox.alignment = .leading
         titleBox.spacing = 2
 
-        let mainTitle = NSTextField(labelWithString: "幽灵插件智能体检与断链自愈医生")
+        // UI-O015: 缩短主标题，800px 窄窗与副标题不叠字
+        let mainTitle = NSTextField(labelWithString: "幽灵插件体检医生")
         mainTitle.font = TypeScale.bodyBold
         mainTitle.textColor = .white
         titleBox.addArrangedSubview(mainTitle)

@@ -1172,7 +1172,8 @@ public final class AssetHubView: NSVisualEffectView,
 
         undoButton = NSButton(title: "↩️ 撤销", target: self, action: #selector(onUndoClicked))
         undoButton.toolTip = "撤销上次外置化迁移"
-        undoButton.isEnabled = migrator.lastRecord() != nil
+        // UI-O011: 收敛为 refreshUndoButtonState() 单点
+        refreshUndoButtonState()
         undoButton.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(undoButton)
 
@@ -1233,7 +1234,8 @@ public final class AssetHubView: NSVisualEffectView,
         cardGridScrollView.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(cardGridScrollView)
 
-        cardGridContentView = FlippedContainerView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
+        // UI-O010: 由 bounds 驱动初始 frame，消除极小窗初始化短暂错位
+        cardGridContentView = FlippedContainerView(frame: rightColumnView.bounds)
         cardGridScrollView.documentView = cardGridContentView
         cardGridScrollView.postsBoundsChangedNotifications = true
         NotificationCenter.default.addObserver(self, selector: #selector(onCardGridDidScroll(_:)), name: NSView.boundsDidChangeNotification, object: cardGridScrollView.contentView)
@@ -1245,7 +1247,7 @@ public final class AssetHubView: NSVisualEffectView,
         tableScrollView.isHidden = true
         rightColumnView.addSubview(tableScrollView)
 
-        pluginTableView = NSTableView(frame: NSRect(x: 0, y: 0, width: 900, height: 400))
+        pluginTableView = NSTableView(frame: rightColumnView.bounds)
         pluginTableView.autoresizingMask = [.width, .height]
         pluginTableView.usesAlternatingRowBackgroundColors = false
         pluginTableView.backgroundColor = .clear
@@ -1496,10 +1498,8 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onGroupDeleteClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showAlert(title: "商业授权未激活", message: "未激活商业授权，模板删除功能已锁定。请先激活商业授权。")
-            return
-        }
+        // UI-O009: 收敛为 requireProLicense() 单点
+        guard requireProLicense() else { return }
         guard let grp = selectedGroupItem, let first = grp.items.first else { return }
         let groupDir = (first.path as NSString).deletingLastPathComponent
         let alert = NSAlert()
@@ -1575,10 +1575,7 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onRightTrashClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showAlert(title: "商业授权未激活", message: "未激活商业授权，模板删除功能已锁定。请先激活商业授权。")
-            return
-        }
+        guard requireProLicense() else { return }
         onGroupDeleteClicked()
     }
 
@@ -1934,11 +1931,8 @@ public final class AssetHubView: NSVisualEffectView,
             return
         }
 
-        if item.isOffline || item.isCorrupted || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
-            if !suppressAlertsForTesting {
-                let reason = item.isCorrupted ? "模板文件损坏或缺失" : "外置磁盘已断开"
-                showAlert(title: "模板不可操作", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止修改启停状态。")
-            }
+        // UI-O013: 抽 offlineGuardAlert(for:actionName:) 复用
+        if offlineGuardAlert(for: item, actionName: "修改启停状态") {
             return
         }
 
@@ -1972,22 +1966,13 @@ public final class AssetHubView: NSVisualEffectView,
     public var suppressAlertsForTesting: Bool = false
 
     public func deleteTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
-        // 0. 离线模板容灾保护拦截（禁止物理删除断链/损坏/异盘项）
-        if item.isOffline || item.isCorrupted || item.isMismatchedDisk || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
-            if !suppressAlertsForTesting {
-                let reason = item.isMismatchedDisk ? "挂载卷与模板 UUID 不匹配" : (item.isCorrupted ? "模板文件损坏或缺失" : "外置磁盘已断开")
-                showAlert(title: "模板处于故障/离线状态", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止物理删除。请先连接对应磁盘。")
-            }
+        // 0. 离线模板容灾保护拦截（UI-O013）
+        if offlineGuardAlert(for: item, actionName: "物理删除") {
             return
         }
 
-        // 0b. 商业授权分级拦截 (R52)
-        if !LicenseManager.shared.isProLicensed {
-            if !suppressAlertsForTesting {
-                showAlert(title: "商业授权未激活", message: "未激活商业授权，模板删除功能已锁定。请先激活商业授权。")
-            }
-            return
-        }
+        // 0b. 商业授权分级拦截 (UI-O009)
+        guard requireProLicense() else { return }
 
         // 1. 系统内置保护拦截
         if item.tier == .builtin {
@@ -3024,7 +3009,7 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onPolicyChanged() {
-        undoButton.isEnabled = migrator.lastRecord() != nil
+        refreshUndoButtonState()
         pluginTableView?.reloadData()
         reloadCardGrid()
     }
@@ -3300,7 +3285,7 @@ public final class AssetHubView: NSVisualEffectView,
             tierNotes = cached.tierNotes
             updateSubCategoryFilterBar()
             updateGroupItems()
-            undoButton?.isEnabled = migrator.lastRecord() != nil
+            refreshUndoButtonState()
             let elapsed = CACurrentMediaTime() - startTime
             loadTimeIndicatorLabel?.stringValue = String(format: "列表加载用时: %.2fs", max(0.01, elapsed))
             return
@@ -3324,7 +3309,7 @@ public final class AssetHubView: NSVisualEffectView,
             self.tierNotes = result.tierNotes
             self.updateSubCategoryFilterBar()
             self.updateGroupItems()
-            self.undoButton?.isEnabled = self.migrator.lastRecord() != nil
+            self.refreshUndoButtonState()
             let elapsed = CACurrentMediaTime() - startTime
             self.loadTimeIndicatorLabel?.stringValue = String(format: "列表加载用时: %.2fs", max(0.01, elapsed))
         }
@@ -3705,6 +3690,36 @@ public final class AssetHubView: NSVisualEffectView,
         alert.informativeText = message
         alert.addButton(withTitle: "确定")
         alert.runModal()
+    }
+
+    // UI-O011: 收敛 undoButton 启用状态刷新
+    public func refreshUndoButtonState() {
+        undoButton?.isEnabled = migrator.lastRecord() != nil
+    }
+
+    // UI-O009: 收敛商业授权校验文案与弹窗
+    @discardableResult
+    private func requireProLicense(feature: String = "模板删除") -> Bool {
+        if LicenseManager.shared.isProLicensed {
+            return true
+        }
+        if !suppressAlertsForTesting {
+            showAlert(title: "商业授权未激活", message: "未激活商业授权，\(feature)功能已锁定。请先激活商业授权。")
+        }
+        return false
+    }
+
+    // UI-O013: 收敛离线/故障容灾保护弹窗
+    @discardableResult
+    private func offlineGuardAlert(for item: TemplateItem, actionName: String) -> Bool {
+        if item.isOffline || item.isCorrupted || item.isMismatchedDisk || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
+            if !suppressAlertsForTesting {
+                let reason = item.isMismatchedDisk ? "挂载卷与模板 UUID 不匹配" : (item.isCorrupted ? "模板文件损坏或缺失" : "外置磁盘已断开")
+                showAlert(title: "模板处于故障/离线状态", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止\(actionName)。请先连接对应磁盘。")
+            }
+            return true
+        }
+        return false
     }
 
     // ═══════════════════════════════════════════════════════════════

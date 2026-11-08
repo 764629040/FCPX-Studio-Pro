@@ -31,6 +31,10 @@ public enum ComparisonMode: Int {
 public final class InfiniteCanvasView: NSView {
     public var artboardWidth: CGFloat = 1920
     public var artboardHeight: CGFloat = 1080
+    // UI-O007: 统一 kMinZoom 与 kMaxZoom 常量
+    public static let kMinZoom: CGFloat = 0.08
+    public static let kMaxZoom: CGFloat = 4.0
+
     public var zoomScale: CGFloat = 0.25
     public var panOffset: CGPoint = .zero
 
@@ -126,7 +130,8 @@ public final class InfiniteCanvasView: NSView {
         let availableH = bounds.height - margin * 2
         let scaleX = availableW / artboardWidth
         let scaleY = availableH / artboardHeight
-        zoomScale = max(0.1, min(scaleX, scaleY))
+        // UI-O007: 统一使用 kMinZoom，避免适应后滚轮跳变
+        zoomScale = max(Self.kMinZoom, min(scaleX, scaleY))
         panOffset = .zero
         onZoomChanged?(zoomScale)
         needsDisplay = true
@@ -254,6 +259,10 @@ public final class InfiniteCanvasView: NSView {
             if let bg = backgroundPreview, bg.visible {
                 drawBackgroundPreview(bg, artboardRect: artboardRect, ctx: ctx)
             }
+            // UI-O012: 空态叠加居中引导文案+图示，拖入后消失
+            if layers.isEmpty && (backgroundPreview == nil || !backgroundPreview!.visible) {
+                drawEmptyStatePrompt(in: artboardRect, ctx: ctx)
+            }
             // 4. 绘制安全框与十字准星
             drawSafeFrames(in: artboardRect, ctx: ctx)
             // 5. 绘制图层：从底往顶画
@@ -298,6 +307,31 @@ public final class InfiniteCanvasView: NSView {
                 ctx.fill(CGRect(x: x, y: y, width: 2, height: 2))
             }
         }
+    }
+
+    // UI-O012: 空态叠加居中引导文案+图示，拖入后消失
+    private func drawEmptyStatePrompt(in artboardRect: CGRect, ctx: CGContext) {
+        let title = "拖入 PSD 开始设计"
+        let subtitle = "支持拖放单个或批量 .psd 文件至此画布"
+        let titleAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 22, weight: .semibold),
+            .foregroundColor: NSColor.labelColor.withAlphaComponent(0.65)
+        ]
+        let subAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 13, weight: .regular),
+            .foregroundColor: NSColor.secondaryLabelColor.withAlphaComponent(0.5)
+        ]
+        let tStr = NSAttributedString(string: title, attributes: titleAttrs)
+        let sStr = NSAttributedString(string: subtitle, attributes: subAttrs)
+        let tSize = tStr.size()
+        let sSize = sStr.size()
+        let totalH = tSize.height + 8 + sSize.height
+        let startY = artboardRect.midY + totalH / 2.0 - tSize.height
+
+        let tRect = CGRect(x: artboardRect.midX - tSize.width / 2.0, y: startY, width: tSize.width, height: tSize.height)
+        let sRect = CGRect(x: artboardRect.midX - sSize.width / 2.0, y: startY - 8 - sSize.height, width: sSize.width, height: sSize.height)
+        tStr.draw(in: tRect)
+        sStr.draw(in: sRect)
     }
 
     private func drawSafeFrames(in rect: CGRect, ctx: CGContext) {
@@ -709,7 +743,8 @@ public final class InfiniteCanvasView: NSView {
 
         let attrs: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: NSColor.white,
+            // UI-O008: 改用语义化 labelColor，确保未来切浅色主题时文字不消失
+            .foregroundColor: NSColor.labelColor,
             .paragraphStyle: style
         ]
 
@@ -741,10 +776,21 @@ public final class InfiniteCanvasView: NSView {
     // MARK: - 鼠标手势与平移缩放
     public override func scrollWheel(with event: NSEvent) {
         if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.control) {
+            let mousePos = convert(event.locationInWindow, from: nil)
             let delta = event.deltaY * 0.02
-            zoomScale = max(0.08, min(4.0, zoomScale + delta))
-            onZoomChanged?(zoomScale)
-            needsDisplay = true
+            let oldZoom = zoomScale
+            let newZoom = max(Self.kMinZoom, min(Self.kMaxZoom, oldZoom + delta))
+            if oldZoom != newZoom {
+                // UI-O006: 以光标为锚点反算 panOffset，跟随鼠标位置缩放
+                let centerPt = CGPoint(x: bounds.midX + panOffset.x, y: bounds.midY + panOffset.y)
+                let cursorToCenter = CGPoint(x: mousePos.x - centerPt.x, y: mousePos.y - centerPt.y)
+                let scaleRatio = newZoom / oldZoom
+                panOffset.x += cursorToCenter.x * (1.0 - scaleRatio)
+                panOffset.y += cursorToCenter.y * (1.0 - scaleRatio)
+                zoomScale = newZoom
+                onZoomChanged?(zoomScale)
+                needsDisplay = true
+            }
         } else {
             panOffset.x += event.deltaX * 1.5
             panOffset.y += event.deltaY * 1.5

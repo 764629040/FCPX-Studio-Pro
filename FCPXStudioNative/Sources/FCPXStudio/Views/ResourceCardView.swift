@@ -8,7 +8,7 @@ import Foundation
 //    2. 16:9 高清缩略图视口（自动加载模板包内图片或优雅矢量渐变占位）；
 //    3. 中文友好别名（主标题）+ 英文原始标识（副标题）+ 容量胶囊徽章；
 //    4. 三级归属徽章（🟡 内置 / 🟢 用户 / 🟣 系统）；
-//    5. 精致「🟢 开启 / ⚪️ 禁用」胶囊 Toggle 开关 + 「⋯」操作菜单。
+//    5. 精致「开启 / 禁用」胶囊 Toggle 开关 + 更多操作菜单。
 // ═══════════════════════════════════════════════════════════════
 
 public final class ResourceCardView: NSView {
@@ -320,7 +320,26 @@ public final class ResourceCardView: NSView {
         } else if item.sizeMB > 0 {
             sizeBadgeLabel.stringValue = String(format: "%.1f MB", item.sizeMB)
         } else {
+            // UI-O004: 主动触发一次体积计算，2s 超时未完成回退为 "--"
             sizeBadgeLabel.stringValue = "计算中…"
+            let currentPath = item.path
+            DispatchQueue.global(qos: .utility).async { [weak self, currentPath] in
+                var calculatedMB: Double = 0
+                if let attr = try? FileManager.default.attributesOfItem(atPath: currentPath),
+                   let sz = attr[.size] as? Int64 {
+                    calculatedMB = Double(sz) / (1024.0 * 1024.0)
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self = self, self.item.path == currentPath else { return }
+                    if self.item.sizeMB > 0 {
+                        self.sizeBadgeLabel.stringValue = String(format: "%.1f MB", self.item.sizeMB)
+                    } else if calculatedMB > 0 {
+                        self.sizeBadgeLabel.stringValue = String(format: "%.1f MB", calculatedMB)
+                    } else {
+                        self.sizeBadgeLabel.stringValue = "--"
+                    }
+                }
+            }
         }
 
         updateToggleAppearance()

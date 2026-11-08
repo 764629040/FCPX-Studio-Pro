@@ -107,12 +107,27 @@ public struct PSDParseResult {
         self.originalCompositePath = originalCompositePath
     }
 
+    // UI-O019: stderr 全文落盘诊断文件，确保完整 traceback 可追溯
+    public static func saveFullStderrLog(_ stderr: String) -> String? {
+        guard !stderr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        let logDir = (FileManager.default.homeDirectoryForCurrentUser.path as NSString).appendingPathComponent("Library/Logs/FCPXStudio")
+        try? FileManager.default.createDirectory(atPath: logDir, withIntermediateDirectories: true)
+        let ts = Int(Date().timeIntervalSince1970)
+        let logFile = (logDir as NSString).appendingPathComponent("psd_parse_\(ts).log")
+        try? stderr.write(toFile: logFile, atomically: true, encoding: .utf8)
+        return logFile
+    }
+
     /// 构造一个「显式失败」结果：warnings 必含原因，绝不静默。
     public static func failure(_ reason: String, stderr: String = "") -> PSDParseResult {
         var warnings = [reason]
         let detail = stderr.trimmingCharacters(in: .whitespacesAndNewlines)
         if !detail.isEmpty {
-            warnings.append("stderr: " + String(detail.suffix(800)))
+            if let logPath = saveFullStderrLog(detail) {
+                warnings.append("stderr: " + String(detail.suffix(800)) + " (完整日志: \(logPath))")
+            } else {
+                warnings.append("stderr: " + String(detail.suffix(800)))
+            }
         }
         return PSDParseResult(
             width: 0, height: 0,
@@ -240,7 +255,7 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             process.terminate()
             if readers.wait(timeout: .now() + 3) == .timedOut {
                 kill(process.processIdentifier, SIGKILL)
-                _ = readers.wait(timeout: .now() + 3)
+                // UI-O020: SIGKILL 后直接走 waitUntilExit 兜底，消除极端 3s 盲等，总耗时 ≤ timeout+6s
             }
         }
         process.waitUntilExit()
@@ -320,7 +335,11 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
 
         let errTail = errText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !errTail.isEmpty {
-            notes.append("stderr: " + String(errTail.suffix(800)))
+            if let logPath = PSDParseResult.saveFullStderrLog(errTail) {
+                notes.append("stderr: " + String(errTail.suffix(800)) + " (完整日志: \(logPath))")
+            } else {
+                notes.append("stderr: " + String(errTail.suffix(800)))
+            }
         }
 
         var degradedLayersCount = 0
