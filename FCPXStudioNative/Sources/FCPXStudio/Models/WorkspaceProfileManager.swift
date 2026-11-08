@@ -432,6 +432,19 @@ public final class WorkspaceProfileManager {
             allScannedItems.append(contentsOf: res.items)
         }
 
+        // FCPX-024: 状态快照防静默复活
+        let snapshotKey = "FCPX_WorkspaceProfile_ManualDisabledSnapshot"
+        let isSwitchingToDefault = profile.isDefault
+        let manualDisabledSnapshot: Set<String>
+        if isSwitchingToDefault {
+            manualDisabledSnapshot = Set(UserDefaults.standard.stringArray(forKey: snapshotKey) ?? [])
+        } else {
+            // 从默认全量切向定制情境前，记录当前用户已手动停用的模板快照
+            let currentDisabled = allScannedItems.filter { !$0.isEnabled }.map { $0.path }
+            UserDefaults.standard.set(currentDisabled, forKey: snapshotKey)
+            manualDisabledSnapshot = []
+        }
+
         // 2. 批量处理启停隔离（R51：严格过滤 framework/app 等内部包，避免外置盘阻塞）
         for item in allScannedItems {
             // 系统内置模板若不可写则跳过
@@ -451,7 +464,14 @@ public final class WorkspaceProfileManager {
                 continue
             }
 
-            let shouldBeActive = profile.matches(templateName: item.name)
+            let shouldBeActive: Bool
+            if isSwitchingToDefault {
+                // 恢复全量时，保留手动停用的模板，避免静默复活
+                shouldBeActive = !manualDisabledSnapshot.contains(item.path)
+            } else {
+                shouldBeActive = profile.matches(templateName: item.name)
+            }
+
             if item.isEnabled != shouldBeActive {
                 do {
                     _ = try TemplateInstaller.setTemplateEnabled(item: item, enabled: shouldBeActive)

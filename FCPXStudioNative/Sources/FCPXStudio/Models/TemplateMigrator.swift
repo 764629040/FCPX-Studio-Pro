@@ -81,6 +81,7 @@ public struct MigrationRecord: Codable {
 public final class TemplateMigrator {
     public static let shared = TemplateMigrator()
     public static let lastMigrationKey = "lastMigrationRecord"
+    public static let migrationHistoryKey = "FCPX_MigrationHistory_Records"
 
     // MARK: – P2 卷监听与离线容灾通知常量
     public static let volumeStatusDidChangeNotification = Notification.Name("TemplateMigratorVolumeStatusDidChangeNotification")
@@ -336,16 +337,28 @@ public final class TemplateMigrator {
         )
     }
 
-    // MARK: – 撤销上次迁移
+    // MARK: – 撤销上次迁移 (FCPX-029: 支持多条历史记录回溯与被覆盖旧模板恢复)
+
+    public func migrationHistory() -> [MigrationRecord] {
+        guard let data = UserDefaults.standard.data(forKey: Self.migrationHistoryKey),
+              let list = try? JSONDecoder().decode([MigrationRecord].self, from: data) else {
+            if let singleData = UserDefaults.standard.data(forKey: Self.lastMigrationKey),
+               let single = try? JSONDecoder().decode(MigrationRecord.self, from: singleData) {
+                return [single]
+            }
+            return []
+        }
+        return list
+    }
 
     public func lastRecord() -> MigrationRecord? {
-        guard let data = UserDefaults.standard.data(forKey: Self.lastMigrationKey) else { return nil }
-        return try? JSONDecoder().decode(MigrationRecord.self, from: data)
+        return migrationHistory().last
     }
 
     @discardableResult
     public func undoLastMigration(roots: TemplateTierRoots = .resolve()) throws -> MigrationOutcome {
-        guard let record = lastRecord() else {
+        var history = migrationHistory()
+        guard let record = history.popLast() else {
             throw MigrationError.ioFailure("没有可撤销的迁移记录")
         }
         guard let fromTier = TemplateTier(rawValue: record.fromTier),
@@ -371,10 +384,22 @@ public final class TemplateMigrator {
         do {
             try fm.createDirectory(atPath: backCategory, withIntermediateDirectories: true)
             try fm.moveItem(atPath: record.destinationPath, toPath: backPath)
+            // 若当时 overwrite 产生了 displacedBackup，原路恢复被替换的模板
+            if let backup = record.backupPath, fm.fileExists(atPath: backup) {
+                try? fm.moveItem(atPath: backup, toPath: record.destinationPath)
+            }
         } catch {
             throw mapError(error, path: record.destinationPath)
         }
-        UserDefaults.standard.removeObject(forKey: Self.lastMigrationKey)
+
+        if let historyData = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(historyData, forKey: Self.migrationHistoryKey)
+        }
+        if let newLast = history.last, let singleData = try? JSONEncoder().encode(newLast) {
+            UserDefaults.standard.set(singleData, forKey: Self.lastMigrationKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.lastMigrationKey)
+        }
         UserDefaults.standard.synchronize()
 
         return MigrationOutcome(
@@ -432,10 +457,18 @@ public final class TemplateMigrator {
     }
 
     private func saveRecord(_ record: MigrationRecord) {
+        var history = migrationHistory()
+        history.append(record)
+        if history.count > 50 {
+            history.removeFirst(history.count - 50)
+        }
+        if let historyData = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(historyData, forKey: Self.migrationHistoryKey)
+        }
         if let data = try? JSONEncoder().encode(record) {
             UserDefaults.standard.set(data, forKey: Self.lastMigrationKey)
-            UserDefaults.standard.synchronize()
         }
+        UserDefaults.standard.synchronize()
     }
 
     /// 把 FileManager 的错误映射成可行动的中文错误（权限失败必须点名）

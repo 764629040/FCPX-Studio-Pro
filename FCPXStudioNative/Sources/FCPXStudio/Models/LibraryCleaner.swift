@@ -527,10 +527,37 @@ public final class LibraryCleaner {
     /// 对资源库执行安全瘦身
     /// - Parameters:
     ///   - item: 待清理的资源库条目
+    /// 检查 Final Cut Pro 是否正在运行 (FCPX-031 防写入与锁死冲突)
+    public static func isFinalCutRunning() -> Bool {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
+        proc.arguments = ["-x", "FinalCut"]
+        let pipe = Pipe()
+        proc.standardOutput = pipe
+        try? proc.run()
+        proc.waitUntilExit()
+        return proc.terminationStatus == 0
+    }
+
     ///   - categoriesToClean: 选定的清理分类（若传 nil 则清理所有选中的分类）
     /// - Returns: 清理结果报表
     public func safeClean(item: LibraryBundleItem,
                           categoriesToClean: Set<LibraryCacheCategory>? = nil) -> LibraryCleanResult {
+        // FCPX-031: 运行中检测，在跑则拒绝清理并提示退出
+        if Self.isFinalCutRunning() {
+            return LibraryCleanResult(
+                libraryName: item.name,
+                libraryPath: item.path,
+                bytesFreed: 0,
+                itemsTrashedCount: 0,
+                trashedURLs: [],
+                cleanedCategories: [],
+                timestamp: Date(),
+                isSuccess: false,
+                errorMessages: ["Final Cut Pro 正在运行中，清理缓存文件可能导致工程锁死或损坏。请先完全退出 Final Cut Pro 后再执行清理。"]
+            )
+        }
+
         var freedBytes: Int64 = 0
         var trashedURLs: [URL] = []
         var cleanedCats: [LibraryCacheCategory] = []
@@ -560,21 +587,22 @@ public final class LibraryCleaner {
 
                 guard fileManager.fileExists(atPath: dirPath) else { continue }
 
-                // 穿透该缓存目录内部，将具体缓存文件逐一或整包移入废纸篓
+                // FCPX-031: 穿透该缓存目录内部，将具体缓存文件逐一移入废纸篓并记录明细
                 let dirURL = URL(fileURLWithPath: dirPath)
-                let dirSize = calculateDirectorySize(at: dirPath).size
-
-                do {
-                    var resultingURL: NSURL?
-                    // 使用 macOS 标准 API 安全移入废纸篓（非 rm -rf，用户可放回）
-                    try fileManager.trashItem(at: dirURL, resultingItemURL: &resultingURL)
-
-                    if let trashed = resultingURL as URL? {
-                        trashedURLs.append(trashed)
+                guard let contents = try? fileManager.contentsOfDirectory(atPath: dirPath) else { continue }
+                for subName in contents {
+                    let subURL = dirURL.appendingPathComponent(subName)
+                    let subSize = calculateDirectorySize(at: subURL.path).size
+                    do {
+                        var resultingURL: NSURL?
+                        try fileManager.trashItem(at: subURL, resultingItemURL: &resultingURL)
+                        if let trashed = resultingURL as URL? {
+                            trashedURLs.append(trashed)
+                        }
+                        categoryFreed += subSize
+                    } catch {
+                        errors.append("移入废纸篓失败 [\(subName)]: \(error.localizedDescription)")
                     }
-                    categoryFreed += dirSize
-                } catch {
-                    errors.append("移入废纸篓失败 [\(dirPath)]: \(error.localizedDescription)")
                 }
             }
 

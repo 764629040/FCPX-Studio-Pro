@@ -109,12 +109,11 @@ class MotionBuilder:
         """
         根据图层列表组装并输出全新的 .moti 文件（单文件原子写入保护）
         支持纯矢量文字图层与含 Media/ 贴图的装饰/形状图层（ozml footage + scenenode factoryID=5）
-
-        A-24 修复：`canvas_size` 用于写入 `<sceneSettings>` 的 width/height。
-        此前完全不写该节点，模板会沿用基准模板 reference_base.moti 里硬编码的
-        1920×1080，导致竖版 PSD（如 1080×1920）生成出横版 comp，
-        文字按 PSD 坐标 1:1 放入后右侧留下大面积空黑。
         """
+        # FCPX-028: 严格拦截空图层列表，杜绝生成废模板
+        if not layers_info:
+            raise ValueError("layers_info 列表为空，无法构建无图层的空白废模板")
+
         new_tree = copy.deepcopy(self.tree)
         new_root = new_tree.getroot()
         new_scene = new_root.find("scene")
@@ -270,9 +269,11 @@ class MotionBuilder:
 
                 p_attr = ET.SubElement(sn_elem, "parameter", {"name": "属性", "id": "1", "flags": "8589938704"})
                 p_trans = ET.SubElement(p_attr, "parameter", {"name": "变换", "id": "100", "flags": "8589938704"})
-                mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
-                mx = float(mpos[0]) if len(mpos) > 0 else 0.0
-                my = float(mpos[1]) if len(mpos) > 1 else 0.0
+                # FCPX-027: 断言校验 motion_pos 长度，防越界崩溃
+                raw_mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
+                mpos = raw_mpos if isinstance(raw_mpos, (list, tuple)) and len(raw_mpos) >= 2 else (0.0, 0.0)
+                mx = float(mpos[0])
+                my = float(mpos[1])
                 p_pos = ET.SubElement(p_trans, "parameter", {"name": "位置", "id": "101", "flags": "8589938704"})
                 ET.SubElement(p_pos, "parameter", {"name": "X", "id": "1", "flags": "8606711824", "default": "0", "value": str(round(mx, 2))})
                 ET.SubElement(p_pos, "parameter", {"name": "Y", "id": "2", "flags": "8606711824", "default": "0", "value": str(round(my, 2))})
@@ -286,6 +287,11 @@ class MotionBuilder:
                 p_scale = ET.SubElement(p_trans, "parameter", {"name": "缩放", "id": "105", "flags": "8589938704"})
                 ET.SubElement(p_scale, "parameter", {"name": "X", "id": "1", "flags": "8606711824", "default": "1", "value": scale_x})
                 ET.SubElement(p_scale, "parameter", {"name": "Y", "id": "2", "flags": "8606711824", "default": "1", "value": scale_y})
+
+                # FCPX-019: 写入媒体层透明度 (0.0 ~ 1.0)
+                media_op = float(getattr(info, "opacity", 1.0) or 1.0)
+                media_op = max(0.0, min(1.0, media_op))
+                ET.SubElement(p_attr, "parameter", {"name": "不透明度", "id": "108", "flags": "8606711824", "default": "1", "value": str(round(media_op, 4))})
 
                 p_media = ET.SubElement(p_attr, "parameter", {"name": "媒体", "id": "324", "flags": "8589938704"})
                 ET.SubElement(p_media, "parameter", {
@@ -368,6 +374,15 @@ class MotionBuilder:
                         else:
                             style.append(all_caps_p)
 
+                    # FCPX-022: 将描边/投影/发光参数真实写进 style
+                    style_entries = getattr(info, "style_entries", None)
+                    if not style_entries and getattr(info, "layer_styles", None):
+                        from core.motion_param_writer import build_layer_style_motion_entries
+                        style_entries = build_layer_style_motion_entries(info.layer_styles)
+                    if style_entries:
+                        from core.motion_param_writer import apply_style_effects_to_ozml
+                        apply_style_effects_to_ozml(style, style_entries)
+
                 # 字体 (优先使用经过回退诊断后的安全字体)
                 font_elem = layer_elem.find(".//parameter[@id=\"83\"]/font")
                 if font_elem is not None:
@@ -441,15 +456,17 @@ class MotionBuilder:
                         })
 
                 # 坐标 Position X, Y (中心笛卡尔坐标 + 非居中锚点坐标补偿)
-                mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
-                mx = float(mpos[0]) if len(mpos) > 0 else 0.0
-                my = float(mpos[1]) if len(mpos) > 1 else 0.0
+                # FCPX-027: 断言校验 motion_pos 长度，防越界崩溃
+                raw_mpos = getattr(info, "motion_pos", (0, 0)) or (0, 0)
+                mpos = raw_mpos if isinstance(raw_mpos, (list, tuple)) and len(raw_mpos) >= 2 else (0.0, 0.0)
+                mx = float(mpos[0])
+                my = float(mpos[1])
                 rot_deg = float(getattr(info, "rotation", 0.0) or 0.0)
                 comp_x, comp_y = mx, my
                 if align_str in ("left", "right"):
                     rot_rad = math.radians(rot_deg)
                     bbox = getattr(info, "psd_bbox", None)
-                    if bbox and len(bbox) == 4:
+                    if bbox and isinstance(bbox, (list, tuple)) and len(bbox) == 4:
                         bw = max(1.0, float(bbox[2] - bbox[0]))
                         bh = max(1.0, float(bbox[3] - bbox[1]))
                         if abs(math.sin(rot_rad)) > 0.7:
@@ -490,6 +507,50 @@ class MotionBuilder:
                 scale_y_elem = layer_elem.find(".//parameter[@id=\"105\"]/parameter[@id=\"2\"]")
                 if scale_y_elem is not None:
                     scale_y_elem.attrib["value"] = str(round(getattr(info, "scale_y", 1.0), 3))
+
+                # FCPX-019: 写入透明度 Opacity (0.0 ~ 1.0)
+                txt_op = float(getattr(info, "opacity", 1.0) or 1.0)
+                txt_op = max(0.0, min(1.0, txt_op))
+                txt_op_str = str(round(txt_op, 4))
+                for p2 in layer_elem.findall(".//parameter[@id='2000']//parameter[@id='2']"):
+                    p2.attrib["value"] = txt_op_str
+                sn_attr = layer_elem.find(".//scenenode/parameter[@id='1']")
+                if sn_attr is not None:
+                    p108 = sn_attr.find("parameter[@id='108']")
+                    if p108 is None:
+                        p108 = ET.SubElement(sn_attr, "parameter", {
+                            "name": "不透明度", "id": "108", "flags": "8606711824",
+                            "default": "1", "value": txt_op_str
+                        })
+                    else:
+                        p108.attrib["value"] = txt_op_str
+
+                # FCPX-020: 写入行距 (line_spacing)
+                l_spacing = getattr(info, "line_spacing", None)
+                if l_spacing is not None:
+                    l_val = str(round(float(l_spacing), 2))
+                    for ps in layer_elem.findall(".//paragraphStyle"):
+                        lsp = ps.find("parameter[@id='402']")
+                        if lsp is None:
+                            ET.SubElement(ps, "parameter", {
+                                "name": "行距", "id": "402", "flags": "8606777360",
+                                "default": "0", "value": l_val
+                            })
+                        else:
+                            lsp.attrib["value"] = l_val
+
+                # FCPX-021: 写入排版方向 writing_direction
+                w_dir = getattr(info, "writing_direction", "horizontal") or "horizontal"
+                dir_val = "1" if str(w_dir).lower() in ("vertical", "v", "竖排") else "0"
+                for ps in layer_elem.findall(".//paragraphStyle"):
+                    pdir = ps.find("parameter[@id='405']")
+                    if pdir is None:
+                        ET.SubElement(ps, "parameter", {
+                            "name": "文字方向", "id": "405", "flags": "8606777360",
+                            "default": "0", "value": dir_val
+                        })
+                    else:
+                        pdir.attrib["value"] = dir_val
 
                 # 处理显示/隐藏
                 if not info.visible:
@@ -606,6 +667,10 @@ class MotionBuilder:
             _sha256_of_file,
             _media_count,
         )
+
+        # FCPX-028: 严格拦截空图层列表，杜绝生成废模板
+        if not layers_info:
+            raise ValueError("layers_info 列表为空，无法构建无图层的空白废模板")
 
         if not output_dir or not str(output_dir).strip():
             raise ValueError("output_dir 不能为空")

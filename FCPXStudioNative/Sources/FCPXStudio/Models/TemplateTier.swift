@@ -389,8 +389,13 @@ public enum TemplateTierScanner {
 
         let templateExts: Set<String> = ["moti", "moef", "motr", "motn"]
 
-        func scanRecursive(logicalDir: String, targetDir: String, subCategory: String, isSymParent: Bool, tier: TemplateTier) -> [TemplateItem] {
+        // FCPX-025: inout Set 按 realpath 去重防环形软链接栈溢出挂死
+        func scanRecursive(logicalDir: String, targetDir: String, subCategory: String, isSymParent: Bool, tier: TemplateTier, visited: inout Set<String>) -> [TemplateItem] {
             var foundItems: [TemplateItem] = []
+            let realPath = URL(fileURLWithPath: targetDir).resolvingSymlinksInPath().path
+            guard !visited.contains(realPath) else { return [] }
+            visited.insert(realPath)
+
             guard let entries = try? fm.contentsOfDirectory(atPath: targetDir) else { return foundItems }
 
             // 1. 检查当前目录本身是否直接包含 Motion 模板工程文件（.moti / .moef / .motr / .motn）
@@ -501,7 +506,8 @@ public enum TemplateTierScanner {
                     targetDir: sub.childTarget,
                     subCategory: nextSubCat,
                     isSymParent: sub.isSymlink,
-                    tier: tier
+                    tier: tier,
+                    visited: &visited
                 )
                 foundItems.append(contentsOf: children)
             }
@@ -521,12 +527,14 @@ public enum TemplateTierScanner {
                 targetCatPath = dest.hasPrefix("/") ? dest : ((root as NSString).appendingPathComponent(dest))
             }
 
+            var visited = Set<String>()
             let tierItems = scanRecursive(
                 logicalDir: catPath,
                 targetDir: targetCatPath,
                 subCategory: "",
                 isSymParent: isSym,
-                tier: tier
+                tier: tier,
+                visited: &visited
             )
             items.append(contentsOf: tierItems)
         }

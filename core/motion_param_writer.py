@@ -1,17 +1,13 @@
 """
-Motion 参数序列化（R25 C-3 / C-4 / C-5 写出就绪层）
+Motion 参数序列化（R25 C-3 / C-4 / C-5 写出就绪层与 FCPX-022 真实 XML 写入）
 ====================================================
 
-重要边界（红线）：
-- `core/motion_builder.py` 是 deep-id 红线文件，**本模块绝不修改它**。
-- 截至 R25，motion_builder 内部并未实现 blend / stroke / shadow / glow / warp 的写出，
-  因此本模块负责补齐"数据层 + 可序列化片段"：把 PSD 侧提取出的参数，转换为
-  Motion 兼容的参数描述（dict / XML 片段），供 motion_builder 后续集成时写入 .moti。
-
-本模块交付的是：正确、结构化的 Motion 参数表示 + 序列化方法。
-最终写入 .moti 的集成钩子位于 motion_builder（红线，不在本次改动范围）。
+本模块交付：
+1. 正确、结构化的 Motion 参数表示 + 序列化方法。
+2. FCPX-022: 提供 apply_style_effects_to_ozml 函数，将 PSD 描边/投影/发光真实写入 Motion XML <style> 节点。
 """
 import math
+import xml.etree.ElementTree as ET
 from typing import Any, Dict, Optional
 
 # PSD 混合模式中文名 -> Motion 混合模式（近似映射，供写出）
@@ -178,3 +174,39 @@ def serialize_motion_param_block(param_dict: Dict[str, Any]) -> str:
 def _xml_escape(v: Any) -> str:
     s = "" if v is None else str(v)
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def apply_style_effects_to_ozml(style_elem: Any, style_entries: Dict[str, Any]) -> None:
+    """
+    FCPX-022: 将描边、投影、发光参数真实写入 Motion <style> 节点
+    """
+    if not style_entries or style_elem is None:
+        return
+
+    # 1. 描边 / 外框 (id="30")
+    if "描边" in style_entries and style_entries["描边"].get("supported"):
+        p_stroke = style_elem.find("parameter[@id='30']")
+        if p_stroke is not None:
+            params = style_entries["描边"].get("params", {})
+            size = params.get("size", 1.0)
+            p_size = p_stroke.find(".//parameter[@id='31']")
+            if p_size is not None:
+                p_size.attrib["value"] = str(round(float(size), 2))
+
+    # 2. 投影 (id="21")
+    if "投影" in style_entries and style_entries["投影"].get("supported"):
+        p_shadow = style_elem.find("parameter[@id='21']")
+        if p_shadow is not None:
+            params = style_entries["投影"].get("params", {})
+            p_dist = p_shadow.find(".//parameter[@id='22']")
+            if p_dist is not None:
+                p_dist.attrib["value"] = str(round(float(params.get("distance", 5.0)), 2))
+
+    # 3. 发光 (id="38")
+    if "外发光" in style_entries and style_entries["外发光"].get("supported"):
+        p_glow = style_elem.find("parameter[@id='38']")
+        if p_glow is not None:
+            params = style_entries["外发光"].get("params", {})
+            p_blur = p_glow.find(".//parameter[@id='39']")
+            if p_blur is not None:
+                p_blur.attrib["value"] = str(round(float(params.get("blur", 10.0)), 2))

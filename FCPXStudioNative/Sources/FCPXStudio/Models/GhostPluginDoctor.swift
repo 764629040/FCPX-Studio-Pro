@@ -489,13 +489,17 @@ public final class GhostPluginDoctor {
                 "FCPX_Templates"
             ]
             for sd in searchDirs {
-                let probe = URL(fileURLWithPath: vol).appendingPathComponent(sd).path
-                if fm.fileExists(atPath: probe) {
-                    if let subs = try? fm.subpathsOfDirectory(atPath: probe) {
-                        for sub in subs where (sub as NSString).lastPathComponent == templateName {
-                            let matchPath = (probe as NSString).appendingPathComponent(sub)
-                            if fm.fileExists(atPath: matchPath) {
-                                return matchPath
+                let probeURL = URL(fileURLWithPath: vol).appendingPathComponent(sd)
+                if fm.fileExists(atPath: probeURL.path) {
+                    // FCPX-026: 使用带深度限制 (<=4) 的 enumerator 避免几十万文件遍历导致界面假死
+                    if let enumerator = fm.enumerator(at: probeURL, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
+                        while let fileURL = enumerator.nextObject() as? URL {
+                            if enumerator.level > 4 {
+                                enumerator.skipDescendants()
+                                continue
+                            }
+                            if fileURL.lastPathComponent == templateName && fm.fileExists(atPath: fileURL.path) {
+                                return fileURL.path
                             }
                         }
                     }
@@ -618,11 +622,22 @@ public final class GhostPluginDoctor {
             try fm.createDirectory(atPath: origDir, withIntermediateDirectories: true)
         }
 
-        if fm.fileExists(atPath: record.originalPath) {
-            try fm.removeItem(atPath: record.originalPath)
+        // FCPX-023: 若原路径已有同名新模板，重命名为"原名 (恢复).moti"或备份，严禁静默删除
+        var finalDest = record.originalPath
+        if fm.fileExists(atPath: finalDest) {
+            let ext = (finalDest as NSString).pathExtension
+            let base = ((finalDest as NSString).deletingPathExtension as NSString).lastPathComponent
+            let dir = (finalDest as NSString).deletingLastPathComponent
+            let suffix = ext.isEmpty ? "" : ".\(ext)"
+            finalDest = (dir as NSString).appendingPathComponent("\(base) (恢复)\(suffix)")
+            var counter = 2
+            while fm.fileExists(atPath: finalDest) {
+                finalDest = (dir as NSString).appendingPathComponent("\(base) (恢复 \(counter))\(suffix)")
+                counter += 1
+            }
         }
 
-        try fm.moveItem(atPath: record.quarantinePath, toPath: record.originalPath)
+        try fm.moveItem(atPath: record.quarantinePath, toPath: finalDest)
 
         ledger.remove(at: idx)
         saveQuarantineLedger(ledger)
