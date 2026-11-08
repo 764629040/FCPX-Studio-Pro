@@ -34,6 +34,8 @@ public final class CleanerDashboardView: NSView,
     // MARK: – Data
     public private(set) var libraries: [LibraryBundleItem] = []
     public var selectedLibrary: LibraryBundleItem?
+    // TR-004: 多库选中支持
+    public var selectedLibraries: [LibraryBundleItem] = []
 
     // MARK: – Init
     public override init(frame frameRect: NSRect) {
@@ -122,13 +124,36 @@ public final class CleanerDashboardView: NSView,
         leftBox.layer?.borderColor = ColorToken.cardBorder.cgColor
         leftBox.translatesAutoresizingMaskIntoConstraints = false
 
+        // TR-004: 左侧头部工具条：资源库标题与「全选 / 取消全选」按钮
+        let leftHeader = NSStackView()
+        leftHeader.orientation = .horizontal
+        leftHeader.alignment = .centerY
+        leftHeader.distribution = .fill
+        leftHeader.translatesAutoresizingMaskIntoConstraints = false
+        leftBox.addSubview(leftHeader)
+
+        let leftTitle = NSTextField(labelWithString: "发现的 .fcpbundle 资源库")
+        leftTitle.font = TypeScale.footnoteMedium
+        leftTitle.textColor = .white
+        leftHeader.addArrangedSubview(leftTitle)
+
+        let toggleAllLibsBtn = NSButton(title: "全选 / 取消全选 (⌘A)", target: self, action: #selector(onToggleSelectAllLibrariesClicked))
+        toggleAllLibsBtn.bezelStyle = .inline
+        toggleAllLibsBtn.font = TypeScale.caption
+        leftHeader.addArrangedSubview(toggleAllLibsBtn)
+
         let scroll = NSScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
         scroll.hasVerticalScroller = true
         leftBox.addSubview(scroll)
 
         NSLayoutConstraint.activate([
-            scroll.topAnchor.constraint(equalTo: leftBox.topAnchor, constant: 6),
+            leftHeader.topAnchor.constraint(equalTo: leftBox.topAnchor, constant: 8),
+            leftHeader.leadingAnchor.constraint(equalTo: leftBox.leadingAnchor, constant: 10),
+            leftHeader.trailingAnchor.constraint(equalTo: leftBox.trailingAnchor, constant: -10),
+            leftHeader.heightAnchor.constraint(equalToConstant: 24),
+
+            scroll.topAnchor.constraint(equalTo: leftHeader.bottomAnchor, constant: 6),
             scroll.leadingAnchor.constraint(equalTo: leftBox.leadingAnchor, constant: 6),
             scroll.trailingAnchor.constraint(equalTo: leftBox.trailingAnchor, constant: -6),
             scroll.bottomAnchor.constraint(equalTo: leftBox.bottomAnchor, constant: -6)
@@ -139,6 +164,8 @@ public final class CleanerDashboardView: NSView,
         libraryTableView.rowHeight = 32
         libraryTableView.gridStyleMask = .solidHorizontalGridLineMask
         libraryTableView.usesAlternatingRowBackgroundColors = false
+        // TR-004: 开启多选支持与 ⌘A
+        libraryTableView.allowsMultipleSelection = true
         libraryTableView.dataSource = self
         libraryTableView.delegate = self
 
@@ -343,52 +370,105 @@ public final class CleanerDashboardView: NSView,
         }
     }
 
+    // TR-004: 全选/取消全选资源库
+    @objc public func onToggleSelectAllLibrariesClicked() {
+        if libraryTableView.selectedRowIndexes.count == libraries.count && !libraries.isEmpty {
+            libraryTableView.deselectAll(nil)
+        } else {
+            libraryTableView.selectAll(nil)
+        }
+    }
+
     @objc public func onCleanAllClicked() {
-        guard let item = selectedLibrary else { return }
+        let targets = selectedLibraries.isEmpty ? (selectedLibrary != nil ? [selectedLibrary!] : []) : selectedLibraries
+        guard !targets.isEmpty else { return }
+
+        let count = targets.count
+        let totalCleanableBytes = targets.reduce(0) { $0 + $1.cleanableSizeBytes }
+        let totalFormatted = ByteCountFormatter.string(fromByteCount: totalCleanableBytes, countStyle: .file)
 
         let alert = NSAlert()
-        alert.messageText = "确认一键安全瘦身？"
-        alert.informativeText = "即将对【\(item.name)】执行深度瘦身。\n\n• 预计清理: \(item.cleanableSizeFormatted)\n• 原始拍摄素材 (Original Media): 100% 绝对安全不触碰\n• 清理操作将安全移入 macOS 废纸篓，可随时放回原处。"
+        alert.messageText = "确认一键安全瘦身全部缓存？"
+        alert.informativeText = "即将对 \(count) 个资源库共 \(totalFormatted) 缓存执行深度瘦身。\n\n• 原始拍摄素材 (Original Media): 100% 绝对安全不触碰\n• 清理项将安全移入 macOS 废纸篓，可随时放回原处。"
         alert.addButton(withTitle: "安全移入废纸篓")
         alert.addButton(withTitle: "取消")
         alert.alertStyle = .warning
 
         if alert.runModal() == .alertFirstButtonReturn {
-            executeClean(item: item, categories: nil)
+            executeBatchClean(items: targets, categories: nil)
         }
     }
 
     @objc public func onCleanSelectedClicked() {
-        guard let item = selectedLibrary else { return }
-        let selectedCats = Set(item.cacheDetails.filter { $0.isSelected }.map { $0.category })
-        guard !selectedCats.isEmpty else {
-            cleanResultLabel.stringValue = "请先勾选至少一项要瘦身的缓存分类"
-            return
+        let targets = selectedLibraries.isEmpty ? (selectedLibrary != nil ? [selectedLibrary!] : []) : selectedLibraries
+        guard !targets.isEmpty else { return }
+
+        let count = targets.count
+        let totalCleanableBytes: Int64
+        let selectedCats: Set<LibraryCacheCategory>?
+
+        if count == 1 {
+            let item = targets[0]
+            let cats = Set(item.cacheDetails.filter { $0.isSelected }.map { $0.category })
+            guard !cats.isEmpty else {
+                cleanResultLabel.stringValue = "请先勾选至少一项要瘦身的缓存分类"
+                return
+            }
+            selectedCats = cats
+            totalCleanableBytes = item.selectedCleanableSizeBytes
+        } else {
+            selectedCats = nil
+            totalCleanableBytes = targets.reduce(0) { $0 + $1.cleanableSizeBytes }
         }
 
-        executeClean(item: item, categories: selectedCats)
+        let totalFormatted = ByteCountFormatter.string(fromByteCount: totalCleanableBytes, countStyle: .file)
+        let alert = NSAlert()
+        alert.messageText = "确认执行所选资源库瘦身？"
+        alert.informativeText = "即将对 \(count) 个资源库共 \(totalFormatted) 缓存执行瘦身，原始素材 100% 不触碰，清理项移入废纸篓。"
+        alert.addButton(withTitle: "安全移入废纸篓")
+        alert.addButton(withTitle: "取消")
+        alert.alertStyle = .warning
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            executeBatchClean(items: targets, categories: selectedCats)
+        }
     }
 
-    private func executeClean(item: LibraryBundleItem, categories: Set<LibraryCacheCategory>?) {
+    private func executeBatchClean(items: [LibraryBundleItem], categories: Set<LibraryCacheCategory>?) {
         spinner.startAnimation(nil)
-        cleanResultLabel.stringValue = "正在安全移入废纸篓…"
+        cleanResultLabel.stringValue = "正在安全移入废纸篓 (0/\(items.count))…"
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = LibraryCleaner.shared.safeClean(item: item, categoriesToClean: categories)
+            var totalFreed: Int64 = 0
+            var countSuccess = 0
+            for (idx, it) in items.enumerated() {
+                let res = LibraryCleaner.shared.safeClean(item: it, categoriesToClean: categories)
+                totalFreed += res.bytesFreed
+                countSuccess += 1
+                if let updated = LibraryCleaner.shared.analyzeBundle(at: it.url) {
+                    DispatchQueue.main.async {
+                        if let localIdx = self?.libraries.firstIndex(where: { $0.path == it.path }) {
+                            self?.libraries[localIdx] = updated
+                        }
+                    }
+                }
+                DispatchQueue.main.async {
+                    self?.cleanResultLabel.stringValue = "正在处理 (\(idx + 1)/\(items.count))…"
+                }
+            }
 
-            // 重新分析该资源库最新体积
-            let updated = LibraryCleaner.shared.analyzeBundle(at: item.url)
-
+            let freedFormatted = ByteCountFormatter.string(fromByteCount: totalFreed, countStyle: .file)
             DispatchQueue.main.async {
                 self?.spinner.stopAnimation(nil)
-                self?.cleanResultLabel.stringValue = result.summaryMessage
-
-                if let up = updated, let idx = self?.libraries.firstIndex(where: { $0.path == item.path }) {
-                    self?.libraries[idx] = up
-                    self?.selectedLibrary = up
-                    self?.libraryTableView.reloadData()
-                    self?.updateDetailPanel()
+                self?.cleanResultLabel.stringValue = "批量瘦身完成！共为 \(countSuccess) 个资源库释放 \(freedFormatted) 空间。"
+                self?.libraryTableView.reloadData()
+                let rows = self?.libraryTableView.selectedRowIndexes ?? IndexSet()
+                self?.selectedLibraries = rows.compactMap { idx in
+                    guard let libs = self?.libraries, idx >= 0 && idx < libs.count else { return nil }
+                    return libs[idx]
                 }
+                self?.selectedLibrary = self?.selectedLibraries.first
+                self?.updateDetailPanel()
             }
         }
     }
@@ -401,7 +481,7 @@ public final class CleanerDashboardView: NSView,
     // MARK: – Detail View Updates
 
     private func updateDetailPanel() {
-        guard let item = selectedLibrary else {
+        guard !selectedLibraries.isEmpty || selectedLibrary != nil else {
             detailTitleLabel.stringValue = "未选择资源库"
             detailPathLabel.stringValue = "请在左侧列表中点击选择，或将 .fcpbundle 拖拽至窗口"
             detailOriginalMediaLabel.stringValue = "🛡️ 原始素材: --"
@@ -414,30 +494,73 @@ public final class CleanerDashboardView: NSView,
             return
         }
 
-        detailTitleLabel.stringValue = "📦 \(item.name)"
-        detailPathLabel.stringValue = item.path
-        detailOriginalMediaLabel.stringValue = "🛡️ 原始拍摄素材: \(item.originalMediaFormatted) (最高安全级别，绝不触碰)"
-        detailCleanableLabel.stringValue = "🧹 可安全瘦身体积: \(item.cleanableSizeFormatted) (瘦身率 \(item.slimmingRatioText))"
+        let isMulti = selectedLibraries.count > 1
+        if isMulti {
+            let count = selectedLibraries.count
+            let totalBytes = selectedLibraries.reduce(0) { $0 + $1.totalSizeBytes }
+            let totalCleanable = selectedLibraries.reduce(0) { $0 + $1.cleanableSizeBytes }
+            let totalOriginal = selectedLibraries.reduce(0) { $0 + $1.originalMediaSizeBytes }
+            let cleanFormatted = ByteCountFormatter.string(fromByteCount: totalCleanable, countStyle: .file)
+            let origFormatted = ByteCountFormatter.string(fromByteCount: totalOriginal, countStyle: .file)
 
-        let total = Double(max(item.totalSizeBytes, 1))
-        let origRatio = Double(item.originalMediaSizeBytes) / total
-        let cleanRatio = Double(item.cleanableSizeBytes) / total
-        storageBarView.updateRatios(original: origRatio, cache: cleanRatio)
+            detailTitleLabel.stringValue = "📦 已选择 \(count) 个资源库"
+            detailPathLabel.stringValue = "\(count) 个跨盘或本地资源库已全选就绪"
+            detailOriginalMediaLabel.stringValue = "🛡️ 原始拍摄素材总计: \(origFormatted) (最高安全级别，100% 保护)"
+            detailCleanableLabel.stringValue = "🧹 累计可安全瘦身: \(cleanFormatted)"
 
-        cleanAllButton.isEnabled = item.cleanableSizeBytes > 0
-        cleanSelectedButton.isEnabled = item.selectedCleanableSizeBytes > 0
-        revealButton.isEnabled = true
+            let total = Double(max(totalBytes, 1))
+            let origRatio = Double(totalOriginal) / total
+            let cleanRatio = Double(totalCleanable) / total
+            storageBarView.updateRatios(original: origRatio, cache: cleanRatio)
+
+            cleanAllButton.isEnabled = totalCleanable > 0
+            cleanSelectedButton.isEnabled = totalCleanable > 0
+            revealButton.isEnabled = true
+        } else if let item = selectedLibrary {
+            detailTitleLabel.stringValue = "📦 \(item.name)"
+            detailPathLabel.stringValue = item.path
+            detailOriginalMediaLabel.stringValue = "🛡️ 原始拍摄素材: \(item.originalMediaFormatted) (最高安全级别，绝不触碰)"
+            detailCleanableLabel.stringValue = "🧹 可安全瘦身体积: \(item.cleanableSizeFormatted) (瘦身率 \(item.slimmingRatioText))"
+
+            let total = Double(max(item.totalSizeBytes, 1))
+            let origRatio = Double(item.originalMediaSizeBytes) / total
+            let cleanRatio = Double(item.cleanableSizeBytes) / total
+            storageBarView.updateRatios(original: origRatio, cache: cleanRatio)
+
+            cleanAllButton.isEnabled = item.cleanableSizeBytes > 0
+            cleanSelectedButton.isEnabled = item.selectedCleanableSizeBytes > 0
+            revealButton.isEnabled = true
+        }
 
         // 重新构建分类勾选列表
         categoryStackView.subviews.forEach { $0.removeFromSuperview() }
 
-        if item.cacheDetails.isEmpty {
+        guard let currentItem = selectedLibrary else { return }
+
+        // TR-004: 分类勾选区顶部增加「全选 / 全不选」按钮
+        let catHeaderRow = NSStackView()
+        catHeaderRow.orientation = .horizontal
+        catHeaderRow.spacing = 8
+        catHeaderRow.alignment = .centerY
+
+        let catHeaderTitle = NSTextField(labelWithString: "细分缓存项目 (多选时按公共分类应用)：")
+        catHeaderTitle.font = TypeScale.footnoteMedium
+        catHeaderTitle.textColor = .white
+        catHeaderRow.addArrangedSubview(catHeaderTitle)
+
+        let toggleAllCatsBtn = NSButton(title: "全选 / 全不选分类", target: self, action: #selector(onToggleAllCategoriesClicked))
+        toggleAllCatsBtn.bezelStyle = .inline
+        toggleAllCatsBtn.font = TypeScale.caption
+        catHeaderRow.addArrangedSubview(toggleAllCatsBtn)
+        categoryStackView.addArrangedSubview(catHeaderRow)
+
+        if currentItem.cacheDetails.isEmpty {
             let emptyLabel = NSTextField(labelWithString: "✨ 该工程非常清爽，无冗余渲染或代理缓存！")
             emptyLabel.font = .systemFont(ofSize: 12)
             emptyLabel.textColor = .secondaryLabelColor
             categoryStackView.addArrangedSubview(emptyLabel)
         } else {
-            for (idx, detail) in item.cacheDetails.enumerated() {
+            for (idx, detail) in currentItem.cacheDetails.enumerated() {
                 let row = NSStackView()
                 row.orientation = .horizontal
                 row.spacing = 8
@@ -457,6 +580,32 @@ public final class CleanerDashboardView: NSView,
                 categoryStackView.addArrangedSubview(row)
             }
         }
+    }
+
+    @objc private func onToggleAllCategoriesClicked() {
+        guard !libraries.isEmpty else { return }
+        if selectedLibraries.count > 1 {
+            let anyUnselected = selectedLibraries.contains { lib in lib.cacheDetails.contains { !$0.isSelected } }
+            let newState = anyUnselected
+            for i in 0..<selectedLibraries.count {
+                for j in 0..<selectedLibraries[i].cacheDetails.count {
+                    selectedLibraries[i].cacheDetails[j].isSelected = newState
+                }
+            }
+            if var first = selectedLibrary {
+                for j in 0..<first.cacheDetails.count {
+                    first.cacheDetails[j].isSelected = newState
+                }
+                selectedLibrary = first
+            }
+        } else if var item = selectedLibrary {
+            let anyUnselected = item.cacheDetails.contains { !$0.isSelected }
+            for j in 0..<item.cacheDetails.count {
+                item.cacheDetails[j].isSelected = anyUnselected
+            }
+            selectedLibrary = item
+        }
+        updateDetailPanel()
     }
 
     @objc private func onCategoryCheckboxToggled(_ sender: NSButton) {
@@ -505,12 +654,12 @@ public final class CleanerDashboardView: NSView,
     }
 
     public func tableViewSelectionDidChange(_ notification: Notification) {
-        let row = libraryTableView.selectedRow
-        if row >= 0 && row < libraries.count {
-            selectedLibrary = libraries[row]
-        } else {
-            selectedLibrary = nil
+        let rows = libraryTableView.selectedRowIndexes
+        selectedLibraries = rows.compactMap { idx in
+            guard idx >= 0 && idx < libraries.count else { return nil }
+            return libraries[idx]
         }
+        selectedLibrary = selectedLibraries.first
         updateDetailPanel()
     }
 

@@ -1783,10 +1783,12 @@ public final class AssetHubView: NSVisualEffectView,
                 container.addSubview(card)
                 cardViews.append(card)
 
-                // 懒加载体积计算
+                // TR-001: 懒加载体积计算并回写 card.item.sizeMB，确保视图与模型完全同步
                 if !item.isSymlink && item.sizeMB == 0.0 && item.targetAvailable {
-                    TemplateTierScanner.calculateSizeAsync(for: item) { [weak card] _ in
-                        card?.updateContent()
+                    TemplateTierScanner.calculateSizeAsync(for: item) { [weak card] calculatedSize in
+                        guard let card = card else { return }
+                        card.item.sizeMB = calculatedSize
+                        card.updateContent()
                     }
                 }
             }
@@ -2073,7 +2075,8 @@ public final class AssetHubView: NSVisualEffectView,
 
         menu.addItem(NSMenuItem.separator())
 
-        let designerItem = NSMenuItem(title: "在 Motion 设计器中打开", action: #selector(onCardDesignerMenu(_:)), keyEquivalent: "")
+        // TR-002: 修正名不副实，改名为「用 Apple Motion 打开」并真实调用系统打开
+        let designerItem = NSMenuItem(title: "用 Apple Motion 打开", action: #selector(onCardDesignerMenu(_:)), keyEquivalent: "")
         designerItem.target = self
         designerItem.representedObject = item
         menu.addItem(designerItem)
@@ -2241,6 +2244,24 @@ public final class AssetHubView: NSVisualEffectView,
 
     @objc private func onCardDesignerMenu(_ sender: NSMenuItem) {
         guard let item = sender.representedObject as? TemplateItem else { return }
+        // TR-002: 真正用 Apple Motion 打开该模板的工程文件 (.moti / .moef / .motr / .motn)
+        let fm = FileManager.default
+        let candidateDir = (item.targetPath.isEmpty || item.isOffline) ? item.path : item.targetPath
+        var targetFile: String? = nil
+        if let files = try? fm.contentsOfDirectory(atPath: candidateDir) {
+            for f in files {
+                let ext = (f as NSString).pathExtension.lowercased()
+                if ["moti", "moef", "motr", "motn"].contains(ext) {
+                    targetFile = (candidateDir as NSString).appendingPathComponent(f)
+                    break
+                }
+            }
+        }
+        if let tf = targetFile, fm.fileExists(atPath: tf) {
+            NSWorkspace.shared.open(URL(fileURLWithPath: tf))
+        } else if fm.fileExists(atPath: candidateDir) {
+            NSWorkspace.shared.open(URL(fileURLWithPath: candidateDir))
+        }
         onOpenTemplateInDesigner?(item.path)
     }
 

@@ -101,13 +101,13 @@ public final class ResourceCardView: NSView {
         tierBadgeLabel.frame = NSRect(x: 4, y: thumbH - 22, width: 56, height: 18)
         thumbnailContainer.addSubview(tierBadgeLabel)
 
-        // 2a. 子分类标签悬浮在缩略图左下角 (R48)
+        // 2a. 子分类标签悬浮在缩略图左下角 (TR-003: 低饱和蓝底 + 白字，提升对比度)
         subCategoryBadgeLabel = NSTextField(labelWithString: "")
-        subCategoryBadgeLabel.font = TypeScale.caption
-        subCategoryBadgeLabel.textColor = StatusPalette.textPrimary
+        subCategoryBadgeLabel.font = TypeScale.captionMedium
+        subCategoryBadgeLabel.textColor = .white
         subCategoryBadgeLabel.wantsLayer = true
-        subCategoryBadgeLabel.layer?.backgroundColor = StatusPalette.cardSelectedBg.cgColor
-        subCategoryBadgeLabel.layer?.borderColor = StatusPalette.cardSelectedBorder.cgColor
+        subCategoryBadgeLabel.layer?.backgroundColor = ColorToken.softBlue.cgColor
+        subCategoryBadgeLabel.layer?.borderColor = ColorToken.primaryBlue.withAlphaComponent(0.4).cgColor
         subCategoryBadgeLabel.layer?.borderWidth = 0.5
         subCategoryBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         subCategoryBadgeLabel.layer?.masksToBounds = true
@@ -315,25 +315,37 @@ public final class ResourceCardView: NSView {
             menuButton.isEnabled = true
         }
 
+        // TR-001: 优先从 AssetCacheManager 提取已缓存体积，消除无谓计算中
+        if item.sizeMB <= 0 {
+            if let cached = AssetCacheManager.shared.getTemplateSize(category: item.category, name: item.name), cached > 0 {
+                item.sizeMB = cached
+            }
+        }
+
         if item.isSymlink {
             sizeBadgeLabel.stringValue = "软链接"
         } else if item.sizeMB > 0 {
             sizeBadgeLabel.stringValue = String(format: "%.1f MB", item.sizeMB)
         } else {
-            // UI-O004: 主动触发一次体积计算，2s 超时未完成回退为 "--"
+            // TR-001 & UI-O004: 主动触发一次体积计算，<=2s 超时或无法计算时回退为 "--"，绝不永久停留
             sizeBadgeLabel.stringValue = "计算中…"
             let currentPath = item.path
-            DispatchQueue.global(qos: .utility).async { [weak self, currentPath] in
+            let category = item.category
+            let name = item.name
+            DispatchQueue.global(qos: .utility).async { [weak self, currentPath, category, name] in
                 var calculatedMB: Double = 0
-                if let attr = try? FileManager.default.attributesOfItem(atPath: currentPath),
+                if let cached = AssetCacheManager.shared.getTemplateSize(category: category, name: name), cached > 0 {
+                    calculatedMB = cached
+                } else if let attr = try? FileManager.default.attributesOfItem(atPath: currentPath),
                    let sz = attr[.size] as? Int64 {
                     calculatedMB = Double(sz) / (1024.0 * 1024.0)
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
                     guard let self = self, self.item.path == currentPath else { return }
                     if self.item.sizeMB > 0 {
                         self.sizeBadgeLabel.stringValue = String(format: "%.1f MB", self.item.sizeMB)
                     } else if calculatedMB > 0 {
+                        self.item.sizeMB = calculatedMB
                         self.sizeBadgeLabel.stringValue = String(format: "%.1f MB", calculatedMB)
                     } else {
                         self.sizeBadgeLabel.stringValue = "--"
@@ -360,32 +372,21 @@ public final class ResourceCardView: NSView {
         let (tierColor, tierTitle): (NSColor, String) = {
             switch item.tier {
             case .user:
-                return (StatusPalette.tierUser, "用户")
+                return (ColorToken.successGreen, "用户")
             case .builtin:
-                return (StatusPalette.tierBuiltin, "内置")
+                return (ColorToken.warningAmber, "内置")
             case .system:
                 return (StatusPalette.tierSystem, "系统")
             }
         }()
 
-        let dotConfig = NSImage.SymbolConfiguration(pointSize: 8, weight: .bold)
-            .applying(NSImage.SymbolConfiguration(hierarchicalColor: tierColor))
-        let dotImg = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)?
-            .withSymbolConfiguration(dotConfig)
-
-        let attr = NSMutableAttributedString()
-        if let img = dotImg {
-            let attach = NSTextAttachment()
-            attach.image = img
-            attach.bounds = NSRect(x: 0, y: -0.5, width: 8, height: 8)
-            attr.append(NSAttributedString(attachment: attach))
-            attr.append(NSAttributedString(string: " "))
-        }
-        attr.append(NSAttributedString(string: tierTitle, attributes: [
-            .font: NSFont.systemFont(ofSize: 10, weight: .semibold),
-            .foregroundColor: NSColor.white
-        ]))
-        tierBadgeLabel.attributedStringValue = attr
+        // TR-003: 统一使用 ColorToken，移除多余圆点附着物，提升文字与色板对比度
+        tierBadgeLabel.stringValue = tierTitle
+        tierBadgeLabel.textColor = tierColor
+        tierBadgeLabel.font = TypeScale.captionMedium
+        tierBadgeLabel.layer?.backgroundColor = ColorToken.tableRowBg.cgColor
+        tierBadgeLabel.layer?.borderColor = tierColor.withAlphaComponent(0.45).cgColor
+        tierBadgeLabel.layer?.borderWidth = 0.8
     }
 
     public func updateToggleAppearance() {
@@ -414,13 +415,15 @@ public final class ResourceCardView: NSView {
             toggleButton.layer?.borderColor = StatusPalette.offlineBorder.cgColor
             toggleButton.isEnabled = false
         } else if item.isEnabled {
+            // TR-003: 统一绿系为 ColorToken.successGreen
+            let unifiedGreen = ColorToken.successGreen
             toggleButton.title = " 开启"
-            toggleButton.image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)?.withSymbolConfiguration(
-                iconConfig.applying(NSImage.SymbolConfiguration(hierarchicalColor: StatusPalette.successGreen))
+            toggleButton.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "开启")?.withSymbolConfiguration(
+                iconConfig.applying(NSImage.SymbolConfiguration(hierarchicalColor: unifiedGreen))
             )
-            toggleButton.contentTintColor = StatusPalette.successGreen
-            toggleButton.layer?.backgroundColor = StatusPalette.successGreenBg.cgColor
-            toggleButton.layer?.borderColor = StatusPalette.successGreenBorder.cgColor
+            toggleButton.contentTintColor = unifiedGreen
+            toggleButton.layer?.backgroundColor = unifiedGreen.withAlphaComponent(0.18).cgColor
+            toggleButton.layer?.borderColor = unifiedGreen.withAlphaComponent(0.5).cgColor
             toggleButton.isEnabled = true
         } else {
             toggleButton.title = " 已停用"

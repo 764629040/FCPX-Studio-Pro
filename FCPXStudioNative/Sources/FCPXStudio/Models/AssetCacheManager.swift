@@ -69,6 +69,14 @@ public final class AssetCacheManager {
         }
     }
 
+    // TR-001: 快速从缓存按分类与名称读取模板体积
+    public func getTemplateSize(category: String, name: String) -> Double? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let existing = templateCache[category] else { return nil }
+        return existing.items.first(where: { $0.name == name })?.sizeMB
+    }
+
     /// R49: 安全删除后即时同步更新内存缓存
     public func remove(itemPath: String) {
         removeTemplate(path: itemPath)
