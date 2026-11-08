@@ -324,6 +324,20 @@ public final class PluginDoctorDashboardView: NSView,
         }
 
         let danglingIssues = report.issues.filter { $0.symptom == .danglingSymlink }
+        guard !danglingIssues.isEmpty else {
+            statusSummaryLabel?.stringValue = "当前无待重连的悬空断链。"
+            return
+        }
+
+        // FCPX-056: 自愈前弹窗确认影响条数
+        let alert = NSAlert()
+        alert.messageText = "确认一键智能自愈？"
+        alert.informativeText = "将扫描外置硬盘并对检测到的 \(danglingIssues.count) 项悬空软链接进行目标重连写入。"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "开始自愈")
+        alert.addButton(withTitle: "取消")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
         let (success, failed) = GhostPluginDoctor.shared.relinkAll(issues: danglingIssues)
         statusSummaryLabel?.stringValue = "一键自愈完成：成功重连 \(success) 项软链接，失败 \(failed) 项。"
 
@@ -337,8 +351,17 @@ public final class PluginDoctorDashboardView: NSView,
             return
         }
 
+        // FCPX-055: 隔离前弹窗确认影响数量与可撤销提示
+        let alert = NSAlert()
+        alert.messageText = "确认一键隔离破损模板？"
+        alert.informativeText = "将把检测到的全部 \(report.issues.count) 项破损模板安全移入隔离区（_Quarantine 目录）。隔离后可随时在下方点击【一键全部还原】撤销恢复。"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "执行隔离")
+        alert.addButton(withTitle: "取消")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
         let (success, failed) = GhostPluginDoctor.shared.quarantineAll(issues: report.issues)
-        statusSummaryLabel?.stringValue = "一键隔离完成：已安全移入 _Quarantine \(success) 项，失败 \(failed) 项。FCPX 红屏隐患已排除！"
+        statusSummaryLabel?.stringValue = "一键隔离完成：已安全移入 _Quarantine \(success) 项，失败 \(failed) 项（可随时点击下方【一键全部还原】恢复）。"
 
         AssetCacheManager.shared.invalidateAll()
         startScan()

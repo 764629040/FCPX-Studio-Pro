@@ -327,11 +327,29 @@ public final class BatchExportProgressSheet: NSWindow, NSTableViewDataSource, NS
         appendLog(status: .warning, fileName: "调度器", message: "收到取消信号，正在安全停止任务...")
     }
 
-    // MARK: – 用户交互动作
+    // MARK: – 用户交互动作 (FCPX-051: 取消二次确认，避免误触丢失已打包进度；保留隐藏面板入口)
 
     @objc private func onCancelClicked() {
-        markCancelled()
-        onCancel?()
+        if isCancelled {
+            if let parent = self.sheetParent {
+                parent.endSheet(self)
+            } else {
+                self.orderOut(nil)
+            }
+            return
+        }
+
+        let alert = NSAlert()
+        alert.messageText = "确认取消批量导出？"
+        alert.informativeText = "当前已导出 \(completedCount) / \(totalCount) 套模板。确认取消后，未处理的文件将停止导出。"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "停止导出")
+        alert.addButton(withTitle: "继续导出")
+        if alert.runModal() == .alertFirstButtonReturn {
+            markCancelled()
+            cancelButton?.title = "隐藏面板"
+            onCancel?()
+        }
     }
 
     @objc private func onRevealClicked() {

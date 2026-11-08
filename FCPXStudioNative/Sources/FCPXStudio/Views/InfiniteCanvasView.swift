@@ -812,8 +812,12 @@ public final class InfiniteCanvasView: NSView {
         }
 
         if isPanning {
-            panOffset.x += (mousePos.x - panStartMousePos.x)
-            panOffset.y += (mousePos.y - panStartMousePos.y)
+            // FCPX-044: panOffset 设立视口边界钳制（±3000pt），杜绝拖到屏幕外无穷远
+            let maxPan: CGFloat = 3000.0
+            let newX = panOffset.x + (mousePos.x - panStartMousePos.x)
+            let newY = panOffset.y + (mousePos.y - panStartMousePos.y)
+            panOffset.x = min(maxPan, max(-maxPan, newX))
+            panOffset.y = min(maxPan, max(-maxPan, newY))
             panStartMousePos = mousePos
             needsDisplay = true
             return
@@ -893,5 +897,20 @@ public final class InfiniteCanvasView: NSView {
             }
         }
         return -1
+    }
+
+    // FCPX-044: ⌘0 适应画板 / 回到画板
+    public func resetPanAndZoom() {
+        panOffset = .zero
+        zoomScale = 1.0
+        needsDisplay = true
+    }
+
+    public override func keyDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "0" {
+            resetPanAndZoom()
+            return
+        }
+        super.keyDown(with: event)
     }
 }

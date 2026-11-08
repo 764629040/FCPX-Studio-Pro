@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import UniformTypeIdentifiers
 
 // ═══════════════════════════════════════════════════════════════
 //  CleanerDashboardView.swift —— FCPX 资源库深度安全瘦身医生控制台
@@ -308,7 +309,12 @@ public final class CleanerDashboardView: NSView,
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
-        panel.allowedContentTypes = []
+        // FCPX-054: 限制仅选取资源库包与文件夹，防止选取任意无关文件
+        if let fcpType = UTType(filenameExtension: "fcpbundle") {
+            panel.allowedContentTypes = [fcpType, .folder, .bundle]
+        } else {
+            panel.allowedContentTypes = [.folder, .bundle]
+        }
         panel.prompt = "选择资源库"
 
         if panel.runModal() == .OK {

@@ -161,11 +161,17 @@ public final class SettingsDashboardView: NSView {
         readonlyRadio.font = .systemFont(ofSize: 12, weight: .medium)
         card1Stack.addArrangedSubview(readonlyRadio)
 
-        writableRadio = NSButton(radioButtonWithTitle: "可写高级模式（允许写入 FCPX 应用内部包，有损坏应用签名风险）",
+        // FCPX-041: 单选标题保持简明，风险提示拆解至独立自适应折行标签
+        writableRadio = NSButton(radioButtonWithTitle: "可写高级模式（允许写入内置包）",
                                  target: self, action: #selector(onRadioChanged(_:)))
         writableRadio.tag = 1
         writableRadio.font = .systemFont(ofSize: 12, weight: .medium)
         card1Stack.addArrangedSubview(writableRadio)
+
+        let riskWarningLabel = NSTextField(wrappingLabelWithString: "⚠️ 警告：写入内置级会修改 FCPX 应用程序包内部文件，可能导致应用签名失效、Gatekeeper 拦截或 FCPX 无法启动。更安全的替代方案：建议优先迁移至「系统」级。")
+        riskWarningLabel.textColor = NSColor.systemOrange
+        riskWarningLabel.font = .systemFont(ofSize: 11)
+        card1Stack.addArrangedSubview(riskWarningLabel)
 
         let c1ActionRow = NSStackView()
         c1ActionRow.orientation = .horizontal
@@ -230,7 +236,8 @@ public final class SettingsDashboardView: NSView {
         c2Header.spacing = 10
         c2Header.alignment = .centerY
 
-        let c2Title = NSTextField(labelWithString: "运行环境、硬件加速与便携化自检 (D-82 / D-83)")
+        // FCPX-040: 移除内部工单号括注
+        let c2Title = NSTextField(labelWithString: "运行环境、硬件加速与便携化自检")
         c2Title.font = .systemFont(ofSize: 14, weight: .bold)
         c2Title.textColor = .white
         c2Header.addArrangedSubview(c2Title)

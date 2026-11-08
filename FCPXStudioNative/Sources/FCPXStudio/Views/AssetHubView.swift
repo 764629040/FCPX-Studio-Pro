@@ -1115,15 +1115,18 @@ public final class AssetHubView: NSVisualEffectView,
         rightFinderBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(rightFinderBtn)
 
-        rightTrashBtn = NSButton(title: "🗑️ 移入废纸篓", target: self, action: #selector(onRightTrashClicked))
+        // FCPX-042: 明确为"删除分组"，防止用户误以为仅删除单个素材
+        rightTrashBtn = NSButton(title: "🗑️ 删除分组", target: self, action: #selector(onRightTrashClicked))
         rightTrashBtn.bezelStyle = .roundRect
         rightTrashBtn.font = .systemFont(ofSize: 11)
         rightTrashBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(rightTrashBtn)
 
+        // FCPX-043: 演示按钮添加禁用提示说明
         previewToggleBtn = NSButton(title: "⚡️ 演示", target: self, action: #selector(onPreviewToggleClicked))
         previewToggleBtn.bezelStyle = .roundRect
         previewToggleBtn.font = .systemFont(ofSize: 11)
+        previewToggleBtn.toolTip = "QuickLook 实时预览演示功能正在接入中"
         previewToggleBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(previewToggleBtn)
 
@@ -1562,10 +1565,8 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onPreviewToggleClicked() {
-        statusLabel?.stringValue = "⚡️ 实时预览模式已切换"
-        if let card = cardViews.first {
-            card.layer?.borderColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 1.0, alpha: 1.0).cgColor
-        }
+        // FCPX-043: 明确说明功能就绪状态，杜绝空伪造
+        showAlert(title: "功能说明", message: "动态实时预览演示功能正在接入 Apple QuickLook 引擎，将在下个版本开放。")
     }
 
     public func updateGroupItems() {
@@ -2019,9 +2020,15 @@ public final class AssetHubView: NSVisualEffectView,
             menu.addItem(recheckItem)
             return menu
         } else if item.isOffline {
-            let offlineItem = NSMenuItem(title: "⚠️ 磁盘离线（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
+            // FCPX-046: 补充离线素材的重新检测挂载入口，消除操作死路
+            let offlineItem = NSMenuItem(title: "⚠️ 磁盘离线（受容灾保护，禁止常规操作）", action: nil, keyEquivalent: "")
             offlineItem.isEnabled = false
             menu.addItem(offlineItem)
+            menu.addItem(NSMenuItem.separator())
+            let redetectItem = NSMenuItem(title: "🔄 重新检测磁盘挂载状态…", action: #selector(onRedetectDiskMenu(_:)), keyEquivalent: "")
+            redetectItem.target = self
+            redetectItem.representedObject = item
+            menu.addItem(redetectItem)
             return menu
         }
 
@@ -2062,6 +2069,15 @@ public final class AssetHubView: NSVisualEffectView,
     public func showActionMenu(for item: TemplateItem, from view: NSView) {
         let menu = makeTemplateActionMenu(for: item)
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.height), in: view)
+    }
+
+    @objc private func onRedetectDiskMenu(_ sender: NSMenuItem) {
+        let mounted = StorageMigrationManager.shared.listMountedVolumes()
+        for vol in mounted {
+            TemplateMigrator.handleVolumeEvent(volumePath: vol.path, isMounted: true)
+        }
+        refreshList()
+        showAlert(title: "磁盘状态检测", message: "已触发外置存储挂载探测，素材状态已刷新。")
     }
 
     @objc private func onCardDeleteMenu(_ sender: NSMenuItem) {
@@ -3155,14 +3171,17 @@ public final class AssetHubView: NSVisualEffectView,
             reloadCardGrid(resetPaging: false)
 
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
-            let msg: String
+            let initialMsg: String
             if mismatchedCount > 0 {
-                msg = "🚫 挂载卷 [\(displayName)] 与原素材盘 UUID 不符，拒绝绑定 (\(mismatchedCount) 套素材已防护)"
+                initialMsg = "🚫 挂载卷 [\(displayName)] 与原素材盘 UUID 不符，拒绝绑定 (\(mismatchedCount) 套素材已防护)"
+            } else if !pendingCheckPaths.isEmpty {
+                // FCPX-047: 慢盘校验期间展示校验中文案，成功文案在校验完成后再展示
+                initialMsg = "⏳ 外置盘 [\(displayName)] 已重新连接，正在校验 \(restoredCount) 套素材完整性…"
             } else {
-                msg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
+                initialMsg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
             }
-            statusLabel?.stringValue = msg
-            updateStatusLine(overrideMessage: msg)
+            statusLabel?.stringValue = initialMsg
+            updateStatusLine(overrideMessage: initialMsg)
 
             // S-1: 异步后台校验物理文件存在性，绝不阻塞主线程
             if !pendingCheckPaths.isEmpty {
@@ -3174,9 +3193,9 @@ public final class AssetHubView: NSVisualEffectView,
                             missingSet.insert(target)
                         }
                     }
-                    if !missingSet.isEmpty {
-                        DispatchQueue.main.async { [weak self] in
-                            guard let self = self else { return }
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        if !missingSet.isEmpty {
                             var corruptedCount = 0
                             for i in 0..<self.allItems.count {
                                 if missingSet.contains(self.allItems[i].targetPath) {
@@ -3208,6 +3227,11 @@ public final class AssetHubView: NSVisualEffectView,
                             let corruptedMsg = "⚠️ 外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套素材标红告警"
                             self.statusLabel?.stringValue = corruptedMsg
                             self.updateStatusLine(overrideMessage: corruptedMsg)
+                        } else {
+                            // FCPX-047: 完整性验证全部通过后，切为绿灯完成态
+                            let successMsg = "✅ 外置盘 [\(displayName)] 校验完成，\(restoredCount) 套素材已完全就绪在线"
+                            self.statusLabel?.stringValue = successMsg
+                            self.updateStatusLine(overrideMessage: successMsg)
                         }
                     }
                 }
@@ -3455,56 +3479,13 @@ public final class AssetHubView: NSVisualEffectView,
         populate(menu: menu, item: item, row: row)
     }
 
+    // FCPX-045: 合并卡片与表格右键菜单为单一体系，消除故障态误给重命名/迁移/删除的分裂缺陷
     private func populate(menu: NSMenu, item: TemplateItem, row: Int) {
-        let renameItem = NSMenuItem(title: "📝 设置中文别名 / 本地化重命名…",
-                                    action: #selector(onSetChineseAliasClicked(_:)),
-                                    keyEquivalent: "")
-        renameItem.target = self
-        renameItem.tag = row
-        menu.addItem(renameItem)
-
-        menu.addItem(NSMenuItem.separator())
-
-        for targetTier in TemplateTier.allCases where targetTier != item.tier {
-            let req = MoveRequest(row: row, tier: targetTier)
-            let mi = NSMenuItem(title: "迁移到「\(targetTier.displayName)」级…",
-                                action: #selector(onContextMove(_:)),
-                                keyEquivalent: "")
-            mi.target = self
-            mi.representedObject = req
-
-            let targetRoot = roots.root(for: targetTier)
-            if targetRoot == nil {
-                mi.isEnabled = false
-                mi.toolTip = tierNotes[targetTier] ?? "该层级根目录未就绪"
-            } else if targetTier == .builtin && !TierWritePolicy.isBuiltinWritable {
-                mi.isEnabled = false
-                mi.toolTip = "内置级当前为「只读」保护（可在设置中开启写入权限）"
-            }
-            menu.addItem(mi)
+        let fullMenu = makeTemplateActionMenu(for: item)
+        for sub in fullMenu.items {
+            fullMenu.removeItem(sub)
+            menu.addItem(sub)
         }
-
-        menu.addItem(NSMenuItem.separator())
-
-        let revealItem = NSMenuItem(title: "在访达中显示", action: #selector(onRevealInFinder(_:)), keyEquivalent: "")
-        revealItem.target = self
-        revealItem.tag = row
-        menu.addItem(revealItem)
-
-        if item.tier == .user && !item.isSymlink {
-            let extItem = NSMenuItem(title: "迁移到外置盘并建立软链接",
-                                     action: #selector(onContextExternalize(_:)),
-                                     keyEquivalent: "")
-            extItem.target = self
-            extItem.tag = row
-            menu.addItem(extItem)
-        }
-
-        menu.addItem(NSMenuItem.separator())
-        let delItem = NSMenuItem(title: "🗑️ 移入废纸篓 (Delete)", action: #selector(onContextDelete(_:)), keyEquivalent: "")
-        delItem.target = self
-        delItem.tag = row
-        menu.addItem(delItem)
     }
 
     @objc private func onContextDelete(_ sender: NSMenuItem) {

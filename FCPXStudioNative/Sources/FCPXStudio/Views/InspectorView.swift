@@ -95,6 +95,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         scroll.hasHorizontalScroller = false
         scroll.drawsBackground = false
 
+        // FCPX-052: 高度跟随 mainStack 底锚，防止窗口变矮时底部"批量导出"被裁切
         let contentView = FlippedClipView(frame: NSRect(x: 0, y: 0, width: bounds.width, height: 820))
         contentView.autoresizingMask = [.width]
         scroll.documentView = contentView
@@ -111,7 +112,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 14),
             mainStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
             mainStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -14),
-            mainStack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -14)
+            mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
         ])
 
         // ── 0. 画幅规格与转换诊断 ──
@@ -308,17 +309,21 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         scaleStack.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
         scaleStack.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
 
-        // 坐标微调 X / Y
+        // 坐标微调 X / Y (FCPX-048: 挂载 target/action，支持输入框键入回车后实时生效)
         let posStack = NSStackView()
         posStack.orientation = .horizontal
         posStack.spacing = 8
         posStack.addArrangedSubview(NSTextField(labelWithString: "X:"))
         posXField = NSTextField(string: "0.0")
         posXField.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        posXField.target = self
+        posXField.action = #selector(onPosFieldChanged)
         posStack.addArrangedSubview(posXField)
         posStack.addArrangedSubview(NSTextField(labelWithString: "Y:"))
         posYField = NSTextField(string: "0.0")
         posYField.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        posYField.target = self
+        posYField.action = #selector(onPosFieldChanged)
         posStack.addArrangedSubview(posYField)
         mainStack.addArrangedSubview(posStack)
 
@@ -494,6 +499,17 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             updateControlStates(isLocked: layer.isLocked)
         }
         onLayerLockChanged?(layer)
+        onLayerModified?(layer)
+    }
+
+    @objc private func onPosFieldChanged() {
+        guard let layer = currentSelectedLayer else { return }
+        if let x = Double(posXField.stringValue) {
+            layer.posX = x
+        }
+        if let y = Double(posYField.stringValue) {
+            layer.posY = y
+        }
         onLayerModified?(layer)
     }
 

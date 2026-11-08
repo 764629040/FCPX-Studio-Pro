@@ -215,6 +215,31 @@ public final class ResourceCardView: NSView {
         addSubview(menuButton)
     }
 
+    // FCPX-038: 基于 bounds 实时动态排版，适配卡片尺寸伸缩
+    public override func layout() {
+        super.layout()
+        let w = bounds.width
+        let h = bounds.height
+        let thumbW = max(50.0, w - 16)
+        let thumbH = round(thumbW * 9.0 / 16.0)
+        let thumbY = max(0.0, h - 8 - thumbH)
+
+        thumbnailContainer?.frame = NSRect(x: 8, y: thumbY, width: thumbW, height: thumbH)
+        tierBadgeLabel?.frame = NSRect(x: 4, y: max(0.0, thumbH - 22), width: 56, height: 18)
+        subCategoryBadgeLabel?.frame = NSRect(x: 4, y: 4, width: min(100, max(20, thumbW - 80)), height: 18)
+        sizeBadgeLabel?.frame = NSRect(x: max(10, thumbW - 68), y: 4, width: 64, height: 18)
+        disabledBadgeLabel?.frame = NSRect(x: max(10, thumbW - 84), y: max(0.0, thumbH - 22), width: 80, height: 18)
+
+        let infoY = max(42.0, thumbY - 50.0)
+        titleLabel?.frame = NSRect(x: 10, y: infoY + 20, width: max(50, w - 20), height: 20)
+        subtitleLabel?.frame = NSRect(x: 10, y: infoY + 2, width: max(50, w - 20), height: 16)
+
+        let bottomY: CGFloat = 8
+        let toggleW = max(50.0, w - 16 - 32 - 8)
+        toggleButton?.frame = NSRect(x: 8, y: bottomY, width: toggleW, height: 28)
+        menuButton?.frame = NSRect(x: max(10, w - 42), y: bottomY, width: 32, height: 28)
+    }
+
     // MARK: – Update Content
     public func updateContent() {
         let localizedAlias = TemplateRenameManager.shared.getDisplayName(for: item)
@@ -470,11 +495,31 @@ public final class ResourceCardView: NSView {
 
     // MARK: – Actions
     @objc private func onToggleClicked() {
-        if item.isOffline { return }
+        // FCPX-033: 故障与离线态点击弹窗说明并指引操作，杜绝静默零反馈
+        if item.isOffline {
+            let alert = NSAlert()
+            alert.messageText = "素材处于离线状态"
+            alert.informativeText = "该模板所在的外置存储卷尚未挂载或连接中断，无法切换启用状态。请重新连接外置盘后再试。"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "知道了")
+            alert.runModal()
+            return
+        }
+        if item.isCorrupted || item.isMismatchedDisk {
+            let alert = NSAlert()
+            alert.messageText = item.isMismatchedDisk ? "素材存储卷不匹配" : "素材软链接破损"
+            alert.informativeText = item.isMismatchedDisk
+                ? "该模板当前指向不同 UUID 的外置存储卷。如需恢复使用，请点击卡片右下角更多菜单选择【重新校验 / 强制绑定】。"
+                : "该模板指向的目标文件已丢失或软链接损坏。请点击卡片右下角更多菜单进入【幽灵插件医生】执行智能自愈。"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "知道了")
+            alert.runModal()
+            return
+        }
+
         if let onToggle = onToggle {
             onToggle(item)
         } else {
-            guard !item.isCorrupted && !item.isMismatchedDisk else { return }
             do {
                 let updated = try TemplateInstaller.shared.toggleTemplate(item: item)
                 self.item = updated

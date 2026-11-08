@@ -180,14 +180,13 @@ public final class TeamSyncDashboardView: NSView,
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         topStack.addArrangedSubview(spacer)
 
-        let p = TeamP2PSyncManager.shared.localPort
-        serverStatusBadge = NSTextField(labelWithString: "🟢 局域网监听中: 端口 \(p)")
+        // FCPX-050: 由 isListening 决定真实服务状态，未开启灰灯，杜绝假绿灯
+        serverStatusBadge = NSTextField(labelWithString: "⚪ 正在检测服务...")
         serverStatusBadge.font = .systemFont(ofSize: 11, weight: .medium)
-        serverStatusBadge.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
         serverStatusBadge.wantsLayer = true
-        serverStatusBadge.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.20, blue: 0.14, alpha: 1.0).cgColor
         serverStatusBadge.layer?.cornerRadius = 5
         topStack.addArrangedSubview(serverStatusBadge)
+        updateServerBadge()
 
         refreshRadarBtn = makeProButton(title: "🔄 刷新雷达", target: self, action: #selector(onRefreshRadarClicked))
         topStack.addArrangedSubview(refreshRadarBtn)
@@ -542,11 +541,23 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     // MARK: – 交互操作
+    private func updateServerBadge() {
+        let mgr = TeamP2PSyncManager.shared
+        if mgr.isListening {
+            serverStatusBadge?.stringValue = "🟢 局域网监听中: 端口 \(mgr.localPort)"
+            serverStatusBadge?.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
+            serverStatusBadge?.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.20, blue: 0.14, alpha: 1.0).cgColor
+        } else {
+            serverStatusBadge?.stringValue = "⚪ 未开启局域网监听"
+            serverStatusBadge?.textColor = NSColor(calibratedWhite: 0.65, alpha: 1.0)
+            serverStatusBadge?.layer?.backgroundColor = NSColor(calibratedWhite: 0.18, alpha: 1.0).cgColor
+        }
+    }
+
     @objc public func refreshData() {
         self.peers = TeamP2PSyncManager.shared.peers
         self.history = TeamP2PSyncManager.shared.transferHistory
-        let port = TeamP2PSyncManager.shared.localPort
-        serverStatusBadge?.stringValue = "🟢 局域网监听中: 端口 \(port)"
+        updateServerBadge()
         radarTableView?.reloadData()
         historyTableView?.reloadData()
     }

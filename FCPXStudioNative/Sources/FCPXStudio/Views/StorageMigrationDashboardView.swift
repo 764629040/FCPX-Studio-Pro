@@ -525,13 +525,20 @@ public final class StorageMigrationDashboardView: NSView,
         }
     }
 
+    // FCPX-057: 单项"搬到外置/迁回内置"添加同款二次确认，消除行为分裂
     @objc private func onCategoryActionClicked(_ sender: NSButton) {
         let row = sender.tag
         guard let cats = currentOverview?.categories, row >= 0, row < cats.count else { return }
         let cat = cats[row]
 
         if cat.isSymlink {
-            // 单项迁回
+            let alert = NSAlert()
+            alert.messageText = "确认将「\(cat.displayName)」迁回内置系统盘？"
+            alert.informativeText = "该分类目前存储在外置硬盘中，迁回内置系统盘将占用系统盘空间。"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "迁回内置盘")
+            alert.addButton(withTitle: "取消")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
             do {
                 try StorageMigrationManager.shared.restoreCategory(category: cat.category)
                 refreshData()
@@ -539,11 +546,17 @@ public final class StorageMigrationDashboardView: NSView,
                 showAlert(title: "迁回失败", msg: error.localizedDescription)
             }
         } else {
-            // 单项搬家
             guard let vol = selectedVolume else {
                 showAlert(title: "未选择外置盘", msg: "请先连接外置硬盘。")
                 return
             }
+            let alert = NSAlert()
+            alert.messageText = "确认将「\(cat.displayName)」搬家至外置卷？"
+            alert.informativeText = "将把该分类物理迁移至外置存储「\(vol.name)」，并在本地建立符号链接，释放本地磁盘空间。"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "执行搬家")
+            alert.addButton(withTitle: "取消")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
             do {
                 try StorageMigrationManager.shared.migrateCategory(category: cat.category, toVolumePath: vol.path)
                 refreshData()

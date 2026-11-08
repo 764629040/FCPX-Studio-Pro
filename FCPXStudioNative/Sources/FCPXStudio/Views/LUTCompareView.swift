@@ -32,6 +32,9 @@ public final class LUTCompareView: NSView {
     }
 
     public private(set) var lutImage: NSImage?
+    // FCPX-049: 暴露渲染失败事件与角标状态
+    public var onRenderError: ((String) -> Void)?
+    public private(set) var lastErrorMessage: String? = nil
     public var splitRatio: CGFloat = 0.5 {
         didSet {
             needsDisplay = true
@@ -80,9 +83,14 @@ public final class LUTCompareView: NSView {
         do {
             let (dim, cubeData) = try LUTManager.shared.parseCube(at: lut.path)
             lutImage = LUTManager.shared.renderLUTImage(input: originalImage, dimension: dim, cubeData: cubeData)
+            lastErrorMessage = nil
         } catch {
             print("LUT 渲染失败: \(error)")
             lutImage = nil
+            // FCPX-049: 记录失败信息并向 UI 暴露角标及回调
+            lastErrorMessage = "⚠ LUT 渲染失败: \(error.localizedDescription)"
+            onRenderError?(error.localizedDescription)
+            needsDisplay = true
         }
     }
 
@@ -232,6 +240,33 @@ public final class LUTCompareView: NSView {
         drawCornerTag(text: "原片 (Log/Rec709)", isLeft: true)
         let lutTag = currentLUT != nil ? "LUT: \(currentLUT!.name)" : "未挂载 LUT"
         drawCornerTag(text: lutTag, isLeft: false)
+
+        // FCPX-049: 渲染失败时在画布右上角叠加大字号告警角标
+        if let err = lastErrorMessage {
+            drawErrorBadge(text: err)
+        }
+    }
+
+    private func drawErrorBadge(text: String) {
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 11, weight: .bold),
+            .foregroundColor: NSColor.systemRed
+        ]
+        let strSize = (text as NSString).size(withAttributes: attrs)
+        let padX: CGFloat = 10
+        let padY: CGFloat = 6
+        let bgW = strSize.width + padX * 2
+        let bgH = strSize.height + padY * 2
+        let bgX = bounds.width - bgW - 12
+        let bgY = bounds.height - bgH - 12
+
+        let bgRect = NSRect(x: bgX, y: bgY, width: bgW, height: bgH)
+        let path = NSBezierPath(roundedRect: bgRect, xRadius: 5, yRadius: 5)
+        NSColor(calibratedRed: 0.25, green: 0.05, blue: 0.05, alpha: 0.85).setFill()
+        path.fill()
+        NSColor.systemRed.setStroke()
+        path.stroke()
+        (text as NSString).draw(at: NSPoint(x: bgX + padX, y: bgY + padY - 1), withAttributes: attrs)
     }
 
     private func drawScaledImage(_ image: NSImage, in rect: NSRect) {

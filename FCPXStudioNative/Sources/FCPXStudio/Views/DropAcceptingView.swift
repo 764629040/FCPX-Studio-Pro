@@ -53,7 +53,19 @@ public final class DropAcceptingView: NSView {
 
     public override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let paths = droppedPaths(from: sender)
-        return PSDImportPlanner.acceptsDrop(paths: paths)
+        let accepted = PSDImportPlanner.acceptsDrop(paths: paths)
+        // FCPX-039: 拖入不受支持的文件时弹出明确提示，杜绝静默失败
+        if !accepted && !paths.isEmpty {
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                alert.messageText = "格式不支持"
+                alert.informativeText = "本工作站仅支持拖入 PSD 设计文件 (.psd) 或字体文件 (.ttf / .otf)。"
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "知道了")
+                alert.runModal()
+            }
+        }
+        return accepted
     }
 
     public override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {

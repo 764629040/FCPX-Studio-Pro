@@ -20,6 +20,7 @@ public final class MainWindowController: NSWindowController,
     public var segmentedControl: NSSegmentedControl!
     public var engine1Container: NSView!
     public var psdTableView: NSTableView!
+    public var leftTitleLabel: NSTextField!
     public var canvasView: InfiniteCanvasView!
     public var canvasBackdropView: NSVisualEffectView!
     public var inspectorView: InspectorView!
@@ -63,6 +64,8 @@ public final class MainWindowController: NSWindowController,
         win.isReleasedWhenClosed = false
         win.collectionBehavior   = [.managed]
         win.level                = .normal
+        // FCPX-037: 设立窗口全局最小尺寸，杜绝超窄布局崩溃与控件对撞
+        win.minSize              = NSSize(width: 1000, height: 680)
 
         // R31 / A-61：把 contentView 换成可接收文件拖放的子类。
         // NSWindow 默认不接收拖放，所以旧版拖 PSD 进来「完全没反应」。
@@ -238,7 +241,8 @@ public final class MainWindowController: NSWindowController,
         )
 
         // ── 1. 中间：无限画布（包裹 NSVisualEffectView 磨砂背板） ──
-        let midW = w - LEFT_W - RIGHT_W
+        // FCPX-037: midW 设立保底最小宽度 280pt，防止窗口变窄后出负值对撞
+        let midW = max(280.0, w - LEFT_W - RIGHT_W)
         canvasBackdropView = NSVisualEffectView(frame: NSRect(x: LEFT_W, y: 0, width: midW, height: h))
         canvasBackdropView.autoresizingMask = [.width, .height]
         canvasBackdropView.material = .underWindowBackground
@@ -259,11 +263,12 @@ public final class MainWindowController: NSWindowController,
         leftPanel.state = .active
         leftPanel.appearance = NSAppearance(named: .darkAqua)
 
-        let leftTitle = NSTextField(labelWithString: "素材批处理列表 (50)")
-        leftTitle.frame = NSRect(x: 12, y: h - 36, width: LEFT_W - 24, height: 22)
-        leftTitle.font = .systemFont(ofSize: 12, weight: .bold)
-        leftTitle.textColor = .white
-        leftPanel.addSubview(leftTitle)
+        // FCPX-032: 动态展示实际 PSD 素材条数
+        leftTitleLabel = NSTextField(labelWithString: "素材批处理列表 (0)")
+        leftTitleLabel.frame = NSRect(x: 12, y: h - 36, width: LEFT_W - 24, height: 22)
+        leftTitleLabel.font = .systemFont(ofSize: 12, weight: .bold)
+        leftTitleLabel.textColor = .white
+        leftPanel.addSubview(leftTitleLabel)
 
         let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: LEFT_W, height: h - 44))
         scroll.autoresizingMask = [.width, .height]
@@ -376,11 +381,21 @@ public final class MainWindowController: NSWindowController,
     // MARK: – PSD Loading（目录 / 单文件 / 拖放统一入口）
 
     public func loadPsdDirectory(_ dir: String) {
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: dir) else { return }
+        // FCPX-034: 目录不存在、无权限或为空时提供明确反馈与空态指示，杜绝永久静默空白
+        guard let files = try? FileManager.default.contentsOfDirectory(atPath: dir) else {
+            leftTitleLabel?.stringValue = "素材批处理列表 (0)"
+            psdTableView?.reloadData()
+            return
+        }
         let psds = files.sorted().filter { $0.hasSuffix(".psd") && !$0.hasPrefix(".") }
                         .map { "\(dir)/\($0)" }
-        guard !psds.isEmpty else { return }
+        guard !psds.isEmpty else {
+            leftTitleLabel?.stringValue = "素材批处理列表 (0)"
+            psdTableView?.reloadData()
+            return
+        }
         psdFiles = psds
+        leftTitleLabel?.stringValue = "素材批处理列表 (\(psdFiles.count))"
         psdTableView?.reloadData()
         psdTableView?.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
         selectPsdFile(at: 0)
@@ -395,6 +410,7 @@ public final class MainWindowController: NSWindowController,
 
         if !plan.added.isEmpty {
             psdFiles.append(contentsOf: plan.added)
+            leftTitleLabel?.stringValue = "素材批处理列表 (\(psdFiles.count))"
             psdTableView?.reloadData()
             if let lastIndex = psdFiles.indices.last {
                 psdTableView?.selectRowIndexes(IndexSet(integer: lastIndex), byExtendingSelection: false)
@@ -667,7 +683,11 @@ public final class MainWindowController: NSWindowController,
             alert.runModal()
             return
         }
-        guard !psdFiles.isEmpty else { return }
+        // FCPX-035: 空列表时提示先导入 PSD，杜绝静默无响应
+        guard !psdFiles.isEmpty else {
+            showAlert(title: "提示", msg: "素材批处理列表为空，请先从左侧列表选择或拖入 PSD 文件。")
+            return
+        }
         let resolved = AppConfig.shared.resolveExportDestination()
         let sheet = BatchExportProgressSheet(totalCount: psdFiles.count, targetDir: resolved.targetDir)
         self.activeExportSheet = sheet
