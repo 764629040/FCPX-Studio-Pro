@@ -489,12 +489,18 @@ public final class AssetHubView: NSVisualEffectView,
         refreshList()
         NotificationCenter.default.addObserver(self, selector: #selector(onPolicyChanged),
                                                name: .tierWritePolicyChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onVolumeStatusChanged(_:)),
+                                               name: TemplateMigrator.volumeStatusDidChangeNotification, object: nil)
     }
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupUI()
         refreshList()
+        NotificationCenter.default.addObserver(self, selector: #selector(onPolicyChanged),
+                                               name: .tierWritePolicyChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onVolumeStatusChanged(_:)),
+                                               name: TemplateMigrator.volumeStatusDidChangeNotification, object: nil)
     }
 
     deinit {
@@ -1610,7 +1616,13 @@ public final class AssetHubView: NSVisualEffectView,
         }
         let grp = groupItems[selectedGroupIndex]
 
-        var filtered = grp.items
+        var filtered = grp.items.map { item -> TemplateItem in
+            var updated = item
+            if self.migrator.isPathOffline(item.path, targetPath: item.targetPath) {
+                updated.isOffline = true
+            }
+            return updated
+        }
         if let q = searchField?.stringValue.trimmingCharacters(in: .whitespaces), !q.isEmpty {
             filtered = filtered.filter { $0.name.localizedCaseInsensitiveContains(q) }
         }
@@ -1727,7 +1739,7 @@ public final class AssetHubView: NSVisualEffectView,
             let x = margin + CGFloat(col) * (cardW + spacing)
             let y = margin + CGFloat(row) * (cardH + spacing)
             card.frame = NSRect(x: x, y: y, width: cardW, height: cardH)
-            if card.item.path != item.path || card.item.name != item.name || card.item.isEnabled != item.isEnabled {
+            if card.item.path != item.path || card.item.name != item.name || card.item.isEnabled != item.isEnabled || card.item.isOffline != item.isOffline {
                 card.item = item
             }
         }
@@ -1867,6 +1879,13 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     public func toggleTemplateItem(_ item: TemplateItem) {
+        if item.isOffline {
+            if !suppressAlertsForTesting {
+                showAlert(title: "素材处于离线磁盘", message: "外置磁盘已断开，模板「\(item.name)」受离线容灾保护，禁止修改启停状态。")
+            }
+            return
+        }
+
         if item.tier == .builtin && !TierWritePolicy.isBuiltinWritable {
             showAlert(title: "系统内置模板受保护", message: "系统内置模板受保护，需先复制到用户库后再调整。可在设置中开启写入。")
             return
@@ -1897,7 +1916,15 @@ public final class AssetHubView: NSVisualEffectView,
     public var suppressAlertsForTesting: Bool = false
 
     public func deleteTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
-        // 0. 商业授权分级拦截 (R52)
+        // 0. 离线素材容灾保护拦截（禁止物理删除断链项）
+        if item.isOffline || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
+            if !suppressAlertsForTesting {
+                showAlert(title: "素材处于离线磁盘", message: "外置磁盘已断开，模板「\(item.name)」受离线容灾保护，禁止物理删除。请先连接对应磁盘。")
+            }
+            return
+        }
+
+        // 0b. 商业授权分级拦截 (R52)
         if !LicenseManager.shared.isProLicensed {
             if !suppressAlertsForTesting {
                 showAlert(title: "商业授权未激活", message: "未激活商业授权，模板删除功能已锁定。请先激活商业授权。")
@@ -1953,6 +1980,13 @@ public final class AssetHubView: NSVisualEffectView,
 
     public func makeTemplateActionMenu(for item: TemplateItem) -> NSMenu {
         let menu = NSMenu()
+        if item.isOffline {
+            let offlineItem = NSMenuItem(title: "⚠️ 磁盘离线（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
+            offlineItem.isEnabled = false
+            menu.addItem(offlineItem)
+            return menu
+        }
+
         let renameItem = NSMenuItem(title: "📝 设置中文别名 / 本地化重命名…", action: #selector(onCardRenameMenu(_:)), keyEquivalent: "")
         renameItem.target = self
         renameItem.representedObject = item
@@ -2781,6 +2815,142 @@ public final class AssetHubView: NSVisualEffectView,
         reloadCardGrid()
     }
 
+    // MARK: – P2 外置盘热插拔与断链容灾响应
+
+    @objc private func onVolumeStatusChanged(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+        let volumePath = (userInfo[TemplateMigrator.volumePathUserInfoKey] as? String) ?? (userInfo["volumePath"] as? String) ?? ""
+        let isMounted = (userInfo[TemplateMigrator.isMountedUserInfoKey] as? Bool) ?? (userInfo["isMounted"] as? Bool) ?? true
+        let volumeName = (userInfo["volumeName"] as? String) ?? (volumePath as NSString).lastPathComponent
+
+        if Thread.isMainThread {
+            self.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted)
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.handleVolumeStatusChange(volumePath: volumePath, volumeName: volumeName, isMounted: isMounted)
+            }
+        }
+    }
+
+    public func handleVolumeStatusChange(volumePath: String, volumeName: String, isMounted: Bool) {
+        let normVol = (volumePath as NSString).standardizingPath
+        var affectedCount = 0
+
+        if !isMounted {
+            // 外置卷卸载/断开：将受影响模板标记 isOffline = true，坚决不从列表中删除！
+            for i in 0..<allItems.count {
+                let p = (allItems[i].path as NSString).standardizingPath
+                let tp = (allItems[i].targetPath as NSString).standardizingPath
+                let matchesVolume = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/")))
+                let isOffline = matchesVolume || migrator.isPathOffline(allItems[i].path, targetPath: allItems[i].targetPath)
+
+                if isOffline {
+                    allItems[i].isOffline = true
+                    if allItems[i].volumePath == nil || allItems[i].volumePath?.isEmpty == true {
+                        allItems[i].volumePath = normVol.isEmpty ? nil : normVol
+                    }
+                    affectedCount += 1
+                }
+            }
+
+            // O(n) 高性能字典索引：避免 O(n²) 暴力线性扫描导致主线程卡顿
+            var itemMap: [String: TemplateItem] = [:]
+            itemMap.reserveCapacity(allItems.count * 2)
+            for item in allItems {
+                itemMap["\(item.path)|\(item.targetPath)"] = item
+                if itemMap[item.path] == nil {
+                    itemMap[item.path] = item
+                }
+            }
+
+            // 同步更新当前 filtered plugins (O(1) 字典查表)
+            for i in 0..<plugins.count {
+                if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
+                    plugins[i].isOffline = matched.isOffline
+                    plugins[i].volumePath = matched.volumePath
+                }
+            }
+
+            // 同步更新中栏三段式面板 groupItems 内部各分组素材的离线标记 (O(1) 字典查表)
+            for g in 0..<groupItems.count {
+                for i in 0..<groupItems[g].items.count {
+                    if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
+                        groupItems[g].items[i].isOffline = matched.isOffline
+                        groupItems[g].items[i].volumePath = matched.volumePath
+                    }
+                }
+            }
+
+            // 刷新网格展示离线灰化卡片，更新卡片属性 (O(1) 字典查表)
+            for card in cardViews {
+                if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
+                    card.item = matched
+                }
+            }
+            reloadCardGrid(resetPaging: false)
+
+            // 底部或顶部状态条显示离线提示（例如：“⚠️ 外置盘 [卷名] 已断开，12 套素材已离线保全”）
+            let displayName = volumeName.isEmpty ? "外置盘" : volumeName
+            let msg = "⚠️ 外置盘 [\(displayName)] 已断开，\(affectedCount) 套素材已离线保全"
+            statusLabel?.stringValue = msg
+            updateStatusLine(overrideMessage: msg)
+        } else {
+            // 外置卷挂载/恢复：恢复在线状态
+            var restoredCount = 0
+            for i in 0..<allItems.count {
+                let p = (allItems[i].path as NSString).standardizingPath
+                let tp = (allItems[i].targetPath as NSString).standardizingPath
+                let matchesVolume = (!normVol.isEmpty && (p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/")))
+
+                if matchesVolume || allItems[i].volumePath == normVol {
+                    if allItems[i].isOffline {
+                        allItems[i].isOffline = false
+                        restoredCount += 1
+                    }
+                }
+            }
+
+            // O(n) 高性能字典索引：避免 O(n²) 暴力线性扫描导致主线程卡顿
+            var itemMap: [String: TemplateItem] = [:]
+            itemMap.reserveCapacity(allItems.count * 2)
+            for item in allItems {
+                itemMap["\(item.path)|\(item.targetPath)"] = item
+                if itemMap[item.path] == nil {
+                    itemMap[item.path] = item
+                }
+            }
+
+            for i in 0..<plugins.count {
+                if let matched = itemMap["\(plugins[i].path)|\(plugins[i].targetPath)"] ?? itemMap[plugins[i].path] {
+                    plugins[i].isOffline = matched.isOffline
+                    plugins[i].volumePath = matched.volumePath
+                }
+            }
+
+            // 同步恢复中栏三段式面板 groupItems 内部各分组素材在线标记 (O(1) 字典查表)
+            for g in 0..<groupItems.count {
+                for i in 0..<groupItems[g].items.count {
+                    if let matched = itemMap["\(groupItems[g].items[i].path)|\(groupItems[g].items[i].targetPath)"] ?? itemMap[groupItems[g].items[i].path] {
+                        groupItems[g].items[i].isOffline = matched.isOffline
+                        groupItems[g].items[i].volumePath = matched.volumePath
+                    }
+                }
+            }
+
+            for card in cardViews {
+                if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
+                    card.item = matched
+                }
+            }
+            reloadCardGrid(resetPaging: false)
+
+            let displayName = volumeName.isEmpty ? "外置盘" : volumeName
+            let msg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
+            statusLabel?.stringValue = msg
+            updateStatusLine(overrideMessage: msg)
+        }
+    }
+
     // MARK: – 模板扫描与过滤（彻底异步化 + 内存缓存秒级复用）
 
     @objc public func refreshList() {
@@ -2802,6 +2972,7 @@ public final class AssetHubView: NSVisualEffectView,
         spinner?.startAnimation(nil)
         TemplateTierScanner.scanAsync(category: currentCategory, roots: roots, lazySizes: true) { [weak self] result in
             guard let self = self else { return }
+            if self.suppressAlertsForTesting && !self.allItems.isEmpty { return }
             self.spinner?.stopAnimation(nil)
             self.allItems = result.items
             self.roots = result.roots
@@ -2930,7 +3101,20 @@ public final class AssetHubView: NSVisualEffectView,
         }
     }
 
-    private func updateStatusLine() {
+    private func updateStatusLine(overrideMessage: String? = nil) {
+        if let msg = overrideMessage {
+            statusLabel?.stringValue = msg
+            updateTierStats()
+            return
+        }
+        let offlineCount = allItems.filter { $0.isOffline }.count
+        if offlineCount > 0 {
+            let offlineVol = allItems.first(where: { $0.isOffline })?.volumePath ?? "外置盘"
+            let volName = (offlineVol as NSString).lastPathComponent
+            statusLabel?.stringValue = "⚠️ 外置盘 [\(volName)] 已断开，\(offlineCount) 套素材已离线保全"
+            updateTierStats()
+            return
+        }
         let builtin = roots.builtin == nil ? "未检测到" : "已定位"
         let system = FileManager.default.fileExists(atPath: roots.system) ? "已就绪" : "目录不存在"
         let guardState = TierWritePolicy.isBuiltinWritable ? "可写（有风险）" : "只读"
@@ -2957,8 +3141,13 @@ public final class AssetHubView: NSVisualEffectView,
             }
         }()
 
-        tierStatsLabel?.stringValue =
-            "当前分类（\(catDisplayName)）：共 \(total) 套 · 🟢 已启用 \(enabledCount) · ⚪️ 已休眠 \(disabledCount)   |   🟡 内置 \(builtin)\(builtinSuffix) · 🟢 用户 \(user) · 🟣 系统 \(system)"
+        var stats = "当前分类（\(catDisplayName)）：共 \(total) 套 · 🟢 已启用 \(enabledCount) · ⚪️ 已休眠 \(disabledCount)"
+        let offlineCount = allItems.filter { $0.isOffline }.count
+        if offlineCount > 0 {
+            stats += " · ⚠️ 离线保全 \(offlineCount)"
+        }
+        stats += "   |   🟡 内置 \(builtin)\(builtinSuffix) · 🟢 用户 \(user) · 🟣 系统 \(system)"
+        tierStatsLabel?.stringValue = stats
     }
 
     private func item(at row: Int) -> TemplateItem? {

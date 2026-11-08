@@ -35,6 +35,7 @@ public final class ResourceCardView: NSView {
     public private(set) var tierBadgeLabel: NSTextField!
     public private(set) var subCategoryBadgeLabel: NSTextField!
     public private(set) var disabledBadgeLabel: NSTextField!
+    public private(set) var offlineBadgeLabel: NSTextField!
     public private(set) var sizeBadgeLabel: NSTextField!
     public private(set) var toggleButton: NSButton!
     public private(set) var menuButton: NSButton!
@@ -127,6 +128,19 @@ public final class ResourceCardView: NSView {
         disabledBadgeLabel.isHidden = true
         thumbnailContainer.addSubview(disabledBadgeLabel)
 
+        // 2c. 离线状态徽章（磁盘断链）悬浮在缩略图右上角
+        offlineBadgeLabel = NSTextField(labelWithString: "⚠️ 磁盘离线")
+        offlineBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
+        offlineBadgeLabel.textColor = NSColor(calibratedRed: 0.20, green: 0.14, blue: 0.02, alpha: 1.0)
+        offlineBadgeLabel.wantsLayer = true
+        offlineBadgeLabel.layer?.backgroundColor = NSColor(calibratedRed: 0.98, green: 0.78, blue: 0.16, alpha: 0.95).cgColor
+        offlineBadgeLabel.layer?.cornerRadius = 4
+        offlineBadgeLabel.layer?.masksToBounds = true
+        offlineBadgeLabel.alignment = .center
+        offlineBadgeLabel.frame = NSRect(x: thumbW - 84, y: thumbH - 22, width: 80, height: 18)
+        offlineBadgeLabel.isHidden = true
+        thumbnailContainer.addSubview(offlineBadgeLabel)
+
         // 3. 容量标签悬浮在缩略图右下角
         sizeBadgeLabel = NSTextField(labelWithString: "0 MB")
         sizeBadgeLabel.font = .monospacedDigitSystemFont(ofSize: 10, weight: .medium)
@@ -208,9 +222,23 @@ public final class ResourceCardView: NSView {
             subCategoryBadgeLabel.isHidden = true
         }
 
-        disabledBadgeLabel.isHidden = item.isEnabled
-        thumbnailContainer.alphaValue = item.isEnabled ? 1.0 : 0.50
-        titleLabel.textColor = item.isEnabled ? .white : NSColor(calibratedWhite: 0.60, alpha: 1.0)
+        if item.isOffline {
+            self.alphaValue = 0.55
+            offlineBadgeLabel.isHidden = false
+            disabledBadgeLabel.isHidden = true
+            thumbnailContainer.alphaValue = 0.50
+            titleLabel.textColor = NSColor(calibratedWhite: 0.65, alpha: 1.0)
+            toggleButton.isEnabled = false
+            menuButton.isEnabled = false
+        } else {
+            self.alphaValue = 1.0
+            offlineBadgeLabel.isHidden = true
+            disabledBadgeLabel.isHidden = item.isEnabled
+            thumbnailContainer.alphaValue = item.isEnabled ? 1.0 : 0.50
+            titleLabel.textColor = item.isEnabled ? .white : NSColor(calibratedWhite: 0.60, alpha: 1.0)
+            toggleButton.isEnabled = true
+            menuButton.isEnabled = true
+        }
 
         if item.isSymlink {
             sizeBadgeLabel.stringValue = "软链接"
@@ -221,18 +249,31 @@ public final class ResourceCardView: NSView {
         }
 
         updateToggleAppearance()
-        loadThumbnailAsync()
+        if !item.isOffline {
+            loadThumbnailAsync()
+        } else {
+            let fallback = NSImage(systemSymbolName: "externaldrive.badge.xmark", accessibilityDescription: nil) ?? NSImage(systemSymbolName: "film", accessibilityDescription: nil)
+            thumbnailImageView.image = fallback
+            thumbnailImageView.contentTintColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
+        }
     }
 
     public func updateToggleAppearance() {
-        if item.isEnabled {
+        if item.isOffline {
+            toggleButton.title = "⚠️ 离线"
+            toggleButton.layer?.backgroundColor = NSColor(calibratedWhite: 0.16, alpha: 0.6).cgColor
+            toggleButton.layer?.borderColor = NSColor(calibratedWhite: 0.28, alpha: 0.6).cgColor
+            toggleButton.isEnabled = false
+        } else if item.isEnabled {
             toggleButton.title = "🟢 开启"
             toggleButton.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.32, blue: 0.18, alpha: 0.9).cgColor
             toggleButton.layer?.borderColor = NSColor(calibratedRed: 0.25, green: 0.65, blue: 0.35, alpha: 1.0).cgColor
+            toggleButton.isEnabled = true
         } else {
             toggleButton.title = "⚪️ 禁用"
             toggleButton.layer?.backgroundColor = NSColor(calibratedWhite: 0.18, alpha: 0.9).cgColor
             toggleButton.layer?.borderColor = NSColor(calibratedWhite: 0.32, alpha: 1.0).cgColor
+            toggleButton.isEnabled = true
         }
     }
 
@@ -272,6 +313,9 @@ public final class ResourceCardView: NSView {
     }
 
     public override func menu(for event: NSEvent) -> NSMenu? {
+        if item.isOffline {
+            return nil
+        }
         if let customMenu = onRequestContextMenu?(item, event) {
             return customMenu
         }
@@ -312,6 +356,7 @@ public final class ResourceCardView: NSView {
 
     // MARK: – Actions
     @objc private func onToggleClicked() {
+        guard !item.isOffline else { return }
         if let onToggle = onToggle {
             onToggle(item)
         } else {
@@ -325,6 +370,7 @@ public final class ResourceCardView: NSView {
     }
 
     @objc private func onMenuClicked() {
+        guard !item.isOffline else { return }
         onActionMenu?(item, menuButton)
     }
 
@@ -345,6 +391,7 @@ public final class ResourceCardView: NSView {
     }
 
     public override func mouseEntered(with event: NSEvent) {
+        if item.isOffline { return }
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.15
             layer?.borderColor = NSColor(calibratedRed: 0.28, green: 0.48, blue: 0.95, alpha: 0.9).cgColor

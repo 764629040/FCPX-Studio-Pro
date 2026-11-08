@@ -76,6 +76,8 @@ public struct TemplateItem {
     public let targetAvailable: Bool
     public var sizeMB: Double
     public var isEnabled: Bool
+    public var isOffline: Bool = false
+    public var volumePath: String? = nil
 
     public var diskForm: DiskForm {
         isSymlink
@@ -85,7 +87,7 @@ public struct TemplateItem {
 
     public init(name: String, category: String, subCategory: String = "", tier: TemplateTier, path: String,
                 targetPath: String, isSymlink: Bool, targetAvailable: Bool, sizeMB: Double,
-                isEnabled: Bool = true) {
+                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil) {
         self.name = name
         self.category = category
         self.subCategory = subCategory
@@ -96,14 +98,26 @@ public struct TemplateItem {
         self.targetAvailable = targetAvailable
         self.sizeMB = sizeMB
         self.isEnabled = isEnabled
+        self.isOffline = isOffline
+        if let volumePath = volumePath {
+            self.volumePath = volumePath
+        } else if targetPath.hasPrefix("/Volumes/") {
+            let comps = targetPath.split(separator: "/")
+            self.volumePath = comps.count >= 2 ? "/Volumes/\(comps[1])" : nil
+        } else if path.hasPrefix("/Volumes/") {
+            let comps = path.split(separator: "/")
+            self.volumePath = comps.count >= 2 ? "/Volumes/\(comps[1])" : nil
+        } else {
+            self.volumePath = nil
+        }
     }
 
     public init(name: String, category: String, tier: TemplateTier, path: String,
                 targetPath: String, isSymlink: Bool, targetAvailable: Bool, sizeMB: Double,
-                isEnabled: Bool = true) {
+                isEnabled: Bool = true, isOffline: Bool = false, volumePath: String? = nil) {
         self.init(name: name, category: category, subCategory: "", tier: tier, path: path,
                   targetPath: targetPath, isSymlink: isSymlink, targetAvailable: targetAvailable,
-                  sizeMB: sizeMB, isEnabled: isEnabled)
+                  sizeMB: sizeMB, isEnabled: isEnabled, isOffline: isOffline, volumePath: volumePath)
     }
 }
 

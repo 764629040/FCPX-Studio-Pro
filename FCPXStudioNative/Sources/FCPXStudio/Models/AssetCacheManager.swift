@@ -101,6 +101,25 @@ public final class AssetCacheManager {
         }
     }
 
+    /// 统计指定卷上的素材数量（用于断链通知受影响计数）
+    public func countTemplates(onVolume volumePath: String) -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        let normVol = (volumePath as NSString).standardizingPath
+        guard !normVol.isEmpty else { return 0 }
+        var count = 0
+        for res in templateCache.values {
+            for item in res.items {
+                let p = (item.path as NSString).standardizingPath
+                let tp = (item.targetPath as NSString).standardizingPath
+                if p == normVol || p.hasPrefix(normVol + "/") || tp == normVol || tp.hasPrefix(normVol + "/") {
+                    count += 1
+                }
+            }
+        }
+        return count
+    }
+
     // MARK: – 3D LUT 缓存
 
     public func getLUTs() -> [LUTItem]? {

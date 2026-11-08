@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 // ═══════════════════════════════════════════════════════════════
@@ -79,9 +80,164 @@ public struct MigrationRecord: Codable {
 }
 
 public final class TemplateMigrator {
+    public static let shared = TemplateMigrator()
     public static let lastMigrationKey = "lastMigrationRecord"
 
-    public init() {}
+    // MARK: – P2 卷监听与离线容灾通知常量
+    public static let volumeStatusDidChangeNotification = Notification.Name("TemplateMigratorVolumeStatusDidChangeNotification")
+    public static let volumePathUserInfoKey = "volumePath"
+    public static let isMountedUserInfoKey = "isMounted"
+    public static let affectedCountUserInfoKey = "affectedCount"
+
+    private static let lock = NSRecursiveLock()
+    private static var _offlineVolumes: Set<String> = []
+    private static var isMonitoring: Bool = false
+    private static var observerTokens: [Any] = []
+
+    /// 当前系统已记录的离线卷集合
+    public static var offlineVolumes: Set<String> {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _offlineVolumes
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            _offlineVolumes = newValue
+        }
+    }
+
+    public var offlineVolumes: Set<String> {
+        get { Self.offlineVolumes }
+        set { Self.offlineVolumes = newValue }
+    }
+
+    public init() {
+        Self.startMonitoringVolumes()
+    }
+
+    /// 启动卷挂载/卸载监听（通过 NSWorkspace.shared.notificationCenter）
+    public static func startMonitoringVolumes() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !isMonitoring else { return }
+        isMonitoring = true
+
+        let center = NSWorkspace.shared.notificationCenter
+        let unmountToken = center.addObserver(
+            forName: NSWorkspace.didUnmountNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            handleVolumeNotification(notification, isMounted: false)
+        }
+
+        let mountToken = center.addObserver(
+            forName: NSWorkspace.didMountNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            handleVolumeNotification(notification, isMounted: true)
+        }
+
+        observerTokens = [unmountToken, mountToken]
+    }
+
+    public func startMonitoringVolumes() {
+        Self.startMonitoringVolumes()
+    }
+
+    private static func extractVolumePath(from notification: Notification) -> String? {
+        if let url = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL {
+            return (url.path as NSString).standardizingPath
+        }
+        if let urlStr = notification.userInfo?["NSWorkspaceVolumeURLUserInfoKey"] as? URL {
+            return (urlStr.path as NSString).standardizingPath
+        }
+        if let path = notification.userInfo?["NSDevicePath"] as? String {
+            return (path as NSString).standardizingPath
+        }
+        return nil
+    }
+
+    private static func handleVolumeNotification(_ notification: Notification, isMounted: Bool) {
+        guard let volumePath = extractVolumePath(from: notification) else { return }
+        let normPath = (volumePath as NSString).standardizingPath
+
+        lock.lock()
+        if isMounted {
+            _offlineVolumes.remove(normPath)
+        } else {
+            _offlineVolumes.insert(normPath)
+        }
+        lock.unlock()
+
+        let count = AssetCacheManager.shared.countTemplates(onVolume: normPath)
+        postVolumeChange(volumePath: normPath, isMounted: isMounted, affectedCount: count)
+    }
+
+    /// 广播卷状态变更通知，userInfo 包含卷信息与受影响模板数量
+    public static func postVolumeChange(volumePath: String, isMounted: Bool, affectedCount: Int) {
+        let normPath = (volumePath as NSString).standardizingPath
+        lock.lock()
+        if isMounted {
+            _offlineVolumes.remove(normPath)
+        } else {
+            _offlineVolumes.insert(normPath)
+        }
+        lock.unlock()
+
+        let volName = (normPath as NSString).lastPathComponent
+        let userInfo: [String: Any] = [
+            TemplateMigrator.volumePathUserInfoKey: normPath,
+            TemplateMigrator.isMountedUserInfoKey: isMounted,
+            TemplateMigrator.affectedCountUserInfoKey: affectedCount,
+            "volumeName": volName,
+            "isOffline": !isMounted
+        ]
+        NotificationCenter.default.post(
+            name: TemplateMigrator.volumeStatusDidChangeNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+    }
+
+    public func postVolumeChange(volumePath: String, isMounted: Bool, affectedCount: Int) {
+        Self.postVolumeChange(volumePath: volumePath, isMounted: isMounted, affectedCount: affectedCount)
+    }
+
+    /// 判定素材 targetPath 或 path 是否处于离线卷（纯只读内存函数，绝不触发磁盘 IO 与写锁副作用）
+    public func isPathOffline(_ path: String, targetPath: String? = nil) -> Bool {
+        return Self.isPathOffline(path, targetPath: targetPath)
+    }
+
+    /// 判定素材 targetPath 或 path 是否处于离线卷（纯只读内存函数，绝不触发磁盘 IO 与写锁副作用）
+    public static func isPathOffline(_ path: String, targetPath: String? = nil) -> Bool {
+        lock.lock()
+        let currentOffline = _offlineVolumes
+        lock.unlock()
+
+        guard !currentOffline.isEmpty else { return false }
+
+        let normalizedPath = (path as NSString).standardizingPath
+        for vol in currentOffline {
+            if normalizedPath == vol || normalizedPath.hasPrefix(vol + "/") {
+                return true
+            }
+        }
+
+        if let tp = targetPath {
+            let normalizedTarget = (tp as NSString).standardizingPath
+            for vol in currentOffline {
+                if normalizedTarget == vol || normalizedTarget.hasPrefix(vol + "/") {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
 
     /// 备份根目录。默认 `~/Movies/FCPX_Studio_Backup`；
     /// `FCPXSTUDIO_BACKUP_ROOT` 仅供逻辑 harness / 自动化验收覆盖到临时目录，
