@@ -25,4 +25,5 @@
 ---
 
 ## 本地 Commit 记录
-- `review.md` 审核通过后，由指挥官在本地做统一提交（严格遵守暂不推送到 GitHub 远端铁律）。
+- 本地提交已由指挥官完成：`83316ab` - `feat(storage): P2 volume hotplug notification & offline graying safety protection (steps 1 & 2)`
+- **严格遵守纪律：未向 GitHub 远端 push，静待所有者审核拍板**。
