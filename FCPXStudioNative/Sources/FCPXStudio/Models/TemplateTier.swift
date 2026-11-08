@@ -220,6 +220,21 @@ public struct StatusPalette {
     public static let disabledBg = NSColor(calibratedWhite: 0.18, alpha: 0.9)
     public static let disabledBorder = NSColor(calibratedWhite: 0.32, alpha: 1.0)
     public static let cardBorderNormal = NSColor(calibratedWhite: 0.20, alpha: 1.0)
+
+    /// UI-G009 色彩收敛扩充
+    public static let tierUser = NSColor(calibratedRed: 0.28, green: 0.78, blue: 0.42, alpha: 1.0)
+    public static let tierBuiltin = NSColor(calibratedRed: 0.95, green: 0.76, blue: 0.20, alpha: 1.0)
+    public static let tierSystem = NSColor(calibratedRed: 0.68, green: 0.45, blue: 0.95, alpha: 1.0)
+    public static let textPrimary = NSColor.white
+    public static let textSecondary = NSColor(calibratedWhite: 0.60, alpha: 1.0)
+    public static let textMuted = NSColor(calibratedWhite: 0.45, alpha: 1.0)
+    public static let textDim = NSColor(calibratedWhite: 0.35, alpha: 1.0)
+    public static let cardBg = NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.14, alpha: 1.0)
+    public static let cardSelectedBg = NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.18, alpha: 1.0)
+    public static let cardSelectedBorder = NSColor(calibratedRed: 0.28, green: 0.48, blue: 0.95, alpha: 0.9)
+    public static let amberOrangeBgSemi = NSColor(calibratedRed: 0.35, green: 0.22, blue: 0.08, alpha: 0.6)
+    public static let alertRedBgSemi = NSColor(calibratedRed: 0.45, green: 0.16, blue: 0.16, alpha: 0.6)
+    public static let offlineBgSemi = NSColor(calibratedWhite: 0.16, alpha: 0.6)
 }
 
 // MARK: – 三级根目录

@@ -18,7 +18,7 @@ import Metal
 public final class AppConfig {
     public static let shared = AppConfig()
 
-    public let pythonPath: String
+    public private(set) var pythonPath: String
     public let bridgeScriptPath: String
     public let defaultPsdDir: String = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads").path
 
@@ -414,6 +414,20 @@ public final class AppConfig {
             }
         }
         return false
+    }
+
+    public func overridePythonPath(_ path: String) {
+        let fm = FileManager.default
+        if fm.fileExists(atPath: path) && fm.isExecutableFile(atPath: path) {
+            self.pythonPath = path
+            self.hasPsdTools = AppConfig.checkPsdTools(python: path)
+        }
+    }
+
+    public func recheckEnvironment() {
+        if !pythonPath.isEmpty {
+            self.hasPsdTools = AppConfig.checkPsdTools(python: pythonPath)
+        }
     }
 
     public func evaluateEnvironment() -> (isReady: Bool, summary: String) {

@@ -87,12 +87,12 @@ public final class MainWindowController: NSWindowController,
         // ★ 核心：立即构建 UI 并填充数据
         buildUI()
 
-        // R51: 强化 Dock 图标在主窗口创建时的即时注入
+        // R51 / UI-G001: 强化 Dock 图标在主窗口创建时的即时注入 (剔除外部路径写死，仅走 Bundle.main)
         if NSApp.applicationIconImage == nil {
             if let iconPath = Bundle.main.path(forResource: "AppIcon", ofType: "icns"),
                let iconImg = NSImage(contentsOfFile: iconPath) {
                 NSApp.applicationIconImage = iconImg
-            } else if let iconImg = NSImage(contentsOfFile: "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app/Contents/Resources/AppIcon.icns") {
+            } else if let iconImg = NSImage(named: "AppIcon") {
                 NSApp.applicationIconImage = iconImg
             }
         }
@@ -173,27 +173,29 @@ public final class MainWindowController: NSWindowController,
         let badgeH: CGFloat = 28
         let badgeX: CGFloat = totalW - badgeW - 16
         let badgeY: CGFloat = (TOP_H - badgeH) / 2.0
-        profileBadgeButton = NSButton(title: "[🌟 全量模式]", target: self, action: #selector(onProfileBadgeClicked))
+        profileBadgeButton = NSButton(title: "全量模式", target: self, action: #selector(onProfileBadgeClicked))
+        profileBadgeButton.image = NSImage(systemSymbolName: "star.fill", accessibilityDescription: "全量模式")
+        profileBadgeButton.imagePosition = .imageLeading
         profileBadgeButton.frame = NSRect(x: badgeX, y: badgeY, width: badgeW, height: badgeH)
         profileBadgeButton.bezelStyle = .regularSquare
         profileBadgeButton.isBordered = false
         profileBadgeButton.wantsLayer = true
-        profileBadgeButton.layer?.cornerRadius = 14
+        profileBadgeButton.layer?.cornerRadius = CornerRadius.capsule
         profileBadgeButton.layer?.backgroundColor = NSColor(calibratedRed: 0.16, green: 0.18, blue: 0.24, alpha: 1.0).cgColor
         profileBadgeButton.layer?.borderWidth = 1.0
         profileBadgeButton.layer?.borderColor = NSColor(calibratedRed: 0.28, green: 0.45, blue: 0.75, alpha: 0.8).cgColor
-        profileBadgeButton.font = .systemFont(ofSize: 11, weight: .bold)
+        profileBadgeButton.font = TypeScale.footnoteMedium
         profileBadgeButton.contentTintColor = NSColor(calibratedRed: 0.55, green: 0.82, blue: 1.0, alpha: 1.0)
         profileBadgeButton.autoresizingMask = [.minXMargin, .minYMargin, .maxYMargin]
         topBar.addSubview(profileBadgeButton)
         updateActiveProfileBadge()
 
-        // 顶部直观对比模式切换分段控制器 (R45)
+        // 顶部直观对比模式切换分段控制器 (R45 / UI-G011: 标签为"透视原图")
         let compW: CGFloat = 300
         let compH: CGFloat = 28
         let compX = badgeX - compW - 14
         comparisonSegmentedControl = NSSegmentedControl(
-            labels: ["画板", "卷帘对比", "并排", "⌥透视"],
+            labels: ["画板", "卷帘对比", "并排", "透视原图"],
             trackingMode: .selectOne,
             target: self,
             action: #selector(onComparisonModeChanged)
@@ -600,7 +602,8 @@ public final class MainWindowController: NSWindowController,
     @objc public func updateActiveProfileBadge() {
         let p = WorkspaceProfileManager.shared.getActiveProfile()
         let shortName = p.name.components(separatedBy: " ").first ?? p.name
-        profileBadgeButton?.title = "[\(p.icon) \(shortName)]"
+        profileBadgeButton?.image = NSImage(systemSymbolName: "checkmark.seal.fill", accessibilityDescription: shortName)
+        profileBadgeButton?.title = shortName
     }
 
     // MARK: – R46 字体一键补齐与系统注册
@@ -786,11 +789,20 @@ public final class MainWindowController: NSWindowController,
 
     public func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let fn = (psdFiles[row] as NSString).lastPathComponent
-        let tf = NSTextField(labelWithString: "  📄 \(fn)")
-        tf.font = .systemFont(ofSize: 12)
+        let cell = NSStackView()
+        cell.orientation = .horizontal
+        cell.spacing = 6
+        cell.alignment = .centerY
+        let iconName = fn.hasSuffix(".cube") ? "slider.horizontal.3" : "doc.text"
+        let iconView = NSImageView(image: NSImage(systemSymbolName: iconName, accessibilityDescription: nil) ?? NSImage())
+        iconView.contentTintColor = NSColor.secondaryLabelColor
+        let tf = NSTextField(labelWithString: fn)
+        tf.font = TypeScale.footnote
         tf.textColor = NSColor(calibratedWhite: 0.9, alpha: 1.0)
         tf.lineBreakMode = .byTruncatingMiddle
-        return tf
+        cell.addArrangedSubview(iconView)
+        cell.addArrangedSubview(tf)
+        return cell
     }
 
     public func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {

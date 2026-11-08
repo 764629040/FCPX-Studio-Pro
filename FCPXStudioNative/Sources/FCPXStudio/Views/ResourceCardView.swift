@@ -59,11 +59,11 @@ public final class ResourceCardView: NSView {
     // MARK: – UI Layout
     private func setupUI() {
         wantsLayer = true
-        layer?.cornerRadius = 10
+        layer?.cornerRadius = CornerRadius.card
         layer?.masksToBounds = true
-        layer?.backgroundColor = NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.14, alpha: 1.0).cgColor
+        layer?.backgroundColor = StatusPalette.cardBg.cgColor
         layer?.borderWidth = 1.0
-        layer?.borderColor = NSColor(calibratedWhite: 0.20, alpha: 1.0).cgColor
+        layer?.borderColor = StatusPalette.cardBorderNormal.cgColor
 
         // 1. 16:9 缩略图视口容器 (width: bounds.width - 16, height: ~120)
         let thumbW = bounds.width - 16
@@ -72,9 +72,9 @@ public final class ResourceCardView: NSView {
 
         thumbnailContainer = NSView(frame: NSRect(x: 8, y: thumbY, width: thumbW, height: thumbH))
         thumbnailContainer.wantsLayer = true
-        thumbnailContainer.layer?.cornerRadius = 6
+        thumbnailContainer.layer?.cornerRadius = CornerRadius.card
         thumbnailContainer.layer?.masksToBounds = true
-        thumbnailContainer.layer?.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
+        thumbnailContainer.layer?.backgroundColor = NSColor.black.cgColor
         addSubview(thumbnailContainer)
 
         thumbnailImageView = NSImageView(frame: thumbnailContainer.bounds)
@@ -90,12 +90,12 @@ public final class ResourceCardView: NSView {
         thumbnailContainer.addSubview(categoryIconLabel)
 
         // 2. 归属标签悬浮在缩略图左上角
-        tierBadgeLabel = NSTextField(labelWithString: "🟢 用户")
-        tierBadgeLabel.font = .systemFont(ofSize: 10, weight: .semibold)
+        tierBadgeLabel = NSTextField(labelWithString: "用户")
+        tierBadgeLabel.font = TypeScale.captionMedium
         tierBadgeLabel.textColor = .white
         tierBadgeLabel.wantsLayer = true
-        tierBadgeLabel.layer?.backgroundColor = NSColor(calibratedWhite: 0.10, alpha: 0.85).cgColor
-        tierBadgeLabel.layer?.cornerRadius = 4
+        tierBadgeLabel.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
+        tierBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         tierBadgeLabel.layer?.masksToBounds = true
         tierBadgeLabel.alignment = .center
         tierBadgeLabel.frame = NSRect(x: 4, y: thumbH - 22, width: 56, height: 18)
@@ -103,13 +103,13 @@ public final class ResourceCardView: NSView {
 
         // 2a. 子分类标签悬浮在缩略图左下角 (R48)
         subCategoryBadgeLabel = NSTextField(labelWithString: "")
-        subCategoryBadgeLabel.font = .systemFont(ofSize: 9, weight: .semibold)
-        subCategoryBadgeLabel.textColor = NSColor(calibratedWhite: 0.92, alpha: 1.0)
+        subCategoryBadgeLabel.font = TypeScale.caption
+        subCategoryBadgeLabel.textColor = StatusPalette.textPrimary
         subCategoryBadgeLabel.wantsLayer = true
-        subCategoryBadgeLabel.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.22, blue: 0.38, alpha: 0.85).cgColor
-        subCategoryBadgeLabel.layer?.borderColor = NSColor(calibratedRed: 0.28, green: 0.48, blue: 0.78, alpha: 0.7).cgColor
+        subCategoryBadgeLabel.layer?.backgroundColor = StatusPalette.cardSelectedBg.cgColor
+        subCategoryBadgeLabel.layer?.borderColor = StatusPalette.cardSelectedBorder.cgColor
         subCategoryBadgeLabel.layer?.borderWidth = 0.5
-        subCategoryBadgeLabel.layer?.cornerRadius = 4
+        subCategoryBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         subCategoryBadgeLabel.layer?.masksToBounds = true
         subCategoryBadgeLabel.alignment = .center
         subCategoryBadgeLabel.frame = NSRect(x: 4, y: 4, width: 70, height: 18)
@@ -118,11 +118,11 @@ public final class ResourceCardView: NSView {
 
         // 2b. 停用状态徽章（.disabled 状态感知）悬浮在缩略图右上角 (U-9: 统一尺寸 80x18, 右对齐 thumbW - 84)
         disabledBadgeLabel = NSTextField(labelWithString: "已停用")
-        disabledBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
-        disabledBadgeLabel.textColor = NSColor(calibratedWhite: 0.95, alpha: 1.0)
+        disabledBadgeLabel.font = TypeScale.captionMedium
+        disabledBadgeLabel.textColor = StatusPalette.textPrimary
         disabledBadgeLabel.wantsLayer = true
         disabledBadgeLabel.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
-        disabledBadgeLabel.layer?.cornerRadius = 4
+        disabledBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         disabledBadgeLabel.layer?.masksToBounds = true
         disabledBadgeLabel.alignment = .center
         disabledBadgeLabel.frame = NSRect(x: thumbW - 84, y: thumbH - 22, width: 80, height: 18)
@@ -131,11 +131,11 @@ public final class ResourceCardView: NSView {
 
         // 2c. 离线状态徽章（磁盘断链）悬浮在缩略图右上角 (U-9: 统一尺寸 80x18, 右对齐 thumbW - 84)
         offlineBadgeLabel = NSTextField(labelWithString: "磁盘离线")
-        offlineBadgeLabel.font = .systemFont(ofSize: 10, weight: .bold)
-        offlineBadgeLabel.textColor = NSColor(calibratedWhite: 0.95, alpha: 1.0)
+        offlineBadgeLabel.font = TypeScale.captionMedium
+        offlineBadgeLabel.textColor = StatusPalette.textPrimary
         offlineBadgeLabel.wantsLayer = true
         offlineBadgeLabel.layer?.backgroundColor = StatusPalette.offlineBg.cgColor
-        offlineBadgeLabel.layer?.cornerRadius = 4
+        offlineBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         offlineBadgeLabel.layer?.masksToBounds = true
         offlineBadgeLabel.alignment = .center
         offlineBadgeLabel.frame = NSRect(x: thumbW - 84, y: thumbH - 22, width: 80, height: 18)
@@ -157,11 +157,11 @@ public final class ResourceCardView: NSView {
 
         // 3. 容量标签悬浮在缩略图右下角
         sizeBadgeLabel = NSTextField(labelWithString: "0 MB")
-        sizeBadgeLabel.font = .monospacedDigitSystemFont(ofSize: 10, weight: .medium)
-        sizeBadgeLabel.textColor = NSColor(calibratedWhite: 0.85, alpha: 1.0)
+        sizeBadgeLabel.font = TypeScale.caption
+        sizeBadgeLabel.textColor = StatusPalette.textSecondary
         sizeBadgeLabel.wantsLayer = true
-        sizeBadgeLabel.layer?.backgroundColor = NSColor(calibratedWhite: 0.10, alpha: 0.85).cgColor
-        sizeBadgeLabel.layer?.cornerRadius = 4
+        sizeBadgeLabel.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
+        sizeBadgeLabel.layer?.cornerRadius = CornerRadius.badge
         sizeBadgeLabel.layer?.masksToBounds = true
         sizeBadgeLabel.alignment = .center
         sizeBadgeLabel.frame = NSRect(x: thumbW - 64, y: 4, width: 60, height: 18)
@@ -170,16 +170,16 @@ public final class ResourceCardView: NSView {
         // 4. 主标题区（中文别名或原名）
         let infoY = thumbY - 8
         titleLabel = NSTextField(labelWithString: item.name)
-        titleLabel.font = .systemFont(ofSize: 13, weight: .bold)
-        titleLabel.textColor = .white
+        titleLabel.font = TypeScale.bodyBold
+        titleLabel.textColor = StatusPalette.textPrimary
         titleLabel.cell?.lineBreakMode = .byTruncatingTail
         titleLabel.frame = NSRect(x: 10, y: infoY - 20, width: bounds.width - 20, height: 20)
         addSubview(titleLabel)
 
         // 5. 副标题区（英文原名或路径特征）
         subtitleLabel = NSTextField(labelWithString: item.name)
-        subtitleLabel.font = .systemFont(ofSize: 11, weight: .regular)
-        subtitleLabel.textColor = NSColor(calibratedWhite: 0.60, alpha: 1.0)
+        subtitleLabel.font = TypeScale.footnote
+        subtitleLabel.textColor = StatusPalette.textSecondary
         subtitleLabel.cell?.lineBreakMode = .byTruncatingTail
         subtitleLabel.frame = NSRect(x: 10, y: infoY - 40, width: bounds.width - 20, height: 18)
         addSubview(subtitleLabel)
@@ -191,10 +191,10 @@ public final class ResourceCardView: NSView {
         toggleButton.isBordered = false
         toggleButton.imagePosition = .imageLeading
         toggleButton.wantsLayer = true
-        toggleButton.layer?.cornerRadius = 14
+        toggleButton.layer?.cornerRadius = CornerRadius.capsule
         toggleButton.layer?.masksToBounds = true
         toggleButton.layer?.borderWidth = 1.0
-        toggleButton.font = .systemFont(ofSize: 11, weight: .medium)
+        toggleButton.font = TypeScale.footnoteMedium
         toggleButton.frame = NSRect(x: 10, y: bottomY, width: 88, height: 28)
         addSubview(toggleButton)
 
@@ -204,13 +204,13 @@ public final class ResourceCardView: NSView {
         menuButton.imagePosition = .imageOnly
         let menuConfig = NSImage.SymbolConfiguration(pointSize: 12, weight: .bold)
         menuButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: "更多")?.withSymbolConfiguration(menuConfig)
-        menuButton.contentTintColor = NSColor(calibratedWhite: 0.85, alpha: 1.0)
+        menuButton.contentTintColor = StatusPalette.textPrimary
         menuButton.wantsLayer = true
-        menuButton.layer?.cornerRadius = 14
+        menuButton.layer?.cornerRadius = CornerRadius.capsule
         menuButton.layer?.masksToBounds = true
-        menuButton.layer?.backgroundColor = NSColor(calibratedWhite: 0.16, alpha: 1.0).cgColor
+        menuButton.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
         menuButton.layer?.borderWidth = 1.0
-        menuButton.layer?.borderColor = NSColor(calibratedWhite: 0.25, alpha: 1.0).cgColor
+        menuButton.layer?.borderColor = StatusPalette.disabledBorder.cgColor
         menuButton.frame = NSRect(x: bounds.width - 42, y: bottomY, width: 32, height: 28)
         addSubview(menuButton)
     }
@@ -266,41 +266,41 @@ public final class ResourceCardView: NSView {
         }
 
         if item.isMismatchedDisk {
-            self.alphaValue = 0.55
+            self.alphaValue = 0.7
             alertBadgeLabel.stringValue = "异盘同名"
             alertBadgeLabel.layer?.backgroundColor = StatusPalette.amberOrangeBg.cgColor
             alertBadgeLabel.isHidden = false
             offlineBadgeLabel.isHidden = true
             disabledBadgeLabel.isHidden = true
-            thumbnailContainer.alphaValue = 0.50
+            thumbnailContainer.alphaValue = 1.0
             titleLabel.textColor = StatusPalette.amberOrange
             layer?.borderColor = StatusPalette.amberOrangeBorder.cgColor
-            toggleButton.isEnabled = true
+            toggleButton.isEnabled = false
             menuButton.isEnabled = true
         } else if item.isCorrupted {
-            self.alphaValue = 0.55
+            self.alphaValue = 0.7
             alertBadgeLabel.stringValue = "损坏/丢失"
             alertBadgeLabel.layer?.backgroundColor = StatusPalette.alertRedBg.cgColor
             alertBadgeLabel.isHidden = false
             offlineBadgeLabel.isHidden = true
             disabledBadgeLabel.isHidden = true
-            thumbnailContainer.alphaValue = 0.50
+            thumbnailContainer.alphaValue = 1.0
             titleLabel.textColor = StatusPalette.alertRed
             layer?.borderColor = StatusPalette.alertRedBorder.cgColor
-            toggleButton.isEnabled = true
+            toggleButton.isEnabled = false
             menuButton.isEnabled = true
         } else if item.isOffline {
-            self.alphaValue = 0.55
+            self.alphaValue = 0.7
             alertBadgeLabel.isHidden = true
             offlineBadgeLabel.stringValue = "磁盘离线"
             offlineBadgeLabel.layer?.backgroundColor = StatusPalette.offlineBg.cgColor
             offlineBadgeLabel.isHidden = false
             disabledBadgeLabel.isHidden = true
-            thumbnailContainer.alphaValue = 0.50
+            thumbnailContainer.alphaValue = 1.0
             titleLabel.textColor = StatusPalette.offlineGray
             layer?.borderColor = StatusPalette.cardBorderNormal.cgColor
             toggleButton.isEnabled = false
-            menuButton.isEnabled = false
+            menuButton.isEnabled = true
         } else {
             self.alphaValue = 1.0
             alertBadgeLabel.isHidden = true
@@ -308,8 +308,8 @@ public final class ResourceCardView: NSView {
             disabledBadgeLabel.stringValue = "已停用"
             disabledBadgeLabel.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
             disabledBadgeLabel.isHidden = item.isEnabled
-            thumbnailContainer.alphaValue = item.isEnabled ? 1.0 : 0.50
-            titleLabel.textColor = item.isEnabled ? .white : NSColor(calibratedWhite: 0.60, alpha: 1.0)
+            thumbnailContainer.alphaValue = item.isEnabled ? 1.0 : 0.65
+            titleLabel.textColor = item.isEnabled ? StatusPalette.textPrimary : StatusPalette.textSecondary
             layer?.borderColor = StatusPalette.cardBorderNormal.cgColor
             toggleButton.isEnabled = true
             menuButton.isEnabled = true
@@ -329,11 +329,11 @@ public final class ResourceCardView: NSView {
         } else if item.isOffline {
             let fallback = NSImage(systemSymbolName: "externaldrive.badge.xmark", accessibilityDescription: nil) ?? NSImage(systemSymbolName: "film", accessibilityDescription: nil)
             thumbnailImageView.image = fallback
-            thumbnailImageView.contentTintColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
+            thumbnailImageView.contentTintColor = StatusPalette.textMuted
         } else {
             let fallback = NSImage(systemSymbolName: "exclamationmark.triangle", accessibilityDescription: nil) ?? NSImage(systemSymbolName: "film", accessibilityDescription: nil)
             thumbnailImageView.image = fallback
-            thumbnailImageView.contentTintColor = NSColor(calibratedRed: 0.85, green: 0.25, blue: 0.25, alpha: 1.0)
+            thumbnailImageView.contentTintColor = StatusPalette.alertRed
         }
     }
 
@@ -341,11 +341,11 @@ public final class ResourceCardView: NSView {
         let (tierColor, tierTitle): (NSColor, String) = {
             switch item.tier {
             case .user:
-                return (NSColor(calibratedRed: 0.28, green: 0.78, blue: 0.42, alpha: 1.0), "用户")
+                return (StatusPalette.tierUser, "用户")
             case .builtin:
-                return (NSColor(calibratedRed: 0.95, green: 0.76, blue: 0.20, alpha: 1.0), "内置")
+                return (StatusPalette.tierBuiltin, "内置")
             case .system:
-                return (NSColor(calibratedRed: 0.68, green: 0.45, blue: 0.95, alpha: 1.0), "系统")
+                return (StatusPalette.tierSystem, "系统")
             }
         }()
 
@@ -377,21 +377,21 @@ public final class ResourceCardView: NSView {
             toggleButton.title = " 异盘"
             toggleButton.image = NSImage(systemSymbolName: "xmark.octagon.fill", accessibilityDescription: nil)?.withSymbolConfiguration(iconConfig)
             toggleButton.contentTintColor = StatusPalette.amberOrange
-            toggleButton.layer?.backgroundColor = NSColor(calibratedRed: 0.35, green: 0.22, blue: 0.08, alpha: 0.6).cgColor
+            toggleButton.layer?.backgroundColor = StatusPalette.amberOrangeBgSemi.cgColor
             toggleButton.layer?.borderColor = StatusPalette.amberOrangeBorder.cgColor
-            toggleButton.isEnabled = true
+            toggleButton.isEnabled = false
         } else if item.isCorrupted {
             toggleButton.title = " 损坏"
             toggleButton.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)?.withSymbolConfiguration(iconConfig)
             toggleButton.contentTintColor = StatusPalette.alertRed
-            toggleButton.layer?.backgroundColor = NSColor(calibratedRed: 0.45, green: 0.16, blue: 0.16, alpha: 0.6).cgColor
+            toggleButton.layer?.backgroundColor = StatusPalette.alertRedBgSemi.cgColor
             toggleButton.layer?.borderColor = StatusPalette.alertRedBorder.cgColor
-            toggleButton.isEnabled = true
+            toggleButton.isEnabled = false
         } else if item.isOffline {
             toggleButton.title = " 离线"
             toggleButton.image = NSImage(systemSymbolName: "externaldrive.badge.xmark", accessibilityDescription: nil)?.withSymbolConfiguration(iconConfig)
             toggleButton.contentTintColor = StatusPalette.offlineGray
-            toggleButton.layer?.backgroundColor = NSColor(calibratedWhite: 0.16, alpha: 0.6).cgColor
+            toggleButton.layer?.backgroundColor = StatusPalette.offlineBgSemi.cgColor
             toggleButton.layer?.borderColor = StatusPalette.offlineBorder.cgColor
             toggleButton.isEnabled = false
         } else if item.isEnabled {
@@ -406,9 +406,9 @@ public final class ResourceCardView: NSView {
         } else {
             toggleButton.title = " 已停用"
             toggleButton.image = NSImage(systemSymbolName: "circle", accessibilityDescription: nil)?.withSymbolConfiguration(
-                iconConfig.applying(NSImage.SymbolConfiguration(hierarchicalColor: NSColor(calibratedWhite: 0.60, alpha: 1.0)))
+                iconConfig.applying(NSImage.SymbolConfiguration(hierarchicalColor: StatusPalette.textSecondary))
             )
-            toggleButton.contentTintColor = NSColor(calibratedWhite: 0.60, alpha: 1.0)
+            toggleButton.contentTintColor = StatusPalette.textSecondary
             toggleButton.layer?.backgroundColor = StatusPalette.disabledBg.cgColor
             toggleButton.layer?.borderColor = StatusPalette.disabledBorder.cgColor
             toggleButton.isEnabled = true
@@ -445,7 +445,7 @@ public final class ResourceCardView: NSView {
                 } else {
                     let fallback = NSImage(systemSymbolName: "film", accessibilityDescription: nil)
                     self.thumbnailImageView.image = fallback
-                    self.thumbnailImageView.contentTintColor = NSColor(calibratedWhite: 0.35, alpha: 1.0)
+                    self.thumbnailImageView.contentTintColor = StatusPalette.textDim
                 }
             }
         }
@@ -453,7 +453,11 @@ public final class ResourceCardView: NSView {
 
     public override func menu(for event: NSEvent) -> NSMenu? {
         if item.isOffline && !item.isMismatchedDisk && !item.isCorrupted {
-            return nil
+            let offlineMenu = NSMenu(title: "离线提示")
+            let tipItem = NSMenuItem(title: "⚠️ 磁盘离线，重新挂载后可操作", action: nil, keyEquivalent: "")
+            tipItem.isEnabled = false
+            offlineMenu.addItem(tipItem)
+            return offlineMenu
         }
         if let customMenu = onRequestContextMenu?(item, event) {
             return customMenu
@@ -559,9 +563,9 @@ public final class ResourceCardView: NSView {
             } else if self.item.isCorrupted {
                 self.layer?.borderColor = StatusPalette.alertRed.cgColor
             } else {
-                self.layer?.borderColor = NSColor(calibratedRed: 0.28, green: 0.48, blue: 0.95, alpha: 0.9).cgColor
+                self.layer?.borderColor = StatusPalette.cardSelectedBorder.cgColor
             }
-            self.layer?.backgroundColor = NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.18, alpha: 1.0).cgColor
+            self.layer?.backgroundColor = StatusPalette.cardSelectedBg.cgColor
         }
     }
 
@@ -575,7 +579,7 @@ public final class ResourceCardView: NSView {
             } else {
                 self.layer?.borderColor = StatusPalette.cardBorderNormal.cgColor
             }
-            self.layer?.backgroundColor = NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.14, alpha: 1.0).cgColor
+            self.layer?.backgroundColor = StatusPalette.cardBg.cgColor
         }
     }
 }

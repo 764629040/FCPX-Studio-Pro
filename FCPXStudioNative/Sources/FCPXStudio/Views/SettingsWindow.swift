@@ -143,8 +143,8 @@ public final class SettingsDashboardView: NSView {
         c1Title.textColor = .white
         c1Header.addArrangedSubview(c1Title)
 
-        statusBadge = NSTextField(labelWithString: "🔒 安全只读保护中")
-        statusBadge.font = .systemFont(ofSize: 11, weight: .bold)
+        statusBadge = NSTextField(labelWithString: "安全只读保护中")
+        statusBadge.font = TypeScale.footnoteMedium
         statusBadge.textColor = NSColor.systemGreen
         c1Header.addArrangedSubview(statusBadge)
         card1Stack.addArrangedSubview(c1Header)
@@ -242,8 +242,8 @@ public final class SettingsDashboardView: NSView {
         c2Title.textColor = .white
         c2Header.addArrangedSubview(c2Title)
 
-        envBadge = NSTextField(labelWithString: "🟢 便携运行时就绪")
-        envBadge.font = .systemFont(ofSize: 11, weight: .bold)
+        envBadge = NSTextField(labelWithString: "便携运行时就绪")
+        envBadge.font = TypeScale.footnoteMedium
         envBadge.textColor = NSColor.systemGreen
         c2Header.addArrangedSubview(envBadge)
 
@@ -251,17 +251,22 @@ public final class SettingsDashboardView: NSView {
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         c2Header.addArrangedSubview(spacer)
 
-        recheckButton = NSButton(title: " 重新自检", target: self, action: #selector(onRecheckClicked(_:)))
+        let locateBtn = NSButton(title: "指定 Python 路径…", target: self, action: #selector(onLocateToolsClicked(_:)))
+        locateBtn.bezelStyle = .rounded
+        locateBtn.font = TypeScale.footnote
+        c2Header.addArrangedSubview(locateBtn)
+
+        recheckButton = NSButton(title: "重新自检", target: self, action: #selector(onRecheckClicked(_:)))
         recheckButton.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "刷新")
         recheckButton.bezelStyle = .rounded
-        recheckButton.font = .systemFont(ofSize: 11, weight: .medium)
+        recheckButton.font = TypeScale.footnoteMedium
         c2Header.addArrangedSubview(recheckButton)
         card2Stack.addArrangedSubview(c2Header)
         c2Header.widthAnchor.constraint(equalTo: card2Stack.widthAnchor).isActive = true
 
         let envBox = NSView()
         envBox.wantsLayer = true
-        envBox.layer?.cornerRadius = 6
+        envBox.layer?.cornerRadius = CornerRadius.card
         envBox.layer?.backgroundColor = NSColor(calibratedWhite: 0.05, alpha: 0.85).cgColor
         envBox.layer?.borderColor = NSColor(white: 1.0, alpha: 0.10).cgColor
         envBox.layer?.borderWidth = 1.0
@@ -322,7 +327,7 @@ public final class SettingsDashboardView: NSView {
     private func makeCardView() -> NSView {
         let card = NSView()
         card.wantsLayer = true
-        card.layer?.cornerRadius = 8
+        card.layer?.cornerRadius = CornerRadius.card
         card.layer?.backgroundColor = NSColor(calibratedRed: 0.10, green: 0.11, blue: 0.14, alpha: 0.75).cgColor
         card.layer?.borderWidth = 1.0
         card.layer?.borderColor = NSColor(white: 1.0, alpha: 0.10).cgColor
@@ -339,16 +344,16 @@ public final class SettingsDashboardView: NSView {
         statusLabel?.textColor = writable ? .systemOrange : .systemGreen
 
         if writable {
-            statusBadge?.stringValue = "⚠️ 开启可写（高风险）"
+            statusBadge?.stringValue = "开启可写（高风险）"
             statusBadge?.textColor = .systemOrange
         } else {
-            statusBadge?.stringValue = "🔒 安全只读保护中"
+            statusBadge?.stringValue = "安全只读保护中"
             statusBadge?.textColor = .systemGreen
         }
 
         let cfg = AppConfig.shared
-        let mode = cfg.isPortableEnvironment ? "🟢 零依赖便携运行时就绪 (Zero-Dependency Standalone)" : "🟡 主机系统环境 (Host-System)"
-        let psd = cfg.hasPsdTools ? "🟢 psd-tools 核心引擎已就绪" : "🔴 缺失 psd-tools"
+        let mode = cfg.isPortableEnvironment ? "[就绪] 零依赖便携运行时 (Zero-Dependency Standalone)" : "[系统] 主机系统环境 (Host-System)"
+        let psd = cfg.hasPsdTools ? "[就绪] psd-tools 核心引擎已就绪" : "[缺失] 未找到 psd-tools"
         let lines = [
             "应用版本: \(cfg.appVersionString)",
             "便携状态: \(mode)",
@@ -358,8 +363,15 @@ public final class SettingsDashboardView: NSView {
             "CLI Bridge: \(cfg.bridgeScriptPath)"
         ]
         envStatusLabel?.stringValue = lines.joined(separator: "\n")
-        envBadge?.stringValue = cfg.isPortableEnvironment ? "🟢 便携运行时就绪" : "🟡 系统运行时"
+        envBadge?.stringValue = cfg.isPortableEnvironment ? "便携运行时就绪" : "系统运行时"
         envBadge?.textColor = cfg.isPortableEnvironment ? .systemGreen : .systemYellow
+
+        // UI-G008: 动态更新外置卷与情境说明
+        let mountedVols = StorageMigrationManager.shared.listMountedVolumes()
+        let volDesc = mountedVols.first?.path ?? "未挂载外置存储"
+        let activeProfile = WorkspaceProfileManager.shared.getActiveProfile().name
+        storageStatusSummaryLabel?.stringValue = "• 外置移动存储透传：当前挂载卷 [\(volDesc)]，通过 POSIX 标准软链接底层透明调用，性能与系统盘无异；"
+        workspaceStatusSummaryLabel?.stringValue = "• 工作区情境隔离：当前活跃情境 [\(activeProfile)]，基于 .disabled 毫秒级启停，0 额外内存开销。"
     }
 
     // MARK: – Actions
@@ -383,8 +395,33 @@ public final class SettingsDashboardView: NSView {
         NotificationCenter.default.post(name: .tierWritePolicyChanged, object: nil)
     }
 
+    @objc private func onLocateToolsClicked(_ sender: Any?) {
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseFiles = true
+        openPanel.canChooseDirectories = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.message = "请选择包含 psd-tools 的 Python3 可执行文件"
+        if openPanel.runModal() == .OK, let url = openPanel.url {
+            AppConfig.shared.overridePythonPath(url.path)
+            refreshData()
+            let alert = NSAlert()
+            alert.messageText = "Python 路径已指定"
+            alert.informativeText = "已设定新 Python 路径为：\(url.path)。核心依赖检测状态已刷新。"
+            alert.runModal()
+        }
+    }
+
     @objc private func onRecheckClicked(_ sender: Any?) {
-        refreshData()
+        recheckButton?.isEnabled = false
+        recheckButton?.title = "正在自检…"
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            AppConfig.shared.recheckEnvironment()
+            DispatchQueue.main.async {
+                self?.refreshData()
+                self?.recheckButton?.isEnabled = true
+                self?.recheckButton?.title = "重新自检"
+            }
+        }
     }
 
     private func confirmWritable() -> Bool {
