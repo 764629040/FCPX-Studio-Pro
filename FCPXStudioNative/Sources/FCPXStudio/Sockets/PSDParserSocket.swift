@@ -294,8 +294,6 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
 
         let width = CGFloat(widthNum.doubleValue)
         let height = CGFloat(heightNum.doubleValue)
-        let aspectRatio = json["aspect_ratio"] as? String ?? "\(Int(width)):\(Int(height))"
-        let resSpec = json["resolution_spec"] as? String ?? "\(Int(height))P"
 
         var warnings: [String] = []
         var notes: [String] = []
@@ -303,11 +301,29 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             warnings = diag["warnings"] as? [String] ?? []
             notes = diag["notes"] as? [String] ?? []
         }
+
+        // UI-G050: 缺失时记 warning 并计入诊断，与拒绝 1920×1080 契约一致
+        let aspectRatio: String
+        if let ar = json["aspect_ratio"] as? String, !ar.isEmpty {
+            aspectRatio = ar
+        } else {
+            aspectRatio = "\(Int(width)):\(Int(height))"
+            warnings.append("桥接未返回 aspect_ratio，已按像素宽高比估算")
+        }
+        let resSpec: String
+        if let rs = json["resolution_spec"] as? String, !rs.isEmpty {
+            resSpec = rs
+        } else {
+            resSpec = "\(Int(height))P"
+            warnings.append("桥接未返回 resolution_spec，已按高度推断")
+        }
+
         let errTail = errText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !errTail.isEmpty {
             notes.append("stderr: " + String(errTail.suffix(800)))
         }
 
+        var degradedLayersCount = 0
         var result: [LayerModel] = []
         for item in layersArray {
             let id = item["index"] as? Int ?? 1
@@ -329,9 +345,30 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             let direction = item["writing_direction"] as? String ?? "vertical"
             let fallbackPng = item["fallback_png_path"] as? String
             let psdBBox = item["psd_bbox"] as? [Double] ?? []
-            let diagNotes = item["diagnostic_notes"] as? [String] ?? []
+            var diagNotes = item["diagnostic_notes"] as? [String] ?? []
             let alignment = item["alignment"] as? String ?? "center"
             let lineSpacing = item["line_spacing"] as? Double ?? (fontSize * 1.2)
+
+            // UI-G049: 关键字段缺失检测与告警
+            var layerDegraded = false
+            if item["name"] == nil {
+                diagNotes.append("图层缺少 name 字段，降级为默认值")
+                warnings.append("图层 #\(id) 缺少 name 字段")
+                layerDegraded = true
+            }
+            if kind == "type" && item["font_name"] == nil {
+                diagNotes.append("文本层缺少 font_name 字段，降级为 Helvetica")
+                warnings.append("文本图层「\(name)」缺少 font_name 字段")
+                layerDegraded = true
+            }
+            if item["motion_pos"] == nil {
+                diagNotes.append("图层缺少 motion_pos 坐标，降级为 (0,0)")
+                warnings.append("图层「\(name)」缺少 motion_pos 坐标")
+                layerDegraded = true
+            }
+            if layerDegraded {
+                degradedLayersCount += 1
+            }
 
             // R28 / A-51 / R31 / A-59：缺字风险（口径由 core/missing_font.py 定义，此处只读）
             let fontInfo = item["font_info"] as? [String: Any] ?? [:]
@@ -396,6 +433,28 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
         } else {
             counts = PSDLayerCounts(summaryPresent: false)
             warnings.append("桥接未返回层数统计（summary），无法判定是否丢失图层")
+        }
+
+        // UI-G049: 累加客户端检测到的缺失字段降级层数
+        if degradedLayersCount > 0 {
+            counts = PSDLayerCounts(
+                input: counts.input,
+                preserved: max(0, counts.preserved - degradedLayersCount),
+                degraded: counts.degraded + degradedLayersCount,
+                ignored: counts.ignored,
+                failed: counts.failed,
+                hidden: counts.hidden,
+                background: counts.background,
+                groups: counts.groups,
+                empty: counts.empty,
+                otherIgnored: counts.otherIgnored,
+                preview: counts.preview,
+                visibleEmitted: counts.visibleEmitted,
+                conservationHolds: counts.conservationHolds,
+                countSumHolds: counts.countSumHolds,
+                ignoredSummary: counts.ignoredSummary,
+                summaryPresent: counts.summaryPresent
+            )
         }
 
         // ── R33 / A-68：底板预览贴图（不进入图层列表，仅作画布底图）──

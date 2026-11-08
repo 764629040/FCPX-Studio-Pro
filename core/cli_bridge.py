@@ -22,17 +22,17 @@ from core.motion_builder import MotionBuilder
 
 
 def media_output_dir(psd_path: str) -> str:
-    """R33 / A-68：为一次解析准备稳定的贴图输出目录。
+    """R33 / A-68 / UI-G054：为一次解析准备稳定的贴图输出目录。
 
-    目录键由「绝对路径 + mtime + 大小」决定，同一文件重复解析复用同一目录，
-    文件一改就换新目录，避免读到上次的旧贴图。放在系统临时目录下，
+    目录键由「绝对路径 + mtime + 大小 + 进程 PID」决定，保证并发解析同一 PSD 时
+    各个进程拥有独立的贴图目录，互不覆盖冲撞。放在系统临时目录下，
     不会污染用户素材目录。
     """
     try:
         st = os.stat(psd_path)
-        key_src = f"{os.path.abspath(psd_path)}|{st.st_mtime_ns}|{st.st_size}"
+        key_src = f"{os.path.abspath(psd_path)}|{st.st_mtime_ns}|{st.st_size}|{os.getpid()}"
     except OSError:
-        key_src = os.path.abspath(psd_path)
+        key_src = f"{os.path.abspath(psd_path)}|{os.getpid()}"
     key = hashlib.sha1(key_src.encode("utf-8", "replace")).hexdigest()[:16]
     base = os.path.join(tempfile.gettempdir(), "FCPXStudioPSDMedia")
     os.makedirs(base, exist_ok=True)
@@ -107,14 +107,19 @@ def handle_build(payload_json_file: str):
             data = json.load(f)
 
         psd_path = data.get("psd_path", "")
-        output_dir = str(data.get("output_dir", "")).strip()
-        if not output_dir:
-            print(json.dumps({"status": "error", "message": "output_dir 不能为空"}, ensure_ascii=False))
+        if "output_dir" not in data or not str(data["output_dir"]).strip():
+            print(json.dumps({"status": "error", "message": "构建配置缺少必填字段 output_dir"}, ensure_ascii=False))
             sys.exit(1)
+        output_dir = str(data["output_dir"]).strip()
 
-        template_name = str(data.get("template_name", "")).strip()
-        if not template_name:
-            print(json.dumps({"status": "error", "message": "template_name 不能为空"}, ensure_ascii=False))
+        if "template_name" not in data or not str(data["template_name"]).strip():
+            print(json.dumps({"status": "error", "message": "构建配置缺少必填字段 template_name"}, ensure_ascii=False))
+            sys.exit(1)
+        template_name = str(data["template_name"]).strip()
+
+        # UI-G052: 校验 template_name 不得包含 /、\、.. 或超过 255 字符
+        if any(bad in template_name for bad in ["/", "\\", ".."]) or len(template_name) > 255:
+            print(json.dumps({"status": "error", "message": f"非法的模板名称「{template_name}」：名称禁止包含路径字符（/、\\、..）且长度不得超过 255 字符"}, ensure_ascii=False))
             sys.exit(1)
 
         layers_raw = data.get("layers", [])
@@ -185,6 +190,10 @@ def handle_build(payload_json_file: str):
             "output_dir": output_dir
         }
         print(json.dumps(resp, ensure_ascii=False))
+    except KeyError as e:
+        field = str(e).strip("'\"")
+        print(json.dumps({"status": "error", "message": f"构建配置缺少必填字段 {field}"}, ensure_ascii=False))
+        sys.exit(1)
     except Exception as e:
         print(json.dumps({"status": "error", "message": f"生成模板失败: {str(e)}"}, ensure_ascii=False))
         sys.exit(1)

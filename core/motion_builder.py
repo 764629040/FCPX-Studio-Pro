@@ -675,6 +675,9 @@ class MotionBuilder:
         if not output_dir or not str(output_dir).strip():
             raise ValueError("output_dir 不能为空")
 
+        if not template_name or any(bad in template_name for bad in ["/", "\\", ".."]) or len(template_name) > 255:
+            raise ValueError(f"非法的模板名称「{template_name}」：名称禁止包含路径字符（/、\\、..）且长度不得超过 255 字符")
+
         output_dir = os.path.abspath(output_dir)
         norm_dir = os.path.realpath(output_dir)
         cwd_dir = os.path.realpath(os.getcwd())

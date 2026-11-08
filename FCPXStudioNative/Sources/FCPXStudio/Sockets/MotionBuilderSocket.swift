@@ -93,6 +93,18 @@ public final class MotionBuilderSocket: MotionBuilderSocketProtocol {
             let pythonPath = AppConfig.shared.pythonPath
             let bridgePath = AppConfig.shared.bridgeScriptPath
 
+            // UI-G053: 启动前 guard 两路径存在且可执行
+            let fm = FileManager.default
+            guard fm.fileExists(atPath: pythonPath) else {
+                return TemplateBuildResult(success: false, errorMessage: "Python 解释器不存在: \(pythonPath)")
+            }
+            guard fm.isExecutableFile(atPath: pythonPath) else {
+                return TemplateBuildResult(success: false, errorMessage: "Python 解释器不可执行: \(pythonPath)")
+            }
+            guard fm.fileExists(atPath: bridgePath) else {
+                return TemplateBuildResult(success: false, errorMessage: "桥接脚本不存在: \(bridgePath)")
+            }
+
             let process = Process()
             process.executableURL = URL(fileURLWithPath: pythonPath)
             process.arguments = [bridgePath, "build", tempJsonPath]
