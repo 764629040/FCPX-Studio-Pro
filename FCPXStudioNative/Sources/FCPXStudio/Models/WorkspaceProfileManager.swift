@@ -420,15 +420,8 @@ public final class WorkspaceProfileManager {
     public func activateProfileSync(
         id: UUID,
         roots: TemplateTierRoots = .resolve(),
-        enforceLicense: Bool = true
+        enforceLicense: Bool = false
     ) throws -> WorkspaceProfileStats {
-        if enforceLicense && !LicenseManager.shared.isProLicensed {
-            throw NSError(
-                domain: "WorkspaceProfileManager",
-                code: 403,
-                userInfo: [NSLocalizedDescriptionKey: "未激活商业授权，多工作区情境隔离快速切换已锁定。请先激活商业授权。"]
-            )
-        }
         guard let profile = profiles.first(where: { $0.id == id }) else {
             throw NSError(
                 domain: "WorkspaceProfileManager",

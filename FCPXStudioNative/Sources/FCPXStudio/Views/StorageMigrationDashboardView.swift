@@ -359,10 +359,6 @@ public final class StorageMigrationDashboardView: NSView,
 
     // MARK: – Actions
     @objc public func onMigrateAllClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showAlert(title: "商业授权未激活", msg: "未激活商业授权，外置一键搬家与软链接迁移已锁定。请先激活商业授权。")
-            return
-        }
         guard let vol = selectedVolume else {
             showAlert(title: "未选择外置盘", msg: "请先连接并选择目标外置移动硬盘后再执行搬家。")
             return

@@ -44,7 +44,6 @@ swiftc -O -j 8 \
   FCPXStudioNative/Sources/FCPXStudio/Models/TeamP2PSyncManager.swift \
   FCPXStudioNative/Sources/FCPXStudio/Models/EnvironmentCloner.swift \
   FCPXStudioNative/Sources/FCPXStudio/Models/FontInstaller.swift \
-  FCPXStudioNative/Sources/FCPXStudio/Models/LicenseManager.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/MotionBuilderSocket.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/PSDParserSocket.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/SymlinkSocket.swift \
@@ -87,7 +86,6 @@ swiftc -O -j 8 \
   FCPXStudioNative/Sources/FCPXStudio/Models/TeamP2PSyncManager.swift \
   FCPXStudioNative/Sources/FCPXStudio/Models/EnvironmentCloner.swift \
   FCPXStudioNative/Sources/FCPXStudio/Models/FontInstaller.swift \
-  FCPXStudioNative/Sources/FCPXStudio/Models/LicenseManager.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/MotionBuilderSocket.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/PSDParserSocket.swift \
   FCPXStudioNative/Sources/FCPXStudio/Sockets/SymlinkSocket.swift \

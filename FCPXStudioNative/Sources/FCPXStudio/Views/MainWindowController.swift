@@ -681,14 +681,6 @@ public final class MainWindowController: NSWindowController,
     }
 
     public func batchExportAllTemplates() {
-        guard LicenseManager.shared.isProLicensed else {
-            let alert = NSAlert()
-            alert.messageText = "商业授权未激活"
-            alert.informativeText = "未激活商业授权，全套模板批量导出功能已锁定。请先激活商业授权。"
-            alert.alertStyle = .warning
-            alert.runModal()
-            return
-        }
         // FCPX-035: 空列表时提示先导入 PSD，杜绝静默无响应
         guard !psdFiles.isEmpty else {
             showAlert(title: "提示", msg: "素材批处理列表为空，请先从左侧列表选择或拖入 PSD 文件。")

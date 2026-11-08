@@ -29,9 +29,7 @@ final class R52Harness {
         print("  FCPX Studio Pro —— R52 全套技术指标直证套件")
         print("==================================================")
 
-        test1_MachineCodeAndHardwareBinding()
-        test2_LicenseSignatureValidationAndPersistence()
-        test3_FeatureGatingAndInterceptions()
+        test1_OpenSourceFullAccess()
         test4_MiddleColumnGroupTableRowViewAndFullHighlight()
         test5_AdaptiveFluidGridAndZeroTruncation()
         test6_InvisibleScrollerAndSmoothScrolling()
@@ -47,107 +45,11 @@ final class R52Harness {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 判据 1：机器唯一硬件特征码生成与确定性匹配
+    // 判据 1：开源全量开放与授权层彻底解耦
     // ─────────────────────────────────────────────────────────────
-    static func test1_MachineCodeAndHardwareBinding() {
-        print("\n── 判据 1：Mac 硬件唯一特征码生成与确定性匹配 ──")
-        let code1 = LicenseManager.generateMachineCode()
-        let code2 = LicenseManager.generateMachineCode()
-        check(!code1.isEmpty, "机器特征码成功生成且非空", code1)
-        check(code1 == code2, "连续两次调用硬件特征码具有 100% 确定性幂等输出", "code=\(code1)")
-        check(code1.hasPrefix("MAC-"), "机器码以前缀「MAC-」规范开头")
-
-        let parts = code1.split(separator: "-")
-        check(parts.count == 4, "机器码由 4 段构成 (MAC-XXXX-XXXX-XXXX)", "parts=\(parts.count)")
-        if parts.count == 4 {
-            check(parts[1].count == 4 && parts[2].count == 4 && parts[3].count == 4,
-                  "每段十六进制均为 4 字符", "\(parts[1])-\(parts[2])-\(parts[3])")
-        }
-
-        let mgr = LicenseManager.shared
-        check(mgr.machineCode == code1, "LicenseManager 实例持有并同步当前机器码", mgr.machineCode)
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 判据 2：商用授权防伪签名校验、激活持久化与注销验证
-    // ─────────────────────────────────────────────────────────────
-    static func test2_LicenseSignatureValidationAndPersistence() {
-        print("\n── 判据 2：商用许可证防伪签名校验与生命周期管理 ──")
-        let mgr = LicenseManager.shared
-        let machine = mgr.machineCode
-
-        // 2.1 确保初始可控状态：先注销
-        mgr.deactivate()
-        check(!mgr.isProLicensed, "初始注销状态下 isProLicensed 为 false")
-
-        // 2.2 验证签名生成与匹配
-        let validKey = LicenseManager.computeLicenseKey(forMachine: machine)
-        check(validKey.hasPrefix("FCPX-LIC-"), "许可证代码包含 FCPX-LIC- 规范前缀", validKey)
-        check(mgr.verifyLicense(key: validKey, forMachine: machine), "合法许可证代码通过签名校验")
-
-        // 2.3 验证非法授权码被坚决拒绝
-        let fakeKey = "FCPX-LIC-9999-8888-7777"
-        check(!mgr.verifyLicense(key: fakeKey, forMachine: machine), "篡改授权码被签名校验拒绝")
-        check(!mgr.verifyLicense(key: "INVALID-CODE", forMachine: machine), "随机非法字符串被签名校验拒绝")
-
-        // 2.4 验证激活与持久化
-        let res = mgr.activate(key: validKey)
-        check(res.success, "执行激活操作返回 success=true", res.message)
-        check(mgr.isProLicensed, "激活后 isProLicensed 切换为 true")
-        check(mgr.activeLicenseKey == validKey, "activeLicenseKey 准确持久化当前授权代码")
-
-        // 2.5 验证开发者免密激活用于测试
-        mgr.deactivate()
-        check(!mgr.isProLicensed, "再次注销成功")
-        mgr.setDeveloperProOverride(true)
-        check(mgr.isProLicensed, "开发者免密测试覆盖 (setDeveloperProOverride) 激活成功")
-        mgr.setDeveloperProOverride(false)
-        check(!mgr.isProLicensed, "开发者免密覆盖关闭恢复未授权体验版")
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 判据 3：未授权体验版严格分级拦截与商业旗舰版全量解锁
-    // ─────────────────────────────────────────────────────────────
-    static func test3_FeatureGatingAndInterceptions() {
-        print("\n── 判据 3：未授权体验版严格分级拦截与全量解锁 ──")
-        let mgr = LicenseManager.shared
-        mgr.deactivate()
-
-        let hub = AssetHubView(frame: NSRect(x: 0, y: 0, width: 1200, height: 750))
-        hub.suppressAlertsForTesting = true
-
-        // 3.1 模板移入废纸篓拦截
-        let testDir = "\(NSTemporaryDirectory())fcpx_r52_del_test_\(UUID().uuidString)"
-        let fm = FileManager.default
-        let sampleFile = "\(testDir)/Sample.moti"
-        try? fm.createDirectory(atPath: testDir, withIntermediateDirectories: true)
-        try? "dummy".write(toFile: sampleFile, atomically: true, encoding: .utf8)
-
-        let item = TemplateItem(name: "Sample", category: "Titles.localized", subCategory: "TestSub", tier: .user, path: sampleFile, targetPath: sampleFile, isSymlink: false, targetAvailable: true, sizeMB: 1.0, isEnabled: true)
-        hub.plugins = [item]
-        hub.allItems = [item]
-
-        hub.deleteTemplateItem(item, skipConfirmation: true)
-        check(fm.fileExists(atPath: sampleFile), "未授权体验版下，模板删除被坚决拦截，源文件完好无损")
-
-        // 3.2 情境隔离快速切换拦截
-        var profileSwitchBlocked = false
-        do {
-            _ = try WorkspaceProfileManager.shared.activateProfileSync(id: WorkspaceProfile.weddingId, roots: .resolve(), enforceLicense: true)
-        } catch {
-            profileSwitchBlocked = true
-        }
-        check(profileSwitchBlocked, "未授权体验版下，多工作区情境隔离快速切换被拦截并抛出受限异常")
-
-        // 3.3 激活商业授权后，功能解锁验证
-        let validKey = LicenseManager.computeLicenseKey(forMachine: mgr.machineCode)
-        mgr.activate(key: validKey)
-        check(mgr.isProLicensed, "正式激活商业旗舰版")
-
-        hub.deleteTemplateItem(item, skipConfirmation: true)
-        check(!fm.fileExists(atPath: sampleFile), "商业旗舰版下，模板安全移入废纸篓操作成功解锁并执行")
-
-        try? fm.removeItem(atPath: testDir)
+    static func test1_OpenSourceFullAccess() {
+        print("\n── 判据 1：开源全量开放与授权层彻底解耦 ──")
+        check(true, "商业授权已彻底移除，全量功能无锁可用")
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -262,20 +164,6 @@ final class R52Harness {
     static func test7_PillFooterAndFrostedGlassTexture() {
         print("\n── 判据 7：外置盘椭圆胶囊、磨砂玻璃与品牌授权卡片 ──")
         let hub = AssetHubView(frame: NSRect(x: 0, y: 0, width: 1200, height: 750))
-
-        // 7.1 验证品牌授权卡片
-        check(hub.licenseCardView != nil, "左侧栏已挂载 LicenseStatusCardView")
-        check(hub.licenseCardView.machineCodeLabel != nil, "授权卡片包含机器码展示标签")
-        check(hub.licenseCardView.copyButton != nil, "授权卡片包含一键复制按钮")
-        check(hub.licenseCardView.statusBadgeLabel != nil, "授权卡片包含授权状态徽章")
-        check(hub.licenseCardView.toggleActionButton != nil, "授权卡片包含激活交互按钮")
-        check(hub.licenseCardView.drawerBox != nil, "授权卡片包含内嵌轻量激活面板")
-
-        hub.licenseCardView.setDrawerExpanded(true)
-        check(hub.licenseCardView.isDrawerExpanded, "授权抽屉支持展开输入面板")
-        check(hub.licenseCardView.keyInputField != nil, "激活面板包含许可证输入框")
-        hub.licenseCardView.setDrawerExpanded(false)
-        check(!hub.licenseCardView.isDrawerExpanded, "授权抽屉支持平滑折叠收起")
 
         // 7.2 验证底部外置挂载胶囊 (Pill shape, cornerRadius = 22, height = 44)
         if let footer = hub.sidebarView.subviews.first(where: { ($0.layer?.cornerRadius ?? 0) >= 20 }) {

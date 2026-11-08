@@ -726,14 +726,6 @@ public final class WorkspaceProfileDashboardView: NSView,
 
     // MARK: – 用户操作响应
     public func activateProfile(id: UUID) {
-        guard LicenseManager.shared.isProLicensed else {
-            let alert = NSAlert()
-            alert.messageText = "商业授权未激活"
-            alert.informativeText = "未激活商业授权，多工作区情境隔离快速切换已锁定。请先激活商业授权。"
-            alert.alertStyle = .warning
-            alert.runModal()
-            return
-        }
         guard let p = profiles.first(where: { $0.id == id }) else { return }
 
         // FCPX-011: 激活专属二次确认弹窗

@@ -73,252 +73,6 @@ public final class GroupTableRowView: NSTableRowView {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LicenseStatusCardView
-//  左侧侧边栏顶部品牌授权看板卡片 (R52)
-//  独一无二机器码、一键复制、激活按钮与内嵌轻量输入激活面板
-// ═══════════════════════════════════════════════════════════════
-public final class LicenseStatusCardView: NSView {
-    public var onLicenseChanged: (() -> Void)?
-
-    public private(set) var machineCodeLabel: NSTextField!
-    public private(set) var copyButton: NSButton!
-    public private(set) var statusBadgeLabel: NSTextField!
-    public private(set) var toggleActionButton: NSButton!
-    public private(set) var fcpxVersionLabel: NSTextField!
-    public private(set) var loadTimeIndicatorLabel: NSTextField!
-
-    // 内嵌轻量激活面板
-    public private(set) var drawerBox: NSView!
-    public private(set) var keyInputField: NSTextField!
-    public private(set) var confirmActivateBtn: NSButton!
-    public private(set) var messageLabel: NSTextField!
-
-    public private(set) var isDrawerExpanded: Bool = false
-    public private(set) var heightConstraint: NSLayoutConstraint?
-
-    public override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        buildUI()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        buildUI()
-    }
-
-    private func buildUI() {
-        wantsLayer = true
-        layer?.cornerRadius = CornerRadius.card
-        layer?.backgroundColor = ColorToken.subpanelBg.cgColor
-        layer?.borderWidth = 0.8
-        layer?.borderColor = ColorToken.cardBorder.cgColor
-
-        let mainStack = NSStackView()
-        mainStack.orientation = .vertical
-        mainStack.alignment = .leading
-        mainStack.spacing = 3
-        mainStack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(mainStack)
-
-        // 1. 机器码行（标签 + 复制小按钮）
-        let machineRow = NSStackView()
-        machineRow.orientation = .horizontal
-        machineRow.alignment = .centerY
-        machineRow.spacing = 4
-
-        machineCodeLabel = NSTextField(labelWithString: "【机器码】 \(LicenseManager.shared.machineCode)")
-        machineCodeLabel.font = TypeScale.caption
-        machineCodeLabel.textColor = ColorToken.accentBlue
-        machineRow.addArrangedSubview(machineCodeLabel)
-
-        copyButton = NSButton(title: "复制", target: self, action: #selector(onCopyMachineCode))
-        copyButton.image = NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: "复制")
-        copyButton.imagePosition = .imageLeading
-        copyButton.bezelStyle = .inline
-        copyButton.isBordered = false
-        copyButton.font = TypeScale.caption
-        copyButton.contentTintColor = ColorToken.accentBlue
-        copyButton.toolTip = "一键复制机器唯一码到剪贴板"
-        machineRow.addArrangedSubview(copyButton)
-
-        mainStack.addArrangedSubview(machineRow)
-
-        // 2. 授权状态行（徽章 + 激活/注销动作按钮）
-        let statusRow = NSStackView()
-        statusRow.orientation = .horizontal
-        statusRow.alignment = .centerY
-        statusRow.spacing = 6
-
-        statusBadgeLabel = NSTextField(labelWithString: "")
-        statusBadgeLabel.font = TypeScale.captionMedium
-        statusRow.addArrangedSubview(statusBadgeLabel)
-
-        toggleActionButton = NSButton(title: "激活", target: self, action: #selector(onToggleActionClicked))
-        toggleActionButton.bezelStyle = .roundRect
-        toggleActionButton.font = TypeScale.captionMedium
-        statusRow.addArrangedSubview(toggleActionButton)
-
-        mainStack.addArrangedSubview(statusRow)
-
-        // 3. FCPX 版本检测与用时
-        fcpxVersionLabel = NSTextField(labelWithString: "Final Cut Pro 检测就绪")
-        fcpxVersionLabel.font = TypeScale.caption
-        fcpxVersionLabel.textColor = NSColor(calibratedWhite: 0.75, alpha: 1.0)
-        mainStack.addArrangedSubview(fcpxVersionLabel)
-
-        loadTimeIndicatorLabel = NSTextField(labelWithString: "")
-        loadTimeIndicatorLabel.font = TypeScale.caption
-        loadTimeIndicatorLabel.textColor = NSColor.secondaryLabelColor
-        mainStack.addArrangedSubview(loadTimeIndicatorLabel)
-
-        // 4. 内嵌轻量输入激活面板
-        drawerBox = NSView()
-        drawerBox.wantsLayer = true
-        drawerBox.layer?.cornerRadius = CornerRadius.card
-        drawerBox.layer?.backgroundColor = ColorToken.subpanelBg.cgColor
-        drawerBox.layer?.borderWidth = 0.5
-        drawerBox.layer?.borderColor = ColorToken.accentBlue.withAlphaComponent(0.5).cgColor
-        drawerBox.isHidden = true
-        drawerBox.translatesAutoresizingMaskIntoConstraints = false
-
-        let drawerStack = NSStackView()
-        drawerStack.orientation = .vertical
-        drawerStack.alignment = .leading
-        drawerStack.spacing = 4
-        drawerStack.translatesAutoresizingMaskIntoConstraints = false
-        drawerBox.addSubview(drawerStack)
-
-        NSLayoutConstraint.activate([
-            drawerStack.topAnchor.constraint(equalTo: drawerBox.topAnchor, constant: 4),
-            drawerStack.leadingAnchor.constraint(equalTo: drawerBox.leadingAnchor, constant: 6),
-            drawerStack.trailingAnchor.constraint(equalTo: drawerBox.trailingAnchor, constant: -6),
-            drawerStack.bottomAnchor.constraint(equalTo: drawerBox.bottomAnchor, constant: -4)
-        ])
-
-        keyInputField = NSTextField()
-        keyInputField.placeholderString = "输入许可证代码 FCPX-LIC-..."
-        keyInputField.font = .monospacedSystemFont(ofSize: 9.5, weight: .regular)
-        keyInputField.bezelStyle = .roundedBezel
-        keyInputField.translatesAutoresizingMaskIntoConstraints = false
-        keyInputField.widthAnchor.constraint(equalToConstant: 176).isActive = true
-        drawerStack.addArrangedSubview(keyInputField)
-
-        let drawerBtnRow = NSStackView()
-        drawerBtnRow.orientation = .horizontal
-        drawerBtnRow.spacing = 4
-
-        confirmActivateBtn = NSButton(title: "立即激活", target: self, action: #selector(onConfirmActivateClicked))
-        confirmActivateBtn.bezelStyle = .roundRect
-        confirmActivateBtn.font = TypeScale.captionMedium
-        drawerBtnRow.addArrangedSubview(confirmActivateBtn)
-
-        let cancelBtn = NSButton(title: "收起", target: self, action: #selector(onCancelDrawerClicked))
-        cancelBtn.bezelStyle = .roundRect
-        cancelBtn.font = TypeScale.caption
-        drawerBtnRow.addArrangedSubview(cancelBtn)
-
-        drawerStack.addArrangedSubview(drawerBtnRow)
-
-        messageLabel = NSTextField(labelWithString: "")
-        messageLabel.font = TypeScale.caption
-        messageLabel.textColor = ColorToken.alertRed
-        drawerStack.addArrangedSubview(messageLabel)
-
-        mainStack.addArrangedSubview(drawerBox)
-
-        heightConstraint = heightAnchor.constraint(equalToConstant: 78)
-        heightConstraint?.isActive = true
-
-        NSLayoutConstraint.activate([
-            mainStack.topAnchor.constraint(equalTo: topAnchor, constant: 6),
-            mainStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            mainStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8)
-        ])
-
-        updateLicenseDisplay()
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(updateLicenseDisplay),
-            name: LicenseManager.didChangeLicenseStatusNotification,
-            object: nil
-        )
-    }
-
-    @objc public func updateLicenseDisplay() {
-        machineCodeLabel.stringValue = "【机器码】 \(LicenseManager.shared.machineCode)"
-        if LicenseManager.shared.isProLicensed {
-            statusBadgeLabel.stringValue = "永久商用授权"
-            statusBadgeLabel.textColor = ColorToken.successGreen
-            toggleActionButton.title = "已授权"
-            toggleActionButton.toolTip = "当前已拥有全量商业旗舰版授权"
-            if isDrawerExpanded {
-                setDrawerExpanded(false)
-            }
-        } else {
-            statusBadgeLabel.stringValue = "试用体验版"
-            statusBadgeLabel.textColor = ColorToken.warningAmber
-            toggleActionButton.title = "激活"
-            toggleActionButton.toolTip = "输入商业授权代码解锁全量功能"
-        }
-    }
-
-    @objc private func onCopyMachineCode() {
-        let pb = NSPasteboard.general
-        pb.clearContents()
-        pb.setString(LicenseManager.shared.machineCode, forType: .string)
-        copyButton.title = "已复制 ✓"
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            self?.copyButton.title = "复制"
-        }
-    }
-
-    @objc private func onToggleActionClicked() {
-        if LicenseManager.shared.isProLicensed {
-            let alert = NSAlert()
-            alert.messageText = "商业授权管理"
-            alert.informativeText = "当前机器已成功激活商业旗舰版授权。\n机器码：\(LicenseManager.shared.machineCode)\n许可证：\(LicenseManager.shared.activeLicenseKey ?? "已生效")\n\n是否需要注销本地授权（用于迁移或测试）？"
-            alert.addButton(withTitle: "保持激活")
-            alert.addButton(withTitle: "注销授权")
-            if alert.runModal() == .alertSecondButtonReturn {
-                LicenseManager.shared.deactivate()
-                updateLicenseDisplay()
-                onLicenseChanged?()
-            }
-        } else {
-            setDrawerExpanded(!isDrawerExpanded)
-        }
-    }
-
-    @objc private func onCancelDrawerClicked() {
-        setDrawerExpanded(false)
-    }
-
-    public func setDrawerExpanded(_ expanded: Bool) {
-        isDrawerExpanded = expanded
-        drawerBox.isHidden = !expanded
-        heightConstraint?.constant = expanded ? 152 : 78
-    }
-
-    @objc public func onConfirmActivateClicked() {
-        let code = keyInputField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !code.isEmpty else {
-            messageLabel.stringValue = "请输入授权代码"
-            return
-        }
-        let result = LicenseManager.shared.activate(key: code)
-        if result.success {
-            messageLabel.stringValue = ""
-            setDrawerExpanded(false)
-            updateLicenseDisplay()
-            onLicenseChanged?()
-        } else {
-            messageLabel.stringValue = "校验未通过，请检查代码"
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
 //  R51 插件分组数据模型（1:1 对标嘉星插件管理 2.app 分组 TableView）
 // ═══════════════════════════════════════════════════════════════
 public struct TemplateGroupItem: Identifiable, Equatable {
@@ -375,19 +129,9 @@ public final class AssetHubView: NSVisualEffectView,
     public private(set) var sidebarButtons: [NSButton] = []
     public private(set) var currentSidebarIndex: Int = 0
     // MARK: – R51 第一段状态看板与 R52 品牌商用授权系统
-    public var licenseCardView: LicenseStatusCardView!
-    public var machineCodeLabel: NSTextField! {
-        get { licenseCardView?.machineCodeLabel }
-        set { /* compatibility */ }
-    }
-    public var fcpxVersionLabel: NSTextField! {
-        get { licenseCardView?.fcpxVersionLabel }
-        set { /* compatibility */ }
-    }
-    public var loadTimeIndicatorLabel: NSTextField! {
-        get { licenseCardView?.loadTimeIndicatorLabel }
-        set { /* compatibility */ }
-    }
+    public var machineCodeLabel: NSTextField! = NSTextField(labelWithString: "")
+    public var fcpxVersionLabel: NSTextField! = NSTextField(labelWithString: "")
+    public var loadTimeIndicatorLabel: NSTextField! = NSTextField(labelWithString: "")
     public private(set) var externalDriveStatusLabel: NSTextField!
     public private(set) var externalDriveSubLabel: NSTextField!
 
@@ -615,15 +359,7 @@ public final class AssetHubView: NSVisualEffectView,
         brandSub.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         brandBox.addArrangedSubview(brandSub)
 
-        // R52 品牌商用授权看板卡片（保留实例以防已有代码调用发生 nil 崩溃，但设为 hidden 且不上屏）
-        licenseCardView = LicenseStatusCardView()
-        licenseCardView.isHidden = true
-        licenseCardView.translatesAutoresizingMaskIntoConstraints = false
-        licenseCardView.widthAnchor.constraint(equalToConstant: 200).isActive = true
-        licenseCardView.fcpxVersionLabel.stringValue = Self.detectFCPXVersion()
-        licenseCardView.onLicenseChanged = { [weak self] in
-            self?.refreshList()
-        }
+        fcpxVersionLabel.stringValue = Self.detectFCPXVersion()
 
         sideStack.addArrangedSubview(brandBox)
         sideStack.setCustomSpacing(14, after: brandBox)
@@ -3004,10 +2740,6 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     private func migrateItemToExternal(_ p: TemplateItem) {
-        guard LicenseManager.shared.isProLicensed else {
-            showAlert(title: "商业授权未激活", message: "未激活商业授权，外置搬家与软链接迁移已锁定。请先激活商业授权。")
-            return
-        }
         if p.tier != .user {
             showAlert(title: "仅支持用户级", message: "只有「用户」级模板支持外置化（系统级与内置级禁止随意搬迁）。")
             return
@@ -3637,10 +3369,6 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onUndoClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showAlert(title: "商业授权未激活", message: "未激活商业授权，外置搬家操作已锁定。请先激活商业授权。")
-            return
-        }
         guard migrator.lastRecord() != nil else {
             showAlert(title: "无可撤销操作", message: "当前会话内没有可撤销的迁移记录。")
             return
@@ -3718,16 +3446,10 @@ public final class AssetHubView: NSVisualEffectView,
         undoButton?.isEnabled = migrator.lastRecord() != nil
     }
 
-    // UI-O009: 收敛商业授权校验文案与弹窗
+    // UI-O009: 商业授权加固已彻底下线，全量功能开放
     @discardableResult
     private func requireProLicense(feature: String = "模板删除") -> Bool {
-        if LicenseManager.shared.isProLicensed {
-            return true
-        }
-        if !suppressAlertsForTesting {
-            showAlert(title: "商业授权未激活", message: "未激活商业授权，\(feature)功能已锁定。请先激活商业授权。")
-        }
-        return false
+        return true
     }
 
     // UI-O013: 收敛离线/故障容灾保护弹窗

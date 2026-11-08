@@ -141,9 +141,6 @@ final class PublicScreenshotRenderer {
         hub.updateCategoryCapsuleCounts()
         hub.loadTemplatesForSelectedGroup()
 
-        hub.licenseCardView?.machineCodeLabel.stringValue = "MAC-8A4F-9C21"
-        hub.licenseCardView?.statusBadgeLabel.stringValue = "🟢 商业旗舰版"
-
         let winView = createMacWindowFrame(contentView: hub, title: "素材库与管理中心 (三段式工作台 · 自适应流式网格)")
         saveViewAsPng(view: winView, to: path)
     }

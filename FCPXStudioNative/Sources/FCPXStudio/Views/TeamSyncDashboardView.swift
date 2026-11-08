@@ -594,10 +594,6 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     @objc private func onExportPackageClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showBanner(title: "商业授权未激活", msg: "未激活商业授权，局域网 P2P 团队分发与环境克隆已锁定。请先激活商业授权。")
-            return
-        }
         var cats: [String] = []
         if chkTitles.state == .on { cats.append("Titles.localized") }
         if chkEffects.state == .on { cats.append("Effects.localized") }
@@ -648,10 +644,6 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     @objc private func onImportPackageClicked() {
-        guard LicenseManager.shared.isProLicensed else {
-            showBanner(title: "商业授权未激活", msg: "未激活商业授权，局域网 P2P 团队分发与环境克隆已锁定。请先激活商业授权。")
-            return
-        }
         let openPanel = NSOpenPanel()
         openPanel.title = "选择要导入并恢复的 FCPX 环境克隆包"
         openPanel.allowedContentTypes = [UTType(filenameExtension: "fcpxpack") ?? .data]
@@ -786,10 +778,6 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     @objc private func onSendTemplateToPeerClicked(_ sender: NSButton) {
-        guard LicenseManager.shared.isProLicensed else {
-            showBanner(title: "商业授权未激活", msg: "未激活商业授权，局域网 P2P 团队分发与克隆已锁定。请先激活商业授权。")
-            return
-        }
         let idx = sender.tag
         guard idx < peers.count else { return }
         let peer = peers[idx]
@@ -818,10 +806,6 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     @objc private func onSendPackageToPeerClicked(_ sender: NSButton) {
-        guard LicenseManager.shared.isProLicensed else {
-            showBanner(title: "商业授权未激活", msg: "未激活商业授权，局域网 P2P 团队分发与克隆已锁定。请先激活商业授权。")
-            return
-        }
         let idx = sender.tag
         guard idx < peers.count else { return }
         let peer = peers[idx]
