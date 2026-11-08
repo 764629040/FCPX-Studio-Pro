@@ -47,6 +47,8 @@ public final class LUTManager {
         "/Volumes/SD/LUTs"
     ]
 
+    // UI-G061: 增加 cacheLock 保证并发访问 cubeCache 线程安全
+    private let cacheLock = NSLock()
     private var cubeCache: [String: (dimension: Int, cubeData: Data)] = [:]
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
 
@@ -171,9 +173,12 @@ public final class LUTManager {
 
     /// 严格解析 .cube 文件生成 CoreImage 规范的 RGBA 32-bit float Data
     public func parseCube(at path: String) throws -> (dimension: Int, cubeData: Data) {
+        cacheLock.lock()
         if let cached = cubeCache[path] {
+            cacheLock.unlock()
             return cached
         }
+        cacheLock.unlock()
 
         let content = try String(contentsOfFile: path, encoding: .utf8)
         var dimension = 0
@@ -208,15 +213,10 @@ public final class LUTManager {
             }
         }
 
+        // UI-O025: 强制要求 LUT_3D_SIZE 头，缺失即报错，严禁浮点推算产生尺寸误差
         if dimension == 0 {
-            // 根据解析出的 RGB 组数反推 dimension: dimension^3 = floats.count / 4
-            let voxelCount = floats.count / 4
-            let root = Int(round(pow(Double(voxelCount), 1.0 / 3.0)))
-            if root * root * root == voxelCount {
-                dimension = root
-            } else {
-                dimension = 33
-            }
+            throw NSError(domain: "LUTManager", code: 1003,
+                          userInfo: [NSLocalizedDescriptionKey: "无效的 3D LUT 文件: 缺少必需的 LUT_3D_SIZE 头部定义"])
         }
 
         if dimension < 2 || dimension > 128 {
@@ -231,7 +231,9 @@ public final class LUTManager {
         }
 
         let cubeData = floats.withUnsafeBufferPointer { Data(buffer: $0) }
+        cacheLock.lock()
         cubeCache[path] = (dimension, cubeData)
+        cacheLock.unlock()
         return (dimension, cubeData)
     }
 

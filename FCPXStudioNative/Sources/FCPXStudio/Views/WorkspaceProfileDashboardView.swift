@@ -767,6 +767,10 @@ public final class WorkspaceProfileDashboardView: NSView,
                 self.selectedProfileId = id
                 self.refreshData()
                 self.onProfileActivated?(p)
+                if !stats.failures.isEmpty {
+                    let failList = stats.failures.joined(separator: "\n")
+                    self.showAlert(title: "部分模板切换失败", msg: "共 \(stats.failures.count) 项模板状态切换失败：\n\(failList)")
+                }
             case .failure(let error):
                 self.statusLabel.stringValue = "激活失败: \(error.localizedDescription)"
                 self.refreshData()

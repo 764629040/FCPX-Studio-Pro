@@ -145,6 +145,16 @@ public struct WorkspaceProfileStats: Equatable {
     public let totalTemplates: Int
     public let activeTemplates: Int
     public let disabledTemplates: Int
+    public var failures: [String] = []
+
+    public static func == (lhs: WorkspaceProfileStats, rhs: WorkspaceProfileStats) -> Bool {
+        return lhs.profileId == rhs.profileId &&
+            lhs.profileName == rhs.profileName &&
+            lhs.totalTemplates == rhs.totalTemplates &&
+            lhs.activeTemplates == rhs.activeTemplates &&
+            lhs.disabledTemplates == rhs.disabledTemplates &&
+            lhs.failures == rhs.failures
+    }
 
     public var reductionPercentage: Double {
         guard totalTemplates > 0 else { return 0.0 }
@@ -189,7 +199,9 @@ public final class WorkspaceProfileManager {
         if let customDir = ProcessInfo.processInfo.environment["FCPXSTUDIO_PROFILES_DIR"], !customDir.isEmpty {
             return (customDir as NSString).expandingTildeInPath
         }
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return (NSTemporaryDirectory() as NSString).appendingPathComponent("FCPXStudio")
+        }
         return appSupport.appendingPathComponent("FCPXStudio").path
     }
 
@@ -446,6 +458,7 @@ public final class WorkspaceProfileManager {
         }
 
         // 2. 批量处理启停隔离（R51：严格过滤 framework/app 等内部包，避免外置盘阻塞）
+        var failedItems: [String] = []
         for item in allScannedItems {
             // 系统内置模板若不可写则跳过
             if item.tier == .builtin && !TierWritePolicy.isBuiltinWritable {
@@ -476,7 +489,8 @@ public final class WorkspaceProfileManager {
                 do {
                     _ = try TemplateInstaller.setTemplateEnabled(item: item, enabled: shouldBeActive)
                 } catch {
-                    // 若个别因权限冲突跳过，不阻塞其他模板批量切换
+                    // UI-G064: 失败项收集进 stats
+                    failedItems.append("模板「\(item.name)」: \(error.localizedDescription)")
                     print("[WorkspaceProfileManager] 警告: 模板 \(item.name) 状态切换失败: \(error)")
                 }
             }
@@ -490,7 +504,8 @@ public final class WorkspaceProfileManager {
         AssetCacheManager.shared.invalidateAll()
 
         // 5. 统计最新激活分布
-        let stats = getCurrentStats(roots: roots)
+        var stats = getCurrentStats(roots: roots)
+        stats.failures = failedItems
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }

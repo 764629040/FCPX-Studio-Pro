@@ -415,34 +415,40 @@ public final class LibraryCleaner {
                         continue
                     }
 
-                    // 3. Render Files —— 穿透 High Quality Media, Peaks Data, Thumbnail Media
+                    // 3. Render Files —— UI-O023: 一次 enumerator 同时累加各子树，单 pass 耗时约 1/4
                     if item == "Render Files" {
                         let hqRender = (itemPath as NSString).appendingPathComponent("High Quality Media")
-                        if fileManager.fileExists(atPath: hqRender) {
-                            let stat = calculateDirectorySize(at: hqRender)
-                            renderSize += stat.size
-                            renderFilesCount += stat.count
-                            renderPaths.append(hqRender)
-                        }
-
                         let peaks = (itemPath as NSString).appendingPathComponent("Peaks Data")
-                        if fileManager.fileExists(atPath: peaks) {
-                            let stat = calculateDirectorySize(at: peaks)
-                            renderSize += stat.size
-                            renderFilesCount += stat.count
-                            renderPaths.append(peaks)
-                        }
-
                         let thumbs = (itemPath as NSString).appendingPathComponent("Thumbnail Media")
-                        if fileManager.fileExists(atPath: thumbs) {
-                            let stat = calculateDirectorySize(at: thumbs)
-                            thumbSize += stat.size
-                            thumbFilesCount += stat.count
-                            thumbPaths.append(thumbs)
-                        }
 
-                        let allRender = calculateDirectorySize(at: itemPath)
-                        totalSize += allRender.size
+                        if fileManager.fileExists(atPath: hqRender) { renderPaths.append(hqRender) }
+                        if fileManager.fileExists(atPath: peaks) { renderPaths.append(peaks) }
+                        if fileManager.fileExists(atPath: thumbs) { thumbPaths.append(thumbs) }
+
+                        let rKeys: [URLResourceKey] = [.totalFileSizeKey, .fileSizeKey, .isDirectoryKey, .isSymbolicLinkKey]
+                        if let rEnum = fileManager.enumerator(
+                            at: URL(fileURLWithPath: itemPath),
+                            includingPropertiesForKeys: rKeys,
+                            options: [.skipsPackageDescendants, .skipsHiddenFiles],
+                            errorHandler: nil
+                        ) {
+                            for case let fURL as URL in rEnum {
+                                guard let vals = try? fURL.resourceValues(forKeys: Set(rKeys)) else { continue }
+                                if vals.isSymbolicLink == true { continue }
+                                if vals.isDirectory == false {
+                                    let sz = Int64(vals.totalFileSize ?? vals.fileSize ?? 0)
+                                    let subPath = fURL.path
+                                    if subPath.hasPrefix(thumbs) {
+                                        thumbSize += sz
+                                        thumbFilesCount += 1
+                                    } else {
+                                        renderSize += sz
+                                        renderFilesCount += 1
+                                    }
+                                    totalSize += sz
+                                }
+                            }
+                        }
                         continue
                     }
 
@@ -633,18 +639,18 @@ public final class LibraryCleaner {
 
     // MARK: – 辅助工具函数
 
-    /// 高效计算目录体积与文件总数
+    /// 高效计算目录体积与文件总数 (UI-G062: skipsPackageDescendants + 跳过软链接保护用户素材)
     public func calculateDirectorySize(at path: String) -> (size: Int64, count: Int) {
         var totalSize: Int64 = 0
         var totalCount = 0
 
         let url = URL(fileURLWithPath: path)
-        let keys: [URLResourceKey] = [.totalFileSizeKey, .fileSizeKey, .isDirectoryKey]
+        let keys: [URLResourceKey] = [.totalFileSizeKey, .fileSizeKey, .isDirectoryKey, .isSymbolicLinkKey]
 
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: keys,
-            options: [],
+            options: [.skipsPackageDescendants, .skipsHiddenFiles],
             errorHandler: nil
         ) else {
             return (0, 0)
@@ -652,6 +658,7 @@ public final class LibraryCleaner {
 
         for case let fileURL as URL in enumerator {
             guard let resourceValues = try? fileURL.resourceValues(forKeys: Set(keys)) else { continue }
+            if resourceValues.isSymbolicLink == true { continue }
             if resourceValues.isDirectory == false {
                 let size = resourceValues.totalFileSize ?? resourceValues.fileSize ?? 0
                 totalSize += Int64(size)

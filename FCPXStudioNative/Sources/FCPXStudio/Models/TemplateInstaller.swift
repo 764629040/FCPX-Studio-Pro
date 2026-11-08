@@ -256,6 +256,8 @@ public class TemplateInstaller {
         return results
     }
 
+    public static var lastSkippedItems: [(path: String, reason: String)] = []
+
     // MARK: – 原子安装
 
     public static func install(paths: [String],
@@ -264,6 +266,7 @@ public class TemplateInstaller {
         let fm = FileManager.default
         let userRoot = targetTierRoot ?? TemplateTierRoots.resolve().user
         var installed: [InstalledTemplateResult] = []
+        lastSkippedItems = []
 
         let tempSandbox = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("FCPX_Installer_\(UUID().uuidString)").path
@@ -272,7 +275,10 @@ public class TemplateInstaller {
         }
 
         for path in paths {
-            guard fm.fileExists(atPath: path) else { continue }
+            guard fm.fileExists(atPath: path) else {
+                lastSkippedItems.append((path: path, reason: "源文件或目录不存在"))
+                continue
+            }
 
             var scanDir = path
             var derivedSubcat = defaultSubcategory ?? (path as NSString).lastPathComponent
@@ -285,7 +291,10 @@ public class TemplateInstaller {
             }
 
             let discovered = discoverTemplates(inDirectory: scanDir, defaultSubcategory: derivedSubcat)
-            guard !discovered.isEmpty else { continue }
+            guard !discovered.isEmpty else {
+                lastSkippedItems.append((path: path, reason: "未在目录中检测到有效的 Motion 模板主文件"))
+                continue
+            }
 
             for item in discovered {
                 let catDir = "\(userRoot)/\(item.category.rawValue)/\(item.subcategory)"
@@ -306,9 +315,17 @@ public class TemplateInstaller {
                     backupPath = bPath
                 }
 
-                try fm.copyItem(atPath: item.folderPath, toPath: targetPath)
-                guard fm.fileExists(atPath: targetPath) else {
-                    throw TemplateInstallerError.ioFailure("安装文件落盘验证失败：\(targetPath)")
+                do {
+                    try fm.copyItem(atPath: item.folderPath, toPath: targetPath)
+                    guard fm.fileExists(atPath: targetPath) else {
+                        throw TemplateInstallerError.ioFailure("安装文件落盘验证失败：\(targetPath)")
+                    }
+                } catch {
+                    // UI-G066: copy 失败时，将 backupDir 回滚移动回 targetPath，确保原模板仍在原位可用
+                    if let bPath = backupPath, fm.fileExists(atPath: bPath) {
+                        try? fm.moveItem(atPath: bPath, toPath: targetPath)
+                    }
+                    throw error
                 }
 
                 installed.append(InstalledTemplateResult(

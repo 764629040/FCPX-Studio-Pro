@@ -782,13 +782,19 @@ class MotionBuilder:
                 shutil.rmtree(tmp_build_dir, ignore_errors=True)
             os.makedirs(media_dir, exist_ok=True)
 
-            # 2. 收集/现场提取降级 PNG 资源至 Media 目录
+            # 2. UI-G063: 循环外 open 一次复用，消除多图层重复解包 PSD 导致的严重耗时
+            cached_psd_obj = None
+            if psd_path and os.path.exists(psd_path):
+                try:
+                    cached_psd_obj = PSDImage.open(psd_path)
+                except Exception:
+                    cached_psd_obj = None
+
             for idx, info in enumerate(layers_info, start=1):
                 src_png = getattr(info, "fallback_png_path", None)
-                if not src_png and getattr(info, "kind", "type") != "type" and psd_path and os.path.exists(psd_path):
+                if not src_png and getattr(info, "kind", "type") != "type" and cached_psd_obj is not None:
                     try:
-                        psd_obj = PSDImage.open(psd_path)
-                        for pl in psd_obj.descendants():
+                        for pl in cached_psd_obj.descendants():
                             if pl.name == info.name:
                                 safe_name = "".join(c for c in pl.name if c.isalnum() or c in ('_', '-')).strip() or f"layer_{idx}"
                                 extracted_png = os.path.join(media_dir, f"element_{idx:02d}_{safe_name}.png")
@@ -821,10 +827,9 @@ class MotionBuilder:
                 raise RuntimeError("测试故障注入: after_xml .moti XML 生成完成后抛出异常")
 
             # 4. 渲染并生成双规格缩略图 (large.png 640x360, small.png 192x108)
-            if psd_path and os.path.exists(psd_path):
+            if cached_psd_obj is not None:
                 try:
-                    psd_obj = PSDImage.open(psd_path)
-                    generate_thumbnails_from_psd(psd_obj, tmp_build_dir)
+                    generate_thumbnails_from_psd(cached_psd_obj, tmp_build_dir)
                 except Exception:
                     # 合成失败时生成标准透明缩略图垫底
                     blank_img = Image.new("RGBA", (1920, 1080), (0, 0, 0, 0))

@@ -239,7 +239,14 @@ public final class TemplateMigrator {
         }
 
         let fm = FileManager.default
-        guard fm.fileExists(atPath: item.path) || (try? fm.destinationOfSymbolicLink(atPath: item.path)) != nil else {
+        // UI-G071: 软链目标离线时直接拦截并抛出不可用
+        if let linkDest = try? fm.destinationOfSymbolicLink(atPath: item.path) {
+            let realDest = (linkDest as NSString).isAbsolutePath ? linkDest : ((item.path as NSString).deletingLastPathComponent as NSString).appendingPathComponent(linkDest)
+            if !fm.fileExists(atPath: realDest) {
+                throw MigrationError.tierUnavailable(item.tier, "软链接目标物理路径离线或不可达: \(realDest)")
+            }
+        }
+        guard fm.fileExists(atPath: item.path) else {
             throw MigrationError.sourceMissing(item.path)
         }
         // 软链接项：直接搬链接会留下断链/搬错对象，明确拒绝并给出口
@@ -294,13 +301,21 @@ public final class TemplateMigrator {
         do {
             try fm.moveItem(atPath: item.path, toPath: destPath)
         } catch {
-            // 回滚：清理可能产生的半成品；源若已被消费则从备份恢复
+            // UI-G057: 回滚：清理可能产生的半成品；源若已被消费则从备份恢复，失败时包含备份路径
             if fm.fileExists(atPath: destPath) { try? fm.removeItem(atPath: destPath) }
             if let displaced = displacedBackup, !fm.fileExists(atPath: destPath) {
                 try? fm.moveItem(atPath: displaced, toPath: destPath)
             }
+            var rollbackError: String? = nil
             if !fm.fileExists(atPath: item.path), let backup = backupPath {
-                try? fm.copyItem(atPath: backup, toPath: item.path)
+                do {
+                    try fm.copyItem(atPath: backup, toPath: item.path)
+                } catch let rError {
+                    rollbackError = "原路径恢复失败: \(rError.localizedDescription)，已留存安全备份: \(backup)"
+                }
+            }
+            if let rb = rollbackError {
+                throw MigrationError.ioFailure("移动失败且\(rb)")
             }
             throw mapError(error, path: item.path)
         }
@@ -446,7 +461,26 @@ public final class TemplateMigrator {
             candidate = "\(dir)/\(name) (\(idx))"
             idx += 1
         }
+        pruneBackups(keepLatest: 20)
         return candidate
+    }
+
+    /// UI-O021: 保留最近 N 份备份，自动清理多余历史目录
+    private func pruneBackups(keepLatest: Int = 20) {
+        let fm = FileManager.default
+        guard let items = try? fm.contentsOfDirectory(atPath: Self.backupRoot) else { return }
+        let dirs = items.compactMap { name -> (path: String, date: Date)? in
+            let p = "\(Self.backupRoot)/\(name)"
+            guard let attrs = try? fm.attributesOfItem(atPath: p),
+                  attrs[.type] as? FileAttributeType == .typeDirectory,
+                  let mod = attrs[.modificationDate] as? Date else { return nil }
+            return (p, mod)
+        }.sorted { $0.date > $1.date }
+        if dirs.count > keepLatest {
+            for old in dirs[keepLatest...] {
+                try? fm.removeItem(atPath: old.path)
+            }
+        }
     }
 
     private static func timestamp() -> String {
@@ -467,6 +501,24 @@ public final class TemplateMigrator {
         }
         if let data = try? JSONEncoder().encode(record) {
             UserDefaults.standard.set(data, forKey: Self.lastMigrationKey)
+        } else {
+            // UI-G070: encode 失败兜底写 last_migration.json，确保撤销按钮始终可用
+            let fallbackDir = (Self.backupRoot as NSString).appendingPathComponent("records")
+            try? FileManager.default.createDirectory(atPath: fallbackDir, withIntermediateDirectories: true)
+            let fallbackFile = (fallbackDir as NSString).appendingPathComponent("last_migration.json")
+            let recordDict: [String: Any] = [
+                "name": record.name,
+                "category": record.category,
+                "fromTier": record.fromTier,
+                "toTier": record.toTier,
+                "destinationPath": record.destinationPath,
+                "backupPath": record.backupPath ?? "",
+                "timestamp": record.timestamp
+            ]
+            if let d = try? JSONSerialization.data(withJSONObject: recordDict) {
+                try? d.write(to: URL(fileURLWithPath: fallbackFile))
+                UserDefaults.standard.set(d, forKey: Self.lastMigrationKey)
+            }
         }
         UserDefaults.standard.synchronize()
     }

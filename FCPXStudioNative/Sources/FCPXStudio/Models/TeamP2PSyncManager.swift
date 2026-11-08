@@ -233,9 +233,10 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
         if let addresses = service.addresses {
             for addrData in addresses {
                 addrData.withUnsafeBytes { ptr in
-                    let sa = ptr.bindMemory(to: sockaddr.self).baseAddress!
+                    // UI-G068: guard let baseAddress 替换强解包，空包走 return 不崩
+                    guard let sa = ptr.bindMemory(to: sockaddr.self).baseAddress else { return }
                     if sa.pointee.sa_family == sa_family_t(AF_INET) {
-                        let sin = ptr.bindMemory(to: sockaddr_in.self).baseAddress!
+                        guard let sin = ptr.bindMemory(to: sockaddr_in.self).baseAddress else { return }
                         var ipBuf = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
                         var inAddr = sin.pointee.sin_addr
                         inet_ntop(AF_INET, &inAddr, &ipBuf, socklen_t(INET_ADDRSTRLEN))

@@ -476,13 +476,8 @@ public final class GhostPluginDoctor {
             }
         }
 
-        // 2. 按模板名称在挂载卷中进行匹配探测
+        // 2. UI-G067: 去掉卷根匹配，仅在挂载卷的已知模板根目录下查找，杜绝启发式过宽
         for vol in candidateVolumes {
-            let candidateDirect = (vol as NSString).appendingPathComponent(templateName)
-            if fm.fileExists(atPath: candidateDirect) {
-                return candidateDirect
-            }
-
             let searchDirs = [
                 "Movies/Motion Templates.localized",
                 "Motion Templates.localized",
@@ -566,13 +561,18 @@ public final class GhostPluginDoctor {
         let destName = "\(issue.category)_\(issue.templateName)_\(timestampStr)"
         let destPath = (qDir as NSString).appendingPathComponent(destName)
 
+        // UI-G058: 若 issue.path 为 .moti 等文件，搬移其所属整个模板文件夹，原位不留空壳
+        let ext = (issue.path as NSString).pathExtension.lowercased()
+        let isTemplateFile = ["moti", "moef", "motr", "motn"].contains(ext)
+        let sourcePathToMove = isTemplateFile ? (issue.path as NSString).deletingLastPathComponent : issue.path
+
         // 移入隔离区
-        if fm.fileExists(atPath: issue.path) || isSymbolicLink(atPath: issue.path) {
-            try fm.moveItem(atPath: issue.path, toPath: destPath)
+        if fm.fileExists(atPath: sourcePathToMove) || isSymbolicLink(atPath: sourcePathToMove) {
+            try fm.moveItem(atPath: sourcePathToMove, toPath: destPath)
         }
 
         let record = QuarantineRecord(
-            originalPath: issue.path,
+            originalPath: sourcePathToMove,
             quarantinePath: destPath,
             templateName: issue.templateName,
             category: issue.category,
@@ -664,29 +664,67 @@ public final class GhostPluginDoctor {
         return (success, failed)
     }
 
-    // MARK: – 隔离账本存储
+    // MARK: – 隔离账本存储 (UI-O022: 原子写 .atomic 并按月分文件存储)
+
+    private static let monthlyDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyyMM"
+        return df
+    }()
 
     public func loadQuarantineLedger() -> [QuarantineRecord] {
-        let path = ledgerFilePath
-        guard fm.fileExists(atPath: path),
-              let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-              let list = try? JSONDecoder().decode([QuarantineRecord].self, from: data) else {
+        let baseDir = quarantineBaseDirectory
+        var allRecords: [QuarantineRecord] = []
+        var seenIDs = Set<String>()
+
+        guard let files = try? fm.contentsOfDirectory(atPath: baseDir) else {
             return []
         }
-        return list
+
+        let ledgerFiles = files.filter { $0.hasPrefix("quarantine_ledger") && $0.hasSuffix(".json") }
+        for file in ledgerFiles {
+            let filePath = (baseDir as NSString).appendingPathComponent(file)
+            guard let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)),
+                  let list = try? JSONDecoder().decode([QuarantineRecord].self, from: data) else {
+                continue
+            }
+            for item in list {
+                if !seenIDs.contains(item.id) {
+                    seenIDs.insert(item.id)
+                    allRecords.append(item)
+                }
+            }
+        }
+        allRecords.sort { $0.timestamp > $1.timestamp }
+        return allRecords
     }
 
     private func saveQuarantineLedger(_ records: [QuarantineRecord]) {
-        let path = ledgerFilePath
-        let parent = (path as NSString).deletingLastPathComponent
-        if !fm.fileExists(atPath: parent) {
-            try? fm.createDirectory(atPath: parent, withIntermediateDirectories: true)
+        let baseDir = quarantineBaseDirectory
+        if !fm.fileExists(atPath: baseDir) {
+            try? fm.createDirectory(atPath: baseDir, withIntermediateDirectories: true)
         }
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
+
+        // 1. 原子写入主 ledger (保证直接兼容)
         if let data = try? encoder.encode(records) {
-            try? data.write(to: URL(fileURLWithPath: path))
+            let mainURL = URL(fileURLWithPath: ledgerFilePath)
+            try? data.write(to: mainURL, options: .atomic)
+        }
+
+        // 2. 按月分区归档并原子写入 (UI-O022)
+        var monthGroups: [String: [QuarantineRecord]] = [:]
+        for r in records {
+            let m = Self.monthlyDateFormatter.string(from: r.timestamp)
+            monthGroups[m, default: []].append(r)
+        }
+        for (month, mRecords) in monthGroups {
+            let mPath = (baseDir as NSString).appendingPathComponent("quarantine_ledger_\(month).json")
+            if let mData = try? encoder.encode(mRecords) {
+                try? mData.write(to: URL(fileURLWithPath: mPath), options: .atomic)
+            }
         }
     }
 }

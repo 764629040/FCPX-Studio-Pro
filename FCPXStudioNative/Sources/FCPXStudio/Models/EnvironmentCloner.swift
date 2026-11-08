@@ -117,6 +117,25 @@ public final class EnvironmentCloner {
 
     public init() {}
 
+    // UI-G059: 分块增量计算 SHA256 (1MB block)，避免巨型包把整个文件读入内存
+    public static func computeSHA256(forFilePath path: String) throws -> (sha256: String, sizeBytes: Int64) {
+        let fileURL = URL(fileURLWithPath: path)
+        let fileHandle = try FileHandle(forReadingFrom: fileURL)
+        defer { try? fileHandle.close() }
+        var hasher = SHA256()
+        var totalBytes: Int64 = 0
+        let chunkSize = 1024 * 1024
+        while true {
+            let chunk = fileHandle.readData(ofLength: chunkSize)
+            if chunk.isEmpty { break }
+            hasher.update(data: chunk)
+            totalBytes += Int64(chunk.count)
+        }
+        let digest = hasher.finalize()
+        let hash = digest.map { String(format: "%02x", $0) }.joined()
+        return (hash, totalBytes)
+    }
+
     // MARK: – 路径解析
     public var userTemplatesRoot: String {
         return TemplateTierRoots.resolve().user
@@ -280,10 +299,15 @@ public final class EnvironmentCloner {
             throw EnvironmentClonerError.packagingFailed("生成 .fcpxpack 归档包失败: \(errMsg.isEmpty ? "状态码 \(proc.terminationStatus)" : errMsg)")
         }
 
-        let packData = try Data(contentsOf: URL(fileURLWithPath: finalOut))
-        let hash = TeamP2PSyncManager.sha256(data: packData)
+        // UI-G059: 分块增量计算归档包哈希与实际体积 (<200MB 内存增量)
+        let (hash, totalBytes) = try Self.computeSHA256(forFilePath: finalOut)
         manifest.sha256 = hash
-        manifest.totalSizeBytes = Int64(packData.count)
+        manifest.totalSizeBytes = totalBytes
+
+        let companionPath = (finalOut as NSString).deletingPathExtension + ".manifest.json"
+        if let compData = try? encoder.encode(manifest) {
+            try? compData.write(to: URL(fileURLWithPath: companionPath))
+        }
 
         return manifest
     }
@@ -329,6 +353,52 @@ public final class EnvironmentCloner {
         guard proc.terminationStatus == 0 else {
             let errMsg = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             throw EnvironmentClonerError.invalidPackage("解压 .fcpxpack 失败: \(errMsg.isEmpty ? "状态码 \(proc.terminationStatus)" : errMsg)")
+        }
+
+        // UI-G060: 校验 manifest 清单与 SHA-256 完整性
+        let manifestPath = (sandboxDir as NSString).appendingPathComponent("manifest.json")
+        guard fm.fileExists(atPath: manifestPath),
+              let mData = try? Data(contentsOf: URL(fileURLWithPath: manifestPath)),
+              let manifest = try? JSONDecoder().decode(CloneManifest.self, from: mData) else {
+            throw EnvironmentClonerError.invalidPackage("克隆包缺少必要清单文件 manifest.json 或清单已破损")
+        }
+
+        // 校验文件清单存在性
+        for relPath in manifest.templateFiles {
+            let p = (sandboxDir as NSString).appendingPathComponent("Templates/\(relPath)")
+            if !fm.fileExists(atPath: p) {
+                throw EnvironmentClonerError.invalidPackage("清单文件校验失败，缺失模板: \(relPath)")
+            }
+        }
+        for relPath in manifest.lutFiles {
+            let p = (sandboxDir as NSString).appendingPathComponent("LUTs/\(relPath)")
+            if !fm.fileExists(atPath: p) {
+                throw EnvironmentClonerError.invalidPackage("清单文件校验失败，缺失调色: \(relPath)")
+            }
+        }
+        for relPath in manifest.profileFiles {
+            let p = (sandboxDir as NSString).appendingPathComponent("Profiles/\(relPath)")
+            if !fm.fileExists(atPath: p) {
+                throw EnvironmentClonerError.invalidPackage("清单文件校验失败，缺失情境: \(relPath)")
+            }
+        }
+
+        // 若存在伴随 manifest 或包内声明了 sha256，校验包哈希
+        var expectedHash: String? = nil
+        let companionPath = (packagePath as NSString).deletingPathExtension + ".manifest.json"
+        if fm.fileExists(atPath: companionPath),
+           let cData = try? Data(contentsOf: URL(fileURLWithPath: companionPath)),
+           let cManifest = try? JSONDecoder().decode(CloneManifest.self, from: cData),
+           !cManifest.sha256.isEmpty {
+            expectedHash = cManifest.sha256
+        } else if !manifest.sha256.isEmpty {
+            expectedHash = manifest.sha256
+        }
+        if let expected = expectedHash {
+            let (actualHash, _) = try Self.computeSHA256(forFilePath: packagePath)
+            if actualHash.lowercased() != expected.lowercased() {
+                throw EnvironmentClonerError.invalidPackage("SHA-256 校验不匹配 (期望: \(expected), 实际: \(actualHash))，包已被篡改或下载不完整")
+            }
         }
 
         var installedTemplates = 0

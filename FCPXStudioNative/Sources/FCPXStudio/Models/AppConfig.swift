@@ -58,7 +58,13 @@ public final class AppConfig {
 
     public var exportDestinationMode: ExportDestinationMode = .smartAuto
     public var customExportDir: String? = nil
-    public var defaultExternalAssetsDir: String = "/Volumes/摄影师工具箱128GB/Motion Templates.localized"
+
+    // UI-G069: 不硬编码开发者卷名，初始为空，由首启引导或用户配置存入 UserDefaults
+    private static let externalDirKey = "FCPXStudio_PreferredExternalDir"
+    public var defaultExternalAssetsDir: String {
+        get { return UserDefaults.standard.string(forKey: Self.externalDirKey) ?? "" }
+        set { UserDefaults.standard.set(newValue, forKey: Self.externalDirKey) }
+    }
     public var preferredExternalDir: String {
         get { return defaultExternalAssetsDir }
         set { defaultExternalAssetsDir = newValue }
@@ -137,15 +143,16 @@ public final class AppConfig {
             )
         }
 
-        // 4. 外置盘不可用时，自动无缝降级到本地系统盘（严禁弹窗阻断）
+        // 4. 外置盘不可用时，自动无缝降级到本地系统盘（UI-G069: 界面明确提示原因与降级目标）
         cleanBrokenSymlinkIfNeeded(at: localBase)
         try? fm.createDirectory(atPath: localBase, withIntermediateDirectories: true)
+        let reason = candidate.isEmpty ? "未配置外置卷目录，已安全降级至内置盘" : "外置存储未挂载，已安全降级至内置盘"
         return ResolvedExportDestination(
             targetDir: localBase,
             externalRoot: nil,
             isExternal: false,
             fallbackUsed: true,
-            summary: "外置盘未连接/不可写，已自动无缝降级至本地系统盘: \(localBase)"
+            summary: "\(reason): \(localBase)"
         )
     }
 
@@ -361,11 +368,29 @@ public final class AppConfig {
         return isPortableEnvironment && hasPsdTools && FileManager.default.isExecutableFile(atPath: pythonPath)
     }
 
+    // UI-G065 & UI-O018: 探测移后台 + 结果缓存，子进程数 ≤1，冷启动首屏 <1s
+    private static var cachedPsdToolsResult: [String: Bool] = [:]
+    private static let psdToolsLock = NSLock()
+
     // FCPX-015: 10s 超时 + 双管道并发异步排空，彻底杜绝主线程卡顿与大输出死锁
     public static func checkPsdTools(python: String) -> Bool {
         guard !python.isEmpty, FileManager.default.isExecutableFile(atPath: python) else {
             return false
         }
+
+        psdToolsLock.lock()
+        if let cached = cachedPsdToolsResult[python] {
+            psdToolsLock.unlock()
+            return cached
+        }
+        let userDefaultsKey = "FCPX_PSDToolsCheck_\(python)"
+        if UserDefaults.standard.bool(forKey: userDefaultsKey) {
+            cachedPsdToolsResult[python] = true
+            psdToolsLock.unlock()
+            return true
+        }
+        psdToolsLock.unlock()
+
         let outPipe = Pipe()
         let errPipe = Pipe()
         let proc = Process()
@@ -407,7 +432,12 @@ public final class AppConfig {
         proc.waitUntilExit()
         if proc.terminationStatus == 0 {
             let out = String(data: outData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            return out == "OK"
+            let isOk = (out == "OK")
+            psdToolsLock.lock()
+            cachedPsdToolsResult[python] = isOk
+            if isOk { UserDefaults.standard.set(true, forKey: userDefaultsKey) }
+            psdToolsLock.unlock()
+            return isOk
         } else {
             if !errData.isEmpty, let errStr = String(data: errData, encoding: .utf8) {
                 _ = errStr // 保留 stderr 排空防死锁
