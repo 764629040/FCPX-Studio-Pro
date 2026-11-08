@@ -168,9 +168,9 @@ public final class SettingsDashboardView: NSView {
         writableRadio.font = .systemFont(ofSize: 12, weight: .medium)
         card1Stack.addArrangedSubview(writableRadio)
 
-        let riskWarningLabel = NSTextField(wrappingLabelWithString: "⚠️ 警告：写入内置级会修改 FCPX 应用程序包内部文件，可能导致应用签名失效、Gatekeeper 拦截或 FCPX 无法启动。更安全的替代方案：建议优先迁移至「系统」级。")
+        let riskWarningLabel = NSTextField(wrappingLabelWithString: "[警告] 写入内置级会修改 FCPX 应用程序包内部文件，可能导致应用签名失效、Gatekeeper 拦截或 FCPX 无法启动。更安全的替代方案：建议优先迁移至「系统」级。")
         riskWarningLabel.textColor = NSColor.systemOrange
-        riskWarningLabel.font = .systemFont(ofSize: 11)
+        riskWarningLabel.font = TypeScale.footnote
         card1Stack.addArrangedSubview(riskWarningLabel)
 
         let c1ActionRow = NSStackView()
@@ -184,13 +184,13 @@ public final class SettingsDashboardView: NSView {
 
         forceReadOnlyButton = NSButton(title: "改回安全只读", target: self, action: #selector(forceReadOnly(_:)))
         forceReadOnlyButton.bezelStyle = .rounded
-        forceReadOnlyButton.font = .systemFont(ofSize: 11, weight: .medium)
+        forceReadOnlyButton.font = TypeScale.footnoteMedium
         c1ActionRow.addArrangedSubview(forceReadOnlyButton)
         card1Stack.addArrangedSubview(c1ActionRow)
 
         let warningBox = NSView()
         warningBox.wantsLayer = true
-        warningBox.layer?.cornerRadius = 6
+        warningBox.layer?.cornerRadius = CornerRadius.card
         warningBox.layer?.backgroundColor = NSColor(calibratedRed: 0.25, green: 0.16, blue: 0.08, alpha: 0.6).cgColor
         warningBox.layer?.borderWidth = 1.0
         warningBox.layer?.borderColor = NSColor.systemOrange.withAlphaComponent(0.6).cgColor
@@ -199,7 +199,7 @@ public final class SettingsDashboardView: NSView {
         warningBox.widthAnchor.constraint(equalTo: card1Stack.widthAnchor).isActive = true
 
         let warningLabel = NSTextField(wrappingLabelWithString:
-            "⚠️ 写入内置级会直接修改 FCPX.app 内部结构，可能导致 macOS Gatekeeper 安全隔离拦截、应用签名损坏或 FCPX 启动闪退。更安全的专业方案：一键迁移至「系统」级 (~/Movies) 或「外置卷」。")
+            "[安全提示] 写入内置级会直接修改 FCPX.app 内部结构，可能导致 macOS Gatekeeper 安全隔离拦截、应用签名损坏或 FCPX 启动闪退。更安全的专业方案：一键迁移至「系统」级 (~/Movies) 或「外置卷」。")
         warningLabel.textColor = NSColor(calibratedRed: 1.0, green: 0.78, blue: 0.40, alpha: 1.0)
         warningLabel.font = .systemFont(ofSize: 11)
         warningLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -479,6 +479,6 @@ public final class SettingsWindowController: NSWindowController, NSWindowDelegat
 }
 
 public extension Notification.Name {
-    /// 内置级写入权限变化（素材库据此刷新「🔒 只读」状态）
+    /// 内置级写入权限变化（素材库据此刷新只读保护状态）
     static let tierWritePolicyChanged = Notification.Name("FCPXStudioTierWritePolicyChanged")
 }

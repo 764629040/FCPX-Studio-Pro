@@ -101,6 +101,8 @@ public final class InfiniteCanvasView: NSView {
         wantsLayer = true
         layer?.backgroundColor = NSColor(calibratedRed: 0.07, green: 0.08, blue: 0.10, alpha: InfiniteCanvasView.canvasBackdropAlpha).cgColor
         layer?.masksToBounds = true // ★ 绝对防止图层溢出到侧边栏
+        imageCache.totalCostLimit = 200 * 1024 * 1024 // 200MB (UI-G023)
+        imageCache.countLimit = 40
     }
 
     public required init?(coder: NSCoder) {
@@ -108,6 +110,8 @@ public final class InfiniteCanvasView: NSView {
         wantsLayer = true
         layer?.backgroundColor = NSColor(calibratedRed: 0.07, green: 0.08, blue: 0.10, alpha: InfiniteCanvasView.canvasBackdropAlpha).cgColor
         layer?.masksToBounds = true
+        imageCache.totalCostLimit = 200 * 1024 * 1024
+        imageCache.countLimit = 40
     }
 
     public override func resize(withOldSuperviewSize oldSize: NSSize) {
@@ -866,13 +870,24 @@ public final class InfiniteCanvasView: NSView {
     }
 
     public func hitTestLayer(at mousePos: CGPoint) -> Int {
-        var pt = mousePos
         if comparisonMode == .sideBySide {
             let gap: CGFloat = 80.0
             let offset = (artboardWidth / 2 + gap / 2) * zoomScale
-            pt.x -= offset
-        }
+            var ptLeft = mousePos
+            ptLeft.x -= offset
+            let hitLeft = testHitLayers(at: ptLeft)
+            if hitLeft != -1 { return hitLeft }
 
+            var ptRight = mousePos
+            ptRight.x += offset
+            let hitRight = testHitLayers(at: ptRight)
+            if hitRight != -1 { return hitRight }
+            return -1
+        }
+        return testHitLayers(at: mousePos)
+    }
+
+    private func testHitLayers(at pt: CGPoint) -> Int {
         let centerX = bounds.width / 2.0 + panOffset.x
         let centerY = bounds.height / 2.0 + panOffset.y
 

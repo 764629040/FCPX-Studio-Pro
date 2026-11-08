@@ -166,9 +166,9 @@ public final class LicenseStatusCardView: NSView {
         fcpxVersionLabel.textColor = NSColor(calibratedWhite: 0.75, alpha: 1.0)
         mainStack.addArrangedSubview(fcpxVersionLabel)
 
-        loadTimeIndicatorLabel = NSTextField(labelWithString: "列表加载用时: 0.08s")
-        loadTimeIndicatorLabel.font = .systemFont(ofSize: 9.0, weight: .regular)
-        loadTimeIndicatorLabel.textColor = NSColor(calibratedWhite: 0.52, alpha: 1.0)
+        loadTimeIndicatorLabel = NSTextField(labelWithString: "")
+        loadTimeIndicatorLabel.font = TypeScale.caption
+        loadTimeIndicatorLabel.textColor = NSColor.secondaryLabelColor
         mainStack.addArrangedSubview(loadTimeIndicatorLabel)
 
         // 4. 内嵌轻量输入激活面板
@@ -248,7 +248,7 @@ public final class LicenseStatusCardView: NSView {
     @objc public func updateLicenseDisplay() {
         machineCodeLabel.stringValue = "【机器码】 \(LicenseManager.shared.machineCode)"
         if LicenseManager.shared.isProLicensed {
-            statusBadgeLabel.stringValue = "🟢 永久商用授权"
+            statusBadgeLabel.stringValue = "永久商用授权"
             statusBadgeLabel.textColor = NSColor(calibratedRed: 0.30, green: 0.90, blue: 0.50, alpha: 1.0)
             toggleActionButton.title = "已授权"
             toggleActionButton.toolTip = "当前已拥有全量商业旗舰版授权"
@@ -256,9 +256,9 @@ public final class LicenseStatusCardView: NSView {
                 setDrawerExpanded(false)
             }
         } else {
-            statusBadgeLabel.stringValue = "🟡 试用体验版"
+            statusBadgeLabel.stringValue = "试用体验版"
             statusBadgeLabel.textColor = NSColor(calibratedRed: 0.96, green: 0.78, blue: 0.28, alpha: 1.0)
-            toggleActionButton.title = "🔑 激活"
+            toggleActionButton.title = "激活"
             toggleActionButton.toolTip = "输入商业授权代码解锁全量功能"
         }
     }
@@ -313,7 +313,7 @@ public final class LicenseStatusCardView: NSView {
             updateLicenseDisplay()
             onLicenseChanged?()
         } else {
-            messageLabel.stringValue = "❌ 校验未通过，请检查代码"
+            messageLabel.stringValue = "校验未通过，请检查代码"
         }
     }
 }
@@ -426,6 +426,7 @@ public final class AssetHubView: NSVisualEffectView,
     public var cardGridScrollView: NSScrollView!
     public var cardGridContentView: FlippedContainerView!
     public var cardViews: [ResourceCardView] = []
+    public var selectedCardIndex: Int? = nil
     public var tableScrollView: NSScrollView!
 
     public var pathDisplayField: NSTextField!
@@ -532,7 +533,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         // 兼容原测试/控制器的顶栏分段控制器（隐藏桥接保留契约）
         hubSegmentedControl = NSSegmentedControl(
-            labels: ["🎨 模板插件管理", "🎞️ 3D LUT 调色与分屏", "🎵 影视级音效库", "🧹 工程瘦身清理", "🩺 幽灵插件医生"],
+            labels: ["模板插件管理", "3D LUT 调色与分屏", "影视级音效库", "工程瘦身清理", "幽灵插件医生"],
             trackingMode: .selectOne,
             target: self,
             action: #selector(onHubTabChanged)
@@ -609,8 +610,8 @@ public final class AssetHubView: NSVisualEffectView,
         brandTitle.textColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 1.0, alpha: 1.0)
         brandBox.addArrangedSubview(brandTitle)
 
-        let brandSub = NSTextField(labelWithString: "专业素材与性能工作站")
-        brandSub.font = .systemFont(ofSize: 10, weight: .regular)
+        let brandSub = NSTextField(labelWithString: "专业模板与性能工作站")
+        brandSub.font = TypeScale.caption
         brandSub.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         brandBox.addArrangedSubview(brandSub)
 
@@ -677,14 +678,14 @@ public final class AssetHubView: NSVisualEffectView,
         breathingDot.translatesAutoresizingMaskIntoConstraints = false
         footerBox.addSubview(breathingDot)
 
-        externalDriveStatusLabel = NSTextField(labelWithString: "外置剪辑盘已就绪")
-        externalDriveStatusLabel.font = .systemFont(ofSize: 10.5, weight: .bold)
+        externalDriveStatusLabel = NSTextField(labelWithString: "正在检测存储…")
+        externalDriveStatusLabel.font = TypeScale.footnoteMedium
         externalDriveStatusLabel.textColor = NSColor(calibratedWhite: 0.95, alpha: 1.0)
         externalDriveStatusLabel.translatesAutoresizingMaskIntoConstraints = false
         footerBox.addSubview(externalDriveStatusLabel)
 
-        externalDriveSubLabel = NSTextField(labelWithString: "0 占用 · 软链接就绪")
-        externalDriveSubLabel.font = .systemFont(ofSize: 9.5)
+        externalDriveSubLabel = NSTextField(labelWithString: "")
+        externalDriveSubLabel.font = TypeScale.caption
         externalDriveSubLabel.textColor = NSColor(calibratedWhite: 0.58, alpha: 1.0)
         externalDriveSubLabel.translatesAutoresizingMaskIntoConstraints = false
         footerBox.addSubview(externalDriveSubLabel)
@@ -1073,8 +1074,8 @@ public final class AssetHubView: NSVisualEffectView,
         breadcrumbBar.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(breadcrumbBar)
 
-        breadcrumbLabel = NSTextField(labelWithString: "⚡️ 实时预览 > 系统 > 字幕 > 全部")
-        breadcrumbLabel.font = .systemFont(ofSize: 13, weight: .bold)
+        breadcrumbLabel = NSTextField(labelWithString: "")
+        breadcrumbLabel.font = TypeScale.bodyBold
         breadcrumbLabel.textColor = .white
         breadcrumbLabel.translatesAutoresizingMaskIntoConstraints = false
         breadcrumbBar.addSubview(breadcrumbLabel)
@@ -1109,23 +1110,23 @@ public final class AssetHubView: NSVisualEffectView,
         selectAllBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(selectAllBtn)
 
-        rightFinderBtn = NSButton(title: "📂 访达中显示", target: self, action: #selector(onRightFinderClicked))
+        rightFinderBtn = NSButton(title: "访达中显示", target: self, action: #selector(onRightFinderClicked))
         rightFinderBtn.bezelStyle = .roundRect
-        rightFinderBtn.font = .systemFont(ofSize: 11)
+        rightFinderBtn.font = TypeScale.footnote
         rightFinderBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(rightFinderBtn)
 
-        // FCPX-042: 明确为"删除分组"，防止用户误以为仅删除单个素材
-        rightTrashBtn = NSButton(title: "🗑️ 删除分组", target: self, action: #selector(onRightTrashClicked))
+        // FCPX-042: 明确为"删除分组"，防止用户误以为仅删除单个模板
+        rightTrashBtn = NSButton(title: "删除分组", target: self, action: #selector(onRightTrashClicked))
         rightTrashBtn.bezelStyle = .roundRect
-        rightTrashBtn.font = .systemFont(ofSize: 11)
+        rightTrashBtn.font = TypeScale.footnote
         rightTrashBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(rightTrashBtn)
 
         // FCPX-043: 演示按钮添加禁用提示说明
-        previewToggleBtn = NSButton(title: "⚡️ 演示", target: self, action: #selector(onPreviewToggleClicked))
+        previewToggleBtn = NSButton(title: "演示", target: self, action: #selector(onPreviewToggleClicked))
         previewToggleBtn.bezelStyle = .roundRect
-        previewToggleBtn.font = .systemFont(ofSize: 11)
+        previewToggleBtn.font = TypeScale.footnote
         previewToggleBtn.toolTip = "QuickLook 实时预览演示功能正在接入中"
         previewToggleBtn.translatesAutoresizingMaskIntoConstraints = false
         rightToolbarView.addSubview(previewToggleBtn)
@@ -1140,7 +1141,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         // 归属与排序
         tierFilterPopup = NSPopUpButton()
-        tierFilterPopup.addItems(withTitles: ["全部归属", "🟡 内置", "🟢 用户", "🟣 系统"])
+        tierFilterPopup.addItems(withTitles: ["全部归属", "内置", "用户", "系统"])
         tierFilterPopup.target = self
         tierFilterPopup.action = #selector(onFilterChanged)
         tierFilterPopup.translatesAutoresizingMaskIntoConstraints = false
@@ -1215,8 +1216,8 @@ public final class AssetHubView: NSVisualEffectView,
         subCategoryScrollView.documentView = subCategoryStackView
 
         // 统计条
-        tierStatsLabel = NSTextField(labelWithString: "共 0 套模板 · 🟢 已启用 0 · ⚪️ 已休眠 0")
-        tierStatsLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        tierStatsLabel = NSTextField(labelWithString: "共 0 套模板（已启用 0 / 已休眠 0）")
+        tierStatsLabel.font = TypeScale.footnoteMedium
         tierStatsLabel.textColor = NSColor(calibratedWhite: 0.60, alpha: 1.0)
         tierStatsLabel.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(tierStatsLabel)
@@ -1281,6 +1282,9 @@ public final class AssetHubView: NSVisualEffectView,
 
         pluginTableView.dataSource = self
         pluginTableView.delegate = self
+        let tableMenu = NSMenu()
+        tableMenu.delegate = self
+        pluginTableView.menu = tableMenu
         tableScrollView.documentView = pluginTableView
 
         // Auto Layout for Right Column
@@ -1548,11 +1552,21 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc private func onRightFinderClicked() {
-        if let first = plugins.first {
-            NSWorkspace.shared.selectFile(first.path, inFileViewerRootedAtPath: (first.path as NSString).deletingLastPathComponent)
+        var targetItem: TemplateItem? = nil
+        if currentViewMode == 1, let row = pluginTableView?.selectedRow, row >= 0 && row < plugins.count {
+            targetItem = plugins[row]
+        } else if let selIdx = selectedCardIndex, selIdx >= 0 && selIdx < plugins.count {
+            targetItem = plugins[selIdx]
+        } else {
+            targetItem = plugins.first
+        }
+        if let item = targetItem {
+            NSWorkspace.shared.selectFile(item.path, inFileViewerRootedAtPath: (item.path as NSString).deletingLastPathComponent)
         } else if let grp = selectedGroupItem, let first = grp.items.first {
             let p = (first.path as NSString).deletingLastPathComponent
             NSWorkspace.shared.selectFile(first.path, inFileViewerRootedAtPath: p)
+        } else {
+            showAlert(title: "提示", message: "请先在列表中选中一个模板")
         }
     }
 
@@ -1639,7 +1653,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         let enabledCount = plugins.filter { $0.isEnabled }.count
         let disabledCount = plugins.count - enabledCount
-        tierStatsLabel?.stringValue = "当前组共 \(plugins.count) 套模板 · 🟢 已启用 \(enabledCount) · ⚪️ 已休眠 \(disabledCount)"
+        tierStatsLabel?.stringValue = "当前组共 \(plugins.count) 套模板（已启用 \(enabledCount) / 已休眠 \(disabledCount)）"
 
         if currentViewMode == 0 {
             reloadCardGrid()
@@ -1650,7 +1664,7 @@ public final class AssetHubView: NSVisualEffectView,
 
     public func updateBreadcrumb(group: TemplateGroupItem?) {
         guard let g = group else {
-            breadcrumbLabel?.stringValue = "⚡️ 实时预览 > 未选择分组"
+            breadcrumbLabel?.stringValue = "实时预览 > 未选择分组"
             return
         }
         let tierStr: String = {
@@ -1669,7 +1683,7 @@ public final class AssetHubView: NSVisualEffectView,
             default: return "插件"
             }
         }()
-        breadcrumbLabel?.stringValue = "⚡️ 实时预览 > \(tierStr) > \(catStr) > \(g.name)"
+        breadcrumbLabel?.stringValue = "实时预览 > \(tierStr) > \(catStr) > \(g.name)"
     }
 
     public func updateCategoryCapsuleCounts() {
@@ -1708,13 +1722,12 @@ public final class AssetHubView: NSVisualEffectView,
         let spacing: CGFloat = 14
         let availableW = max(viewportW, 320)
 
-        // R52 自适应弹性流式布局 (Adaptive Fluid Grid)
-        // 动态计算列数（最小 2 列，最大 4 列）
+        // R52 自适应弹性流式布局 (Adaptive Fluid Grid / UI-G016: 窄窗降至 1 列)
         let rawCols = Int((availableW - margin * 2 + spacing) / (210 + spacing))
-        let cols = max(2, min(4, rawCols))
-        let totalSpacing = CGFloat(cols - 1) * spacing
+        let cols = availableW < 440 ? 1 : max(1, min(4, rawCols))
+        let totalSpacing = CGFloat(max(0, cols - 1)) * spacing
         let cardW = floor((availableW - margin * 2 - totalSpacing) / CGFloat(cols))
-        let cardH: CGFloat = 236
+        let cardH: CGFloat = cols == 1 ? 250 : 236
 
         let countToRender = min(renderedChunkCount, items.count)
         let rows = (countToRender + cols - 1) / cols
@@ -1837,9 +1850,30 @@ public final class AssetHubView: NSVisualEffectView,
             btnAll.widthAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
             footerStack.addArrangedSubview(btnAll)
             self.loadAllButton = btnAll
-        } else if !items.isEmpty {
+        } else if items.isEmpty {
+            let emptyStack = NSStackView()
+            emptyStack.orientation = .vertical
+            emptyStack.alignment = .centerX
+            emptyStack.spacing = 8
+            emptyStack.translatesAutoresizingMaskIntoConstraints = false
+            let isSearching = !(searchField?.stringValue.isEmpty ?? true)
+            let iconName = isSearching ? "magnifyingglass" : "square.dashed"
+            let iconView = NSImageView(image: NSImage(systemSymbolName: iconName, accessibilityDescription: nil) ?? NSImage())
+            iconView.contentTintColor = NSColor.secondaryLabelColor
+            let tipText = isSearching ? "未搜索到匹配的模板" : "当前分类暂无模板"
+            let label = NSTextField(labelWithString: tipText)
+            label.font = TypeScale.body
+            label.textColor = NSColor.secondaryLabelColor
+            emptyStack.addArrangedSubview(iconView)
+            emptyStack.addArrangedSubview(label)
+            container.addSubview(emptyStack)
+            NSLayoutConstraint.activate([
+                emptyStack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+                emptyStack.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -20)
+            ])
+        } else {
             let label = NSTextField(labelWithString: "— 已展示「\(currentSubCategoryFilter)」下的全部 \(items.count) 款模板 —")
-            label.font = .systemFont(ofSize: 11, weight: .medium)
+            label.font = TypeScale.footnoteMedium
             label.textColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
             label.alignment = .center
             label.translatesAutoresizingMaskIntoConstraints = false
@@ -1886,7 +1920,7 @@ public final class AssetHubView: NSVisualEffectView,
             if !suppressAlertsForTesting {
                 let alert = NSAlert()
                 alert.messageText = "强制绑定外置卷"
-                alert.informativeText = "素材「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n是否信任并强制绑定当前挂载卷？"
+                alert.informativeText = "模板「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n是否信任并强制绑定当前挂载卷？"
                 alert.addButton(withTitle: "强制绑定")
                 alert.addButton(withTitle: "取消")
                 if alert.runModal() == .alertFirstButtonReturn {
@@ -1898,8 +1932,8 @@ public final class AssetHubView: NSVisualEffectView,
 
         if item.isOffline || item.isCorrupted || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
             if !suppressAlertsForTesting {
-                let reason = item.isCorrupted ? "素材文件损坏或缺失" : "外置磁盘已断开"
-                showAlert(title: "素材不可操作", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止修改启停状态。")
+                let reason = item.isCorrupted ? "模板文件损坏或缺失" : "外置磁盘已断开"
+                showAlert(title: "模板不可操作", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止修改启停状态。")
             }
             return
         }
@@ -1934,11 +1968,11 @@ public final class AssetHubView: NSVisualEffectView,
     public var suppressAlertsForTesting: Bool = false
 
     public func deleteTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
-        // 0. 离线素材容灾保护拦截（禁止物理删除断链/损坏/异盘项）
+        // 0. 离线模板容灾保护拦截（禁止物理删除断链/损坏/异盘项）
         if item.isOffline || item.isCorrupted || item.isMismatchedDisk || migrator.isPathOffline(item.path) || migrator.isPathOffline(item.targetPath) {
             if !suppressAlertsForTesting {
-                let reason = item.isMismatchedDisk ? "挂载卷与素材 UUID 不匹配" : (item.isCorrupted ? "素材文件损坏或缺失" : "外置磁盘已断开")
-                showAlert(title: "素材处于故障/离线状态", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止物理删除。请先连接对应磁盘。")
+                let reason = item.isMismatchedDisk ? "挂载卷与模板 UUID 不匹配" : (item.isCorrupted ? "模板文件损坏或缺失" : "外置磁盘已断开")
+                showAlert(title: "模板处于故障/离线状态", message: "\(reason)，模板「\(item.name)」受容灾保护，禁止物理删除。请先连接对应磁盘。")
             }
             return
         }
@@ -2000,50 +2034,49 @@ public final class AssetHubView: NSVisualEffectView,
     public func makeTemplateActionMenu(for item: TemplateItem) -> NSMenu {
         let menu = NSMenu()
         if item.isMismatchedDisk {
-            let warnItem = NSMenuItem(title: "🚫 异盘同名（UUID 不匹配，禁止操作）", action: nil, keyEquivalent: "")
+            let warnItem = NSMenuItem(title: "异盘同名（UUID 不匹配，禁止操作）", action: nil, keyEquivalent: "")
             warnItem.isEnabled = false
             menu.addItem(warnItem)
             menu.addItem(NSMenuItem.separator())
-            let bindItem = NSMenuItem(title: "⚡️ 信任并强制绑定此卷…", action: #selector(onForceBindVolumeMenu(_:)), keyEquivalent: "")
+            let bindItem = NSMenuItem(title: "信任并强制绑定此卷…", action: #selector(onForceBindVolumeMenu(_:)), keyEquivalent: "")
             bindItem.target = self
             bindItem.representedObject = item
             menu.addItem(bindItem)
             return menu
         } else if item.isCorrupted {
-            let warnItem = NSMenuItem(title: "❌ 素材损坏/丢失（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
+            let warnItem = NSMenuItem(title: "模板损坏/丢失（受容灾保护，禁止操作）", action: nil, keyEquivalent: "")
             warnItem.isEnabled = false
             menu.addItem(warnItem)
             menu.addItem(NSMenuItem.separator())
-            let recheckItem = NSMenuItem(title: "🔍 重新校验文件存在性…", action: #selector(onRecheckCorruptedMenu(_:)), keyEquivalent: "")
+            let recheckItem = NSMenuItem(title: "重新校验文件存在性…", action: #selector(onRecheckCorruptedMenu(_:)), keyEquivalent: "")
             recheckItem.target = self
             recheckItem.representedObject = item
             menu.addItem(recheckItem)
             return menu
         } else if item.isOffline {
-            // FCPX-046: 补充离线素材的重新检测挂载入口，消除操作死路
-            let offlineItem = NSMenuItem(title: "⚠️ 磁盘离线（受容灾保护，禁止常规操作）", action: nil, keyEquivalent: "")
+            let offlineItem = NSMenuItem(title: "磁盘离线（受容灾保护，禁止常规操作）", action: nil, keyEquivalent: "")
             offlineItem.isEnabled = false
             menu.addItem(offlineItem)
             menu.addItem(NSMenuItem.separator())
-            let redetectItem = NSMenuItem(title: "🔄 重新检测磁盘挂载状态…", action: #selector(onRedetectDiskMenu(_:)), keyEquivalent: "")
+            let redetectItem = NSMenuItem(title: "重新检测磁盘挂载状态…", action: #selector(onRedetectDiskMenu(_:)), keyEquivalent: "")
             redetectItem.target = self
             redetectItem.representedObject = item
             menu.addItem(redetectItem)
             return menu
         }
 
-        let renameItem = NSMenuItem(title: "📝 设置中文别名 / 本地化重命名…", action: #selector(onCardRenameMenu(_:)), keyEquivalent: "")
+        let renameItem = NSMenuItem(title: "设置中文别名 / 本地化重命名…", action: #selector(onCardRenameMenu(_:)), keyEquivalent: "")
         renameItem.target = self
         renameItem.representedObject = item
         menu.addItem(renameItem)
 
-        let revealItem = NSMenuItem(title: "📂 在访达 (Finder) 中显示", action: #selector(onCardRevealMenu(_:)), keyEquivalent: "")
+        let revealItem = NSMenuItem(title: "在访达 (Finder) 中显示", action: #selector(onCardRevealMenu(_:)), keyEquivalent: "")
         revealItem.target = self
         revealItem.representedObject = item
         menu.addItem(revealItem)
 
         if item.tier == .user && !item.isSymlink {
-            let migItem = NSMenuItem(title: "⚡ 迁移至外置移动硬盘 (0占用)", action: #selector(onCardMigrateMenu(_:)), keyEquivalent: "")
+            let migItem = NSMenuItem(title: "迁移至外置移动硬盘 (0占用)", action: #selector(onCardMigrateMenu(_:)), keyEquivalent: "")
             migItem.target = self
             migItem.representedObject = item
             menu.addItem(migItem)
@@ -2051,14 +2084,14 @@ public final class AssetHubView: NSVisualEffectView,
 
         menu.addItem(NSMenuItem.separator())
 
-        let designerItem = NSMenuItem(title: "🎨 在 Motion 设计器中打开", action: #selector(onCardDesignerMenu(_:)), keyEquivalent: "")
+        let designerItem = NSMenuItem(title: "在 Motion 设计器中打开", action: #selector(onCardDesignerMenu(_:)), keyEquivalent: "")
         designerItem.target = self
         designerItem.representedObject = item
         menu.addItem(designerItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        let deleteItem = NSMenuItem(title: "🗑️ 移入废纸篓 (Delete)", action: #selector(onCardDeleteMenu(_:)), keyEquivalent: "")
+        let deleteItem = NSMenuItem(title: "移入废纸篓 (Delete)", action: #selector(onCardDeleteMenu(_:)), keyEquivalent: "")
         deleteItem.target = self
         deleteItem.representedObject = item
         menu.addItem(deleteItem)
@@ -2104,7 +2137,7 @@ public final class AssetHubView: NSVisualEffectView,
         if !skipConfirmation && !suppressAlertsForTesting {
             let alert = NSAlert()
             alert.messageText = "强制绑定外置卷"
-            alert.informativeText = "素材「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n强制绑定将更新素材记录的卷 UUID，并重新校验主文件物理状态。\n\n是否继续？"
+            alert.informativeText = "模板「\(item.name)」原绑定盘与当前挂载盘 UUID 不一致。\n强制绑定将更新模板记录的卷 UUID，并重新校验主文件物理状态。\n\n是否继续？"
             alert.addButton(withTitle: "强制绑定")
             alert.addButton(withTitle: "取消")
             if alert.runModal() != .alertFirstButtonReturn {
@@ -2161,7 +2194,7 @@ public final class AssetHubView: NSVisualEffectView,
         }
         reloadCardGrid(resetPaging: false)
 
-        let msg = "已强制绑定卷并更新素材「\(item.name)」状态"
+        let msg = "已强制绑定卷并更新模板「\(item.name)」状态"
         statusLabel?.stringValue = msg
         updateStatusLine(overrideMessage: msg)
     }
@@ -2171,12 +2204,12 @@ public final class AssetHubView: NSVisualEffectView,
         if FileManager.default.fileExists(atPath: item.targetPath) {
             updated.isCorrupted = false
             updated.isOffline = false
-            let msg = "素材「\(item.name)」主文件校验通过，已成功恢复在线 ✓"
+            let msg = "模板「\(item.name)」主文件校验通过，已成功恢复在线"
             statusLabel?.stringValue = msg
             updateStatusLine(overrideMessage: msg)
         } else {
             updated.isCorrupted = true
-            let msg = "素材「\(item.name)」主文件依然缺失，保持损坏保护状态"
+            let msg = "模板「\(item.name)」主文件依然缺失，保持损坏保护状态"
             statusLabel?.stringValue = msg
             updateStatusLine(overrideMessage: msg)
         }
@@ -2336,7 +2369,7 @@ public final class AssetHubView: NSVisualEffectView,
         lutInfoLabel.lineBreakMode = .byTruncatingMiddle
         lutBottomBar.addArrangedSubview(lutInfoLabel)
 
-        lutStatusLabel = NSTextField(labelWithString: "💡 提示：在画面左右移动鼠标可实时拉动对比分屏")
+        lutStatusLabel = NSTextField(labelWithString: "提示：在画面左右移动鼠标可实时拉动对比分屏")
         lutStatusLabel.font = .systemFont(ofSize: 11)
         lutStatusLabel.textColor = NSColor(red: 0.38, green: 0.74, blue: 0.95, alpha: 1.0)
         lutBottomBar.addArrangedSubview(lutStatusLabel)
@@ -2501,12 +2534,12 @@ public final class AssetHubView: NSVisualEffectView,
         audioTimeLabel.textColor = NSColor(red: 0.35, green: 0.85, blue: 0.95, alpha: 1.0)
         ctrlBox.addArrangedSubview(audioTimeLabel)
 
-        let revealBtn = NSButton(title: "📂 在访达中显示", target: self, action: #selector(onRevealAudioClicked))
+        let revealBtn = NSButton(title: "在访达中显示", target: self, action: #selector(onRevealAudioClicked))
         ctrlBox.addArrangedSubview(revealBtn)
 
         cardStack.addArrangedSubview(ctrlBox)
 
-        let tipLabel = NSTextField(labelWithString: "💡 提示：点击波形图可快速定位试听；在列表中支持直接拖拽音频文件至 FCPX 时间线")
+        let tipLabel = NSTextField(labelWithString: "提示：点击波形图可快速定位试听；在列表中支持直接拖拽音频文件至 FCPX 时间线")
         tipLabel.font = .systemFont(ofSize: 11)
         tipLabel.textColor = NSColor(calibratedWhite: 0.6, alpha: 1.0)
         cardStack.addArrangedSubview(tipLabel)
@@ -2842,6 +2875,8 @@ public final class AssetHubView: NSVisualEffectView,
         } else {
             if let item = selectedAudioItem {
                 playAudioItem(item)
+            } else {
+                showAlert(title: "提示", message: "请先在左侧选择一条音效")
             }
         }
     }
@@ -2883,7 +2918,10 @@ public final class AssetHubView: NSVisualEffectView,
     }
 
     @objc public func onRevealAudioClicked() {
-        guard let item = selectedAudioItem else { return }
+        guard let item = selectedAudioItem else {
+            showAlert(title: "提示", message: "请先在左侧选择一条音效")
+            return
+        }
         NSWorkspace.shared.selectFile(item.path, inFileViewerRootedAtPath: "")
     }
 
@@ -2960,7 +2998,7 @@ public final class AssetHubView: NSVisualEffectView,
             return
         }
         if p.tier != .user {
-            showAlert(title: "仅支持用户级", message: "只有「🟢 用户」级模板支持外置化（系统级与内置级禁止随意搬迁）。")
+            showAlert(title: "仅支持用户级", message: "只有「用户」级模板支持外置化（系统级与内置级禁止随意搬迁）。")
             return
         }
         if p.isSymlink {
@@ -3065,9 +3103,9 @@ public final class AssetHubView: NSVisualEffectView,
             }
             reloadCardGrid(resetPaging: false)
 
-            // 底部或顶部状态条显示离线提示（例如：“⚠️ 外置盘 [卷名] 已断开，12 套素材已离线保全”）
+            // 底部或顶部状态条显示离线提示（例如：“外置盘 [卷名] 已断开，12 套模板已离线保全”）
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
-            let msg = "⚠️ 外置盘 [\(displayName)] 已断开，\(affectedCount) 套素材已离线保全"
+            let msg = "外置盘 [\(displayName)] 已断开，\(affectedCount) 套模板已离线保全"
             statusLabel?.stringValue = msg
             updateStatusLine(overrideMessage: msg)
         } else {
@@ -3173,12 +3211,12 @@ public final class AssetHubView: NSVisualEffectView,
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
             let initialMsg: String
             if mismatchedCount > 0 {
-                initialMsg = "🚫 挂载卷 [\(displayName)] 与原素材盘 UUID 不符，拒绝绑定 (\(mismatchedCount) 套素材已防护)"
+                initialMsg = "挂载卷 [\(displayName)] 与原模板盘 UUID 不符，拒绝绑定 (\(mismatchedCount) 套模板已防护)"
             } else if !pendingCheckPaths.isEmpty {
                 // FCPX-047: 慢盘校验期间展示校验中文案，成功文案在校验完成后再展示
-                initialMsg = "⏳ 外置盘 [\(displayName)] 已重新连接，正在校验 \(restoredCount) 套素材完整性…"
+                initialMsg = "外置盘 [\(displayName)] 已重新连接，正在校验 \(restoredCount) 套模板完整性…"
             } else {
-                initialMsg = "✅ 外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套素材已恢复在线"
+                initialMsg = "外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套模板已恢复在线"
             }
             statusLabel?.stringValue = initialMsg
             updateStatusLine(overrideMessage: initialMsg)
@@ -3224,12 +3262,12 @@ public final class AssetHubView: NSVisualEffectView,
                                 }
                             }
                             self.reloadCardGrid(resetPaging: false)
-                            let corruptedMsg = "⚠️ 外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套素材标红告警"
+                            let corruptedMsg = "外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套模板标红告警"
                             self.statusLabel?.stringValue = corruptedMsg
                             self.updateStatusLine(overrideMessage: corruptedMsg)
                         } else {
                             // FCPX-047: 完整性验证全部通过后，切为绿灯完成态
-                            let successMsg = "✅ 外置盘 [\(displayName)] 校验完成，\(restoredCount) 套素材已完全就绪在线"
+                            let successMsg = "外置盘 [\(displayName)] 校验完成，\(restoredCount) 套模板已完全就绪在线"
                             self.statusLabel?.stringValue = successMsg
                             self.updateStatusLine(overrideMessage: successMsg)
                         }
@@ -3413,7 +3451,7 @@ public final class AssetHubView: NSVisualEffectView,
         if offlineCount > 0 {
             let offlineVol = allItems.first(where: { $0.isOffline })?.volumePath ?? "外置盘"
             let volName = (offlineVol as NSString).lastPathComponent
-            statusLabel?.stringValue = "⚠️ 外置盘 [\(volName)] 已断开，\(offlineCount) 套素材已离线保全"
+            statusLabel?.stringValue = "外置盘 [\(volName)] 已断开，\(offlineCount) 套模板已离线保全"
             updateTierStats()
             return
         }
@@ -3443,12 +3481,12 @@ public final class AssetHubView: NSVisualEffectView,
             }
         }()
 
-        var stats = "当前分类（\(catDisplayName)）：共 \(total) 套 · 🟢 已启用 \(enabledCount) · ⚪️ 已休眠 \(disabledCount)"
+        var stats = "当前分类（\(catDisplayName)）：共 \(total) 套（已启用 \(enabledCount) / 已休眠 \(disabledCount)）"
         let offlineCount = allItems.filter { $0.isOffline }.count
         if offlineCount > 0 {
-            stats += " · ⚠️ 离线保全 \(offlineCount)"
+            stats += " · 离线保全 \(offlineCount)"
         }
-        stats += "   |   🟡 内置 \(builtin)\(builtinSuffix) · 🟢 用户 \(user) · 🟣 系统 \(system)"
+        stats += "   |   内置 \(builtin)\(builtinSuffix) · 用户 \(user) · 系统 \(system)"
         tierStatsLabel?.stringValue = stats
     }
 
@@ -3730,9 +3768,9 @@ public final class AssetHubView: NSVisualEffectView,
             case "groupTier":
                 let tierBadge: String = {
                     switch grp.tier {
-                    case .builtin: return "🟡 内置"
-                    case .user: return "👤 用户"
-                    case .system: return "🟣 系统"
+                    case .builtin: return "内置"
+                    case .user: return "用户"
+                    case .system: return "系统"
                     }
                 }()
                 label.stringValue = tierBadge + (isSel ? " ▶" : "")
@@ -3806,7 +3844,7 @@ public final class AssetHubView: NSVisualEffectView,
             return cell
 
         case "status":
-            let btn = NSButton(title: p.isEnabled ? "🟢 已启用" : "⚪️ 已休眠",
+            let btn = NSButton(title: p.isEnabled ? "已启用" : "已休眠",
                                target: self, action: #selector(onToggleStatusClicked(_:)))
             btn.tag = row
             btn.bezelStyle = .inline
