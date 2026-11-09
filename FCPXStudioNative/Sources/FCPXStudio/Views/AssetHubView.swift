@@ -544,17 +544,48 @@ public final class AssetHubView: NSVisualEffectView,
         }
     }
 
+    // TR-007: 素材库空态三态。根因是 externalRoot 未配置时为空串，
+    // fileExists("") 恒 false，被误报成「外置盘未连接」。严禁再把「未配置」当「盘掉了」。
     private func updateExternalStorageStatus() {
         let fm = FileManager.default
-        let exists = fm.fileExists(atPath: externalRoot)
-        if exists {
+        let root = externalRoot.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 态 1：从未配置外置素材目录
+        guard !root.isEmpty else {
+            externalDriveStatusLabel?.stringValue = "未设置素材存放目录"
+            externalDriveSubLabel?.stringValue = "点击选择外置盘目录"
+            return
+        }
+
+        // 态 2：目录真实存在（保持原有文案与卷名显示）
+        if fm.fileExists(atPath: root) {
             externalDriveStatusLabel?.stringValue = "外置剪辑盘已挂载"
-            let volName = (externalRoot as NSString).lastPathComponent
+            let volName = (root as NSString).lastPathComponent
             externalDriveSubLabel?.stringValue = "卷: \(volName)"
+            return
+        }
+
+        // 态 3：目录不存在 —— 先判断所在卷 /Volumes/<vol> 是否挂载，
+        // 只有卷真的没挂才允许说「外置盘未连接」。
+        if volumeIsMounted(for: root) {
+            externalDriveStatusLabel?.stringValue = "目录不存在，点击重建或改路径"
+            externalDriveSubLabel?.stringValue = "路径: \((root as NSString).lastPathComponent)"
         } else {
             externalDriveStatusLabel?.stringValue = "外置盘未连接"
             externalDriveSubLabel?.stringValue = "点击可配置路径"
         }
+    }
+
+    /// 解析路径所在卷挂载点 /Volumes/<vol>。非 /Volumes 路径属于系统卷，恒视为已挂载。
+    private func volumeIsMounted(for path: String) -> Bool {
+        let comps = (path as NSString).pathComponents
+        guard comps.count >= 3, comps[0] == "/", comps[1] == "Volumes" else {
+            return true
+        }
+        let volumePath = "/Volumes/\(comps[2])"
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: volumePath, isDirectory: &isDirectory)
+            && isDirectory.boolValue
     }
 
     @objc public func onHubTabChanged() {
