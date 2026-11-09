@@ -22,10 +22,13 @@ public final class TeamSyncDashboardView: NSView,
 
     // MARK: – UI Controls
     public var serverStatusBadge: NSTextField!
+    public var toggleServerBtn: NSButton!
+    public var serverErrorLabel: NSTextField!
     public var refreshRadarBtn: NSButton!
     public var addPeerBtn: NSButton!
     public var radarTableView: NSTableView!
     public var historyTableView: NSTableView!
+    public private(set) var lastServerError: String? = nil
 
     // Environment Cloner UI
     public var chkTitles: NSButton!
@@ -80,6 +83,18 @@ public final class TeamSyncDashboardView: NSView,
             name: TeamP2PSyncManager.didReceiveTemplateNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onServerStateChanged),
+            name: TeamP2PSyncManager.didChangeServerStateNotification,
+            object: nil
+        )
+    }
+
+    @objc private func onServerStateChanged() {
+        DispatchQueue.main.async { [weak self] in
+            self?.updateServerBadge()
+        }
     }
 
     @objc private func onPeersUpdated() {
@@ -180,12 +195,22 @@ public final class TeamSyncDashboardView: NSView,
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         topStack.addArrangedSubview(spacer)
 
-        // FCPX-050: 由 isListening 决定真实服务状态，未开启灰灯，杜绝假绿灯
-        serverStatusBadge = NSTextField(labelWithString: "⚪ 正在检测服务...")
+        // FCPX-050 / TR-005: 真实局域网服务状态徽章与启停控制
+        serverStatusBadge = NSTextField(labelWithString: "⚪ 未开启局域网监听")
         serverStatusBadge.font = .systemFont(ofSize: 11, weight: .medium)
         serverStatusBadge.wantsLayer = true
         serverStatusBadge.layer?.cornerRadius = 5
         topStack.addArrangedSubview(serverStatusBadge)
+
+        toggleServerBtn = makeProButton(title: "▶️ 启动局域网监听", target: self, action: #selector(onToggleServerClicked))
+        topStack.addArrangedSubview(toggleServerBtn)
+
+        serverErrorLabel = NSTextField(labelWithString: "")
+        serverErrorLabel.font = .systemFont(ofSize: 11, weight: .regular)
+        serverErrorLabel.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+        serverErrorLabel.isHidden = true
+        topStack.addArrangedSubview(serverErrorLabel)
+
         updateServerBadge()
 
         refreshRadarBtn = makeProButton(title: "🔄 刷新雷达", target: self, action: #selector(onRefreshRadarClicked))
@@ -544,21 +569,72 @@ public final class TeamSyncDashboardView: NSView,
         return card
     }
 
-    // MARK: – 交互操作
+    // MARK: – 交互操作与服务器监听控制
+    override public func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil {
+            if !TeamP2PSyncManager.shared.isListening && lastServerError == nil {
+                do {
+                    try TeamP2PSyncManager.shared.startServer()
+                    TeamP2PSyncManager.shared.startBrowsing()
+                } catch {
+                    lastServerError = error.localizedDescription
+                }
+            }
+            updateServerBadge()
+        }
+    }
+
     private func updateServerBadge() {
         let mgr = TeamP2PSyncManager.shared
-        if mgr.isListening {
+        if let err = lastServerError {
+            serverStatusBadge?.stringValue = "🔴 监听异常"
+            serverStatusBadge?.textColor = NSColor(calibratedRed: 0.95, green: 0.40, blue: 0.40, alpha: 1.0)
+            serverStatusBadge?.layer?.backgroundColor = NSColor(calibratedRed: 0.25, green: 0.10, blue: 0.10, alpha: 1.0).cgColor
+            serverErrorLabel?.stringValue = "(\(err))"
+            serverErrorLabel?.isHidden = false
+            toggleServerBtn?.title = "▶️ 重新启动监听"
+        } else if mgr.isListening {
             serverStatusBadge?.stringValue = "🟢 局域网监听中: 端口 \(mgr.localPort)"
             serverStatusBadge?.textColor = NSColor(calibratedRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
             serverStatusBadge?.layer?.backgroundColor = NSColor(calibratedRed: 0.12, green: 0.20, blue: 0.14, alpha: 1.0).cgColor
+            serverErrorLabel?.isHidden = true
+            toggleServerBtn?.title = "⏹ 停止局域网监听"
         } else {
             serverStatusBadge?.stringValue = "⚪ 未开启局域网监听"
             serverStatusBadge?.textColor = NSColor(calibratedWhite: 0.65, alpha: 1.0)
             serverStatusBadge?.layer?.backgroundColor = NSColor(calibratedWhite: 0.18, alpha: 1.0).cgColor
+            serverErrorLabel?.isHidden = true
+            toggleServerBtn?.title = "▶️ 启动局域网监听"
         }
     }
 
+    @objc public func onToggleServerClicked() {
+        let mgr = TeamP2PSyncManager.shared
+        if mgr.isListening {
+            mgr.stopServer()
+            lastServerError = nil
+        } else {
+            do {
+                lastServerError = nil
+                try mgr.startServer()
+                mgr.startBrowsing()
+            } catch {
+                lastServerError = error.localizedDescription
+                NSLog("[TeamSync] 启动服务器失败: \(error)")
+            }
+        }
+        updateServerBadge()
+    }
+
     @objc public func refreshData() {
+        if !TeamP2PSyncManager.shared.isListening && lastServerError == nil {
+            do {
+                try TeamP2PSyncManager.shared.startServer()
+            } catch {
+                lastServerError = error.localizedDescription
+            }
+        }
         self.peers = TeamP2PSyncManager.shared.peers
         self.history = TeamP2PSyncManager.shared.transferHistory
         updateServerBadge()

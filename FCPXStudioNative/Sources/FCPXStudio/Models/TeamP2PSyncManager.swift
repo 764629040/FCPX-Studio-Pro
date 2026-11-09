@@ -137,6 +137,7 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
     public static let didUpdatePeersNotification     = Notification.Name("FCPXStudioP2PPeersUpdated")
     public static let didReceiveTemplateNotification  = Notification.Name("FCPXStudioP2PTemplateReceived")
     public static let didUpdateTransfersNotification = Notification.Name("FCPXStudioP2PTransfersUpdated")
+    public static let didChangeServerStateNotification = Notification.Name("FCPXStudioP2PServerStateChanged")
 
     // MARK: – 属性状态
     public private(set) var localPort: Int = TeamP2PSyncManager.defaultPort
@@ -370,22 +371,33 @@ public final class TeamP2PSyncManager: NSObject, NetServiceDelegate, NetServiceB
         acceptQueue.async { [weak self] in
             self?.runAcceptLoop(fd: fd)
         }
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: TeamP2PSyncManager.didChangeServerStateNotification, object: nil)
+        }
     }
 
     public func stopServer() {
         stateLock.lock()
-        defer { stateLock.unlock() }
-
-        if !isListening { return }
+        if !isListening {
+            stateLock.unlock()
+            return
+        }
         isListening = false
 
         if serverSocketFd >= 0 {
+            Darwin.shutdown(serverSocketFd, SHUT_RDWR)
             close(serverSocketFd)
             serverSocketFd = -1
         }
 
-        netService?.stop()
+        let service = netService
         netService = nil
+        stateLock.unlock()
+
+        service?.stop()
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: TeamP2PSyncManager.didChangeServerStateNotification, object: nil)
+        }
     }
 
     private func runAcceptLoop(fd: Int32) {
