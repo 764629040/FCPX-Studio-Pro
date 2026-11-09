@@ -26,6 +26,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
+    // TR-006: 进程退出前显式释放 52888 监听端口与 Bonjour 广播（内核回收之外的双保险）。
+    // 关看板 / 切换窗口不触发这里，用户手动控制不被打断。
+    func applicationWillTerminate(_ notification: Notification) {
+        TeamP2PSyncManager.shared.stopServer()
+        TeamP2PSyncManager.shared.stopBrowsing()
+    }
+
     @objc func showSettings(_ sender: Any?) {
         if let wc = windowController {
             wc.openSettings(sender)

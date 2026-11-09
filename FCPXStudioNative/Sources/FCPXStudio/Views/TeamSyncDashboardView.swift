@@ -570,20 +570,9 @@ public final class TeamSyncDashboardView: NSView,
     }
 
     // MARK: – 交互操作与服务器监听控制
-    override public func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        if window != nil {
-            if !TeamP2PSyncManager.shared.isListening && lastServerError == nil {
-                do {
-                    try TeamP2PSyncManager.shared.startServer()
-                    TeamP2PSyncManager.shared.startBrowsing()
-                } catch {
-                    lastServerError = error.localizedDescription
-                }
-            }
-            updateServerBadge()
-        }
-    }
+    // TR-006: 52888 监听端口只能由用户点击「▶️ 启动局域网监听」开启。
+    // 严禁在 viewDidMoveToWindow / refreshData / 任何无 UI 入口的路径里调用 startServer()。
+    // 看板挂载、切换、数据刷新都不得改变监听状态，只做 UI 状态同步。
 
     private func updateServerBadge() {
         let mgr = TeamP2PSyncManager.shared
@@ -609,6 +598,7 @@ public final class TeamSyncDashboardView: NSView,
         }
     }
 
+    // TR-006: 全局唯一开启/关闭局域网监听的 UI 入口。
     @objc public func onToggleServerClicked() {
         let mgr = TeamP2PSyncManager.shared
         if mgr.isListening {
@@ -627,14 +617,9 @@ public final class TeamSyncDashboardView: NSView,
         updateServerBadge()
     }
 
+    // TR-006: 纯数据刷新 + 徽章同步，绝不启动监听。
+    // init / 切换看板 / 收到模板 / 刷新雷达 都会走这里，均不允许成为隐式启动路径。
     @objc public func refreshData() {
-        if !TeamP2PSyncManager.shared.isListening && lastServerError == nil {
-            do {
-                try TeamP2PSyncManager.shared.startServer()
-            } catch {
-                lastServerError = error.localizedDescription
-            }
-        }
         self.peers = TeamP2PSyncManager.shared.peers
         self.history = TeamP2PSyncManager.shared.transferHistory
         updateServerBadge()
