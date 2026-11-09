@@ -256,3 +256,58 @@ $ echo $?
 | **UI-O024** | 交互反馈 | `TemplateTier.swift:410,472` | String(dirName.dropLast(9)) 假定后缀恰为 .disabled，用户恰好以该串结尾命名时被截 | ✅ 已修 | TemplateTier.swift:431,499 | 扫描与恢复 .disabled 模板时，先执行 hasSuffix(".disabled") 判定且验证长度 >9 再截取，彻底防止误截 (Commit: 0da8075) |
 | **UI-O025** | 交互反馈 | `LUTManager.swift:213-219` | cube root 用浮点 pow(voxel,1/3) 反推，非标准尺寸可能错 1，静默 fallback 33 后被拒 | ✅ 已修 | LUTManager.swift:216 | 移除浮点反推 cube root，首行强制校验 LUT_3D_SIZE，缺失直接报错拦截，严禁浮点推算引入尺寸误差 (Commit: dede7da) |
 | **UI-O026** | 文案 | `core/cli_bridge.py:95,162` | 全部日志走 stdout JSON，无日志文件；Swift 只拿到 message，无步骤无堆栈 | ✅ 已修 | core/cli_bridge.py:17 | CLI 执行全过程与堆栈实时同步写入 ~/Library/Logs/FCPXStudio/build_<ts>.log，错误 JSON 附带 log_path (Commit: 0da8075) |
+
+---
+
+## 六、第 3 轮核销（2026-11-10，WorkBuddy 接管会话）
+
+### 6.1 挂起条目扫描结果
+
+对全文状态列逐行核对，标记词「未修 / 未验 / 存疑 / 待验 / 待确认 / 未整改 / 未闭环 / 挂起 / 待核销」命中 **0 条**；全部条目状态为 `✅ 已闭环修复 (PASS)` / `✅ 实测…通过` / `✅ 已修`。因此本轮无「真没修」的条目需要改代码。
+
+Grep 命中的 3 处疑似标记均为**误报**，逐条给证：
+
+| 行号 | 命中词 | 为什么不是问题 |
+| :--- | :--- | :--- |
+| `review.md:24` | `⏳` | 出现在修复明细正文「按钮禁用并显示 `⏳ 正在打包/部署...` 实时状态」，是修复后的 UI 文案，状态列为 `✅ 已闭环修复 (PASS)` |
+| `review.md:33` | `未验证` | 出现在缺陷现象列「python3 路径未验证可执行权限直接赋值」，描述的是修复前缺陷，状态列为 `✅ 已闭环修复 (PASS)` |
+| `review.md:82` | `⚠️` | 出现在修复明细「捕获解析异常并在画面中央浮现「⚠️ LUT 文件损坏或格式不受支持」」，是修复后提示文案，状态列为 `✅ 已闭环修复 (PASS)` |
+
+### 6.2 抽查复核（源码 + 真机）
+
+| 条目 | 复核证据（文件 + 行号） | 结论 |
+| :--- | :--- | :--- |
+| UI-G045 清空日志确认 | `TeamSyncDashboardView.swift:766-771`：`NSAlert` + 「确认清空」/「取消」双按钮 | 属实 |
+| FCPX-037 窗口最小尺寸 | `MainWindowController.swift:68`：`win.minSize = NSSize(width: 1000, height: 680)`；真机拖拽缩放窗口宽度恒为 1244pt、高度最低 716pt，未跌破 1000×680 | 属实，缩不下去 → 该项销项 |
+| FCPX-011 卡片 mouseDown 收敛 | `WorkspaceProfileDashboardView.swift:732-737`：激活情境前二次确认 `NSAlert` | 属实 |
+| FCPX-055 一键隔离 / 自愈确认 | `PluginDoctorDashboardView.swift:339-345`、`361-367`：两处 `NSAlert` 带「取消」 | 属实 |
+| 单项搬家 / 迁回确认 | `StorageMigrationDashboardView.swift:367-372`、`404-409`：`NSAlert` 带「取消」 | 属实 |
+| UI-O006 画布复位入口 | `InfiniteCanvasView.swift:126` `fitArtboard()`；`MainWindowController.swift:377,559` 调用 | 属实（未逐项真机复测） |
+| UI-O013 离线/故障提示收敛 | `AssetHubView.swift:1673,1708,3457` `offlineGuardAlert(for:actionName:)` 单点 | 属实 |
+
+### 6.3 编译回归
+
+```
+cd FCPXStudioNative && swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+→ Build complete! (41.05s)，0 error
+```
+
+仅 1 条非致命 warning：`AudioManager.swift:165` `asset.duration` 在 macOS 13 已 deprecated。
+
+环境新增坑：不加 `--disable-sandbox` 时 SwiftPM 编译 manifest 报 `sandbox-exec: sandbox_apply: Operation not permitted` / `Invalid manifest`，是接管会话执行环境的嵌套沙箱限制，不是源码或 Package.swift 问题。
+
+### 6.4 新观察项（待用户裁决，不擅自改代码）
+
+1. **TR-005 服务默认自动启动**：`TeamSyncDashboardView.swift:573-586` 的 `viewDidMoveToWindow()` 在 `!isListening && lastServerError == nil` 时无条件 `startServer()`；`refreshData():630-637` 同样会自动拉起。真机实测 App 启动后 52888 立即 LISTEN，按钮初始为「⏹ 停止局域网监听」。本轮启停双向实测均有效（见 `reports/verify_20261110/P0_52888_lsof_evidence.md`）。是否与「手动点按钮才启动」的产品语义一致，由用户裁决；按接管要求 TR-005 不重新实现。
+2. **外置卷已 100% 占满**：`/Volumes/摄影师工具箱128GB` 剩 176Mi。不清理会卡住后续写入与 git commit。P3 包体积（146MB，python_bundle 140MB 含 scipy 63MB）按用户要求暂不动。
+
+### 6.5 无法自测项（需用户环境或授权，未擅自执行）
+
+| 项 | 未执行原因 | 已给出的最小验证入口 |
+| :--- | :--- | :--- |
+| FCPX 运行时 trash Render Files 是否报错崩溃 | 需真实 FCPX 工程 + 删除用户缓存，会动用户剪辑数据 | `LibraryCleaner.swift:418-452` 单 pass enumerator；FCPX 运行时手工触发清理并看 Console 崩溃日志 |
+| `.disabled` 改名后重启 FCPX 是否真的不加载 | 需改用户模板目录并重启 FCPX | `TemplateTier.swift:431,499` `hasSuffix(".disabled")` 判定；改名后重启 FCPX 看模板列表 |
+| 损坏卡 / 异盘卡 toggle 说明框 | 需构造损坏 / UUID 不匹配样本 | `AssetHubView.swift:1673,1708,3457` `offlineGuardAlert` |
+| 乐观态「已恢复在线 → 部分损坏」持续时长 | 需构造慢盘 + 缺文件样本 | `AssetHubView.swift:2959-3016`：无硬编码 timer，时长 = 后台 `fileExists` 遍历 `pendingCheckPaths` 的耗时，校验完成必切终态（3013 或 3008） |
+| 对比模式右板是否真的不可交互 | 需进入对比模式真机操作 | `MainWindowController.swift` 卷帘对比 / 并排分段控件 |
+
