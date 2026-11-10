@@ -85,8 +85,9 @@ def _sha256_of(path):
 
 
 def test_t2_default_backup_uses_hidden_prefix(tmp_path):
-    """T2-2（R22-F4 更新）：默认 backup 不再产生可见 _bak_（移出扫描树），
-    改为隐藏前缀 ._bak_，且旧版本内容保留在隐藏备份中。"""
+    """T2-2（TR-009 更新）：默认 backup 一律移出 FCPX 扫描树，
+    写 ~/Library/Application Support/FCPXStudio/backups/<分类>/<时间戳>_<名>，
+    扫描树内不得残留任何 _bak_（可见或隐藏），且旧版本 .moti 内容保留在备份中。"""
     existing = _first_build(tmp_path)
     old_moti = os.path.join(str(existing), "existing.moti")
     old_sha = _sha256_of(old_moti)
@@ -103,19 +104,22 @@ def test_t2_default_backup_uses_hidden_prefix(tmp_path):
     assert os.path.isdir(str(existing)), "默认 backup 后目标目录应存在"
 
     parent = str(existing.parent)
-    # 可见 _bak_ 目录不得存在（F-4/A-36 验收）
+    # 扫描树内不得有可见 _bak_ 目录
     visible_baks = glob.glob(os.path.join(parent, "*_bak_*"))
     assert visible_baks == [], f"扫描树内不得有可见 _bak_ 目录，实际: {visible_baks}"
-    # 隐藏 ._bak_ 备份应存在并保留旧版本
+    # 扫描树内也不得有隐藏 ._bak_ 目录（TR-009：备份彻底移出扫描树）
     hidden_baks = glob.glob(os.path.join(parent, ".*_bak_*"))
-    assert hidden_baks, f"应产生隐藏 ._bak_ 备份，实际: {hidden_baks}"
-    found = False
-    for b in hidden_baks:
-        cand = os.path.join(b, "existing.moti")
-        if os.path.isfile(cand):
-            assert _sha256_of(cand) == old_sha, "隐藏备份应保留旧版本 .moti"
-            found = True
-    assert found, "隐藏备份应包含旧版本 .moti"
+    assert hidden_baks == [], f"扫描树内不得有隐藏 ._bak_ 目录，实际: {hidden_baks}"
+
+    # 备份应落到 App 资源目录（扫描树之外），并保留旧版本 .moti
+    bak = result["backup_path"]
+    assert bak, "应返回备份路径"
+    assert "Library/Application Support/FCPXStudio/backups" in bak, \
+        f"备份应落在 App 资源目录，实际: {bak}"
+    assert not bak.startswith(parent), f"备份不得落在原目标父目录（扫描树）内: {bak}"
+    cand = os.path.join(bak, "existing.moti")
+    assert os.path.isfile(cand), f"备份应包含旧版本 .moti: {cand}"
+    assert _sha256_of(cand) == old_sha, "备份应保留旧版本 .moti 内容"
 
 
 def test_t2_ask_callback_false_blocks_write(tmp_path):

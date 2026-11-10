@@ -75,6 +75,17 @@ public final class AppConfig {
         return "\(systemMotionTemplatesRoot)/Titles.localized/PSD婚礼字幕"
     }
 
+    /// TR-009 #2：分类路径拼接禁止重复拼 Templates/Titles.localized 一层。
+    /// 若 root 已含 category 段，则截取到该段再拼 groupName；否则正常拼 category/groupName。
+    private func normalizedExportTarget(root: String, category: String, groupName: String) -> String {
+        let parts = root.split(separator: "/").map(String.init)
+        if let idx = parts.firstIndex(of: category) {
+            let base = "/" + parts[..<(idx + 1)].joined(separator: "/")
+            return "\(base)/\(groupName)"
+        }
+        return "\(root)/\(category)/\(groupName)"
+    }
+
     public func resolveExportDestination(
         category: String = "Titles.localized",
         groupName: String = "PSD婚礼字幕"
@@ -132,7 +143,7 @@ public final class AppConfig {
         }
 
         if let extRoot = availableExternalRoot {
-            let extTarget = "\(extRoot)/\(category)/\(groupName)"
+            let extTarget = normalizedExportTarget(root: extRoot, category: category, groupName: groupName)
             try? fm.createDirectory(atPath: extTarget, withIntermediateDirectories: true)
             return ResolvedExportDestination(
                 targetDir: extTarget,

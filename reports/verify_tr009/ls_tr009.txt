@@ -1,0 +1,77 @@
+===== ls -laR ~/Movies/Motion Templates.localized/Titles.localized/TR009验证 =====
+/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/TR009验证:
+total 0
+drwxr-xr-x  3 mrhuang staff   96 2026-11-10 12:18 .
+drwxrwxrwx 43 mrhuang staff 1376 2026-11-10 12:18 ..
+drwxr-xr-x  6 mrhuang staff  192 2026-11-10 12:18 TR009同一模板
+
+/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/TR009验证/TR009同一模板:
+total 264
+drwxr-xr-x 6 mrhuang staff    192 2026-11-10 12:18 .
+drwxr-xr-x 3 mrhuang staff     96 2026-11-10 12:18 ..
+drwxr-xr-x 2 mrhuang staff     64 2026-11-10 12:18 Media
+-rw-r--r-- 1 mrhuang staff 255239 2026-11-10 12:18 TR009同一模板.moti
+-rw-r--r-- 1 mrhuang staff   6526 2026-11-10 12:18 large.png
+-rw-r--r-- 1 mrhuang staff   1276 2026-11-10 12:18 small.png
+
+/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/TR009验证/TR009同一模板/Media:
+total 0
+drwxr-xr-x 2 mrhuang staff  64 2026-11-10 12:18 .
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 ..
+
+===== ls -laR ~/Library/Application Support/FCPXStudio/backups =====
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups:
+total 0
+drwxr-xr-x 3 mrhuang staff  96 2026-11-10 12:18 .
+drwxr-xr-x 5 mrhuang staff 160 2026-11-10 12:18 ..
+drwxr-xr-x 5 mrhuang staff 160 2026-11-10 12:18 Titles.localized
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized:
+total 0
+drwxr-xr-x 5 mrhuang staff 160 2026-11-10 12:18 .
+drwxr-xr-x 3 mrhuang staff  96 2026-11-10 12:18 ..
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 20261110_121817_TR009同一模板
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 20261110_121818_TR009同一模板
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 20261110_121820_TR009同一模板
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121817_TR009同一模板:
+total 264
+drwxr-xr-x 6 mrhuang staff    192 2026-11-10 12:18 .
+drwxr-xr-x 5 mrhuang staff    160 2026-11-10 12:18 ..
+drwxr-xr-x 2 mrhuang staff     64 2026-11-10 12:18 Media
+-rw-r--r-- 1 mrhuang staff 255239 2026-11-10 12:18 TR009同一模板.moti
+-rw-r--r-- 1 mrhuang staff   6526 2026-11-10 12:18 large.png
+-rw-r--r-- 1 mrhuang staff   1276 2026-11-10 12:18 small.png
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121817_TR009同一模板/Media:
+total 0
+drwxr-xr-x 2 mrhuang staff  64 2026-11-10 12:18 .
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 ..
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121818_TR009同一模板:
+total 264
+drwxr-xr-x 6 mrhuang staff    192 2026-11-10 12:18 .
+drwxr-xr-x 5 mrhuang staff    160 2026-11-10 12:18 ..
+drwxr-xr-x 2 mrhuang staff     64 2026-11-10 12:18 Media
+-rw-r--r-- 1 mrhuang staff 255239 2026-11-10 12:18 TR009同一模板.moti
+-rw-r--r-- 1 mrhuang staff   6526 2026-11-10 12:18 large.png
+-rw-r--r-- 1 mrhuang staff   1276 2026-11-10 12:18 small.png
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121818_TR009同一模板/Media:
+total 0
+drwxr-xr-x 2 mrhuang staff  64 2026-11-10 12:18 .
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 ..
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121820_TR009同一模板:
+total 264
+drwxr-xr-x 6 mrhuang staff    192 2026-11-10 12:18 .
+drwxr-xr-x 5 mrhuang staff    160 2026-11-10 12:18 ..
+drwxr-xr-x 2 mrhuang staff     64 2026-11-10 12:18 Media
+-rw-r--r-- 1 mrhuang staff 255239 2026-11-10 12:18 TR009同一模板.moti
+-rw-r--r-- 1 mrhuang staff   6526 2026-11-10 12:18 large.png
+-rw-r--r-- 1 mrhuang staff   1276 2026-11-10 12:18 small.png
+
+/Users/mrhuang/Library/Application Support/FCPXStudio/backups/Titles.localized/20261110_121820_TR009同一模板/Media:
+total 0
+drwxr-xr-x 2 mrhuang staff  64 2026-11-10 12:18 .
+drwxr-xr-x 6 mrhuang staff 192 2026-11-10 12:18 ..

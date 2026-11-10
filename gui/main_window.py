@@ -34,6 +34,25 @@ from .asset_hub_panel import AssetHubPanel
 DEFAULT_EXTERNAL_DIR = os.path.expanduser("~/Movies/Motion Templates.localized/Titles.localized/FCPX_Studio_MVP")
 DEFAULT_PSD_DIR = os.path.expanduser("~/Downloads")
 
+# TR-009 #2：分类路径拼接禁止重复拼 Titles.localized/Templates 一层
+_KNOWN_CATEGORIES = ["Titles.localized", "Effects.localized",
+                    "Transitions.localized", "Generators.localized"]
+
+
+def _resolve_export_group_dir(base: str, group_name: str) -> str:
+    """
+    由 external_root / 默认目录推导出“分组目录”（<...>/<category>/<group_name>），
+    且保证分类层（Titles.localized 等）只出现一次：
+      - 若 base 已含某个分类段，则截取到该分类段，再拼 group_name；
+      - 否则 base 视为 Motion Templates 根，拼 base/Titles.localized/group_name。
+    """
+    base = os.path.normpath(base)
+    parts = base.split(os.sep)
+    if any(c in parts for c in _KNOWN_CATEGORIES):
+        idx = max(i for i, c in enumerate(parts) if c in _KNOWN_CATEGORIES)
+        return os.path.join(os.sep.join(parts[: idx + 1]), group_name)
+    return os.path.join(base, "Titles.localized", group_name)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -567,7 +586,7 @@ class MainWindow(QMainWindow):
 
         base_name = os.path.splitext(os.path.basename(self.current_psd_path))[0]
         group_name = "PSD婚礼字幕"
-        target_group_dir = os.path.join(self.symlink_mgr.external_root or DEFAULT_EXTERNAL_DIR, "Titles.localized", group_name)
+        target_group_dir = _resolve_export_group_dir(self.symlink_mgr.external_root or DEFAULT_EXTERNAL_DIR, group_name)
         template_dir = os.path.join(target_group_dir, base_name)
 
         # ── R21-T2：冲突预检回调（core 层不弹 GUI，由这里注入）──
@@ -631,7 +650,7 @@ class MainWindow(QMainWindow):
             return
 
         group_name = "PSD婚礼字幕"
-        target_group_dir = os.path.join(self.symlink_mgr.external_root or DEFAULT_EXTERNAL_DIR, "Titles.localized", group_name)
+        target_group_dir = _resolve_export_group_dir(self.symlink_mgr.external_root or DEFAULT_EXTERNAL_DIR, group_name)
         os.makedirs(target_group_dir, exist_ok=True)
         # 状态文件落在输出分组目录（非 128 审核卷，满足 core 不写源卷约束）
         state_path = os.path.join(target_group_dir, ".batch_state.json")

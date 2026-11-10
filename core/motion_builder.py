@@ -90,6 +90,93 @@ def find_reference_template(custom_path: Optional[str] = None) -> str:
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REFERENCE_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "assets", "reference_base.moti")
 
+# ── TR-009：备份与分类路径安全基线 ──────────────────────────────────────────
+# 备份一律落在用户资源目录，绝不允许出现在 FCPX 扫描树（Motion Templates）内；
+# 分类路径拼接禁止重复拼 Templates/Titles.localized 一层。
+APP_SUPPORT_BACKUPS_ROOT = os.path.expanduser(
+    "~/Library/Application Support/FCPXStudio/backups"
+)
+MOTION_TEMPLATES_ROOT = os.path.expanduser("~/Movies/Motion Templates.localized")
+KNOWN_CATEGORIES = ["Titles.localized", "Effects.localized",
+                   "Transitions.localized", "Generators.localized"]
+BACKUP_KEEP_COUNT = 3
+
+
+def _is_inside_motion_templates(path: str) -> bool:
+    """判断 path 是否位于 FCPX 扫描树（Motion Templates.localized）内。"""
+    try:
+        real = os.path.realpath(path)
+    except OSError:
+        real = os.path.abspath(path)
+    mt = os.path.realpath(MOTION_TEMPLATES_ROOT)
+    return real == mt or real.startswith(mt + os.sep)
+
+
+def _category_of(output_dir: str) -> str:
+    """从 output_dir 中解析所属分类（Titles.localized 等），找不到返回 'unknown'。"""
+    real = os.path.realpath(os.path.abspath(output_dir))
+    parts = real.split(os.sep)
+    for cat in KNOWN_CATEGORIES:
+        if cat in parts:
+            return cat
+    return "unknown"
+
+
+def _normalize_output_dir(output_dir: str) -> str:
+    """
+    TR-009 #2：分类路径拼接禁止重复拼 Templates/Titles.localized 一层。
+    将 output_dir 中多余的已知分类段折叠为单一分类层，确保结构为
+    <MotionRoot>/<category>/<group...>/<template>。
+    """
+    real = os.path.realpath(os.path.abspath(output_dir))
+    parts = real.split(os.sep)
+    norm: List[str] = []
+    seen_category = False
+    for p in parts:
+        if p in KNOWN_CATEGORIES:
+            if seen_category:
+                continue  # 折叠重复分类段
+            seen_category = True
+        norm.append(p)
+    return os.sep.join(norm)
+
+
+def _safe_backup_path(category: str, name: str, ts: str) -> str:
+    """TR-009 #1：备份落 ~/Library/Application Support/FCPXStudio/backups/<分类>/<时间戳>_<模板名>。"""
+    return os.path.join(APP_SUPPORT_BACKUPS_ROOT, category, f"{ts}_{name}")
+
+
+def _prune_backups(category: str, keep: int = BACKUP_KEEP_COUNT) -> List[str]:
+    """
+    TR-009 #1：每个分类仅保留最近 keep 份备份，超出者移入回收目录（不直接删）。
+    返回被移走的备份路径列表。
+    """
+    cat_dir = os.path.join(APP_SUPPORT_BACKUPS_ROOT, category)
+    if not os.path.isdir(cat_dir):
+        return []
+    entries = []
+    for nm in os.listdir(cat_dir):
+        fp = os.path.join(cat_dir, nm)
+        if os.path.isdir(fp) and not nm.startswith("."):
+            entries.append((os.path.getmtime(fp), fp))
+    entries.sort(reverse=True)  # 新→旧
+    removed = []
+    if len(entries) > keep:
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        trash = os.path.join(cat_dir, f"._trash_{ts}")
+        os.makedirs(trash, exist_ok=True)
+        for _, fp in entries[keep:]:
+            dest = os.path.join(trash, os.path.basename(fp))
+            if os.path.exists(dest):
+                dest = f"{dest}_{int(time.time() * 1000)}"
+            try:
+                os.rename(fp, dest)
+                removed.append(dest)
+            except OSError:
+                pass
+    return removed
+
+
 class MotionBuilder:
     def __init__(self, base_moti_path: Optional[str] = None):
         self.resolved_template_path = find_reference_template(base_moti_path)
@@ -678,7 +765,8 @@ class MotionBuilder:
         if not template_name or any(bad in template_name for bad in ["/", "\\", ".."]) or len(template_name) > 255:
             raise ValueError(f"非法的模板名称「{template_name}」：名称禁止包含路径字符（/、\\、..）且长度不得超过 255 字符")
 
-        output_dir = os.path.abspath(output_dir)
+        # TR-009 #2：先折叠可能重复的分类层（如 .../Titles.localized/PSD婚礼字幕/Titles.localized/...）
+        output_dir = _normalize_output_dir(output_dir)
         norm_dir = os.path.realpath(output_dir)
         cwd_dir = os.path.realpath(os.getcwd())
 
@@ -862,20 +950,22 @@ class MotionBuilder:
                 extra_aliases=_aliases,
             )
 
-            # 6. 原模板安全备份（F-4/A-36：默认隐藏前缀，移出 FCPX 扫描树）
+            # 6. 原模板安全备份（TR-009：一律移出 FCPX 扫描树，写
+            #    ~/Library/Application Support/FCPXStudio/backups/<分类>/<时间戳>_<名>，仅保留最近 3 份）
             if os.path.exists(output_dir):
                 if backup_existing:
                     ts = time.strftime("%Y%m%d_%H%M%S")
-                    if backup_root:
-                        os.makedirs(backup_root, exist_ok=True)
-                        backup_dir = os.path.join(
-                            backup_root, f"{os.path.basename(output_dir)}_bak_{ts}"
+                    category = _category_of(output_dir)
+                    backup_dir = _safe_backup_path(category, os.path.basename(output_dir), ts)
+                    # 硬性断言：备份绝不可落在 Motion Templates 扫描树内（TR-009 #1/#2）
+                    if _is_inside_motion_templates(backup_dir):
+                        raise ValueError(
+                            f"备份目标误落在 FCPX 扫描树内，已中止以防污染: {backup_dir}"
                         )
-                    else:
-                        # 同文件系统隐藏前缀，保证 os.rename 原子且不被扫描树识别
-                        backup_dir = os.path.join(parent_dir, f".{template_name}_bak_{ts}")
+                    os.makedirs(os.path.dirname(backup_dir), exist_ok=True)
                     os.rename(output_dir, backup_dir)
                     backed_up_by_rename = True
+                    _prune_backups(category, keep=BACKUP_KEEP_COUNT)
                 else:
                     trash_dir = os.path.join(
                         parent_dir, f".{template_name}_trash_{os.getpid()}_{int(time.time()*1000)}"
