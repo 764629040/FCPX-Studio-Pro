@@ -126,7 +126,7 @@ if [[ ! -d "$ABS" ]]; then
     exit 4
 fi
 if [[ "$ABS_L" != *.app ]]; then
-    echo "❌ 错误: 目标必须是 .app 目录（当前: $ABS）" >&2
+    echo "❌ 错误: 目标必须是 .app 目录（当前: ${ABS}）" >&2
     exit 4
 fi
 

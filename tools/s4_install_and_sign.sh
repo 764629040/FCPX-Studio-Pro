@@ -38,7 +38,7 @@
 #   tools/s4_install_and_sign.sh --help
 #
 # 参数：
-#   --bin <path>          新二进制路径；缺省取环境变量 $BUILD_BIN（必填其一）
+#   --bin <path>          新二进制路径；缺省取环境变量 ${BUILD_BIN}（必填其一）
 #   --app <path>          目标 .app；缺省 $PROJECT_ROOT/"FCPX Studio Pro R2.app"
 #   --dry-run             只跑只读闸门并打印将执行的命令，不写任何文件
 #   --allow-tr013-bin     显式豁免 3381096 B 旧产物检查（不推荐，自担后果）
@@ -49,7 +49,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# 二进制来源：可传参变量，默认只读环境变量 $BUILD_BIN，绝不写死旧产物路径
+# 二进制来源：可传参变量，默认只读环境变量 ${BUILD_BIN}，绝不写死旧产物路径
 BUILD_BIN="${BUILD_BIN:-}"
 APP=""
 DRY_RUN=0
@@ -64,7 +64,7 @@ usage() {
     cat <<'USAGE'
 用法： tools/s4_install_and_sign.sh --bin <path> [--app <path>] [--dry-run]
 
-  --bin <path>        必填（或设环境变量 $BUILD_BIN）。必须是【本次重编】的新二进制，
+  --bin <path>        必填（或设环境变量 ${BUILD_BIN}）。必须是【本次重编】的新二进制，
                       不能沿用 /tmp/fcpx_wd/release/FCPXStudio (3381096 B) 的 TR-013 旧产物。
   --app <path>        目标 App，缺省为项目根下的 "FCPX Studio Pro R2.app"。
                       拒绝指向用户旧包 "FCPX Studio Pro.app"。
@@ -104,7 +104,7 @@ APP_ABS="$(cd "$APP" && pwd -P)"
 APP_BASE="$(basename "$APP_ABS")"
 case "$APP_BASE" in
     *.app|*.APP) ;;
-    *) die "目标必须是 .app 目录（当前: $APP_BASE）" ;;
+    *) die "目标必须是 .app 目录（当前: ${APP_BASE}）" ;;
 esac
 APP_BASE_L="$(printf '%s' "$APP_BASE" | tr '[:upper:]' '[:lower:]')"
 [ "$APP_BASE_L" != "fcpx studio pro.app" ] \
@@ -122,7 +122,7 @@ PROC_PATTERN="$APP_ABS/Contents/MacOS/$EXEC_NAME"
 RUNNING="$(pgrep -fl "$PROC_PATTERN" 2>/dev/null | grep -v "^$$ " | grep -v "^$PPID " || true)"
 if [ -n "$RUNNING" ]; then
     echo "❌ R2.app 仍在运行，禁止覆盖运行中的 Mach-O（会让 App 崩溃）" >&2
-    echo "   匹配进程（$PROC_PATTERN）：" >&2
+    echo "   匹配进程（${PROC_PATTERN}）：" >&2
     printf '%s\n' "$RUNNING" | sed 's/^/     /' >&2
     echo "   请由用户【主动退出】R2.app 后重试；本脚本不会替你退出任何 App。" >&2
     exit 5
@@ -198,7 +198,7 @@ fi
 # ── 幂等 / 并发保护：/tmp 原子锁，重复执行不会并发写同一个包 ────────────────
 LOCK_DIR="/tmp/s4_install_and_sign.lock"
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    die "另一个 s4_install_and_sign 实例正在运行（锁: $LOCK_DIR）。若为残留锁请人工确认后删除该目录"
+    die "另一个 s4_install_and_sign 实例正在运行（锁: ${LOCK_DIR}）。若为残留锁请人工确认后删除该目录"
 fi
 trap 'rm -rf "$LOCK_DIR"' EXIT
 
@@ -215,7 +215,7 @@ BACKUP_FILE="$BACKUP_DIR/${EXEC_NAME}.before_$(date +%Y%m%d_%H%M%S)"
 OLD_SIZE=$(stat -f %z "$OLD_BIN")
 cp -p "$OLD_BIN" "$BACKUP_FILE"
 BACKUP_SIZE=$(stat -f %z "$BACKUP_FILE")
-[ "$BACKUP_SIZE" -eq "$OLD_SIZE" ] || die "备份校验失败（$BACKUP_SIZE != $OLD_SIZE），已中止，目标未被修改"
+[ "$BACKUP_SIZE" -eq "$OLD_SIZE" ] || die "备份校验失败（$BACKUP_SIZE != ${OLD_SIZE}），已中止，目标未被修改"
 info "  备份完成: $BACKUP_FILE ($BACKUP_SIZE B)"
 
 # 2. cp 新二进制进 Contents/MacOS/
@@ -226,7 +226,7 @@ NEW_SIZE=$(stat -f %z "$OLD_BIN")
 if [ "$NEW_SIZE" -ne "$SRC_SIZE" ]; then
     cp -p "$BACKUP_FILE" "$OLD_BIN"
     chmod 755 "$OLD_BIN"
-    die "新二进制落盘后大小不符（$NEW_SIZE != $SRC_SIZE），已从备份恢复，未继续签名"
+    die "新二进制落盘后大小不符（$NEW_SIZE != ${SRC_SIZE}），已从备份恢复，未继续签名"
 fi
 info "  已换入: $OLD_BIN ($NEW_SIZE B)"
 

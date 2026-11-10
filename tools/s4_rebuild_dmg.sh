@@ -116,7 +116,7 @@ APP_ABS="$(cd "$APP" && pwd -P)"
 APP_BASE="$(basename "$APP_ABS")"
 case "$APP_BASE" in
     *.app|*.APP) ;;
-    *) die "源必须是 .app 目录（当前: $APP_BASE）" ;;
+    *) die "源必须是 .app 目录（当前: ${APP_BASE}）" ;;
 esac
 APP_BASE_L="$(printf '%s' "$APP_BASE" | tr '[:upper:]' '[:lower:]')"
 [ "$APP_BASE_L" != "fcpx studio pro.app" ] \
@@ -149,12 +149,12 @@ if [ -f "$OLD_DMG" ]; then
     OLD_MTIME=$(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$OLD_DMG")
     warn "检测到过期镜像: $OLD_DMG (${OLD_SIZE} B / ${OLD_MTIME}) —— 内容与当前源码不一致，不能对外发"
 else
-    warn "未找到旧镜像 $OLD_DMG（可能已移走），--replace 将无旧文件可备份"
+    warn "未找到旧镜像 ${OLD_DMG}（可能已移走），--replace 将无旧文件可备份"
 fi
 
 # 0.5 幂等 / 输出冲突
 if [ -e "$NEW_DMG" ] && [ "$FORCE" -eq 0 ]; then
-    die "输出已存在: $NEW_DMG（幂等保护）。加 --force 才允许覆盖，或换 --version"
+    die "输出已存在: ${NEW_DMG}（幂等保护）。加 --force 才允许覆盖，或换 --version"
 fi
 if [ -n "$PUBLISH_DIR" ]; then
     [ -d "$PUBLISH_DIR" ] || die "--publish 目录不存在: $PUBLISH_DIR"
@@ -194,7 +194,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     if [ -n "$PUBLISH_DIR" ]; then
         echo "cp \"$NEW_DMG\" \"$PUBLISH_DIR/$NEW_DMG_NAME\"      # 并列新版本号（不删旧 dmg）"
     else
-        echo "#   （未给 --publish：新 dmg 只留在 $TMP_OUT_DIR，由集成方取用）"
+        echo "#   （未给 --publish：新 dmg 只留在 ${TMP_OUT_DIR}，由集成方取用）"
     fi
     if [ "$DO_REPLACE" -eq 1 ]; then
         echo "cp -p \"$OLD_DMG\" \"/tmp/s4_dmg_old_${VERSION}_\$(date +%Y%m%d_%H%M%S).dmg\"   # 旧镜像备份到 /tmp"
@@ -209,7 +209,7 @@ fi
 # ── 幂等 / 并发保护 ──────────────────────────────────────────────────────────
 LOCK_DIR="/tmp/s4_rebuild_dmg.lock"
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    die "另一个 s4_rebuild_dmg 实例正在运行（锁: $LOCK_DIR）。若为残留锁请人工确认后删除该目录"
+    die "另一个 s4_rebuild_dmg 实例正在运行（锁: ${LOCK_DIR}）。若为残留锁请人工确认后删除该目录"
 fi
 STAGE_DIR=""
 MNT=""
@@ -227,7 +227,7 @@ echo "=================================================="
 echo "  S4.3 重建分发镜像"
 echo "  源 App:  $APP_ABS"
 echo "  新镜像:  $NEW_DMG"
-echo "  版本:    $VERSION（旧 v1.0.dmg 已过期，不对外发）"
+echo "  版本:    ${VERSION}（旧 v1.0.dmg 已过期，不对外发）"
 echo "=================================================="
 
 # 1. /tmp stage
@@ -236,7 +236,7 @@ STAGE_DIR="$(mktemp -d /tmp/s4_dmg_stage.XXXXXX)"
 cp -R "$APP_ABS" "$STAGE_DIR/"
 find "$STAGE_DIR" \( -name "*.cstemp" -o -name "._*" -o -name ".DS_Store" \) -delete
 [ -f "$STAGE_DIR/$APP_BASE/Contents/MacOS/FCPXStudio" ] \
-    || die "stage 内缺可执行文件，已中止（$STAGE_DIR/$APP_BASE）"
+    || die "stage 内缺可执行文件，已中止（$STAGE_DIR/${APP_BASE}）"
 
 # 2. hdiutil create → /tmp
 info "[2/4] hdiutil create → $NEW_DMG"
@@ -256,7 +256,7 @@ info "  体积: ${DMG_SIZE} B"
 
 MNT="$(mktemp -d /tmp/s4_dmg_mnt.XXXXXX)"
 hdiutil attach "$NEW_DMG" -readonly -nobrowse -mountpoint "$MNT" >/dev/null \
-    || die "hdiutil attach 失败（挂载点 $MNT）"
+    || die "hdiutil attach 失败（挂载点 ${MNT}）"
 APP_IN_DMG="$MNT/$APP_BASE"
 [ -f "$APP_IN_DMG/Contents/MacOS/FCPXStudio" ] || die "dmg 内缺可执行文件: $APP_IN_DMG/Contents/MacOS/FCPXStudio"
 cmp -s "$APP_ABS/Contents/MacOS/FCPXStudio" "$APP_IN_DMG/Contents/MacOS/FCPXStudio" \
@@ -278,12 +278,12 @@ if [ -n "$PUBLISH_DIR" ]; then
         || die "目标目录可用空间不足（需 ≥ ${DST_NEED_KB} KiB，当前 ${DST_AVAIL_KB:-unknown} KiB），拒绝写入。新镜像仍安全留在 $NEW_DMG"
     DST="$PUBLISH_DIR/$NEW_DMG_NAME"
     if [ -e "$DST" ] && [ "$FORCE" -eq 0 ]; then
-        die "目标已存在: $DST（幂等保护）。加 --force 才允许覆盖"
+        die "目标已存在: ${DST}（幂等保护）。加 --force 才允许覆盖"
     fi
     cp "$NEW_DMG" "$DST"
     info "  已并列发布: $DST"
 else
-    info "  未给 --publish：新镜像只留在 /tmp（$NEW_DMG），由集成方取用"
+    info "  未给 --publish：新镜像只留在 /tmp（${NEW_DMG}），由集成方取用"
 fi
 
 if [ "$DO_REPLACE" -eq 1 ]; then
@@ -296,7 +296,7 @@ if [ "$DO_REPLACE" -eq 1 ]; then
     [ "${ROOT_AVAIL_KB:-0}" -ge "$ROOT_NEED_KB" ] \
         || die "外置卷可用空间不足（需 ≥ ${ROOT_NEED_KB} KiB，当前 ${ROOT_AVAIL_KB:-unknown} KiB），拒绝替换。旧镜像未动，备份在 $OLD_BACKUP"
     cp "$NEW_DMG" "$OLD_DMG"
-    info "  已用新内容替换同名 $OLD_DMG（内容已是 $VERSION，对外发布时请改用新版本号命名）"
+    info "  已用新内容替换同名 ${OLD_DMG}（内容已是 ${VERSION}，对外发布时请改用新版本号命名）"
 fi
 
 echo "=================================================="
