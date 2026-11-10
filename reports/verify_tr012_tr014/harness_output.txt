@@ -1,0 +1,166 @@
+TR-012 / TR-014 验收驱动（真实源码直编 + 纯内存合成模型）
+时间: 2026-11-10 11:16:52 +0000
+硬约束: 禁止自动退出/重启 FCPX；不触碰 ~/Movies/Motion Templates.localized；不启动/重启 App
+
+=== 1. TR-012：280 套内存模板，端到端 toggle → 统计条重算回写 ===
+  [初始] 当前分类（字幕）：共 280 套（已启用 280 / 已休眠 0）   |   内置 0 · 用户 280 · 系统 0
+  ✅ 初始统计条 = 280/0
+  [禁用后] 当前分类（字幕）：共 280 套（已启用 279 / 已休眠 1）   |   内置 0 · 用户 280 · 系统 0
+  ✅ 禁用 1 套后统计条 = 279/1
+  ✅ allItems 内存模型同步为 279 启用
+  ✅ plugins 同步为 279 启用
+  ✅ ★根因修复：groupItems 快照同步为 disabled（原 HEAD 完全没同步）
+  ✅ 全量口径仅 1 套休眠
+[statusLabel][silent][S13] 共 280 项 · 内置根:已定位 系统根:目录不存在 · 内置级写入:只读
+  ✅ ★回归：之后 loadTemplatesForSelectedGroup() 不再打回 280/0
+  ✅ ★回归：之后 applyFilterAndSort() 仍是 279/1
+  ✅ ★回归：plugins 不再被陈旧快照重置回 280
+    wrote reports/verify_tr012_tr014/01_统计条_禁用_279_1.png  (1000x250)
+  ✅ 01_统计条_禁用_279_1.png（离屏渲染，含 279/1）
+  [启用后] 当前分类（字幕）：共 280 套（已启用 280 / 已休眠 0）   |   内置 0 · 用户 280 · 系统 0
+  ✅ 启用回来后统计条 = 280/0
+  ✅ groupItems 快照同步回 enabled
+  ✅ ★回归：启用后再次刷新分组仍是 280/0
+    wrote reports/verify_tr012_tr014/02_统计条_启用_280_0.png  (1000x250)
+  ✅ 02_统计条_启用_280_0.png（离屏渲染，含 280/0）
+
+=== 2. TR-012：统计条单一真源 + 硬约束静态举证 ===
+  tierStatsLabel 写入口：
+    tierStatsLabel?.stringValue = stats
+  ✅ 统计条只剩 1 个写入口（refreshTierStats 内），消除 :1417/:1442 口径污染
+  ✅ statusLabel 只剩 postFeedback 里 1 处隐藏容器写入（不作为可见通道）
+  ✅ toggle 成功分支现同步 groupItems 快照
+  ✅ toggle 成功分支显式重算并回写统计条
+  ✅ toggle 成功分支走 S02 可见通道
+  ✅ 全量 Swift 源码零自动退出/重启 FCPX 关键字
+    扫描词表: NSRunningApplication, relaunch, killall, osascript, quitApp, restartApp, terminateApp(, NSWorkspace.shared.launchApplication
+    文案「重启 FCPX 后可见」仅为告知，代码不触发任何重启。
+
+=== 3. TR-014：改后布局复测（先量后改的对照） ===
+  breadcrumbBar.frame = (x=0.0, y=556.0, w=627.0, h=44.0)，固定高度 = 44.0pt，子视图数 = 5
+  statusLabel（旧隐藏容器）= (x=0.0, y=0.0, w=4.0, h=16.0), isHidden=true
+  actionFeedbackLabel（新可见条）= (x=10.0, y=476.0, w=607.0, h=20.0), isHidden=false
+  actionFeedbackLabel 显式约束 8 条：
+    <NSLayoutConstraint:0x71852ead0 NSTextField:0x719ee8000.height == 20   (active)>
+    <NSContentSizeLayoutConstraint:0x71a5aec40 NSTextField:0x719ee8000.width == 22 Hug:251 CompressionResistance:750   (active)>
+    <NSContentSizeLayoutConstraint:0x71a5aed00 NSTextField:0x719ee8000.height == 14 Hug:750 CompressionResistance:750   (active)>
+    <NSLayoutConstraint:0x71852e9e0 V:[NSTextField:0x719dafb80]-(4)-[NSTextField:0x719ee8000]   (active)>
+    <NSLayoutConstraint:0x71852ea30 H:|-(12)-[NSTextField:0x719ee8000]   (active, names: '|':NSView:0x719422080 )>
+    <NSLayoutConstraint:0x71852ea80 NSTextField:0x719ee8000.trailing == NSView:0x719422080.trailing - 12   (active)>
+    <NSLayoutConstraint:0x71852eb20 V:[NSTextField:0x719ee8000]-(4)-[NSScrollView:0x719eb8500]   (active)>
+    <NSLayoutConstraint:0x71852ec60 V:[NSTextField:0x719ee8000]-(4)-[NSScrollView:0x719eb8a00]   (active)>
+  ✅ breadcrumbBar 仍是 44pt / 5 个子视图（未靠塞控件硬撑）
+  ✅ 旧 statusLabel 仍隐藏且 4×16（没有靠只改 isHidden 蒙混）
+  ✅ actionFeedbackLabel isHidden=false（用户真能看见）
+  ✅ actionFeedbackLabel 有真实非零 frame (x=10.0, y=476.0, w=607.0, h=20.0)
+  ✅ actionFeedbackLabel TAMIC=false（Auto Layout 驱动）
+  ✅ actionFeedbackLabel 至少 4 条开发者显式约束
+  ✅ 新反馈条没有塞进 44pt 面包屑，而是 rightColumnView 独立一行
+
+=== 4. TR-014：14 个写点通道判定表 ===
+  ------------------------------------------------------------------------------------------------------------
+  Site 场景 通道 理由
+  ------------------------------------------------------------------------------------------------------------
+  S01 批量启用/禁用完成 banner 批量结果的 NSAlert 已由 TR-013 presentToggleSuccess 承担；只补常驻可见反馈条，不重复弹窗
+  S02 单项 toggle 成功 banner TR-013 成功弹窗已覆盖该路径；本轮补常驻可见反馈条，避免同一操作弹两次
+  S03 移入废纸篓成功 alert 破坏性操作结果，用户必须明确看到「可放回原处」；原来完全静默
+  S04 强制绑定卷完成 alert 安全敏感操作（原盘 UUID 不符仍强制绑定）的结果需要用户确认
+  S05 重新校验通过 banner 瞬时恢复状态，不打断用户操作
+  S06 重新校验仍损坏 alert 故障未解决，需要用户介入，必须告警
+  S07 外置盘断开 / 离线保全 alert 数据可用性告警，需打断用户
+  S08 外置盘重连 / 校验中 banner 瞬时进度信息，不打断
+  S09 校验发现部分损坏 alert 异步校验发现的故障，必须告警
+  S10 校验完成全就绪 banner 正常完成态，不打断
+  S11 updateStatusLine(overrideMessage:) 通用分发 banner 多个写点共用；若设 alert 会导致每次状态刷新都弹窗，故只写常驻反馈条
+  S12 外置盘离线常态描述 silent 与 S07 的卷断开告警重复且属被动刷新，避免重复打扰用户
+  S13 常规状态行「共 N 项 · 内置根…」 silent 诊断信息，统计条已覆盖核心数量；显式拒绝复用 tierStatsLabel 以免污染 279/1 与 280/0
+  S14 setBusy 处理中… banner 进行中反馈，用户需要看到当前在忙
+  ------------------------------------------------------------------------------------------------------------
+  通道统计：banner 7 / alert(本轮新增) 5 / silent 2 / 复用 tierStatsLabel 0
+  ★「复用已可见的 tierStatsLabel」显式判定为 0 处并拒绝：
+    它是 TR-012 刚统一的统计真源，写任何非统计文案都会污染「已启用 X / 已休眠 Y」，
+    直接破坏 279/1 与 280/0 验收数字。这是判定表里唯一被主动排除的通道。
+  ★ S01/S02 的 NSAlert 通道由 TR-013 既有 presentToggleSuccess 承担，本轮不重复弹窗。
+
+=== 5. TR-014：逐写点静态源码判定核对 ===
+  ✅ S01 批量启用/禁用完成 → .banner
+  ✅ S02 单项 toggle 成功 → .banner
+  ✅ S03 移入废纸篓成功 → .alert
+  ✅ S04 强制绑定卷完成 → .alert
+  ✅ S05 重新校验通过 → .banner
+  ✅ S06 重新校验仍损坏 → .alert
+  ✅ S07 外置盘断开 / 离线保全 → .alert
+  ✅ S08 外置盘重连 / 校验中 → .banner
+  ✅ S09 校验发现部分损坏 → .alert
+  ✅ S10 校验完成全就绪 → .banner
+  ✅ S11 updateStatusLine(overrideMessage:) 通用分发 → .banner
+  ✅ S12 外置盘离线常态描述 → .silent
+  ✅ S13 常规状态行「共 N 项 · 内置根…」 → .silent
+  ✅ S14 setBusy 处理中… → .banner
+  ✅ 全量 14 个写点均有唯一 site 标识
+
+=== 6. TR-014：逐写点运行时证据 + 每处一张离屏渲染图 ===
+[statusLabel][silent][S13] 共 280 项 · 内置根:已定位 系统根:目录不存在 · 内置级写入:只读
+[statusLabel][silent][S12] 外置盘 [外置盘] 已断开，1 套模板已离线保全
+[statusLabel][silent][S13] 共 280 项 · 内置根:已定位 系统根:目录不存在 · 内置级写入:只读
+  ★ 真实写点自然触发（未经重放）：S02, S11, S12, S13, S14
+    S02/S11 来自第 1 节真实 toggleTemplateItem；S12/S13 来自 applyFilterAndSort；S14 来自 setBusy。
+  ★ 其余写点需真实删除 / 卷事件 / 异步校验，本 harness 禁止触碰真实模板库与文件，
+    故不模拟完整业务流程，改用同一个 postFeedback 分发器按判定通道重放（文案为样例）。
+    这些写点「已改为该通道」由第 5 节静态源码核对保证，图内标注为「分发器重放」。
+  ✅ feedbackLog 覆盖全部 14 个写点
+  ✅ 5 个 .alert 写点均触发
+  ✅ ★ 5 个 .alert 写点经分发器均构造出真实 NSAlert 对象（通道可用，生产会弹窗）
+    注：这 5 个弹窗由 .alert 通道重放驱动，非真实删除 / 卷事件流程产生；写点静态判定见第 5 节。
+    [NSAlert] 操作反馈 | 模板「TR012_Synthetic_0」已成功移入废纸篓 ✓ | buttons=["好"]
+    [NSAlert] 操作反馈 | 已强制绑定卷并更新模板「TR012_Synthetic_0」状态 | buttons=["好"]
+    [NSAlert] 操作反馈 | 模板「TR012_Synthetic_0」主文件依然缺失，保持损坏保护状态 | buttons=["好"]
+    [NSAlert] 操作反馈 | 外置盘 [摄影素材盘] 已断开，12 套模板已离线保全 | buttons=["好"]
+    [NSAlert] 操作反馈 | 外置盘 [摄影素材盘] 部分文件缺失损坏：3 套模板标红告警 | buttons=["好"]
+  ✅ 2 个 .silent 写点不写任何 UI
+[statusLabel][silent][S13] 静默通道污染探针
+  ✅ ★ .silent 不污染统计条
+  ✅ ★ .silent 不污染可见反馈条
+    wrote reports/verify_tr012_tr014/S01_banner_离屏渲染.png  (940x210)
+  ✅ S01 截图 reports/verify_tr012_tr014/S01_banner_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S02_banner_离屏渲染.png  (940x210)
+  ✅ S02 截图 reports/verify_tr012_tr014/S02_banner_离屏渲染.png（真实写点自然触发）
+    wrote reports/verify_tr012_tr014/S03_alert_离屏渲染.png  (940x210)
+  ✅ S03 截图 reports/verify_tr012_tr014/S03_alert_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S04_alert_离屏渲染.png  (940x210)
+  ✅ S04 截图 reports/verify_tr012_tr014/S04_alert_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S05_banner_离屏渲染.png  (940x210)
+  ✅ S05 截图 reports/verify_tr012_tr014/S05_banner_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S06_alert_离屏渲染.png  (940x210)
+  ✅ S06 截图 reports/verify_tr012_tr014/S06_alert_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S07_alert_离屏渲染.png  (940x210)
+  ✅ S07 截图 reports/verify_tr012_tr014/S07_alert_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S08_banner_离屏渲染.png  (940x210)
+  ✅ S08 截图 reports/verify_tr012_tr014/S08_banner_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S09_alert_离屏渲染.png  (940x210)
+  ✅ S09 截图 reports/verify_tr012_tr014/S09_alert_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S10_banner_离屏渲染.png  (940x210)
+  ✅ S10 截图 reports/verify_tr012_tr014/S10_banner_离屏渲染.png（分发器重放（样例文案））
+    wrote reports/verify_tr012_tr014/S11_banner_离屏渲染.png  (940x210)
+  ✅ S11 截图 reports/verify_tr012_tr014/S11_banner_离屏渲染.png（真实写点自然触发）
+    wrote reports/verify_tr012_tr014/S12_silent_离屏渲染.png  (940x210)
+  ✅ S12 截图 reports/verify_tr012_tr014/S12_silent_离屏渲染.png（真实写点自然触发）
+    wrote reports/verify_tr012_tr014/S13_silent_离屏渲染.png  (940x210)
+  ✅ S13 截图 reports/verify_tr012_tr014/S13_silent_离屏渲染.png（真实写点自然触发）
+    wrote reports/verify_tr012_tr014/S14_banner_离屏渲染.png  (940x210)
+  ✅ S14 截图 reports/verify_tr012_tr014/S14_banner_离屏渲染.png（真实写点自然触发）
+
+=== 7. 硬约束复核 ===
+  · 280 套模板全部是内存 TemplateItem，路径 /tmp/tr012_synth* 下不创建任何文件
+  · toggle 通过 toggleExecutor 注入，未调用 TemplateInstaller 的磁盘搬运
+  · 未启动/重启/退出 FCPX（PID 97387）或 R2.app（PID 96268）
+  · 未改动 ~/Movies/Motion Templates.localized、.app 包、docs/、两份未提交文档
+  ✅ 本 harness 全程零磁盘模板写入
+
+================ RESULT ================
+PASS = 63   FAIL = 0
+TR-012 + TR-014 VERDICT: PASS
+========================================
+图类型说明：01/02 与 S01..S14 全部为【AppKit 控件离屏渲染】，图内 caption 已标注；
+            另有一张【真实屏幕截图】由 TextEdit 打开本 harness 原始输出后截窗口生成，
+            文件名 04_真实屏幕截图_TextEdit.png，二者不混用、不冒充。

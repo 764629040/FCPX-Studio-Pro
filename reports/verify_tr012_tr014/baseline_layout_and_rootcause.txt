@@ -1,0 +1,109 @@
+TR-012 / TR-014 基线探针（改代码之前）
+时间: 2026-11-10 11:00:51 +0000
+HEAD: 8bce844, 源码未修改, 纯内存复现, 不触碰真实模板库
+
+=== A. TR-014 先量位置：breadcrumbBar 44pt 布局 ===
+  breadcrumbBar.class = NSView
+  breadcrumbBar.frame = (x=0.0, y=556.0, w=627.0, h=44.0)
+  breadcrumbBar.superview = NSView  frame=(x=360.0, y=0.0, w=627.0, h=600.0)
+  [bar 自身约束] <NSLayoutConstraint:0xc4bd46170 NSView:0xc4a57e300.height == 44   (active)>
+  [bar 自身约束] <NSAutoresizingMaskLayoutConstraint:0xc4c9a11d0 h=--& v=--& NSTextField:0xc4bc74a80.height == 16   (active)>
+  [bar 自身约束] <NSAutoresizingMaskLayoutConstraint:0xc4c9a1310 h=--& v=--& NSPopUpButton:0xc4bd09200.height == 0   (active)>
+  [bar 自身约束] <NSAutoresizingMaskLayoutConstraint:0xc4c9a1450 h=--& v=--& NSTextField:0xc4bc77100.height == 24   (active)>
+  [bar 自身约束] <NSAutoresizingMaskLayoutConstraint:0xc4c9a1590 h=--& v=--& NSTextField:0xc4bc77800.height == 16   (active)>
+  [父视图上的 bar 约束] <NSLayoutConstraint:0xc4bd46080 V:|-(0)-[NSView:0xc4a57e300]   (active, names: '|':NSView:0xc4a57e080 )>
+  [父视图上的 bar 约束] <NSLayoutConstraint:0xc4bd460d0 H:|-(0)-[NSView:0xc4a57e300]   (active, names: '|':NSView:0xc4a57e080 )>
+  [父视图上的 bar 约束] <NSLayoutConstraint:0xc4bd46120 NSView:0xc4a57e300.trailing == NSView:0xc4a57e080.trailing   (active)>
+  [父视图上的 bar 约束] <NSLayoutConstraint:0xc4bd46260 V:[NSView:0xc4a57e300]-(0)-[NSView:0xc4a57e580]   (active)>
+  → 固定高度 = 44.0 pt
+
+  breadcrumbBar.subviews 共 5 个：
+    [0] breadcrumbLabel frame=(x=12.0, y=14.0, w=4.0, h=16.0) hidden=NO TAMIC=NO(AutoLayout) 约束数=2  class=NSTextField
+    [1] categoryTitleLabel frame=(x=0.0, y=0.0, w=102.5, h=16.0) hidden=YES TAMIC=YES(默认,由frame驱动) 约束数=4  class=NSTextField
+    [2] categoryPopup frame=(x=0.0, y=0.0, w=0.0, h=0.0) hidden=YES TAMIC=YES(默认,由frame驱动) 约束数=4  class=NSPopUpButton
+    [3] pathDisplayField frame=(x=0.0, y=0.0, w=12.0, h=24.0) hidden=YES TAMIC=YES(默认,由frame驱动) 约束数=4  class=NSTextField
+    [4] statusLabel  ← 目标 frame=(x=0.0, y=0.0, w=4.0, h=16.0) hidden=YES TAMIC=YES(默认,由frame驱动) 约束数=4  class=NSTextField
+  → 未隐藏子视图数 = 1 / 5
+
+  statusLabel 专项：
+    frame = (x=0.0, y=0.0, w=4.0, h=16.0)
+    intrinsicContentSize = (0.0, 14.0)
+    isHidden = true
+    translatesAutoresizingMaskIntoConstraints = true
+    与之相关的 NSLayoutConstraint 条数 = 4
+    superview = NSView
+
+  44pt 内空间量化：
+    breadcrumbLabel 可见高度 = 16.0 pt（centerY 居中）→ 垂直已占 16.0 / 44.0，剩余 28.0 pt
+    breadcrumbLabel 宽度 ≈ 4.0 pt（leading=14）→ 水平剩余 ≈ 597.0 pt（bar 宽 627.0，再留 trailing 12）
+    但另有 categoryTitleLabel / categoryPopup / pathDisplayField 三个 isHidden=YES 子视图，
+    statusLabel 自己 frame 仅 4×16（比一个 11pt 汉字还窄）+ 0 条显式约束 + TAMIC=YES。
+    模拟运行时面包屑文案后实宽 = 236.0 pt → 水平剩余 = 365.0 pt（bar 627.0 - leading 14 - 实宽 - trailing 12）
+    垂直方向：breadcrumbLabel centerY 居中占 16pt，上下各剩 14pt，容不下第二行独立文本。
+    statusLabel 相关约束逐条类名：
+      NSAutoresizingMaskLayoutConstraint  <NSAutoresizingMaskLayoutConstraint:0xc4c9a14a0 h=--& v=--& NSTextField:0xc4bc77800.minX == 2   (active, names: '|':NSView:0xc4a57e300 )>
+      NSAutoresizingMaskLayoutConstraint  <NSAutoresizingMaskLayoutConstraint:0xc4c9a14f0 h=--& v=--& NSTextField:0xc4bc77800.width == 0   (active)>
+      NSAutoresizingMaskLayoutConstraint  <NSAutoresizingMaskLayoutConstraint:0xc4c9a1540 h=--& v=--& NSTextField:0xc4bc77800.minY == 0   (active, names: '|':NSView:0xc4a57e300 )>
+      NSAutoresizingMaskLayoutConstraint  <NSAutoresizingMaskLayoutConstraint:0xc4c9a1590 h=--& v=--& NSTextField:0xc4bc77800.height == 16   (active)>
+  [PASS] statusLabel frame 宽仅 4.0pt（等效零可见区域；实测非严格 NSZeroRect）
+  [PASS] statusLabel 0 条开发者显式 NSLayoutConstraint（4 条全为系统 autoresizing mask 派生）
+  [PASS] statusLabel 自初始化起 isHidden=true
+  [PASS] statusLabel TAMIC=YES（frame 驱动）
+  [PASS] breadcrumbBar 固定高度 44pt
+  [PASS] breadcrumbBar 内已有 4 个其它子视图 + statusLabel = 5 个
+
+  >> 量化结论：只把 isHidden 改成 false，statusLabel 仍是 (x=0.0, y=0.0, w=4.0, h=16.0)（4pt 宽，放不下一个汉字）、
+     0 条显式约束、被 44pt 固定高度面包屑 + 左侧真实面包屑文本 + 4 个既有子视图挤占，
+     用户依然一个字都看不到。必须另建真正有约束的可见通道。
+
+=== B. TR-012 根因复现（当前 HEAD，纯内存） ===
+  groupItems 分组数 = 1, selectedGroupIndex = 0
+  [B0] 初始 loadTemplatesForSelectedGroup() -> 当前组共 280 套模板（已启用 280 / 已休眠 0）
+  模拟禁用 1 套：allItems[0].isEnabled=false, plugins 同步；groupItems 保持旧快照（当前 HEAD 行为）
+     此时 groupItems[0].items[0].isEnabled = true  ← 陈旧
+  [B1] applyFilterAndSort()/updateTierStats() -> 当前分类（字幕）：共 280 套（已启用 279 / 已休眠 1）   |   内置 0 · 用户 280 · 系统 0
+  [B2] 之后任意一次 loadTemplatesForSelectedGroup() -> 当前组共 280 套模板（已启用 280 / 已休眠 0）
+     此时 plugins 里 isEnabled=true 的数量 = 280  ← 被旧快照重置
+  [PASS] B0 统计条为 280/0
+  [PASS] B1 updateTierStats 基于 allItems 重算出 279/1
+  [PASS] B2 被 :1442 用陈旧 groupItems 快照覆盖回 280/0（根因）
+  [PASS] 同一 label 存在两个写入口且口径冲突（allItems 全量 vs plugins 当前组）
+  [PASS] 连带 plugins 状态也被旧快照打回 280 全启用
+
+=== C. 静态源码证据（当前 HEAD 8bce844） ===
+  tierStatsLabel?.stringValue = ... 的全部写入口：
+    :1417  tierStatsLabel?.stringValue = "当前组共 0 套模板"
+    :1442  tierStatsLabel?.stringValue = "当前组共 \(plugins.count) 套模板（已启用 \(enabledCount) / 已休眠 \(disabledCount)）"
+    :3386  tierStatsLabel?.stringValue = stats
+
+  updateTierStats() 计数所基于的数组：
+    :3361  private func updateTierStats() {
+    :3362  let total = allItems.count
+    :3363  let enabledCount = allItems.filter { $0.isEnabled }.count
+    :3365  let builtin = allItems.filter { $0.tier == .builtin }.count
+    :3366  let user = allItems.filter { $0.tier == .user }.count
+    :3367  let system = allItems.filter { $0.tier == .system }.count
+    :3380  var stats = "当前分类（\(catDisplayName)）：共 \(total) 套（已启用 \(enabledCount) / 已休眠 \(disabledCount)）"
+    :3381  let offlineCount = allItems.filter { $0.isOffline }.count
+    :3383  stats += " · 离线保全 \(offlineCount)"
+    :3385  stats += "   |   内置 \(builtin)\(builtinSuffix) · 用户 \(user) · 系统 \(system)"
+    :3386  tierStatsLabel?.stringValue = stats
+
+  toggleTemplateItem 成功分支 :1795-1817 同步了哪些数组：
+    :1799  allItems[idx] = updated
+    :1802  plugins[idx] = updated
+    :1806  card.item = updated
+    :1810  // 原 statusLabel 自初始化起 isHidden = true，仅写它用户根本看不到，故补一个真实可见的提示弹窗。
+    :1812  statusLabel?.stringValue = msg
+    :1813  updateStatusLine(overrideMessage: msg)
+  [PASS] 成功分支完全没有同步 groupItems（根因核心）
+  [PASS] tierStatsLabel 共 3 个写入口（:1417 / :1442 / :3386）
+
+=== D. 硬约束复核 ===
+  本探针只操作内存数组；未创建/移动/删除任何模板文件；未访问真实模板库做写操作。
+  未启动/退出/重启 FCPX 或 R2.app；无自动重启代码。
+
+================ BASELINE RESULT ================
+PASS = 13   FAIL = 0
+（注意：本探针的 FAIL 若为 0，代表「根因假设被实测证实」，不是「功能已修」）
+=================================================

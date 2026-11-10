@@ -23,6 +23,10 @@ public final class ResourceCardView: NSView {
     }
 
     public var onToggle: ((TemplateItem) -> Void)?
+    /// TR-012：无宿主注入 onToggle 的降级路径改了磁盘状态后，必须通知宿主重算统计条，
+    /// 否则统计条会停留在 toggle 前的旧数字。生产中所有卡片均由 AssetHubView 注入 onToggle，
+    /// 此回调只在降级路径触发，用于封住最后一个旁路。
+    public var onToggleCompleted: ((TemplateItem) -> Void)?
     public var onActionMenu: ((TemplateItem, NSView) -> Void)?
     public var onRequestContextMenu: ((TemplateItem, NSEvent) -> NSMenu?)?
 
@@ -560,6 +564,8 @@ public final class ResourceCardView: NSView {
             do {
                 let updated = try TemplateInstaller.shared.toggleTemplate(item: item)
                 self.item = updated
+                // TR-012：降级路径同样改变了磁盘状态，通知宿主重建内存模型并重算统计条
+                onToggleCompleted?(updated)
             } catch {
                 print("[ResourceCardView] Toggle template failed: \(error.localizedDescription)")
             }

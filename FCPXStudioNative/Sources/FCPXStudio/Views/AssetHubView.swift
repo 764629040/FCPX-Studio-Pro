@@ -180,6 +180,13 @@ public final class AssetHubView: NSVisualEffectView,
     public var sortPopup: NSPopUpButton!
     public var statusLabel: NSTextField!
     public var tierStatsLabel: NSTextField!
+    /// TR-014：真正可见、带完整 Auto Layout 约束的操作反馈条。
+    /// 不塞进 44pt 的 breadcrumbBar（实测 statusLabel 只有 4×16、0 条显式约束），
+    /// 也不复用 tierStatsLabel（它是统计条，写非统计文案会污染 279/1、280/0 数字）。
+    public var actionFeedbackLabel: NSTextField!
+    /// TR-012 测试注入点：替换「磁盘 toggle」为纯内存实现，生产恒为 nil。
+    /// 让 harness 能端到端跑 toggleTemplateItem 而不触碰真实模板库。
+    public var toggleExecutor: ((TemplateItem) throws -> TemplateItem)? = nil
     /// R48: 子分类快速筛选栏
     public var subCategoryScrollView: NSScrollView!
     public var subCategoryStackView: NSStackView!
@@ -983,12 +990,22 @@ public final class AssetHubView: NSVisualEffectView,
         subCategoryStackView = NSStackView()
         subCategoryScrollView.documentView = subCategoryStackView
 
-        // 统计条
+        // 统计条（TR-012：唯一写入口为 refreshTierStats()，口径恒为 allItems）
         tierStatsLabel = NSTextField(labelWithString: "共 0 套模板（已启用 0 / 已休眠 0）")
         tierStatsLabel.font = TypeScale.footnoteMedium
         tierStatsLabel.textColor = NSColor(calibratedWhite: 0.60, alpha: 1.0)
         tierStatsLabel.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(tierStatsLabel)
+
+        // TR-014：独立一行的操作反馈条。有显式 top/leading/trailing/height 约束，
+        // isHidden=false，宽度由 trailing 撑满右栏，用户能真正看见文字。
+        actionFeedbackLabel = NSTextField(labelWithString: "就绪")
+        actionFeedbackLabel.font = TypeScale.footnoteMedium
+        actionFeedbackLabel.textColor = NSColor(calibratedWhite: 0.78, alpha: 1.0)
+        actionFeedbackLabel.translatesAutoresizingMaskIntoConstraints = false
+        actionFeedbackLabel.lineBreakMode = .byTruncatingTail
+        actionFeedbackLabel.isHidden = false
+        rightColumnView.addSubview(actionFeedbackLabel)
 
         // 3. 卡片网格流与表格视口
         cardGridScrollView = NSScrollView()
@@ -1116,12 +1133,18 @@ public final class AssetHubView: NSVisualEffectView,
             tierStatsLabel.leadingAnchor.constraint(equalTo: rightColumnView.leadingAnchor, constant: 12),
             tierStatsLabel.heightAnchor.constraint(equalToConstant: 18),
 
-            cardGridScrollView.topAnchor.constraint(equalTo: tierStatsLabel.bottomAnchor, constant: 4),
+            // TR-014：反馈条独占一行（统计条下方 4pt），4 条显式约束 + 默认可见
+            actionFeedbackLabel.topAnchor.constraint(equalTo: tierStatsLabel.bottomAnchor, constant: 4),
+            actionFeedbackLabel.leadingAnchor.constraint(equalTo: rightColumnView.leadingAnchor, constant: 12),
+            actionFeedbackLabel.trailingAnchor.constraint(equalTo: rightColumnView.trailingAnchor, constant: -12),
+            actionFeedbackLabel.heightAnchor.constraint(equalToConstant: 20),
+
+            cardGridScrollView.topAnchor.constraint(equalTo: actionFeedbackLabel.bottomAnchor, constant: 4),
             cardGridScrollView.leadingAnchor.constraint(equalTo: rightColumnView.leadingAnchor, constant: 8),
             cardGridScrollView.trailingAnchor.constraint(equalTo: rightColumnView.trailingAnchor, constant: -8),
             cardGridScrollView.bottomAnchor.constraint(equalTo: rightColumnView.bottomAnchor, constant: -8),
 
-            tableScrollView.topAnchor.constraint(equalTo: tierStatsLabel.bottomAnchor, constant: 4),
+            tableScrollView.topAnchor.constraint(equalTo: actionFeedbackLabel.bottomAnchor, constant: 4),
             tableScrollView.leadingAnchor.constraint(equalTo: rightColumnView.leadingAnchor, constant: 8),
             tableScrollView.trailingAnchor.constraint(equalTo: rightColumnView.trailingAnchor, constant: -8),
             tableScrollView.bottomAnchor.constraint(equalTo: rightColumnView.bottomAnchor, constant: -8)
@@ -1334,7 +1357,8 @@ public final class AssetHubView: NSVisualEffectView,
         }
         let action = target ? "启用" : "禁用"
         let msg = "\(action) \(plugins.count) 套模板完成：\(AssetHubView.effectNotice)"
-        statusLabel?.stringValue = msg
+        // S01：批量结果的 NSAlert 已由下方 presentToggleSuccess 承担，这里补常驻可见反馈条
+        postFeedback(msg, channel: .banner, site: "S01")
         updateStatusLine(overrideMessage: msg)
         // runTR013Alert 内部已统一处理 harness 注入 / 静默模式，不会在无 UI 环境下阻塞。
         presentToggleSuccess(message: msg)
@@ -1414,7 +1438,8 @@ public final class AssetHubView: NSVisualEffectView,
             plugins = []
             updateBreadcrumb(group: nil)
             reloadCardGrid()
-            tierStatsLabel?.stringValue = "当前组共 0 套模板"
+            // TR-012：统计条只由 refreshTierStats() 写，禁止这里用「当前组」口径另写一套
+            refreshTierStats()
             return
         }
         let grp = groupItems[selectedGroupIndex]
@@ -1437,9 +1462,10 @@ public final class AssetHubView: NSVisualEffectView,
         self.plugins = filtered
         updateBreadcrumb(group: grp)
 
-        let enabledCount = plugins.filter { $0.isEnabled }.count
-        let disabledCount = plugins.count - enabledCount
-        tierStatsLabel?.stringValue = "当前组共 \(plugins.count) 套模板（已启用 \(enabledCount) / 已休眠 \(disabledCount)）"
+        // TR-012：原本这里用 plugins/groupItems 快照直接写统计条，与 updateTierStats()
+        // 的 allItems 口径冲突，且 toggle 后 groupItems 未同步会把 279/1 打回 280/0。
+        // 现统一走唯一真源，消除第二个写入口。
+        refreshTierStats()
 
         if currentViewMode == 0 {
             reloadCardGrid()
@@ -1558,6 +1584,11 @@ public final class AssetHubView: NSVisualEffectView,
                 let card = ResourceCardView(item: item, frame: NSRect(x: x, y: y, width: cardW, height: cardH))
                 card.onToggle = { [weak self] it in
                     self?.toggleTemplateItem(it)
+                }
+                // TR-012：降级旁路（未注入 onToggle 时）也要让统计条重算回写
+                card.onToggleCompleted = { [weak self] _ in
+                    self?.refreshList()
+                    self?.refreshTierStats()
                 }
                 card.onActionMenu = { [weak self] it, view in
                     self?.showActionMenu(for: it, from: view)
@@ -1761,6 +1792,51 @@ public final class AssetHubView: NSVisualEffectView,
         _ = runTR013Alert(alert)
     }
 
+    // MARK: – TR-014 用户可见反馈通道
+    //
+    // 背景：statusLabel 自初始化起 isHidden=true，实测 frame 仅 4×16、0 条开发者显式
+    // 约束（4 条全是系统 autoresizing mask 派生），breadcrumbBar 又是固定 44pt 且已有
+    // 4 个其它子视图。只改 isHidden 用户依然一个字都看不到。
+    // 因此每条写点按语义分流，绝不一刀切；统计条只留给 refreshTierStats()，不让任何
+    // 非统计文案污染「已启用 X / 已休眠 Y」数字。
+
+    public enum FeedbackChannel: String {
+        case alert    // 需要打断用户的重要结果 / 故障告警
+        case banner   // 瞬时状态，写真正可见且有约束的 actionFeedbackLabel
+        case silent   // 仅日志，不写任何 UI
+    }
+
+    public struct FeedbackRecord {
+        public let site: String
+        public let channel: FeedbackChannel
+        public let message: String
+    }
+
+    /// 运行时证据（生产不消费）：供 harness 逐写点核对「是否真的走了判定通道」。
+    public var feedbackLog: [FeedbackRecord] = []
+
+    /// TR-014 唯一反馈分发入口：所有原本写隐藏 statusLabel 的写点一律改走这里。
+    /// - .alert  走 runTR013Alert（测试可精确接管，不阻塞；生产为真实 NSAlert）
+    /// - .banner 写 actionFeedbackLabel（有 top/leading/trailing/height 显式约束、isHidden=false）
+    /// - .silent 仅日志；连 actionFeedbackLabel 都不写，避免诊断信息刷屏
+    public func postFeedback(_ message: String, channel: FeedbackChannel, site: String) {
+        statusLabel?.stringValue = message   // 保留隐藏容器契约，不作为可见通道
+        feedbackLog.append(FeedbackRecord(site: site, channel: channel, message: message))
+        switch channel {
+        case .alert:
+            let alert = NSAlert()
+            alert.messageText = "操作反馈"
+            alert.informativeText = message
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "好")
+            _ = runTR013Alert(alert)
+        case .banner:
+            actionFeedbackLabel?.stringValue = message
+        case .silent:
+            print("[statusLabel][silent][\(site)] \(message)")
+        }
+    }
+
     public func toggleTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
         if item.isMismatchedDisk {
             if !suppressAlertsForTesting {
@@ -1793,23 +1869,57 @@ public final class AssetHubView: NSVisualEffectView,
         }
 
         do {
-            let updated = try TemplateInstaller.shared.toggleTemplate(item: item)
+            // 生产恒走 TemplateInstaller.shared；toggleExecutor 仅供 harness 注入纯内存实现，
+            // 让端到端 toggle 验证完全不触碰 ~/Movies/Motion Templates.localized。
+            let executor: (TemplateItem) throws -> TemplateItem = toggleExecutor ?? { it in
+                try TemplateInstaller.shared.toggleTemplate(item: it)
+            }
+            let updated = try executor(item)
+            let oldPath = item.path
             // 即时更新内存数据模型，避免整页销毁重刷
-            if let idx = allItems.firstIndex(where: { $0.path == item.path }) {
+            if let idx = allItems.firstIndex(where: { $0.path == oldPath || $0.targetPath == oldPath }) {
                 allItems[idx] = updated
             }
-            if let idx = plugins.firstIndex(where: { $0.path == item.path }) {
-                plugins[idx] = updated
+            // TR-012 根因修复：原实现只同步 allItems / plugins / cardViews，
+            // 完全没有同步 groupItems（中栏分组是 allItems 的值拷贝快照）。
+            // loadTemplatesForSelectedGroup() 会从陈旧 groupItems 派生 plugins 并直接写统计条，
+            // 把 toggle 后的 279/1 打回 280/0 —— 这就是「统计条不刷新」的真因。
+            // 这里用 allItems 建 O(1) 索引，一次性同步 plugins / groupItems / cardViews。
+            let itemMap = TemplateItem.buildItemIndex(from: allItems)
+            for i in 0..<plugins.count {
+                let it = plugins[i]
+                if let matched = itemMap["\(it.path)|\(it.targetPath)"] ?? itemMap[it.path] {
+                    plugins[i] = matched
+                } else if it.path == oldPath || it.targetPath == oldPath {
+                    plugins[i] = updated
+                }
             }
-            // 即时更新卡片视图属性与 .disabled 徽章
-            if let card = cardViews.first(where: { $0.item.path == item.path || $0.item.path == updated.path }) {
-                card.item = updated
+            for g in 0..<groupItems.count {
+                for i in 0..<groupItems[g].items.count {
+                    let it = groupItems[g].items[i]
+                    if let matched = itemMap["\(it.path)|\(it.targetPath)"] ?? itemMap[it.path] {
+                        groupItems[g].items[i] = matched
+                    } else if it.path == oldPath || it.targetPath == oldPath {
+                        groupItems[g].items[i] = updated
+                    }
+                }
+            }
+            for card in cardViews {
+                let it = card.item
+                if let matched = itemMap["\(it.path)|\(it.targetPath)"] ?? itemMap[it.path] {
+                    card.item = matched
+                } else if it.path == oldPath || it.targetPath == oldPath || it.path == updated.path {
+                    card.item = updated
+                }
             }
             pluginTableView?.reloadData()
-            // TR-013：成功提示写明「已生效，重启 FCPX 后可见」。
-            // 原 statusLabel 自初始化起 isHidden = true，仅写它用户根本看不到，故补一个真实可见的提示弹窗。
+
             let msg = AssetHubView.toggleSuccessMessage(name: updated.name, enabled: updated.isEnabled)
-            statusLabel?.stringValue = msg
+            // S02：TR-013 的 presentToggleSuccess 已承担 NSAlert 通道，这里只补常驻可见反馈条，
+            // 不重复弹窗。文案仅告知「重启 FCPX 后可见」，代码不触发任何重启。
+            postFeedback(msg, channel: .banner, site: "S02")
+            // TR-012：toggle 成功后显式重算并回写统计条（单一真源、allItems 口径）
+            refreshTierStats()
             updateStatusLine(overrideMessage: msg)
             // runTR013Alert 内部已统一处理 harness 注入 / 静默模式，不会在无 UI 环境下阻塞。
             if !skipConfirmation {
@@ -1875,7 +1985,8 @@ public final class AssetHubView: NSVisualEffectView,
         reloadCardGrid(resetPaging: false)
         updateSubCategoryFilterBar()
         updateStatusLine()
-        statusLabel?.stringValue = "模板「\(item.name)」已成功移入废纸篓 ✓"
+        // S03：破坏性操作结果（可放回原处），用户必须明确看到 → NSAlert
+        postFeedback("模板「\(item.name)」已成功移入废纸篓 ✓", channel: .alert, site: "S03")
     }
 
     public func makeTemplateActionMenu(for item: TemplateItem) -> NSMenu {
@@ -2043,7 +2154,8 @@ public final class AssetHubView: NSVisualEffectView,
         reloadCardGrid(resetPaging: false)
 
         let msg = "已强制绑定卷并更新模板「\(item.name)」状态"
-        statusLabel?.stringValue = msg
+        // S04：安全敏感操作（UUID 不符强制绑定）的结果 → NSAlert
+        postFeedback(msg, channel: .alert, site: "S04")
         updateStatusLine(overrideMessage: msg)
     }
 
@@ -2053,12 +2165,14 @@ public final class AssetHubView: NSVisualEffectView,
             updated.isCorrupted = false
             updated.isOffline = false
             let msg = "模板「\(item.name)」主文件校验通过，已成功恢复在线"
-            statusLabel?.stringValue = msg
+            // S05：瞬时恢复状态，不打断 → 常驻可见反馈条
+            postFeedback(msg, channel: .banner, site: "S05")
             updateStatusLine(overrideMessage: msg)
         } else {
             updated.isCorrupted = true
             let msg = "模板「\(item.name)」主文件依然缺失，保持损坏保护状态"
-            statusLabel?.stringValue = msg
+            // S06：故障未解决，需要用户介入 → NSAlert
+            postFeedback(msg, channel: .alert, site: "S06")
             updateStatusLine(overrideMessage: msg)
         }
 
@@ -2969,7 +3083,8 @@ public final class AssetHubView: NSVisualEffectView,
             // 底部或顶部状态条显示离线提示（例如：“外置盘 [卷名] 已断开，12 套模板已离线保全”）
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
             let msg = "外置盘 [\(displayName)] 已断开，\(affectedCount) 套模板已离线保全"
-            statusLabel?.stringValue = msg
+            // S07：数据可用性告警，必须打断用户 → NSAlert
+            postFeedback(msg, channel: .alert, site: "S07")
             updateStatusLine(overrideMessage: msg)
         } else {
             // 外置卷挂载/恢复：自愈与一致性校验
@@ -3081,7 +3196,8 @@ public final class AssetHubView: NSVisualEffectView,
             } else {
                 initialMsg = "外置盘 [\(displayName)] 已重新连接，\(restoredCount) 套模板已恢复在线"
             }
-            statusLabel?.stringValue = initialMsg
+            // S08：重连 / 校验中的瞬时进度，不打断 → 常驻可见反馈条
+            postFeedback(initialMsg, channel: .banner, site: "S08")
             updateStatusLine(overrideMessage: initialMsg)
 
             // S-1: 异步后台校验物理文件存在性，绝不阻塞主线程
@@ -3126,12 +3242,14 @@ public final class AssetHubView: NSVisualEffectView,
                             }
                             self.reloadCardGrid(resetPaging: false)
                             let corruptedMsg = "外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套模板标红告警"
-                            self.statusLabel?.stringValue = corruptedMsg
+                            // S09：完整性校验发现损坏，需要用户知晓 → NSAlert
+                            self.postFeedback(corruptedMsg, channel: .alert, site: "S09")
                             self.updateStatusLine(overrideMessage: corruptedMsg)
                         } else {
                             // FCPX-047: 完整性验证全部通过后，切为绿灯完成态
                             let successMsg = "外置盘 [\(displayName)] 校验完成，\(restoredCount) 套模板已完全就绪在线"
-                            self.statusLabel?.stringValue = successMsg
+                            // S10：校验完成、全部就绪，正常完成态不打断 → 常驻可见反馈条
+                            self.postFeedback(successMsg, channel: .banner, site: "S10")
                             self.updateStatusLine(overrideMessage: successMsg)
                         }
                     }
@@ -3339,26 +3457,33 @@ public final class AssetHubView: NSVisualEffectView,
 
     private func updateStatusLine(overrideMessage: String? = nil) {
         if let msg = overrideMessage {
-            statusLabel?.stringValue = msg
-            updateTierStats()
+            // S11：通用状态分发 → 常驻可见反馈条；不弹窗，避免每处调用都打断用户
+            postFeedback(msg, channel: .banner, site: "S11")
+            refreshTierStats()
             return
         }
         let offlineCount = allItems.filter { $0.isOffline }.count
         if offlineCount > 0 {
             let offlineVol = allItems.first(where: { $0.isOffline })?.volumePath ?? "外置盘"
             let volName = (offlineVol as NSString).lastPathComponent
-            statusLabel?.stringValue = "外置盘 [\(volName)] 已断开，\(offlineCount) 套模板已离线保全"
-            updateTierStats()
+            // S12：与 S07 卷断开告警重复，且属被动刷新 → 静默仅日志
+            postFeedback("外置盘 [\(volName)] 已断开，\(offlineCount) 套模板已离线保全",
+                         channel: .silent, site: "S12")
+            refreshTierStats()
             return
         }
         let builtin = roots.builtin == nil ? "未检测到" : "已定位"
         let system = FileManager.default.fileExists(atPath: roots.system) ? "已就绪" : "目录不存在"
         let guardState = TierWritePolicy.isBuiltinWritable ? "可写（有风险）" : "只读"
-        statusLabel?.stringValue = "共 \(plugins.count) 项 · 内置根:\(builtin) 系统根:\(system) · 内置级写入:\(guardState)"
-        updateTierStats()
+        // S13：诊断信息，统计条已覆盖核心数量 → 静默仅日志；绝不复用 tierStatsLabel 以免污染数字
+        postFeedback("共 \(plugins.count) 项 · 内置根:\(builtin) 系统根:\(system) · 内置级写入:\(guardState)",
+                     channel: .silent, site: "S13")
+        refreshTierStats()
     }
 
-    private func updateTierStats() {
+    /// TR-012：统计条唯一写入口。口径恒为 allItems（全量），禁止其它地方直接写
+    /// tierStatsLabel.stringValue。toggle / 删除 / 卷事件改动内存模型后必须显式调用本方法重算并回写。
+    public func refreshTierStats() {
         let total = allItems.count
         let enabledCount = allItems.filter { $0.isEnabled }.count
         let disabledCount = total - enabledCount
@@ -3575,10 +3700,11 @@ public final class AssetHubView: NSVisualEffectView,
         }
     }
 
-    private func setBusy(_ busy: Bool, text: String?) {
+    public func setBusy(_ busy: Bool, text: String?) {
         if busy {
             spinner?.startAnimation(nil)
-            statusLabel?.stringValue = text ?? "处理中…"
+            // S14：进行中反馈，用户需要看见 → 常驻可见反馈条
+            postFeedback(text ?? "处理中…", channel: .banner, site: "S14")
         } else {
             spinner?.stopAnimation(nil)
             updateStatusLine()
