@@ -1,0 +1,8 @@
+special_importable  full=True  slim=False
+slim special_error : ImportError: cannot import name 'special' from 'scipy' (/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python3.14/site-packages/scipy/__init__.py)
+rotate_usable      full=True  slim=True
+
+angle 37.3    full_sha=8c1e9e7ccd34  slim_sha=8c1e9e7ccd34  sha_same=True  sumΔ=0.000000e+00
+            不同像素 0 / 4096  最大差 0.000000000  平均差 0.000000000  首列填0 full=37/64 slim=37/64
+angle 90.0    full_sha=bee1f510be29  slim_sha=b69ef4733836  sha_same=False  sumΔ=-2.929492e+01
+            不同像素 2752 / 4096  最大差 0.995971127  平均差 0.007152080  首列填0 full=0/64 slim=59/64

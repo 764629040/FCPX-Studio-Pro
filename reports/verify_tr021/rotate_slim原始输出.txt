@@ -1,0 +1,35 @@
+{
+  "mode": "slim",
+  "scipy": "1.16.3",
+  "special_importable": false,
+  "special_error": "ImportError: cannot import name 'special' from 'scipy' (/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python3.14/site-packages/scipy/__init__.py)",
+  "rotate": {
+    "37.3": {
+      "sha256": "8c1e9e7ccd34b68f33dd8ad1d1680b9ef3455d68c43528711038603984fa4431",
+      "sum": 1669.126413241735,
+      "max": 1.169754580533522,
+      "head": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "90.0": {
+      "sha256": "b69ef4733836e3e58ca5cf91f4e8afd57e73f1fa038c95611fd492934b16b561",
+      "sum": 2000.9008889429329,
+      "max": 0.9999409265156449,
+      "head": [
+        0.0,
+        0.6393798122869998,
+        0.8601467154664072,
+        0.2438475254628996,
+        0.2214882289693409,
+        0.48994901035138994
+      ]
+    }
+  },
+  "rotate_usable": true
+}

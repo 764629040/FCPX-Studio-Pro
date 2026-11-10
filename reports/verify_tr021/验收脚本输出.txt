@@ -1,0 +1,32 @@
+=== 一、文本核对（锚点：已知差异：rotate 路径 1 ULP） ===
+PASS  T1 主裁剪说明 docs/TR-018_scipy_裁剪说明.md   | 已命中
+PASS  T3 patch_slim.py   | 已命中
+PASS  T4 落地包 ndimage/_interpolation.py   | 已命中
+PASS  T5 TR-018 验收记录   | 已命中
+PASS  T6 台账 docs/待办清单_20261110.md   | 已命中
+PASS  T7 TR-021 验收记录   | 已命中
+PASS  T2 主文档记录 90° 结构性差异（2752 像素 / 结构性差异）
+PASS  T8 主文档写明「不新增 stub」与处置路径
+PASS  T9 运行时代码差异证据 RUNTIME_CODE_ADDED: 0
+
+=== 二、不新增 stub 扫描（目录 / 源码 / 脚本） ===
+PASS  S1 落地包 scipy 子目录集合正确   | ['.dylibs', '_lib', 'interpolate', 'ndimage']
+PASS  S2 17 个已删子包目录均不存在   | 残留: []
+PASS  S3 无 special*/stub* 目录或文件   | []
+PASS  S4 包内无 cosdg/sindg 假实现定义   | []
+PASS  S4b cosdg/sindg 仅作为引用出现在 ndimage/_interpolation.py   | ['ndimage/_interpolation.py']
+PASS  S5 alias_capi.py 的别名注册不含 special/cosdg/sindg
+PASS  S5b patch_slim.py 未新增 special 模块/假 ufunc
+
+=== 三、不新增 stub 扫描（落地包内 Python 运行时） ===
+PASS  S6 sys.modules 无 scipy.special* 假模块   | []
+PASS  S6b from scipy import special 仍抛 ImportError（无假包）   | ImportError
+PASS  S7 HAS_SCIPY 保持 True（未破坏 TR-018）
+PASS  S7b ndimage.rotate 在裁剪包下仍可调用
+PASS  S7c runtime 报告的子目录集合正确   | ['.dylibs', '_lib', 'interpolate', 'ndimage']
+
+=== 四、落地包 vs 一键重建产物（注释同步验证） ===
+PASS  S8 落地包 scipy 与重建产物逐字节一致
+
+PASS = 22   FAIL = 0
+TR-021 VERDICT: PASS

@@ -1,0 +1,41 @@
+=== 1. 复制完整包 -> slim ===
+=== 2. 只留 ndimage / interpolate / _lib / .dylibs ===
+REMOVED(__pycache__ cluster constants datasets differentiate fft fftpack integrate io linalg misc odr optimize signal sparse spatial special stats): __pycache__, cluster, constants, datasets, differentiate, fft, fftpack, integrate, io, linalg, misc, odr, optimize, signal, sparse, spatial, special, stats
+KEPT_DIRS: .dylibs _lib interpolate ndimage 
+=== 3. 保留区打补丁（lazy import + 真实等价实现） ===
+  PATCH __init__.py  x1
+  PATCH ndimage/_interpolation.py  x1
+  PATCH ndimage/_interpolation.py  x1
+  WRITE interpolate/__init__.py (lazy, 55 symbols)
+  PATCH interpolate/_interpolate.py  x1
+  PATCH interpolate/_polyint.py  x1
+  PATCH interpolate/_bsplines.py  x1
+  PATCH interpolate/_cubic.py  x1
+  PATCH interpolate/_rgi.py  x1
+  PATCH interpolate/_pade.py  x1
+  PATCH interpolate/_rbf.py  x1
+  PATCH interpolate/_rbfinterp.py  x1
+  PATCH interpolate/_ndgriddata.py  x1
+  PATCH interpolate/_ndbspline.py  x1
+TR-018 PATCH OK -> /tmp/tr018/reproduce_tr021/slim/python_bundle/lib/python3.14/site-packages/scipy
+=== 4. 注入真实 Cython 编译扩展别名 ===
+  COPY cython_lapack.cpython-314-darwin.so 717952
+  COPY cython_blas.cpython-314-darwin.so 182784
+  COPY _qhull.cpython-314-darwin.so 780080
+  INJECT scipy/__init__.py boot
+=== 5. 逐层 PNG sha256（项目真实渲染入口） ===
+{
+  "total": 67,
+  "methods": {
+    "psd_composite": 67
+  },
+  "styled_layers": 2
+}
+=== 6. 数值等价 ===
+=== 7. 比对与结论 ===
+LAYERS 67 DIFF 0 STYLED 2 METHODS {'psd_composite': 67}
+NUM_SCALARS 2541 2541 NUM_DIFF 0
+BYTE_IDENTICAL: YES
+SIZE_MB full=144.7 slim=94.0
+VERDICT: PASS
+=== DONE: /tmp/tr018/reproduce_tr021/RESULT.txt ===

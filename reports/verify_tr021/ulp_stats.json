@@ -1,0 +1,96 @@
+{
+  "N": 1440000,
+  "sampling": "arange(1440000) * (360/1440000)",
+  "compare": "math.cos/sin(math.radians(x))",
+  "cos": {
+    "diff": 830867,
+    "pct": 57.7,
+    "hist": {
+      "1": 394680,
+      "2": 145565,
+      "3": 68544,
+      "4": 41374,
+      "5": 28777,
+      ">=6": 151925
+    },
+    "zero_points": 2,
+    "max_ulp": 350265,
+    "max_absdiff": 5.551115123125783e-16,
+    "one_ulp_pct": 47.5,
+    "le2_ulp_pct": 65.02
+  },
+  "sin": {
+    "diff": 760093,
+    "pct": 52.78,
+    "hist": {
+      "1": 371131,
+      "2": 140254,
+      "3": 61784,
+      "4": 40643,
+      "5": 24081,
+      ">=6": 122199
+    },
+    "zero_points": 1,
+    "max_ulp": 192278,
+    "max_absdiff": 5.551115123125783e-16,
+    "one_ulp_pct": 48.83,
+    "le2_ulp_pct": 67.28
+  },
+  "any_angle_diff": 1098075,
+  "sampling_scan": {
+    "linspace(0,360,1440000)": 831439,
+    "arange(1440000)*0.00025": 830867,
+    "linspace(-180,180,1440000)": 665108,
+    "arange(1440000)*0.001 (0..1440)": 1142598
+  },
+  "problem_ticket_count": 1006000,
+  "special_angles": {
+    "0.0": {
+      "cosdg": 1.0,
+      "math_cos": 1.0,
+      "sindg": 0.0,
+      "math_sin": 0.0
+    },
+    "45.0": {
+      "cosdg": 0.7071067811865475,
+      "math_cos": 0.7071067811865476,
+      "sindg": 0.7071067811865476,
+      "math_sin": 0.7071067811865475
+    },
+    "90.0": {
+      "cosdg": -0.0,
+      "math_cos": 6.123233995736766e-17,
+      "sindg": 1.0,
+      "math_sin": 1.0
+    },
+    "180.0": {
+      "cosdg": -1.0,
+      "math_cos": -1.0,
+      "sindg": -0.0,
+      "math_sin": 1.2246467991473532e-16
+    },
+    "270.0": {
+      "cosdg": 0.0,
+      "math_cos": -1.8369701987210297e-16,
+      "sindg": -1.0,
+      "math_sin": -1.0
+    },
+    "360.0": {
+      "cosdg": 1.0,
+      "math_cos": 1.0,
+      "sindg": 0.0,
+      "math_sin": -2.4492935982947064e-16
+    },
+    "-90.0": {
+      "cosdg": -0.0,
+      "math_cos": 6.123233995736766e-17,
+      "sindg": -1.0,
+      "math_sin": -1.0
+    }
+  },
+  "cosdg_source": {
+    "type": "ufunc",
+    "ufunc_file": "/private/tmp/tr018/full/python_bundle/lib/python3.14/site-packages/scipy/special/_ufuncs.cpython-314-darwin.so",
+    "same_object": true
+  }
+}

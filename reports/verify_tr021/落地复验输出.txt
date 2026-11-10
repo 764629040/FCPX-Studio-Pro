@@ -1,0 +1,38 @@
+=== A. 落地前：重建产物 vs 当前落地包（预期仅 _interpolation.py 注释差异） ===
+Files /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python3.14/site-packages/scipy/ndimage/_interpolation.py and /tmp/tr018/reproduce_tr021/slim/python_bundle/lib/python3.14/site-packages/scipy/ndimage/_interpolation.py differ
+
+=== B. 备份当前落地包 scipy ===
+备份文件数 242  体积 10M
+
+=== C. 替换 + 清理 ===
+落地后子目录: . .. .dylibs __config__.py __init__.py _cyutility.cpython-314-darwin.so _distributor_init.py _lib conftest.py interpolate ndimage version.py 
+
+=== D. 包级重签 + strict 验签 ===
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: replacing existing signature
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: valid on disk
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: satisfies its Designated Requirement
+
+=== E. 落地包与重建产物逐字节一致 ===
+IDENTICAL: YES
+
+=== F. 包内 Python 身份 / 闸门 / 注释锚点 ===
+python 3.14.6 scipy 1.16.3 HAS_SCIPY True
+subdirs ['.dylibs', '_lib', 'interpolate', 'ndimage']
+包内注释锚点 已知差异：rotate 路径 1 ULP : 1
+
+=== G. 包内 Python 67 层 PNG sha256 + 数值等价 ===
+{
+  "total": 67,
+  "methods": {
+    "psd_composite": 67
+  },
+  "styled_layers": 2
+}
+LAYERS 67 PNG_DIFF 0 PNG_FILES 67 67 BYTE_DIFF 0
+NUM_BYTE_IDENTICAL: YES
+FINAL VERDICT: PASS
+
+=== H. 体积 ===
+ 88M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+ 10M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python3.14/site-packages/scipy
+ 93M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app

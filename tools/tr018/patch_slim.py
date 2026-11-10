@@ -60,10 +60,18 @@ submodules = [
 
 # ── 2. ndimage/_interpolation.py: 顶层 `from scipy import special` ────────
 # special 仅在 rotate() 用于 cosdg/sindg；改成函数内按需加载 + math 等价兜底。
+# TR-021 已知差异：rotate 路径 1 ULP（math 等价实现 vs special.cosdg/sindg）。
+# psd_tools 不调用 rotate，当前零影响；不得为此新增 stub。
+# 详见 docs/TR-018_scipy_裁剪说明.md 第 4 节「已知差异」。
 patch("ndimage/_interpolation.py", "from scipy import special\n", "")
 patch("ndimage/_interpolation.py", "    c, s = special.cosdg(angle), special.sindg(angle)\n",
       """    # TR-018 slim: scipy.special 未随包分发。完整 scipy 下仍走 cosdg/sindg
     # （数值逐位一致）；裁剪包下用 math 等价实现，rotate 依然可用。
+    # TR-021 已知差异：rotate 路径 1 ULP —— math.cos/sin(radians) 与
+    # cosdg/sindg 有末位差（常规角度 ~1 ULP，绝对差 ≤5.55e-16）；90° 倍数角
+    # cosdg/sindg 精确归零而 math 留 1e-16 残差，会让 affine_transform 把边界
+    # 判为界外填 cval，输出差异远大于 1 ULP。psd_tools 不调用 rotate，零影响。
+    # 不为此新增 stub；详见 docs/TR-018_scipy_裁剪说明.md「已知差异」节。
     try:
         from scipy import special as _special
         c, s = _special.cosdg(angle), _special.sindg(angle)

@@ -103,3 +103,41 @@ tools/tr018/build_and_verify.sh \
 
 落地（含备份 / 清理 / 重签 / strict 验签）已在本次执行完成，
 步骤见本记录「一」与「落地复验原始输出.txt」的 E/F 段。
+
+----------------------------------------------------------------
+七、补充：TR-021 已知差异：rotate 路径 1 ULP（2026-11-10 23:5x）
+----------------------------------------------------------------
+> 只追加，不改动上文历史原文。TR-018 验收结论不因本段改变。
+
+现象  裁剪包下 scipy.ndimage.rotate() 走 math.cos/sin(radians) 兜底，
+      与完整 scipy 的 special.cosdg/sindg 存在末位差。
+      问题单记录：144 万角度里 100.6 万个末位不同。
+
+核对  已知差异：rotate 路径 1 ULP —— 常规角度以 1 ULP 为主、
+      绝对差 ≤5.55e-16；本仓库按 0..360 均匀 144 万角度复现
+      cosdg 830,867 / sindg 760,093 / 任一 1,098,075 个末位不同，
+      计数随采样口径浮动（四种口径 66.5 万 ~ 114.3 万），结论一致。
+
+加记  90° 倍数角不是 1 ULP，是结构性差异：cosdg/sindg 精确归零，
+      math 留 6.12e-17 ~ 2.45e-16 残差 → rot_matrix 的 0 变非零 →
+      affine_transform 把边界判为界外填 cval=0。端到端实测
+      rotate(90°, 64×64, order=3) 全包 sha bee1f510be29… vs
+      裁剪包 b69ef4733836…，2752/4096 像素不同、最大差 0.99597、
+      sum Δ=-29.29、裁剪包首列 59/64 像素被填 0（full 首列 0 个）；
+      rotate(37.3°) 两边逐位一致。
+
+影响  psd_tools 全仓零 rotate 调用（只用 edt / grey_erosion /
+      maximum_filter1d / uniform_filter1d），core/ 亦零命中；
+      TR-018 的 67 层 PNG sha 与 2541 数值标量验收不涉及 rotate。
+      → 当前零影响，不构成 TR-018 回归。裁剪包不承诺整个 scipy
+      API 面逐位一致，只承诺 psd_tools 实际调用面。
+
+处置  本次采用「文档标注 + 保持现状」，不改运行时逻辑、不新增 stub。
+      权威说明见 docs/TR-018_scipy_裁剪说明.md 第 4/5 节；
+      patch_slim.py 脚本注释与注入到运行包的注释均已同步标注。
+      若将来真启用 rotate 且要求逐位一致，只能按 alias_capi.py
+      既有机制引入真实 _ufuncs .so（不新增 stub、不新增子包目录），
+      纯 math 复刻只能做到数学等价。
+
+验收  文本核对 + 不新增 stub，见 reports/verify_tr021/ 与
+      tools/tr021/verify_tr021.sh。本段不改变任何渲染输出。

@@ -1,0 +1,139 @@
+TR-021 优化（文档/注释级）验收记录
+================================================================
+日期        2026-11-10
+需求        在 scipy 裁剪说明里明确写「已知差异：rotate 路径 1 ULP」，
+            或在真要用 rotate 时改走不依赖 special 的等价实现。
+验收        文本核对 + 不新增 stub。
+本次选择    A：文档标注 + 保持现状（问题单给的是「或」，文档级方案
+            与「文档/注释级」定位一致，零运行时风险）。
+
+----------------------------------------------------------------
+一、结论
+----------------------------------------------------------------
+已知差异：rotate 路径 1 ULP —— 已在权威裁剪说明、补丁脚本注释、
+注入运行包的注释、TR-018 验收记录、台账 I 节共 6 处落字。
+不新增 stub：本次改动零运行时代码新增，落地包 scipy 目录/模块
+集合不变，scipy.special 仍不可导入，逐项扫描见
+「验收脚本输出.txt」的 S1~S8。
+
+实测结论：
+  验收脚本        PASS = 22  FAIL = 0  →  TR-021 VERDICT: PASS
+  一键重建        VERDICT: PASS（LAYERS 67 DIFF 0 / NUM_DIFF 0）
+  落地包内复验    LAYERS 67 PNG_DIFF 0 / PNG 67 67 BYTE_DIFF 0 /
+                  NUM_BYTE_IDENTICAL: YES / FINAL VERDICT: PASS
+  包级重签        codesign --verify --strict --deep --verbose=2 零报错
+  体积            python_bundle 88M、scipy 10M、app 93M（与 TR-018 一致）
+
+----------------------------------------------------------------
+二、现场核对（不是照抄问题单）
+----------------------------------------------------------------
+触发点  tools/tr018/patch_slim.py 第 2 组补丁：
+          c, s = special.cosdg(angle), special.sindg(angle)
+        → 裁剪包下 except ImportError 走
+          math.cos(math.radians(angle)) / math.sin(math.radians(angle))
+        special 子包已删，故必然走 math 分支；完整 scipy 下走原实现。
+成因    cosdg/sindg 是 scipy.special._ufuncs.cpython-314-darwin.so 里的
+        numpy ufunc（Boost：角度归约 + 象限多项式 + 90° 倍数精确归零）；
+        math 路径是 x*(π/180) 一次额外舍入后交 libm 通用 cos/sin。
+调用面  包内 site-packages/psd_tools/**/*.py 全仓 grep：只调用
+        distance_transform_edt / grey_erosion / maximum_filter1d /
+        uniform_filter1d，零 rotate；唯一 "rotat" 字样是
+        composite/adjustments.py 描述亮度样条的英文注释。
+        core/**/*.py 零 ndimage / rotate 命中。
+        → 当前零影响，不构成 TR-018 回归。
+
+----------------------------------------------------------------
+三、实测量级（tools/tr021/）
+----------------------------------------------------------------
+口径    0..360 均匀 1,440,000 个角度，对比 special.cosdg/sindg 与
+        补丁实际使用的 math.cos/sin(math.radians(x)) 标量值。
+        ULP 距离用 IEEE754 有序 uint64 位键算；值趋近 0 时 ULP 会
+        放大，故「精确归零」点单列。
+
+        cosdg vs math.cos   末位不同 830,867 / 1,440,000 (57.70%)
+        sindg vs math.sin   末位不同 760,093 / 1,440,000 (52.78%)
+        任一函数不同角度    1,098,075 / 1,440,000 (76.26%)
+        排除精确归零后 1 ULP 占比  cos 47.50% / sin 48.83%
+                     ≤2 ULP 占比  cos 65.02% / sin 67.28%
+        最大绝对差          5.551115e-16
+        典型 45°            cosdg 0.7071067811865475
+                            math  0.7071067811865476  → 恰好 1 ULP
+
+口径浮动  四种采样口径复现 665,108 / 830,867 / 831,439 / 1,142,598。
+          问题单记录的 100.6 万落在同一区间。计数随采样口径变化，
+          结论不变：末位不同是普遍现象，量级 1 ULP 为主。
+
+★ 比 1 ULP 严重的一支（本次追加发现，已写进说明）
+        90° 倍数角 cosdg/sindg 精确返回 ±0.0，math 留
+        6.12e-17 ~ 2.45e-16 残差 → rot_matrix 的 0 变非零 →
+        offset 带残差 → affine_transform 把边界像素判为界外按 cval=0
+        填充，整条边界列/行被清零。
+        端到端（64×64 随机数组 / seed 20261110 / order=3 / reshape=False）：
+          rotate(37.3°)  full 8c1e9e7ccd34…  slim 8c1e9e7ccd34…  逐位一致
+          rotate(90.0°)  full bee1f510be29…  slim b69ef4733836…  不一致
+                         2752/4096 像素不同，最大差 0.9959711267，
+                         sum Δ = -29.29，slim 首列 59/64 像素被填 0
+                         （full 首列 0 个）
+        所以「1 ULP」只描述常规角度的 c/s 标量；真调用 rotate 时
+        90° 倍数角会产生远大于 1 ULP 的结构性输出差异。
+
+----------------------------------------------------------------
+四、处置（本次采用 A，不动运行时逻辑）
+----------------------------------------------------------------
+A 文档标注（本次）  6 处文本锚点 + 说明文档第 4/5 节写清差异、
+                    适用边界、影响面与未来启用路径。
+B 引入真 ufunc      若将来启用 rotate 且要求逐位一致，唯一可靠路径：
+                    沿用 alias_capi.py 机制把真实
+                    special/_ufuncs*.so 放进 _lib/_tr018_capi/ 并注册
+                    sys.modules 别名。不新增 stub、不新增子包目录，
+                    但需先验证该 .so 的传递依赖与体积/验签影响。
+C 纯 math 复刻      不依赖 special，fmod 归约 + 90° 分支精确归零，
+                    能修掉边界清零这类结构性差异，但 Boost 多项式与
+                    libm 不同，保不住逐位一致，只能「数学等价」。
+禁止               不得塞一个返回假值的 scipy.special / cosdg stub 绕过。
+                    那违反 TR-018 硬约束 3，会把差异藏成静默错误。
+
+----------------------------------------------------------------
+五、文本核对 + 不新增 stub（验收脚本）
+----------------------------------------------------------------
+tools/tr021/verify_tr021.sh  →  「验收脚本输出.txt」
+  T1~T9  6 处锚点 + 90° 结构性差异 + 处置路径 + 零运行时代码证据
+  S1~S5  目录集合 / 17 个已删子包 / special* / cosdg 假定义 /
+          alias_capi.py 与 patch_slim.py 静态扫描
+  S6~S7  包内 runtime：sys.modules 无 scipy.special*、
+          from scipy import special 仍抛 ImportError、
+          HAS_SCIPY=True、ndimage.rotate 仍可调用
+  S8     落地包 scipy 与一键重建产物逐字节一致（注释已同步）
+
+「运行时代码差异核对.txt」用 git diff 证明 patch_slim.py 本次
+新增/删除行全部是注释，RUNTIME_CODE_ADDED: 0。
+
+----------------------------------------------------------------
+六、落地与零回归
+----------------------------------------------------------------
+patch_slim.py 注入到运行包的注释改了，按 TR-011 教训同步落地：
+  1) 备份当前落地包 scipy
+  2) tools/tr018/build_and_verify.sh 重建 slim（含新注释）
+  3) 替换 R2.app 内 scipy，清 ._*/cstemp/.DS_Store、xattr -cr
+  4) codesign --force --deep --sign -
+     codesign --verify --strict --deep --verbose=2 零报错
+  5) 包内 Python 复跑 67 层 PNG sha256 + 数值等价，与裁剪前基线一致
+体积与 TR-018 验收结论不变（python_bundle 88M / ≤100M）。
+
+----------------------------------------------------------------
+七、证据与复现
+----------------------------------------------------------------
+docs/TR-018_scipy_裁剪说明.md        权威说明（第 4 节已知差异 / 第 5 节处置）
+ULP实测输出.txt / ulp_stats.json    144 万角度 ULP 与口径扫描
+rotate对比输出.txt                  full/slim rotate 端到端
+rotate_{full,slim}.json、rot_*.npy  原始输出
+验收脚本输出.txt                    文本核对 + stub 扫描
+运行时代码差异核对.txt              git diff 零运行时代码证据
+落地复验输出.txt                    重签 + 包内复验原始输出
+
+  tools/tr021/run_probes.sh [full_python_bundle] [out_dir]
+  tools/tr021/verify_tr021.sh [rebuild_scipy_dir]
+  tools/tr018/build_and_verify.sh "/tmp/tr018/full/python_bundle" \
+      "/tmp/tr018/reproduce_tr021"
+
+未做：dmg 重建（等唯一包裁决）、push、发版、旧包覆写、FCPX 重启、碰 FCPX 库。

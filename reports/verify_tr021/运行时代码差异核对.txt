@@ -1,0 +1,41 @@
+TR-021 运行时代码差异核对（提交前用 git diff 固化）
+生成时间: 2026-11-11 00:06:46 +0800
+
+=== 本次工作区改动全清单 ===
+ M "docs/\345\276\205\345\212\236\346\270\205\345\215\225_20261110.md"
+ M "reports/verify_tr018/\351\252\214\346\224\266\350\256\260\345\275\225.txt"
+ M tools/tr018/patch_slim.py
+?? "docs/TR-018_scipy_\350\243\201\345\211\252\350\257\264\346\230\216.md"
+?? reports/verify_tr021/
+?? tools/tr021/
+
+=== 运行时脚本是否有改动（git diff --quiet，0=无改动） ===
+  tools/tr018/alias_capi.py                      rc=0  无改动
+  tools/tr018/slim_scipy.sh                      rc=0  无改动
+  tools/tr018/numeric_equiv.py                   rc=0  无改动
+  tools/tr018/render_layers_sha.py               rc=0  无改动
+  tools/tr018/build_and_verify.sh                rc=0  无改动
+  tools/tr018/interpolate_symbols.json           rc=0  无改动
+
+=== git diff -U0 -- tools/tr018/patch_slim.py ===
+diff --git a/tools/tr018/patch_slim.py b/tools/tr018/patch_slim.py
+index 7de5eb1..510a6ff 100644
+--- a/tools/tr018/patch_slim.py
++++ b/tools/tr018/patch_slim.py
+@@ -62,0 +63,3 @@ submodules = [
++# TR-021 已知差异：rotate 路径 1 ULP（math 等价实现 vs special.cosdg/sindg）。
++# psd_tools 不调用 rotate，当前零影响；不得为此新增 stub。
++# 详见 docs/TR-018_scipy_裁剪说明.md 第 4 节「已知差异」。
+@@ -66,0 +70,5 @@ patch("ndimage/_interpolation.py", "    c, s = special.cosdg(angle), special.sin
++    # TR-021 已知差异：rotate 路径 1 ULP —— math.cos/sin(radians) 与
++    # cosdg/sindg 有末位差（常规角度 ~1 ULP，绝对差 ≤5.55e-16）；90° 倍数角
++    # cosdg/sindg 精确归零而 math 留 1e-16 残差，会让 affine_transform 把边界
++    # 判为界外填 cval，输出差异远大于 1 ULP。psd_tools 不调用 rotate，零影响。
++    # 不为此新增 stub；详见 docs/TR-018_scipy_裁剪说明.md「已知差异」节。
+
+=== 判定 ===
+新增行 8（注释/空行 8，非注释 0）
+删除行 0（注释/空行 0，非注释 0）
+rotate 注入代码（去注释后）与 HEAD 逐字节一致: True
+RUNTIME_CODE_ADDED: 0
+VERDICT: PASS
