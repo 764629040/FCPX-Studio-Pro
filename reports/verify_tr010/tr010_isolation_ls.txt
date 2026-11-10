@@ -1,0 +1,243 @@
+
+=== A0 迁移前 · 扫描树 Titles.localized（应含 TR010_迁移验证.disabled） ===
+  -2026年4月项目
+  -PVFX便签字幕
+  .DS_Store
+  .localized
+  03综艺动漫
+  FCPX_Studio婚礼字幕测试
+  Icon
+  MS标题字幕S5
+  PSD婚礼字幕
+  TR009验证
+  TR010_迁移验证.disabled
+  _大鱼汉化极简标注
+  _大鱼汉化线条和路线
+  _调整层转场
+  _调整层转场V2
+  motionVFX Freebies
+  光视婚礼摄影工作室
+  易安装 - 100个绚丽渐变背景标题预设
+  易安装 - 137个体育新闻风格字幕条
+  易安装 - 18个动态图形遮罩效果预设
+  易安装 - 20个清新简约字幕动画预设 v2
+  易安装 - 26个文字标题实用动画预设
+  易安装 - 30个创意简约大气标题预设
+  易安装 - 4个渐变背景控制效果预设
+  易安装 - 6个视频运动模糊效果预设
+  易安装 - 76个粒子轨迹动画效果预设
+  易安装 - 8个唯美粒子光叠加效果预设
+  易安装 - 8个磨砂玻璃标题效果预设
+  易安装 - 光效融合风格标题模板
+  易安装 - 全功能全局调整层+常用工具
+  易安装 - 卡通冰雪Winter Snow
+  易安装 - 卡通流体Splash Elements
+  易安装 - 卡通能量电流Cartoon Energy
+  易安装 - 娱乐场景风格标题模板 - Star Billing
+  易安装 - 娱乐场景风格标题模板 - Star Signs
+  易安装 - 婚礼风格生长花纹标题模板 - 第3季
+  易安装 - 标题字幕高级真实阴影效果
+  易安装 - 片头大标题动画模板 - PROTEASER V1
+  易安装 - 电影片尾上滚字幕效果预设
+  易安装 - 画面清晰锐化细节效果
+  模糊填充
+  聚光
+
+=== A0 迁移前 · 禁用仓（应空） ===
+  Effects.localized
+  Titles.localized
+migrateExistingDisabledInScanTree -> moved 1 项:
+    /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/TR010_迁移验证.disabled  ->  /Users/mrhuang/Library/Application Support/FCPXStudio/disabled/Titles.localized/TR010_迁移验证
+
+=== A1 迁移后 · 扫描树 Titles.localized（不应再含 TR010_迁移验证.disabled） ===
+  -2026年4月项目
+  -PVFX便签字幕
+  .DS_Store
+  .localized
+  03综艺动漫
+  FCPX_Studio婚礼字幕测试
+  Icon
+  MS标题字幕S5
+  PSD婚礼字幕
+  TR009验证
+  _大鱼汉化极简标注
+  _大鱼汉化线条和路线
+  _调整层转场
+  _调整层转场V2
+  motionVFX Freebies
+  光视婚礼摄影工作室
+  易安装 - 100个绚丽渐变背景标题预设
+  易安装 - 137个体育新闻风格字幕条
+  易安装 - 18个动态图形遮罩效果预设
+  易安装 - 20个清新简约字幕动画预设 v2
+  易安装 - 26个文字标题实用动画预设
+  易安装 - 30个创意简约大气标题预设
+  易安装 - 4个渐变背景控制效果预设
+  易安装 - 6个视频运动模糊效果预设
+  易安装 - 76个粒子轨迹动画效果预设
+  易安装 - 8个唯美粒子光叠加效果预设
+  易安装 - 8个磨砂玻璃标题效果预设
+  易安装 - 光效融合风格标题模板
+  易安装 - 全功能全局调整层+常用工具
+  易安装 - 卡通冰雪Winter Snow
+  易安装 - 卡通流体Splash Elements
+  易安装 - 卡通能量电流Cartoon Energy
+  易安装 - 娱乐场景风格标题模板 - Star Billing
+  易安装 - 娱乐场景风格标题模板 - Star Signs
+  易安装 - 婚礼风格生长花纹标题模板 - 第3季
+  易安装 - 标题字幕高级真实阴影效果
+  易安装 - 片头大标题动画模板 - PROTEASER V1
+  易安装 - 电影片尾上滚字幕效果预设
+  易安装 - 画面清晰锐化细节效果
+  模糊填充
+  聚光
+
+=== A1 迁移后 · 禁用仓（应含 Titles.localized/TR010_迁移验证） ===
+  Effects.localized
+  Titles.localized
+
+=== B0 禁用前 · 扫描树 Titles.localized（应含 TR010_隔离验证） ===
+  -2026年4月项目
+  -PVFX便签字幕
+  .DS_Store
+  .localized
+  03综艺动漫
+  FCPX_Studio婚礼字幕测试
+  Icon
+  MS标题字幕S5
+  PSD婚礼字幕
+  TR009验证
+  TR010_隔离验证
+  _大鱼汉化极简标注
+  _大鱼汉化线条和路线
+  _调整层转场
+  _调整层转场V2
+  motionVFX Freebies
+  光视婚礼摄影工作室
+  易安装 - 100个绚丽渐变背景标题预设
+  易安装 - 137个体育新闻风格字幕条
+  易安装 - 18个动态图形遮罩效果预设
+  易安装 - 20个清新简约字幕动画预设 v2
+  易安装 - 26个文字标题实用动画预设
+  易安装 - 30个创意简约大气标题预设
+  易安装 - 4个渐变背景控制效果预设
+  易安装 - 6个视频运动模糊效果预设
+  易安装 - 76个粒子轨迹动画效果预设
+  易安装 - 8个唯美粒子光叠加效果预设
+  易安装 - 8个磨砂玻璃标题效果预设
+  易安装 - 光效融合风格标题模板
+  易安装 - 全功能全局调整层+常用工具
+  易安装 - 卡通冰雪Winter Snow
+  易安装 - 卡通流体Splash Elements
+  易安装 - 卡通能量电流Cartoon Energy
+  易安装 - 娱乐场景风格标题模板 - Star Billing
+  易安装 - 娱乐场景风格标题模板 - Star Signs
+  易安装 - 婚礼风格生长花纹标题模板 - 第3季
+  易安装 - 标题字幕高级真实阴影效果
+  易安装 - 片头大标题动画模板 - PROTEASER V1
+  易安装 - 电影片尾上滚字幕效果预设
+  易安装 - 画面清晰锐化细节效果
+  模糊填充
+  聚光
+disable -> /Users/mrhuang/Library/Application Support/FCPXStudio/disabled/Titles.localized/TR010_隔离验证
+  isDisabled? true
+  isInScanTree? false
+
+=== B1 禁用后 · 扫描树 Titles.localized（不应再含 TR010_隔离验证，FCPX 扫不到） ===
+  -2026年4月项目
+  -PVFX便签字幕
+  .DS_Store
+  .localized
+  03综艺动漫
+  FCPX_Studio婚礼字幕测试
+  Icon
+  MS标题字幕S5
+  PSD婚礼字幕
+  TR009验证
+  _大鱼汉化极简标注
+  _大鱼汉化线条和路线
+  _调整层转场
+  _调整层转场V2
+  motionVFX Freebies
+  光视婚礼摄影工作室
+  易安装 - 100个绚丽渐变背景标题预设
+  易安装 - 137个体育新闻风格字幕条
+  易安装 - 18个动态图形遮罩效果预设
+  易安装 - 20个清新简约字幕动画预设 v2
+  易安装 - 26个文字标题实用动画预设
+  易安装 - 30个创意简约大气标题预设
+  易安装 - 4个渐变背景控制效果预设
+  易安装 - 6个视频运动模糊效果预设
+  易安装 - 76个粒子轨迹动画效果预设
+  易安装 - 8个唯美粒子光叠加效果预设
+  易安装 - 8个磨砂玻璃标题效果预设
+  易安装 - 光效融合风格标题模板
+  易安装 - 全功能全局调整层+常用工具
+  易安装 - 卡通冰雪Winter Snow
+  易安装 - 卡通流体Splash Elements
+  易安装 - 卡通能量电流Cartoon Energy
+  易安装 - 娱乐场景风格标题模板 - Star Billing
+  易安装 - 娱乐场景风格标题模板 - Star Signs
+  易安装 - 婚礼风格生长花纹标题模板 - 第3季
+  易安装 - 标题字幕高级真实阴影效果
+  易安装 - 片头大标题动画模板 - PROTEASER V1
+  易安装 - 电影片尾上滚字幕效果预设
+  易安装 - 画面清晰锐化细节效果
+  模糊填充
+  聚光
+
+=== B1 禁用后 · 禁用仓 Titles.localized（应含 TR010_隔离验证） ===
+  TR010_隔离验证
+enable -> /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/TR010_隔离验证
+  isInScanTree? true
+  isDisabled? false
+
+=== B2 启用后 · 扫描树 Titles.localized（恢复含 TR010_隔离验证） ===
+  -2026年4月项目
+  -PVFX便签字幕
+  .DS_Store
+  .localized
+  03综艺动漫
+  FCPX_Studio婚礼字幕测试
+  Icon
+  MS标题字幕S5
+  PSD婚礼字幕
+  TR009验证
+  TR010_隔离验证
+  _大鱼汉化极简标注
+  _大鱼汉化线条和路线
+  _调整层转场
+  _调整层转场V2
+  motionVFX Freebies
+  光视婚礼摄影工作室
+  易安装 - 100个绚丽渐变背景标题预设
+  易安装 - 137个体育新闻风格字幕条
+  易安装 - 18个动态图形遮罩效果预设
+  易安装 - 20个清新简约字幕动画预设 v2
+  易安装 - 26个文字标题实用动画预设
+  易安装 - 30个创意简约大气标题预设
+  易安装 - 4个渐变背景控制效果预设
+  易安装 - 6个视频运动模糊效果预设
+  易安装 - 76个粒子轨迹动画效果预设
+  易安装 - 8个唯美粒子光叠加效果预设
+  易安装 - 8个磨砂玻璃标题效果预设
+  易安装 - 光效融合风格标题模板
+  易安装 - 全功能全局调整层+常用工具
+  易安装 - 卡通冰雪Winter Snow
+  易安装 - 卡通流体Splash Elements
+  易安装 - 卡通能量电流Cartoon Energy
+  易安装 - 娱乐场景风格标题模板 - Star Billing
+  易安装 - 娱乐场景风格标题模板 - Star Signs
+  易安装 - 婚礼风格生长花纹标题模板 - 第3季
+  易安装 - 标题字幕高级真实阴影效果
+  易安装 - 片头大标题动画模板 - PROTEASER V1
+  易安装 - 电影片尾上滚字幕效果预设
+  易安装 - 画面清晰锐化细节效果
+  模糊填充
+  聚光
+
+=== B2 启用后 · 禁用仓 Titles.localized（不应再含） ===
+
+=== Z 最终 · 禁用仓 Titles.localized（应恢复为空） ===
+
+DONE. 所有 TR010_ 合成测试条目已清理，未污染真实模板库。

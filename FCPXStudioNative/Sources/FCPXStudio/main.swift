@@ -15,6 +15,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.applicationIconImage = iconImg
         }
 
+        // TR-010 一次性迁移：把扫描树内遗留的 *.disabled 目录按方案 A 搬进禁用仓
+        // （历史改名机制残留；后续禁用走真隔离移仓，扫描树不再出现 .disabled）。
+        // 幂等：无遗留则零操作，可每次启动安全调用。
+        do {
+            let moved = try TemplateIsolationStore.migrateExistingDisabledInScanTree()
+            if !moved.isEmpty {
+                fputs("TR-010 migration: moved \(moved.count) legacy .disabled dir(s) into isolation store\n", stderr)
+            }
+        } catch {
+            fputs("TR-010 migration error: \(error.localizedDescription)\n", stderr)
+        }
+
         buildMainMenu()
 
         let wc = MainWindowController()

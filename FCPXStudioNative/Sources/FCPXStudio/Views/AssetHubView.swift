@@ -3067,6 +3067,7 @@ public final class AssetHubView: NSVisualEffectView,
             allItems = dyedItems
             roots = cached.roots
             tierNotes = cached.tierNotes
+            mergeDisabledTemplates()
             updateSubCategoryFilterBar()
             updateGroupItems()
             refreshUndoButtonState()
@@ -3091,11 +3092,43 @@ public final class AssetHubView: NSVisualEffectView,
             self.allItems = dyedItems
             self.roots = result.roots
             self.tierNotes = result.tierNotes
+            self.mergeDisabledTemplates()
             self.updateSubCategoryFilterBar()
             self.updateGroupItems()
             self.refreshUndoButtonState()
             let elapsed = CACurrentMediaTime() - startTime
             self.loadTimeIndicatorLabel?.stringValue = String(format: "列表加载用时: %.2fs", max(0.01, elapsed))
+        }
+    }
+
+    // TR-010：把禁用仓内的「已休眠」模板并回内存列表，使其在 UI 中可见且可重新启用。
+    // 禁用仓内的模板已不在 FCPX 扫描树，常规扫描不会返回它们，必须主动并入 allItems，
+    // 否则应用重启后禁用项彻底消失、无法再启用。
+    private func mergeDisabledTemplates() {
+        let disabledPaths = TemplateIsolationStore.listDisabled()
+        guard !disabledPaths.isEmpty else { return }
+        var existing = Set(allItems.map { ($0.path as NSString).standardizingPath })
+        for path in disabledPaths {
+            let std = (path as NSString).standardizingPath
+            guard !existing.contains(std) else { continue }
+            guard let (category, relative) = TemplateIsolationStore.relativePathUnderCategory(for: std) else { continue }
+            let name = (std as NSString).lastPathComponent
+            let parent = (relative as NSString).deletingLastPathComponent
+            let subCategory = parent.isEmpty ? "" : parent
+            let item = TemplateItem(
+                name: name,
+                category: category,
+                subCategory: subCategory,
+                tier: .user,
+                path: std,
+                targetPath: std,
+                isSymlink: false,
+                targetAvailable: true,
+                sizeMB: 0.0,
+                isEnabled: false
+            )
+            allItems.append(item)
+            existing.insert(std)
         }
     }
 

@@ -9,7 +9,8 @@ import Foundation
 //    1. 自动识别 .moti / .moef / .motr / .motn 四大分类
 //    2. 安全解压沙箱，递归感知分类与模板包目录
 //    3. 原子安装与重名自动备份（防覆盖隔离）
-//    4. 模板一键启停隔离（.disabled 机制，加速 FCPX 启动）
+//    4. 模板一键启停真隔离（TR-010 方案 A）：禁用=移出 FCPX 扫描树到禁用仓，
+//       启用=原路搬回扫描树。FCPX 扫描不到，启动确实变快；旧改名 .disabled 方案已淘汰。
 // ═══════════════════════════════════════════════════════════════
 
 public enum MotionCategory: String, CaseIterable, Codable {
@@ -358,46 +359,47 @@ public class TemplateInstaller {
             throw TemplateToggleError.fileNotFound(item.path)
         }
 
-        let parentDir = (item.path as NSString).deletingLastPathComponent
-        let currentName = (item.path as NSString).lastPathComponent
-
-        let newName: String
-        let targetEnabled: Bool
-
-        if item.isEnabled {
-            newName = currentName.hasSuffix(".disabled") ? currentName : "\(currentName).disabled"
-            targetEnabled = false
+        // TR-010 方案 A：真隔离（移出扫描树），淘汰改名 .disabled 方案。
+        // 禁用 = 搬进禁用仓；启用 = 原路搬回扫描树。FCPX 扫不到，启动确实变快。
+        let currentPath = item.path
+        if TemplateIsolationStore.isDisabled(path: currentPath) {
+            // 当前位于禁用仓 → 启用：原路搬回扫描树
+            let restored = try TemplateIsolationStore.enable(disabledPath: currentPath)
+            let cleanName = (restored as NSString).lastPathComponent
+            AssetCacheManager.shared.invalidateTemplates(category: item.category)
+            return TemplateItem(
+                name: cleanName,
+                category: item.category,
+                subCategory: item.subCategory,
+                tier: item.tier,
+                path: restored,
+                targetPath: restored,
+                isSymlink: item.isSymlink,
+                targetAvailable: true,
+                sizeMB: item.sizeMB,
+                isEnabled: true
+            )
         } else {
-            newName = currentName.hasSuffix(".disabled") ? String(currentName.dropLast(9)) : currentName
-            targetEnabled = true
+            // 当前位于扫描树 → 禁用：搬进禁用仓
+            guard TemplateIsolationStore.isInScanTree(path: currentPath) else {
+                throw TemplateToggleError.failure("模板不在 FCPX 扫描树内，无法禁用: \(currentPath)")
+            }
+            let disabledPath = try TemplateIsolationStore.disable(templatePath: currentPath)
+            let cleanName = (disabledPath as NSString).lastPathComponent
+            AssetCacheManager.shared.invalidateTemplates(category: item.category)
+            return TemplateItem(
+                name: cleanName,
+                category: item.category,
+                subCategory: item.subCategory,
+                tier: item.tier,
+                path: disabledPath,
+                targetPath: disabledPath,
+                isSymlink: item.isSymlink,
+                targetAvailable: item.targetAvailable,
+                sizeMB: item.sizeMB,
+                isEnabled: false
+            )
         }
-
-        let newPath = "\(parentDir)/\(newName)"
-        if fm.fileExists(atPath: newPath) && newPath != item.path {
-            throw TemplateToggleError.destinationExists(newPath)
-        }
-
-        do {
-            try fm.moveItem(atPath: item.path, toPath: newPath)
-        } catch {
-            throw TemplateToggleError.failure(error.localizedDescription)
-        }
-
-        let cleanDisplayName = newName.hasSuffix(".disabled") ? String(newName.dropLast(9)) : newName
-        AssetCacheManager.shared.invalidateTemplates(category: item.category)
-
-        return TemplateItem(
-            name: cleanDisplayName,
-            category: item.category,
-            subCategory: item.subCategory,
-            tier: item.tier,
-            path: newPath,
-            targetPath: item.isSymlink ? item.targetPath : newPath,
-            isSymlink: item.isSymlink,
-            targetAvailable: item.targetAvailable,
-            sizeMB: item.sizeMB,
-            isEnabled: targetEnabled
-        )
     }
 
     @discardableResult
