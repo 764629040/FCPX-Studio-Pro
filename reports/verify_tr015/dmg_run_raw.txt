@@ -1,0 +1,28 @@
+▶ [闸门 0] 目标 App / 进程 / 空间 / 旧镜像记账（只读）
+▶   输出目录（内盘）: /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist
+▶   源包: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app (149200 KiB)
+▶   pgrep 检查通过：FCPX Studio Pro R2.app 未在运行
+▶   /tmp 可用 14849964 KiB（需 ≥ 400800 KiB）
+⚠️  检测到过期镜像: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX_Studio_Pro_v1.0.dmg (69899130 B / 2026-11-08 02:05:12) —— 内容与当前源码不一致，不能对外发
+==================================================
+  S4.3 重建分发镜像
+  源 App:  /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+  新镜像:  /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.1.dmg
+  版本:    v1.1（旧 v1.0.dmg 已过期，不对外发）
+==================================================
+▶ [1/4] 在 /tmp 建 stage 并复制当前 R2.app（不写外置卷）
+▶ [2/4] hdiutil create → /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.1.dmg
+created: /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.1.dmg
+▶ [3/4] 校验体积 / 镜像元数据 / 挂载内容 / 严格验签
+▶   体积: 67074024 B
+▶   内容校验通过（二进制逐字节一致 + strict 验签 exit 0）
+▶ [4/4] 落地到内盘（默认 DIST_DIR；--publish 可另指定内盘目录）
+▶   已并列发布到内盘: /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.1.dmg
+▶   过期镜像 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX_Studio_Pro_v1.0.dmg 未被改动（--replace 已禁用，等用户定完唯一可用包）
+==================================================
+✅ 镜像重建完成
+   /tmp 产物:   /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.1.dmg (67074024 B)
+   源 App:      /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+   版本:        v1.1
+   旧 v1.0.dmg: 已过期，未给 --replace 时保持原样，不得对外发
+==================================================

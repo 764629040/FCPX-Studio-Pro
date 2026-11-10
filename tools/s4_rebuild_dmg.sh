@@ -186,9 +186,9 @@ if [ -n "$PUBLISH_DIR" ]; then
     [ -d "$PUBLISH_DIR" ] || die "--publish 目录不存在: $PUBLISH_DIR"
     [ "$PUBLISH_DIR" != "$PROJECT_ROOT" ] || warn "--publish 指向项目根（外置卷，仅剩 ~255 MiB）；将做空间检查，建议先只留 /tmp 产物"
 fi
-if [ "$DO_REPLACE" -eq 1 ] && [ ! -f "$OLD_DMG" ]; then
-    die "--replace 需要旧镜像存在才能备份，当前未找到: $OLD_DMG"
-fi
+# TR-015：删除残留的 $DO_REPLACE 判断块。--replace 已在参数解析处（:94）直接 die，
+# 执行流永远到不了这里；且 DO_REPLACE 全脚本无赋值，set -u 下必然 unbound variable。
+# 旧镜像仅作只读记账（0.4 段），不再参与任何写入决策。
 
 # ── --dry-run：只打印命令序列，不写文件 / 不挂载 / 不签名 ─────────────────────
 if [ "$DRY_RUN" -eq 1 ]; then

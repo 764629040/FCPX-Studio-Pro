@@ -1,0 +1,29 @@
+=== TR-015 独立 attach 复核 2026-11-10 21:12:35 ===
+dmg: /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.1.dmg
+
+[1] hdiutil attach -readonly
+/dev/disk8          	GUID_partition_scheme          	
+/dev/disk8s1        	Apple_APFS                     	
+/dev/disk9          	EF57347C-0000-11AA-AA11-0030654	
+/dev/disk9s1        	41504653-0000-11AA-AA11-0030654	/private/tmp/tr015_att.gtxYJA
+ATTACH_EXIT=0
+
+[2] 二进制 sha256 对比
+-- 源包 R2.app --
+b4abc4eb104c0db917ed1516a32f875ff7e37344e4bc20be8ab84ab74cb0af4e  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+-- dmg 挂载内 --
+b4abc4eb104c0db917ed1516a32f875ff7e37344e4bc20be8ab84ab74cb0af4e  /tmp/tr015_att.gtxYJA/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+
+[3] cmp -s 逐字节
+CMP_EXIT=0
+
+[4] codesign --verify --deep --strict（dmg 内 App）
+VERIFY_EXIT=0
+VERIFY_OUTPUT=[]
+VERIFY_OUTPUT_BYTES=0
+
+[5] 产物与约束
+  v1.1.dmg: 67074024 B
+  外置卷 v1.0.dmg sha: dcf2980f95bb92af219264fd558fd46adc2be6c7ecf0a588731bbb9fc9a01d6f
+  R2.app 源二进制 sha: b4abc4eb104c0db917ed1516a32f875ff7e37344e4bc20be8ab84ab74cb0af4e
+  挂载内 core/motion_builder.py: 54637 B
