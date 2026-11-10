@@ -1,0 +1,49 @@
+=== A. 装包前 SwiftPM 产物 TR-019 标识（字节级） ===
+  在设计器中只读预览                    1
+  TR-019 阶段一                   2
+  MotiDocumentParser           35
+  motiReadOnlyMode             7
+  onPreviewMotiInDesigner      9
+  previewMotiInDesigner        2
+  只读预览                         6
+  S3ThumbnailCache             0
+  TemplateIsolationStore       46
+  size 3468904
+
+=== B. 替换二进制 ===
+-rwxr-xr-x 1 mrhuang staff 3.3M 2026-11-10 23:40 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+
+=== C. 包级重签 ===
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: replacing existing signature
+=== D. strict 验签 ===
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: valid on disk
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: satisfies its Designated Requirement
+
+=== E. 包内二进制最终标识 ===
+  在设计器中只读预览                    1
+  TR-019 阶段一                   2
+  MotiDocumentParser           35
+  motiReadOnlyMode             7
+  onPreviewMotiInDesigner      9
+  previewMotiInDesigner        2
+  只读预览                         6
+  S3ThumbnailCache             0
+  TemplateIsolationStore       46
+  设计器 (PSD → Motion)           1
+  size 3466896
+
+=== F. 最终整包体积 ===
+ 88M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+ 93M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+
+=== G. 重签后包内 Python 仍可用（HAS_SCIPY + 逐层渲染） ===
+python OK scipy= 1.16.3 HAS_SCIPY= True
+{
+  "total": 67,
+  "methods": {
+    "psd_composite": 67
+  },
+  "styled_layers": 2
+}
+FINAL LAYERS 67 DIFF 0 PNG 67 67 BYTE_DIFF 0
+FINAL VERDICT: PASS

@@ -1,0 +1,1118 @@
+{
+  "commercial_4k.psd": [
+    {
+      "idx": 0,
+      "name": "图层 0",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f107506f9d183ce3aa8fea3c1ac5d1057cd68e1ffa1e1d4bf3568b74eb40909e",
+      "nbytes": 10619
+    },
+    {
+      "idx": 1,
+      "name": "领 衔 呈 现",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "30e402ddfde9d3003258895e5e252c1cbae10edb594e0df5c8d2d1a21a1cc252",
+      "nbytes": 2124
+    },
+    {
+      "idx": 2,
+      "name": "lead the  presentation",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5d28589767b1677304655c42b9b58421bf8e22a327cd2f97934882d0c5fdf119",
+      "nbytes": 1764
+    },
+    {
+      "idx": 3,
+      "name": "新 娘  朱 永 宏",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "6100dce5b886a3da6fd316c8e4ecd0c601afdcaad0aafc4bf08417e7fa967587",
+      "nbytes": 2918
+    },
+    {
+      "idx": 4,
+      "name": "THE BRIDE",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "1ebec58c4ccf027c3feaec6863e30a8662fb86306d565d4d2a6777763bcaa186",
+      "nbytes": 741
+    },
+    {
+      "idx": 5,
+      "name": "新 郎  陈 晗",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "8934a872654b8271dfa05a909c079bed0b26310b84d9701dfd734e41e994b174",
+      "nbytes": 2454
+    },
+    {
+      "idx": 6,
+      "name": "THE GROOM",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "901a9dc8e725ff9b2d28b54fd88addb591e9afb30820450a179b3e84ae18642c",
+      "nbytes": 893
+    },
+    {
+      "idx": 7,
+      "name": "镇 雄",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "4d47b0871cba79e02f98f623b60aa91e44bfe3db0d21676b834a8be7a66e0c73",
+      "nbytes": 1324
+    },
+    {
+      "idx": 8,
+      "name": "CITY",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "7e7fff692276b9ddaf289421fc7fee487d68e549578a19755a748a27fdb536b9",
+      "nbytes": 474
+    }
+  ],
+  "complex_layers.psd": [
+    {
+      "idx": 0,
+      "name": "图层 1",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "582eacd2d47d03c9d3e6d62d6a324be4c5f0a5eb70baa379ab1feb4f0c8e38ca",
+      "nbytes": 10619
+    },
+    {
+      "idx": 1,
+      "name": "图层 2",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "4346789b47e9a56389621d0d77895684d461a4756fbbccbcb2255fa440d2c35c",
+      "nbytes": 10656
+    },
+    {
+      "idx": 2,
+      "name": "Element",
+      "kind": "group",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "a14dfef9f0efa01b974636103a43a3225d48c6ec3eaa89413a22284ccd6dafc3",
+      "nbytes": 2549
+    },
+    {
+      "idx": 3,
+      "name": "Element02",
+      "kind": "shape",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f8c7e80af8deb633fdd82c2efff9ab665655f766dedd2694f6106a547186f355",
+      "nbytes": 200
+    },
+    {
+      "idx": 4,
+      "name": "Element01",
+      "kind": "shape",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "78aa6845dc4ece74e600a8a566ad38188d254f5be02de123ae587d5029bec410",
+      "nbytes": 174
+    },
+    {
+      "idx": 5,
+      "name": "Replace your image here",
+      "kind": "group",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "c18574647e580b7560441e189b1401d9903e596ca5936832731189cd06666b0a",
+      "nbytes": 7101
+    },
+    {
+      "idx": 6,
+      "name": "Image02",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "c18574647e580b7560441e189b1401d9903e596ca5936832731189cd06666b0a",
+      "nbytes": 7101
+    },
+    {
+      "idx": 7,
+      "name": "Image01",
+      "kind": "smartobject",
+      "visible": false,
+      "styles": {
+        "has_styles": true,
+        "styles": {
+          "描边": {
+            "effect": "Stroke",
+            "size": 1.0,
+            "opacity": 100.0,
+            "angle": 0.0,
+            "position": "InsF",
+            "color": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          }
+        },
+        "unsupported": [
+          "描边"
+        ]
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "6fc1461e4e6a8ac17b442bacaef5340f9c08c7cc3614392663098f93663f47d4",
+      "nbytes": 6407
+    },
+    {
+      "idx": 8,
+      "name": "Your text here",
+      "kind": "group",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "05df4bed9f0e24213d669acfe35c31ff0788b83d78a05b9870f42f8e7c63f190",
+      "nbytes": 25898
+    },
+    {
+      "idx": 9,
+      "name": "Text01",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "fb6c1fe65e7939f22dbae1c622a00bb4bfa180c64ed06c88b8a61584f94dbce6",
+      "nbytes": 4496
+    },
+    {
+      "idx": 10,
+      "name": "2303edcbb5dfad77a452cab79b4fabd",
+      "kind": "smartobject",
+      "visible": false,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "8629f20afa0f4ec86f3aaeb8541479957531afe232f8472db10188c764a28dcf",
+      "nbytes": 6987
+    },
+    {
+      "idx": 11,
+      "name": "Title",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "84e7969ab0386058bf60c16b26e8eef09c8a91144b5289688f58cd33be91220e",
+      "nbytes": 11509
+    }
+  ],
+  "four_state.psd": [
+    {
+      "idx": 0,
+      "name": "图层 0",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f107506f9d183ce3aa8fea3c1ac5d1057cd68e1ffa1e1d4bf3568b74eb40909e",
+      "nbytes": 10619
+    },
+    {
+      "idx": 1,
+      "name": "领 衔 呈 现",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "30e402ddfde9d3003258895e5e252c1cbae10edb594e0df5c8d2d1a21a1cc252",
+      "nbytes": 2124
+    },
+    {
+      "idx": 2,
+      "name": "lead the  presentation",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5d28589767b1677304655c42b9b58421bf8e22a327cd2f97934882d0c5fdf119",
+      "nbytes": 1764
+    },
+    {
+      "idx": 3,
+      "name": "新 娘  朱 永 宏",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "6100dce5b886a3da6fd316c8e4ecd0c601afdcaad0aafc4bf08417e7fa967587",
+      "nbytes": 2918
+    },
+    {
+      "idx": 4,
+      "name": "THE BRIDE",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "1ebec58c4ccf027c3feaec6863e30a8662fb86306d565d4d2a6777763bcaa186",
+      "nbytes": 741
+    },
+    {
+      "idx": 5,
+      "name": "新 郎  陈 晗",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "8934a872654b8271dfa05a909c079bed0b26310b84d9701dfd734e41e994b174",
+      "nbytes": 2454
+    },
+    {
+      "idx": 6,
+      "name": "THE GROOM",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "901a9dc8e725ff9b2d28b54fd88addb591e9afb30820450a179b3e84ae18642c",
+      "nbytes": 893
+    },
+    {
+      "idx": 7,
+      "name": "镇 雄",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "4d47b0871cba79e02f98f623b60aa91e44bfe3db0d21676b834a8be7a66e0c73",
+      "nbytes": 1324
+    },
+    {
+      "idx": 8,
+      "name": "CITY",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "7e7fff692276b9ddaf289421fc7fee487d68e549578a19755a748a27fdb536b9",
+      "nbytes": 474
+    }
+  ],
+  "vertical_9x16_rebased.psd": [
+    {
+      "idx": 0,
+      "name": "Background",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5187ac37a27b5378e0d948b8b278d02703dabb68fe3d729187f4b383d33e7961",
+      "nbytes": 12573
+    },
+    {
+      "idx": 1,
+      "name": "领 衔 呈 现",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "30e402ddfde9d3003258895e5e252c1cbae10edb594e0df5c8d2d1a21a1cc252",
+      "nbytes": 2124
+    },
+    {
+      "idx": 2,
+      "name": "lead the  presentation",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5d28589767b1677304655c42b9b58421bf8e22a327cd2f97934882d0c5fdf119",
+      "nbytes": 1764
+    },
+    {
+      "idx": 3,
+      "name": "新 娘  朱 永 宏",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "6100dce5b886a3da6fd316c8e4ecd0c601afdcaad0aafc4bf08417e7fa967587",
+      "nbytes": 2918
+    },
+    {
+      "idx": 4,
+      "name": "THE BRIDE",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "1ebec58c4ccf027c3feaec6863e30a8662fb86306d565d4d2a6777763bcaa186",
+      "nbytes": 741
+    },
+    {
+      "idx": 5,
+      "name": "新 郎  陈 晗",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "8934a872654b8271dfa05a909c079bed0b26310b84d9701dfd734e41e994b174",
+      "nbytes": 2454
+    },
+    {
+      "idx": 6,
+      "name": "THE GROOM",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "901a9dc8e725ff9b2d28b54fd88addb591e9afb30820450a179b3e84ae18642c",
+      "nbytes": 893
+    },
+    {
+      "idx": 7,
+      "name": "镇 雄",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "4d47b0871cba79e02f98f623b60aa91e44bfe3db0d21676b834a8be7a66e0c73",
+      "nbytes": 1324
+    },
+    {
+      "idx": 8,
+      "name": "CITY",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "7e7fff692276b9ddaf289421fc7fee487d68e549578a19755a748a27fdb536b9",
+      "nbytes": 474
+    }
+  ],
+  "vertical_9x16_true.psd": [
+    {
+      "idx": 0,
+      "name": "Background",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5187ac37a27b5378e0d948b8b278d02703dabb68fe3d729187f4b383d33e7961",
+      "nbytes": 12573
+    },
+    {
+      "idx": 1,
+      "name": "Text 01",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 2,
+      "name": "Text 02",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 3,
+      "name": "Text 03",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 4,
+      "name": "Text 04",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 5,
+      "name": "Text 05",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 6,
+      "name": "Text 06",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 7,
+      "name": "Text 07",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    },
+    {
+      "idx": 8,
+      "name": "Text 08",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "2f04118c4bda5db42d7c64accfe822b08fa8066914cb80ec4ac80da6425116c4",
+      "nbytes": 553
+    }
+  ],
+  "vertical_wedding_9_16.psd": [
+    {
+      "idx": 0,
+      "name": "图层 0",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f107506f9d183ce3aa8fea3c1ac5d1057cd68e1ffa1e1d4bf3568b74eb40909e",
+      "nbytes": 10619
+    },
+    {
+      "idx": 1,
+      "name": "领 衔 呈 现",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "30e402ddfde9d3003258895e5e252c1cbae10edb594e0df5c8d2d1a21a1cc252",
+      "nbytes": 2124
+    },
+    {
+      "idx": 2,
+      "name": "lead the  presentation",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "5d28589767b1677304655c42b9b58421bf8e22a327cd2f97934882d0c5fdf119",
+      "nbytes": 1764
+    },
+    {
+      "idx": 3,
+      "name": "新 娘  朱 永 宏",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "6100dce5b886a3da6fd316c8e4ecd0c601afdcaad0aafc4bf08417e7fa967587",
+      "nbytes": 2918
+    },
+    {
+      "idx": 4,
+      "name": "THE BRIDE",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "1ebec58c4ccf027c3feaec6863e30a8662fb86306d565d4d2a6777763bcaa186",
+      "nbytes": 741
+    },
+    {
+      "idx": 5,
+      "name": "新 郎  陈 晗",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "8934a872654b8271dfa05a909c079bed0b26310b84d9701dfd734e41e994b174",
+      "nbytes": 2454
+    },
+    {
+      "idx": 6,
+      "name": "THE GROOM",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "901a9dc8e725ff9b2d28b54fd88addb591e9afb30820450a179b3e84ae18642c",
+      "nbytes": 893
+    },
+    {
+      "idx": 7,
+      "name": "镇 雄",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "4d47b0871cba79e02f98f623b60aa91e44bfe3db0d21676b834a8be7a66e0c73",
+      "nbytes": 1324
+    },
+    {
+      "idx": 8,
+      "name": "CITY",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "7e7fff692276b9ddaf289421fc7fee487d68e549578a19755a748a27fdb536b9",
+      "nbytes": 474
+    }
+  ],
+  "wedding_with_decorations_23.psd": [
+    {
+      "idx": 0,
+      "name": "图层 0",
+      "kind": "pixel",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f107506f9d183ce3aa8fea3c1ac5d1057cd68e1ffa1e1d4bf3568b74eb40909e",
+      "nbytes": 10619
+    },
+    {
+      "idx": 1,
+      "name": "|无限湾酒店",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "7327366ca00106e0550ec2f465202af3f87228b5971320ef228b488ef5bfe038",
+      "nbytes": 2173
+    },
+    {
+      "idx": 2,
+      "name": "03/06<五>",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f4fa69c80d2848c816f19b8ea505fb0f3f58b6013f74a44cbde941695d11d5a3",
+      "nbytes": 2707
+    },
+    {
+      "idx": 3,
+      "name": "箭头",
+      "kind": "shape",
+      "visible": true,
+      "styles": {
+        "has_styles": true,
+        "styles": {
+          "描边": {
+            "effect": "Stroke",
+            "size": 1.0,
+            "opacity": 100.0,
+            "angle": 0.0,
+            "position": "OutF",
+            "color": [
+              255.0,
+              255.0,
+              255.0
+            ]
+          }
+        },
+        "unsupported": [
+          "描边"
+        ]
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "785e059730c11e6b444b9f2fdfc5d4e7924b07a89bc96a97ed792ccba7abdd87",
+      "nbytes": 741
+    },
+    {
+      "idx": 4,
+      "name": "2026",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "c66729118de73463fc1163e6193e6e2dcd5d5aa34835269a2b320cf3916d0376",
+      "nbytes": 1749
+    },
+    {
+      "idx": 5,
+      "name": "横线",
+      "kind": "shape",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "f7df2166a29590ea19e9859028b1335a9762e2b2d8156975d6ab4151bc595dcb",
+      "nbytes": 116
+    },
+    {
+      "idx": 6,
+      "name": "温书瑶",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "ba7b5de710cafc70ab6cf1efd46da5e67acb057fa13dc0a0110e1005cfd66b71",
+      "nbytes": 2250
+    },
+    {
+      "idx": 7,
+      "name": "新 娘",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "c507e2740547d7e4a7ec3ea1f23eba7150b537784d24008390b5de04dcf5a933",
+      "nbytes": 1162
+    },
+    {
+      "idx": 8,
+      "name": "韩亦辰",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "a9e540712d0216f146145e9c5ae0fba66320cde849d408917c93217f3b8a7b53",
+      "nbytes": 2268
+    },
+    {
+      "idx": 9,
+      "name": "新 郎",
+      "kind": "type",
+      "visible": true,
+      "styles": {
+        "has_styles": false,
+        "styles": {},
+        "unsupported": []
+      },
+      "ok": true,
+      "render_method": "psd_composite",
+      "error": null,
+      "sha256": "1ede56bcbefd9842cb8edd278b334e027db24f38ecbed98eeeec9d3d0ecc7c4a",
+      "nbytes": 1127
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+TR-018 包瘦身（禁降级）验收记录
+================================================================
+日期        2026-11-10
+目标        FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+需求        只留 scipy.ndimage / interpolate / _lib，其余子包删；
+            同一批带描边/阴影 PSD 的 PNG sha256 与裁剪前逐个一致；
+            体积 140M → ≤100M。禁降级。
+
+----------------------------------------------------------------
+一、结论：PASS
+----------------------------------------------------------------
+1) 体积      python_bundle 140M → 88M（du -sh，≤100M，达标）
+             scipy 63M → 10M；整包 app 146M → 93M
+             一键复现按文件字节累加口径为 144.7MiB → 94.0MiB，同样 ≤100M
+2) 渲染      67/67 图层全部 render_method=psd_composite
+             与裁剪前基线逐字段差异 0，PNG 字节差异 0
+             带描边/阴影样式图层 2 个，无任何 pil_topil_fallback 降级
+3) 数值      11 组 API / 2541 个标量，数值差异 0，输出文件 BYTE_IDENTICAL: YES
+4) 依赖闸门  psd_tools.composite._compat.HAS_SCIPY = True
+             落地后 scipy 子目录实测 ['.dylibs', '_lib', 'interpolate', 'ndimage']
+             17 个已删子包目录均不存在
+5) 签名      codesign --force --deep --sign - 后
+             codesign --verify --strict --deep --verbose=2 → valid on disk /
+             satisfies its Designated Requirement，零报错
+6) 落地      完整原 scipy 已备份至 /tmp/tr018/backup_scipy_original（1035 文件 / 63M）
+             原「FCPX Studio Pro.app」未创建、未移动、未覆写
+             未重建 dmg、未 commit 之外的 push、未发版
+
+----------------------------------------------------------------
+二、为什么不能「纯删」
+----------------------------------------------------------------
+删除除 ndimage/interpolate/_lib/.dylibs 外全部子包后：
+
+  ModuleNotFoundError: No module named 'scipy.special'
+
+链路：ndimage/_interpolation.py 顶层 from scipy import special；
+interpolate/__init__.py 为 eager import，连锁拉 linalg / sparse /
+special / optimize / spatial。于是
+  psd_tools.composite._compat 里 from scipy import interpolate 失败
+  → HAS_SCIPY=False
+  → composite/effects.py 抛 ImportError("Stroke effects require: scipy")
+  → core/psd_layer_fallback.py::render_layer_to_png_bytes 掉到
+    pil_topil_fallback
+  → wedding_with_decorations_23.psd L003「箭头」PNG sha 从
+    785e0597 变成 8053f51d（1 张降级，违反「禁降级」）。
+
+----------------------------------------------------------------
+三、最终采用的裁剪方案
+----------------------------------------------------------------
+A. 目录层：只保留 ndimage / interpolate / _lib / .dylibs（slim_scipy.sh）。
+B. 保留区内补丁（patch_slim.py，每处带精确断言，源码不符即失败）：
+   - scipy/__init__.py submodules 收敛为 ['interpolate','ndimage']
+   - ndimage/_interpolation.py 去掉顶层 special，rotate() 内按需加载 +
+     math.cos/sin(radians) 等价兜底
+   - interpolate/__init__.py 改 PEP 562 lazy 命名空间（63 个公开符号
+     访问时才加载真实实现），使 from scipy import interpolate 立即成功
+   - _interpolate.py / _polyint.py / _bsplines.py / _cubic.py / _rgi.py /
+     _ndbspline.py / _rbf.py / _rbfinterp.py / _ndgriddata.py / _pade.py：
+     跨包顶层 import 改可降级加载；确需已删子包的 API 在调用时抛明确
+     ImportError（诚实失败，绝不返回占位值、绝不静默降级）
+   - CubicSpline 需要的 solve_banded((1,1),...) 用 numpy Thomas 算法
+     等价实现；保留输入 dtype（float32 → LAPACK sgbsv 同精度）
+C. C 级依赖（alias_capi.py）：_ppoly.so cimport scipy.linalg.cython_lapack、
+   _interpnd.so cimport scipy.spatial._qhull。把原版真实 .so 复制进
+   _lib/_tr018_capi/ 并在 scipy/__init__.py 注册 sys.modules 别名，
+   不新增任何 scipy 子包目录，不是 stub。
+
+----------------------------------------------------------------
+四、验收口径与样本
+----------------------------------------------------------------
+渲染入口   core/psd_layer_fallback.py::render_layer_to_png_bytes
+           + extract_layer_styles（项目真实逐层路径）
+           注：整图 PSDImage.composite(force=True) 在
+           complex_layers.psd / wedding_with_decorations_23.psd 上会撞
+           aggdraw 依赖，不是项目实际渲染路径，故不采用。
+样本       tests/data/*.psd（排除 corrupted_file.psd）→ 67 个图层
+样式图层   complex_layers.psd L007 smartobject Image01（描边）
+           wedding_with_decorations_23.psd L003 shape 箭头（描边）
+基线       sha_full_layers.json / png_full_layers/（完整 scipy，裁剪前）
+最终      sha_slim_final2.json（/tmp 最终态）、落地复验用
+           sha_app_final.json（包内 Python 跑出，见「落地复验原始输出.txt」）
+数值       numeric_equiv.py 覆盖 edt / grey_erosion / gaussian /
+           maximum_filter1d / uniform_filter1d / interp1d / CubicSpline /
+           RegularGridInterpolator / Pchip / BSpline / interpn / griddata
+           → num_full.json vs num_app.json
+
+----------------------------------------------------------------
+五、原始证据文件
+----------------------------------------------------------------
+落地复验原始输出.txt        包内 Python 的 A~F 全段原始输出（最权威）
+sha_full_layers.json        裁剪前逐层 sha256 基线
+sha_slim_final2.json        /tmp 最终态逐层 sha256
+num_full.json               完整 scipy 数值输出
+num_slim.json               /tmp 最终态数值输出
+../tools/tr018/             全部可复现脚本（slim/patch/alias/render/numeric）
+../../tools/tr018/build_and_verify.sh   一键重建 + 验收
+
+----------------------------------------------------------------
+六、复现命令
+----------------------------------------------------------------
+tools/tr018/build_and_verify.sh \
+  "/tmp/tr018/full/python_bundle" "/tmp/tr018/reproduce"
+
+落地（含备份 / 清理 / 重签 / strict 验签）已在本次执行完成，
+步骤见本记录「一」与「落地复验原始输出.txt」的 E/F 段。

@@ -207,6 +207,11 @@ public final class AssetHubView: NSVisualEffectView,
     private let categories = TemplateTierScanner.categories
     public var onOpenTemplateInDesigner: ((String) -> Void)?
 
+    /// TR-019 阶段一：把 .moti 送进 App 原生设计器做只读预览（不写回）。
+    /// 参数是 .moti 文件的绝对路径；与 onOpenTemplateInDesigner 分开，
+    /// 避免与「用 Apple Motion 打开」的语义混淆。
+    public var onPreviewMotiInDesigner: ((String) -> Void)?
+
     // MARK: – Module 2: 3D LUT UI
     public var lutTableView: NSTableView!
     public var lutCategoryPopup: NSPopUpButton!
@@ -2048,6 +2053,12 @@ public final class AssetHubView: NSVisualEffectView,
         designerItem.representedObject = item
         menu.addItem(designerItem)
 
+        // TR-019 阶段一：App 内只读解析预览，不修改模板、不写回 .moti
+        let previewItem = NSMenuItem(title: "在设计器中只读预览 (.moti)", action: #selector(onCardPreviewMotiMenu(_:)), keyEquivalent: "")
+        previewItem.target = self
+        previewItem.representedObject = item
+        menu.addItem(previewItem)
+
         menu.addItem(NSMenuItem.separator())
 
         let deleteItem = NSMenuItem(title: "移入废纸篓 (Delete)", action: #selector(onCardDeleteMenu(_:)), keyEquivalent: "")
@@ -2233,6 +2244,36 @@ public final class AssetHubView: NSVisualEffectView,
             NSWorkspace.shared.open(URL(fileURLWithPath: candidateDir))
         }
         onOpenTemplateInDesigner?(item.path)
+    }
+
+    /// TR-019 阶段一：把 .moti 送进 App 原生设计器做只读预览。
+    /// 只接受 .moti；找不到就明确提示，绝不降级去打开 Apple Motion，
+    /// 也绝不写回任何文件（写回由设计器侧的只读态硬阻断）。
+    @objc private func onCardPreviewMotiMenu(_ sender: NSMenuItem) {
+        guard let item = sender.representedObject as? TemplateItem else { return }
+        let fm = FileManager.default
+        let candidateDir = (item.targetPath.isEmpty || item.isOffline) ? item.path : item.targetPath
+        var motiPath: String? = nil
+        if let files = try? fm.contentsOfDirectory(atPath: candidateDir) {
+            for f in files where (f as NSString).pathExtension.lowercased() == "moti" {
+                motiPath = (candidateDir as NSString).appendingPathComponent(f)
+                break
+            }
+        }
+        // 卡片本身可能直接指向 .moti 文件
+        if motiPath == nil,
+           (item.path as NSString).pathExtension.lowercased() == "moti",
+           fm.fileExists(atPath: item.path) {
+            motiPath = item.path
+        }
+        guard let path = motiPath, fm.fileExists(atPath: path) else {
+            let alert = NSAlert()
+            alert.messageText = "无法只读预览"
+            alert.informativeText = "该模板目录下未找到 .moti 工程文件：\n\(candidateDir)"
+            alert.runModal()
+            return
+        }
+        onPreviewMotiInDesigner?(path)
     }
 
     // ═══════════════════════════════════════════════════════════════

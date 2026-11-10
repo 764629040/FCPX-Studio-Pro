@@ -40,6 +40,12 @@ public final class MainWindowController: NSWindowController,
     /// R42 / A-72：解析完成回调（供自动化 Harness 与 UI 监听）
     public var onParseCompleted: ((PSDParseResult) -> Void)?
 
+    // MARK: – TR-019 阶段一：.moti 只读预览态
+    /// 只读态为 true 时：图层全部锁定，保存/批量导出被硬阻断，
+    /// 任何 PSD 解析操作都会先 exitMotiReadOnlyMode() 自动退出该态。
+    public private(set) var motiReadOnlyMode: Bool = false
+    public private(set) var currentMotiPath: String?
+
     // MARK: – Init
     public convenience init() {
         let screen = NSScreen.screens.first(where: { $0.frame.origin.x == 0 })
@@ -104,9 +110,17 @@ public final class MainWindowController: NSWindowController,
         }
 
         let args = ProcessInfo.processInfo.arguments
-        // `--open <psd 路径>` 启动参数：走与 ⌘O 完全相同的单文件导入路径
-        // （importPsdPaths），用于 A-62 无辅助功能权限时的自动化真机验收。
-        if let idx = args.firstIndex(of: "--open"), idx + 1 < args.count {
+        // TR-019 阶段一：`--preview-moti <path>` 直接进只读预览。
+        // 必须排在 --open 之前且阻止默认目录加载，否则 loadPsdDirectory 会
+        // 触发 parseCurrentFile 把只读态顶掉。
+        if let idx = args.firstIndex(of: "--preview-moti"), idx + 1 < args.count {
+            let target = (args[idx + 1] as NSString).expandingTildeInPath
+            DispatchQueue.main.async { [weak self] in
+                self?.previewMotiInDesigner(path: target)
+            }
+        } else if let idx = args.firstIndex(of: "--open"), idx + 1 < args.count {
+            // `--open <psd 路径>` 启动参数：走与 ⌘O 完全相同的单文件导入路径
+            // （importPsdPaths），用于 A-62 无辅助功能权限时的自动化真机验收。
             let target = (args[idx + 1] as NSString).expandingTildeInPath
             DispatchQueue.main.async { [weak self] in
                 self?.importPsdPaths([target])
@@ -322,11 +336,17 @@ public final class MainWindowController: NSWindowController,
         inspectorView.onHiddenLayersChanged = { [weak self] on in
             self?.setIncludeHiddenLayers(on)
         }
+        // TR-019 阶段一：只读预览态下，写回 / 导出在入口处二次硬阻断
+        // （按钮已置灰，这里防菜单快捷键等旁路）
         inspectorView.onSaveTemplate = { [weak self] in
-            self?.saveCurrentTemplate()
+            guard let self = self else { return }
+            guard !self.motiReadOnlyMode else { self.showMotiReadOnlyAlert(); return }
+            self.saveCurrentTemplate()
         }
         inspectorView.onBatchExport = { [weak self] in
-            self?.batchExportAllTemplates()
+            guard let self = self else { return }
+            guard !self.motiReadOnlyMode else { self.showMotiReadOnlyAlert(); return }
+            self.batchExportAllTemplates()
         }
         inspectorView.onFontsDropped = { [weak self] paths in
             self?.handleDroppedFonts(paths)
@@ -341,7 +361,12 @@ public final class MainWindowController: NSWindowController,
         assetHubView.autoresizingMask = [.width, .height]
         assetHubView.isHidden = true
         assetHubView.onOpenTemplateInDesigner = { [weak self] _ in
+            self?.exitMotiReadOnlyMode()
             self?.showEngine(index: 0)
+        }
+        // TR-019 阶段一：.moti 只读解析进设计器（不写回、不打开外部 Motion）
+        assetHubView.onPreviewMotiInDesigner = { [weak self] path in
+            self?.previewMotiInDesigner(path: path)
         }
         parent.addSubview(assetHubView)
     }
@@ -381,6 +406,75 @@ public final class MainWindowController: NSWindowController,
         }
     }
 
+    // MARK: – TR-019 阶段一：.moti 只读解析进设计器（不写回）
+
+    /// 只读解析 .moti 并注入画布 / 检查器。
+    /// 阶段一硬约束：不生成任何文件、不修改 .moti、不调用 MotionBuilderSocket；
+    /// 保存与批量导出在只读态下被硬阻断，生成的 LayerModel 一律 isLocked=true。
+    public func previewMotiInDesigner(path: String) {
+        let snapshot = MotiDocumentParser.parse(path: path)
+        guard snapshot.isValid else {
+            showAlert(title: "只读预览失败",
+                      msg: (snapshot.failureReason ?? "无法解析该 .moti 文件。") + "\n\(path)")
+            return
+        }
+        let models = MotiDocumentParser.toLayerModels(snapshot)
+        guard !models.isEmpty else {
+            showAlert(title: "只读预览失败",
+                      msg: "该 .moti 未解析出任何图层，设计器保持原状。\n\(path)")
+            return
+        }
+
+        // 进入只读态：先切断一切写回路径，再注入数据
+        motiReadOnlyMode = true
+        currentMotiPath = path
+        currentPsdPath = nil
+        inspectorView.saveButton?.isEnabled = false
+        inspectorView.batchExportButton?.isEnabled = false
+
+        segmentedControl?.selectedSegment = 0
+        showEngine(index: 0)
+
+        canvasView.backgroundPreview = nil
+        canvasView.originalCompositePath = nil
+        canvasView.setResolution(width: CGFloat(snapshot.canvasWidth),
+                                 height: CGFloat(snapshot.canvasHeight))
+        canvasView.layers = models
+        inspectorView.layers = models
+
+        var warnings = snapshot.warnings
+        warnings.append("TR-019 阶段一：.moti 只读预览，图层已锁定，禁止写回 / 导出。")
+        inspectorView.updateDiagnostics(
+            aspectRatio: "\(snapshot.canvasWidth):\(snapshot.canvasHeight)",
+            resolutionSpec: "\(snapshot.canvasWidth)×\(snapshot.canvasHeight) (Motion ozml)",
+            width: CGFloat(snapshot.canvasWidth),
+            height: CGFloat(snapshot.canvasHeight),
+            warnings: warnings,
+            isValid: true,
+            failureReason: nil,
+            layerCount: models.count
+        )
+        canvasView.fitArtboard()
+        print("[TR-019] moti read-only preview: \(path) layers=\(models.count) "
+              + "canvas=\(snapshot.canvasWidth)x\(snapshot.canvasHeight)")
+        fflush(stdout)
+    }
+
+    /// 退出只读态：恢复保存 / 导出按钮。任何 PSD 相关操作前调用。
+    public func exitMotiReadOnlyMode() {
+        guard motiReadOnlyMode else { return }
+        motiReadOnlyMode = false
+        currentMotiPath = nil
+        inspectorView.saveButton?.isEnabled = true
+        inspectorView.batchExportButton?.isEnabled = true
+    }
+
+    private func showMotiReadOnlyAlert() {
+        showAlert(title: "只读预览",
+                  msg: "当前处于 .moti 只读预览（TR-019 阶段一），不写回、不导出。\n"
+                     + "请先在左侧选择一个 PSD 文件，即可恢复编辑态。")
+    }
+
     // MARK: – PSD Loading（目录 / 单文件 / 拖放统一入口）
 
     public func loadPsdDirectory(_ dir: String) {
@@ -409,6 +503,13 @@ public final class MainWindowController: NSWindowController,
     ///      非 psd 明确提示，不崩溃、不静默。
     @objc public func importPsdPaths(_ paths: [String]) {
         guard !paths.isEmpty else { return }
+        // TR-019 阶段一：拖入 .moti 直接进只读预览，不混入 PSD 批处理列表。
+        // 混合拖放以 .moti 优先，避免只读态被随后的 PSD 解析覆盖。
+        let motis = paths.filter { ($0 as NSString).pathExtension.lowercased() == "moti" }
+        if let first = motis.first {
+            previewMotiInDesigner(path: first)
+            return
+        }
         let plan = PSDImportPlanner.plan(paths: paths, existing: psdFiles)
 
         if !plan.added.isEmpty {
@@ -489,6 +590,8 @@ public final class MainWindowController: NSWindowController,
 
     /// R42 / A-72：核心解析入口，解耦早退逻辑。当 force=true 时强制发起重新解析
     public func parseCurrentFile(force: Bool = false) {
+        // TR-019：任何 PSD 解析都自动退出 .moti 只读预览态，恢复编辑能力
+        exitMotiReadOnlyMode()
         let path: String
         if let curr = currentPsdPath, !curr.isEmpty {
             path = curr

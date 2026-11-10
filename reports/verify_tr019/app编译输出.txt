@@ -1,0 +1,25 @@
+源文件数(含 main.swift): 40
+=== swiftc -O 全量 app 二进制 ===
+FCPXStudioNative/Sources/FCPXStudio/Models/AudioManager.swift:165:47: warning: 'duration' was deprecated in macOS 13.0: Use load(.duration) instead [#DeprecatedDeclaration]
+163 |         // 备选方案：使用 AVURLAsset 读取
+164 |         let asset = AVURLAsset(url: url)
+165 |         let duration = CMTimeGetSeconds(asset.duration)
+    |                                               `- warning: 'duration' was deprecated in macOS 13.0: Use load(.duration) instead [#DeprecatedDeclaration]
+166 |         return (duration.isNaN ? 0 : duration, 44100.0, 2)
+167 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+APPC_EXIT=0
+=== 产物 ===
+-rwxr-xr-x 1 mrhuang wheel 2.8M 2026-11-10 23:37 /tmp/FCPXStudio_tr019
+旧二进制:
+-rwxr-xr-x 1 mrhuang staff 3.2M 2026-11-10 23:28 FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+=== 新二进制 TR-019 字符串命中 ===
+  在设计器中只读预览 : 0
+  TR-019 阶段一 : 0
+  --preview-moti : 
+  MotiDocumentParser : 2
+  motiReadOnlyMode : 2
+=== 旧二进制 TR-019 字符串命中（应全 0） ===
+  在设计器中只读预览 : 0
+  --preview-moti : 

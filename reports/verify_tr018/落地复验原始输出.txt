@@ -1,0 +1,36 @@
+=== A. 落地后包内 Python 身份与依赖闸门 ===
+python: 3.14.6
+scipy: 1.16.3
+HAS_SCIPY: True HAS_AGGDRAW: False
+interp1d: scipy.interpolate._interpolate
+CubicSpline: scipy.interpolate._cubic
+RegularGridInterpolator: scipy.interpolate._rgi
+scipy subdirs: ['.dylibs', '_lib', 'interpolate', 'ndimage']
+deleted-but-present: []
+
+=== B. 包内 Python 逐层渲染 PNG sha256 ===
+{
+  "total": 67,
+  "methods": {
+    "psd_composite": 67
+  },
+  "styled_layers": 2
+}
+
+=== C. 与裁剪前基线逐个比对 ===
+LAYERS 67 DIFF 0 STYLED 2 METHODS {'psd_composite': 67}
+PNG_FILES 67 67 BYTE_DIFF 0 []
+VERDICT: PASS
+
+=== D. 包内数值等价（对照完整 scipy） ===
+字段数 2541 标量总数 2541 2541 数值差异 0
+BYTE_IDENTICAL: YES
+
+=== E. 体积 ===
+ 88M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+ 10M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python3.14/site-packages/scipy
+ 93M	/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+
+=== F. strict 验签 ===
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: valid on disk
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: satisfies its Designated Requirement

@@ -1,0 +1,19 @@
+=== swift build --disable-sandbox ===
+[0/1] Planning build
+Building for production...
+[0/4] Write sources
+[1/4] Write swift-version--415827A96FC6CDF.txt
+[3/5] Compiling FCPXStudio AppConfig.swift
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPXStudioNative/Sources/FCPXStudio/Models/AudioManager.swift:165:47: warning: 'duration' was deprecated in macOS 13.0: Use load(.duration) instead [#DeprecatedDeclaration]
+163 |         // 备选方案：使用 AVURLAsset 读取
+164 |         let asset = AVURLAsset(url: url)
+165 |         let duration = CMTimeGetSeconds(asset.duration)
+    |                                               `- warning: 'duration' was deprecated in macOS 13.0: Use load(.duration) instead [#DeprecatedDeclaration]
+166 |         return (duration.isNaN ? 0 : duration, 44100.0, 2)
+167 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[3/5] Write Objects.LinkFileList
+[4/5] Linking FCPXStudio
+Build complete! (34.28s)
+SWIFTPM_EXIT=0

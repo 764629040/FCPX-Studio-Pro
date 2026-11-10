@@ -1,0 +1,31 @@
+  ✅ 样本 .moti 存在
+  ✅ parse 返回 isValid=true
+  ✅ ozmlVersion == 5.14
+  ✅ layers.count == 8
+  ✅ layers[0].name == Text 01
+  ✅ layers[0].id == 3000100
+  ✅ layers[0].text 含「领」「现」且保留换行
+  ✅ layers[0].posX ≈ -213.0
+  ✅ layers[0].posY ≈ 484.5
+  ✅ layers[1].text 含 presentation
+  ✅ toLayerModels(snapshot).count == 8
+  ✅ 所有 LayerModel 的 isLocked == true
+  ✅ 所有 LayerModel 的 diagnosticNotes 含「只读」
+  ✅ 解析前后 .moti 字节完全一致（只读）
+  ✅ 解析后 .moti 文件仍存在
+  ✅ parser 源码不含 write(
+  ✅ parser 源码不含 removeItem
+  ✅ parser 源码不含 createFile
+  ✅ parser 源码不含 FileHandle(forWriting
+  ✅ 不存在路径 -> isValid=false
+  ✅ 不存在路径 -> failureReason 非空
+  ✅ 不存在路径 -> layers 为空
+  ✅ MainWindowController 接线 onPreviewMotiInDesigner
+  ✅ 设计器注入 MotiDocumentParser.toLayerModels
+  ✅ 设计器维护 motiReadOnlyMode 只读态
+  ✅ 保存/导出入口有只读态硬阻断
+  ✅ 提供 --preview-moti 自动化入口
+  ✅ 素材库提供「在设计器中只读预览」菜单项
+  ✅ 素材库把 .moti 路径传给设计器
+PASS = 29   FAIL = 0
+TR-019 VERDICT: PASS

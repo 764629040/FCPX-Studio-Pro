@@ -1,0 +1,108 @@
+TR-019 .moti 只读解析进设计器（阶段一，不写回）验收记录
+================================================================
+日期        2026-11-10
+目标        App 原生引擎一「设计器 (PSD → Motion)」
+需求        .moti 只读解析进设计器；阶段一不写回
+
+----------------------------------------------------------------
+一、结论：PASS
+----------------------------------------------------------------
+1) 解析器    新建 Models/MotiDocumentParser.swift，纯 Foundation XMLDocument
+             只读解析；只 Data(contentsOf:) 一次 + 内存解析，不写任何文件。
+2) 接线      已真正接进设计器（不是只有解析器）：
+             · AssetHubView 新增「在设计器中只读预览 (.moti)」菜单项
+             · 新增 onPreviewMotiInDesigner 回调传 .moti 绝对路径
+             · MainWindowController.previewMotiInDesigner(path:) 解析并
+               注入 canvasView.layers / inspectorView.layers /
+               setResolution / updateDiagnostics，切到引擎一
+             · 拖放 .moti 与 --preview-moti <path> 两个入口
+3) 编译      swiftc -O -j 8 全量源码（39 文件 + harness）：0 error
+             swiftc -O -j 8 全量 app（40 文件含 main.swift）：0 error
+             swift build -c release --build-path /tmp/fcpx_wd
+               --disable-sandbox：Build complete! (34.28s)
+             唯一 warning 是既有的 AudioManager.swift:165 macOS 13
+             'duration' deprecation，与本次改动无关。
+4) harness   PASS = 29   FAIL = 0   TR-019 VERDICT: PASS
+5) 装包      SwiftPM release 产物已替换进
+             FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+             codesign --force --deep --sign - 后
+             codesign --verify --strict --deep --verbose=2 零报错
+6) 不回归    最终整包复验：HAS_SCIPY=True，67 层全 psd_composite，
+             PNG sha256 / 字节 DIFF 0，FINAL VERDICT: PASS
+             python_bundle 88M，整包 app 93M
+
+----------------------------------------------------------------
+二、.moti 格式事实（样本实测）
+----------------------------------------------------------------
+样本        build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+            247979 B / 6608 行，XML 1.0 UTF-8，DOCTYPE ozxmlscene
+根          <ozml version="5.14">
+图层        <scene> 下 8 个 <layer name="Text 01"..."Text 08">
+            layers[0].id = "3000100"
+文本        layer/scenenode/parameter[对象,2]/parameter[文本,369]/<text>
+            layers[0] = "领\n衔\n呈\n现"（换行原样保留）
+            layers[1] 含 "presentation"
+位置        layer/scenenode/parameter[属性,1]/parameter[变换,100]
+            /parameter[位置,101]/parameter[X,1]@value = -213.0
+                                      parameter[Y,2]@value = 484.5
+固定宽高    layer/parameter[对象,2]/parameter[固定宽度,302|固定高度,303]
+画布尺寸    <ozml>/<canvas> 只有 layout/activeView，无尺寸；
+            真实尺寸在 <scene>/<sceneSettings>/<width>1080</width>
+                                      <height>1920</height>
+            解析器按 canvas → sceneSettings → 首层固定宽高 → 1920x1080
+            四级回退，并把采用的来源写进 warnings。
+
+----------------------------------------------------------------
+三、「不写回」的四道硬约束
+----------------------------------------------------------------
+1. 解析器    源码静态检查通过：不含 write( / removeItem / createFile /
+             FileHandle(forWriting；无 force unwrap；失败返回
+             isValid=false 的快照而不是抛异常。
+             harness 实测解析前后 .moti 字节完全一致、文件仍存在。
+2. 模型      toLayerModels(_:) 生成的每个 LayerModel 一律
+             isLocked = true，diagnosticNotes 含「TR-019 只读预览：不可写回」。
+             isLocked 在 InspectorView 会置灰属性控件、在画布禁止拖拽。
+3. 入口      previewMotiInDesigner 进入 motiReadOnlyMode=true 时
+             saveButton / batchExportButton 置灰；
+             onSaveTemplate / onBatchExport 回调再做一次
+             guard !motiReadOnlyMode → showMotiReadOnlyAlert() 硬阻断
+             （防菜单快捷键旁路）。全仓库仅这两个调用点，无其他直连。
+4. 自动退态  任何 PSD 解析 parseCurrentFile 先 exitMotiReadOnlyMode()
+             恢复按钮；只读态不会污染后续 PSD 编辑流程。
+阶段一未实现：.moti 写回、图层编辑保存、Media/ 绑定贴图还原、
+             Apple Motion 工程重建。这些属于阶段二。
+
+----------------------------------------------------------------
+四、原始证据文件
+----------------------------------------------------------------
+编译输出.txt           swiftc 全量源码 + harness（0 error）
+harness输出.txt         29 条断言逐条结果
+swiftpm编译输出.txt     swift build --disable-sandbox 完整输出
+app编译输出.txt         swiftc 全量 app 二进制输出与体积
+装包复验原始输出.txt    装包前/后字节级标识、重签、strict 验签、
+                       最终整包体积与 67 层 PNG 复验
+../verify_tr018/        TR-018 包瘦身证据（本轮同一 app 的另一半验收）
+
+----------------------------------------------------------------
+五、复现命令
+----------------------------------------------------------------
+cd FCPXStudioNative
+swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+
+# 全量源码 + harness（cwd 必须是项目根）
+FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+swiftc -O -j 8 ${=FILES} tools/tr019_harness.swift -o /tmp/tr019_harness
+/tmp/tr019_harness
+
+# 真机只读预览入口
+open -a "FCPX Studio Pro R2.app" --args --preview-moti \
+  "/abs/path/to/template.moti"
+
+----------------------------------------------------------------
+六、未做（遵守既有约束）
+----------------------------------------------------------------
+· 未重建 dmg（S4-残留：等用户定完唯一包再重建）
+· 未 push、未发版、未改 git 历史
+· 未创建/移动/覆写旧的「FCPX Studio Pro.app」
+· 未自动退出或重启 FCPX，未触碰 FCPX 资料库
+· 未做真机启动截图（本轮验收用编译 + harness + 装包字节证据）
