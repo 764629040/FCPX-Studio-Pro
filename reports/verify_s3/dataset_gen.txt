@@ -1,0 +1,8 @@
+dataset n=1000   -> /tmp/s3_verify/data/dataset_1000.json (258027 bytes)
+dataset n=10000  -> /tmp/s3_verify/data/dataset_10000.json (2586453 bytes)
+track            -> /tmp/s3_verify/data/track.json (2685 bytes)
+manifest         -> /tmp/s3_verify/data/MANIFEST.sha256
+# S3 P1 dataset manifest  seed=0x53335031
+db1b9dff45588bf8cf7e9375d1e40279d049ee2ce99d3ec7628e193814aca664  dataset_1000.json
+011d68aed448530f9b8398a0b27e11649e74e247ad6dd4ed8cd7b54b2a3be864  dataset_10000.json
+a0b8727d937597a2bef111d86bcc16b362a0d0899f48e7df87386334eb23ef63  track.json

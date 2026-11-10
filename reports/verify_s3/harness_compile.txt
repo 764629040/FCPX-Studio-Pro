@@ -1,0 +1,1 @@
+harness binary: /tmp/s3_verify/s3_harness (453768 bytes)

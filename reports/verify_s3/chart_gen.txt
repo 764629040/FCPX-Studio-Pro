@@ -1,0 +1,5 @@
+PNG chart_dropped_frames.png (36629 bytes)
+PNG chart_frame_time.png (38712 bytes)
+PNG chart_view_peak.png (36950 bytes)
+PNG chart_resources.png (54980 bytes)
+charts generated from 4 summary rows

@@ -1,0 +1,74 @@
+==============================================================
+S3 / P1 虚拟滚动 + 多级缩略图缓存 —— 前后对比独立 harness
+==============================================================
+swiftc  : Swift 5.x
+period  : 16.6660 ms (= 60.00 Hz vsync 等价节拍)
+rounds  : 5  (每场景独立冷启动)
+out     : /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_s3
+NOTE    : 独立合成负载，非真机 App 实测；见 ACCEPTANCE.md 边界说明
+
+──────────────────────────────────────────────────────────────
+DATASET n=1000  items=1000  frames=240  cols=3
+  file      : /tmp/s3_verify/data/dataset_1000.json
+  sha256    : db1b9dff45588bf8cf7e9375d1e40279d049ee2ce99d3ec7628e193814aca664
+  track     : /tmp/s3_verify/data/track.json  sha256=a0b8727d937597a2bef111d86bcc16b362a0d0899f48e7df87386334eb23ef63
+  maxOffset : 832816.0 pt  contentH=833576.0 pt
+  viewport  : 900.0x760.0
+
+[legacy] round 1/5  dropped=2  miss=2  overBudget=0  avg=0.181ms  p95=1.433ms  max=6.244ms  effFPS=59.5  peakViews=1000  liveNow=1000  wall=4023.8ms
+[legacy] round 2/5  dropped=2  miss=2  overBudget=0  avg=0.192ms  p95=1.531ms  max=5.003ms  effFPS=59.5  peakViews=1000  liveNow=1000  wall=4011.9ms
+[legacy] round 3/5  dropped=0  miss=0  overBudget=0  avg=0.209ms  p95=2.077ms  max=5.156ms  effFPS=60.0  peakViews=1000  liveNow=1000  wall=4003.2ms
+[legacy] round 4/5  dropped=0  miss=0  overBudget=0  avg=0.224ms  p95=1.829ms  max=5.665ms  effFPS=60.0  peakViews=1000  liveNow=1000  wall=4003.2ms
+[legacy] round 5/5  dropped=1  miss=1  overBudget=0  avg=0.357ms  p95=4.027ms  max=7.852ms  effFPS=59.8  peakViews=1000  liveNow=1000  wall=4003.1ms
+[s3] round 1/5  dropped=3  miss=2  overBudget=0  avg=0.356ms  p95=2.613ms  max=7.652ms  effFPS=59.3  peakViews=24  liveNow=24  wall=4025.5ms
+[s3] round 2/5  dropped=0  miss=0  overBudget=0  avg=0.248ms  p95=2.109ms  max=2.974ms  effFPS=60.0  peakViews=24  liveNow=24  wall=4002.3ms
+[s3] round 3/5  dropped=0  miss=0  overBudget=0  avg=0.375ms  p95=3.036ms  max=4.724ms  effFPS=60.0  peakViews=24  liveNow=24  wall=4000.0ms
+[s3] round 4/5  dropped=1  miss=1  overBudget=0  avg=0.307ms  p95=3.027ms  max=4.121ms  effFPS=59.8  peakViews=24  liveNow=24  wall=4005.1ms
+[s3] round 5/5  dropped=4  miss=3  overBudget=0  avg=0.290ms  p95=2.478ms  max=5.001ms  effFPS=59.0  peakViews=24  liveNow=24  wall=4049.0ms
+
+  ── 场景汇总 n=1000，R=5（均值 ± 样本标准差）──
+  legacy: dropped=1.0±1.0 [min 0 max 2]  avgFrame=0.233±0.071ms  p95=2.179ms  peakViews=1000  gen=1000  layoutOps=10080  estMem=32.27MiB
+  s3: dropped=1.6±1.8 [min 0 max 4]  avgFrame=0.315±0.051ms  p95=2.653ms  peakViews=24  gen=92  layoutOps=1107  estMem=2.89MiB
+  ── 前后对比 (legacy / s3) ──
+     掉帧数        : 1.0 -> 1.6   (0.62x)
+     平均帧时(ms)  : 0.233 -> 0.315   (0.74x)
+     p95 帧时(ms)  : 2.179 -> 2.653   (0.82x)
+     视图实例峰值  : 1000 -> 24   (41.67x)
+     布局操作总数  : 10080 -> 1107   (9.11x)
+     缩略图生成数  : 1000 -> 92   (10.87x)
+     估算内存(MiB) : 32.27 -> 2.89   (11.16x)
+
+──────────────────────────────────────────────────────────────
+DATASET n=10000  items=10000  frames=240  cols=3
+  file      : /tmp/s3_verify/data/dataset_10000.json
+  sha256    : 011d68aed448530f9b8398a0b27e11649e74e247ad6dd4ed8cd7b54b2a3be864
+  track     : /tmp/s3_verify/data/track.json  sha256=a0b8727d937597a2bef111d86bcc16b362a0d0899f48e7df87386334eb23ef63
+  maxOffset : 832816.0 pt  contentH=833576.0 pt
+  viewport  : 900.0x760.0
+
+[legacy] round 1/5  dropped=65  miss=57  overBudget=57  avg=7.524ms  p95=26.797ms  max=97.640ms  effFPS=47.2  peakViews=10000  liveNow=10000  wall=4483.5ms
+[legacy] round 2/5  dropped=41  miss=39  overBudget=37  avg=5.676ms  p95=21.158ms  max=51.460ms  effFPS=51.2  peakViews=10000  liveNow=10000  wall=4184.5ms
+[legacy] round 3/5  dropped=58  miss=51  overBudget=48  avg=7.647ms  p95=30.753ms  max=48.461ms  effFPS=48.3  peakViews=10000  liveNow=10000  wall=4565.2ms
+[legacy] round 4/5  dropped=34  miss=34  overBudget=31  avg=5.515ms  p95=19.885ms  max=25.863ms  effFPS=52.6  peakViews=10000  liveNow=10000  wall=4109.2ms
+[legacy] round 5/5  dropped=34  miss=34  overBudget=31  avg=5.515ms  p95=19.572ms  max=25.779ms  effFPS=52.6  peakViews=10000  liveNow=10000  wall=4110.3ms
+[s3] round 1/5  dropped=0  miss=0  overBudget=0  avg=2.158ms  p95=4.208ms  max=5.574ms  effFPS=60.0  peakViews=27  liveNow=27  wall=4003.2ms
+[s3] round 2/5  dropped=0  miss=0  overBudget=0  avg=2.191ms  p95=4.357ms  max=5.729ms  effFPS=60.0  peakViews=27  liveNow=27  wall=4003.1ms
+[s3] round 3/5  dropped=2  miss=1  overBudget=1  avg=1.996ms  p95=3.971ms  max=27.978ms  effFPS=59.5  peakViews=27  liveNow=27  wall=4031.9ms
+[s3] round 4/5  dropped=2  miss=1  overBudget=0  avg=1.448ms  p95=3.343ms  max=3.980ms  effFPS=59.5  peakViews=27  liveNow=27  wall=4031.0ms
+[s3] round 5/5  dropped=3  miss=2  overBudget=2  avg=1.982ms  p95=3.923ms  max=44.320ms  effFPS=59.3  peakViews=27  liveNow=27  wall=4040.9ms
+
+  ── 场景汇总 n=10000，R=5（均值 ± 样本标准差）──
+  legacy: dropped=46.4±14.3 [min 34 max 65]  avgFrame=6.375±1.107ms  p95=23.633ms  peakViews=10000  gen=10000  layoutOps=1043328  estMem=322.72MiB
+  s3: dropped=1.4±1.3 [min 0 max 3]  avgFrame=1.955±0.298ms  p95=3.960ms  peakViews=27  gen=488  layoutOps=5732  estMem=8.03MiB
+  ── 前后对比 (legacy / s3) ──
+     掉帧数        : 46.4 -> 1.4   (33.14x)
+     平均帧时(ms)  : 6.375 -> 1.955   (3.26x)
+     p95 帧时(ms)  : 23.633 -> 3.960   (5.97x)
+     视图实例峰值  : 10000 -> 27   (370.37x)
+     布局操作总数  : 1043328 -> 5732   (182.02x)
+     缩略图生成数  : 10000 -> 488   (20.49x)
+     估算内存(MiB) : 322.72 -> 8.03   (40.19x)
+
+WROTE /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_s3/results.csv
+WROTE /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_s3/results_summary.csv
+DONE

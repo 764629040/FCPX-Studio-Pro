@@ -1,0 +1,1 @@
+CVDisplayLink: OK nominalPeriodMs=16.666000 timeValue=399984 timeScale=24000000

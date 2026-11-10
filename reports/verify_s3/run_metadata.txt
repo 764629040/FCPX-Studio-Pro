@@ -1,0 +1,26 @@
+S3 / P1 verification run metadata
+UTC   : 2026-11-10T11:13:36Z
+LOCAL : 2026-11-10 19:13:36 CST
+--- sw_vers ---
+ProductName:		macOS
+ProductVersion:		26.5
+BuildVersion:		25F5058e
+--- uname ---
+Darwin mrhuangdeMacBook-Air-2.local 25.5.0 Darwin Kernel Version 25.5.0: Tue Apr 14 21:54:57 PDT 2026; root:xnu-12377.120.99.0.7~25/RELEASE_ARM64_T8122 arm64
+--- swiftc ---
+Apple Swift version 6.2.3 (swiftlang-6.2.3.3.21 clang-1700.6.3.2)
+Target: arm64-apple-macosx26.0
+--- CPU ---
+brand : Apple M3
+model : Mac15,12
+ncpu  : 8
+memsz : 17179869184
+--- disk ---
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   228Gi   189Gi    14Gi    93%    1.8M  152M    1%   /System/Volumes/Data
+/dev/disk7s1   119Gi   119Gi   257Mi   100%     47k  2.6M    2%   /Volumes/摄影师工具箱128GB
+--- harness compile ---
+swiftc -O -swift-version 5 FCPXStudioNative/Sources/FCPXStudio/Performance/*.swift tools/s3_harness_models.swift tools/s3_harness.swift -o /tmp/s3_verify/s3_harness
+--- probe compile ---
+swiftc -O tools/s3_vsync_probe.swift -o /tmp/s3_verify/s3_vsync_probe
+--- rounds=5 frames=240 counts=1000,10000 ---

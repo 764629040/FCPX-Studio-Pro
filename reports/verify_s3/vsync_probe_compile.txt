@@ -1,0 +1,25 @@
+tools/s3_vsync_probe.swift:9:14: warning: 'CVDisplayLinkCreateWithActiveCGDisplays' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+ 7 | // 单文件 swiftc 编译时按 main.swift「顶层代码」模式处理，直接用顶层语句，不用 @main。
+ 8 | var link: CVDisplayLink?
+ 9 | let status = CVDisplayLinkCreateWithActiveCGDisplays(&link)
+   |              `- warning: 'CVDisplayLinkCreateWithActiveCGDisplays' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+10 | if status == kCVReturnSuccess, let dl = link {
+11 |     let period = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dl)
+
+tools/s3_vsync_probe.swift:11:18: warning: 'CVDisplayLinkGetNominalOutputVideoRefreshPeriod' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+ 9 | let status = CVDisplayLinkCreateWithActiveCGDisplays(&link)
+10 | if status == kCVReturnSuccess, let dl = link {
+11 |     let period = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dl)
+   |                  `- warning: 'CVDisplayLinkGetNominalOutputVideoRefreshPeriod' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+12 |     CVDisplayLinkStop(dl)
+13 |     if period.timeScale > 0 && period.timeValue > 0 {
+
+tools/s3_vsync_probe.swift:12:5: warning: 'CVDisplayLinkStop' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+10 | if status == kCVReturnSuccess, let dl = link {
+11 |     let period = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(dl)
+12 |     CVDisplayLinkStop(dl)
+   |     `- warning: 'CVDisplayLinkStop' was deprecated in macOS 15.0: use NSView.displayLink(target:selector:), NSWindow.displayLink(target:selector:), or NSScreen.displayLink(target:selector:)  [#DeprecatedDeclaration]
+13 |     if period.timeScale > 0 && period.timeValue > 0 {
+14 |         let ms = Double(period.timeValue) / Double(period.timeScale) * 1000.0
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
