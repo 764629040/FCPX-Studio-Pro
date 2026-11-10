@@ -1,0 +1,26 @@
+▶ [闸门 0] 目标 App 与进程校验（只读）
+▶   pgrep 检查通过：FCPX Studio Pro R2.app 未在运行
+▶   源二进制: /tmp/fcpx_wd/release/FCPXStudio (3495816 B)
+▶   /tmp 可用 13379036 KiB（备份只写 /tmp，不写外置卷）
+==================================================
+  S4.1 装包 + 一次性重签
+  目标: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+  源:   /tmp/fcpx_wd/release/FCPXStudio (3495816 B)
+==================================================
+▶ [1/6] 备份旧二进制到 /tmp
+▶   备份完成: /tmp/s4_install_backup.5os2b7/FCPXStudio.before_20261111_005047 (3466896 B)
+▶ [2/6] 换入新二进制
+▶   已换入: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio (3495816 B)
+▶ [3/6] 清理 *.cstemp / ._* / .DS_Store
+▶ [4/6] xattr -cr
+▶ [5/6] codesign --force --deep --sign - （全脚本唯一一次签名）
+/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app: replacing existing signature
+▶ [6/6] codesign --verify --deep --strict （期望零输出）
+==================================================
+✅ 装包 + 一次性重签完成
+   目标:       /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+   新二进制:   /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio (3495816 B)
+   旧二进制备份: /tmp/s4_install_backup.5os2b7/FCPXStudio.before_20261111_005047
+   strict 验签: exit 0 / 输出=零输出 ✅
+   ⚠️ 签完绝不再签。下一步由 S4.3 重建 dmg（同样要求 R2.app 已退出）。
+==================================================

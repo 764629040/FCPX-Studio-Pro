@@ -1,0 +1,23 @@
+中文文案字节计数核对（Python bytes.count，不用 strings）
+========================================================================
+  「只读，不可编辑」                                命中 8    只读态锁定横幅文案                    ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+  「幅面规格」                                   命中 6    幅面规格行常驻文案                    ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+  「这份模板没写画布尺寸，已按 1920」                     命中 1    用户指定的大白话兜底文案                 ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+  「这份模板里有分组」                               命中 1    分组展开大白话提示                    ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+  「只读预览 · 共」                               命中 1    画布只读预览标题条                    ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Views/InfiniteCanvasView.swift
+  「updateMotiReadOnly」                     命中 1    设计器侧只读接线（token 核对）           ✅
+      文件: FCPXStudioNative/Sources/FCPXStudio/Views/MainWindowController.swift
+------------------------------------------------------------------------
+二进制: FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio (3493648 B)
+  「只读，不可编辑」 字节命中 1   ✅
+  「幅面规格」 字节命中 2   ✅
+  「这份模板没写画布尺寸，已按 1920×1080 」 字节命中 1   ✅
+  「只读预览 · 共」 字节命中 1   ✅
+  「⌘L 解锁」字节命中 1  （允许：非只读态分支；只读态由 harness 断言不显示）
+========================================================================
+VERDICT: PASS

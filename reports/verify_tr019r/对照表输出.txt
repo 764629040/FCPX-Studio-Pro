@@ -1,0 +1,35 @@
+文件数 33  源文件总 layer 1442  旧版总层数 132  解析总层数 1442  找回 +1310
+   1  src=2    old=2    parsed=2    nested=0    OK    1.moti
+   2  src=2    old=2    parsed=2    nested=0    OK    11.moti
+   3  src=1    old=1    parsed=1    nested=0    OK    13.moti
+   4  src=1    old=1    parsed=1    nested=0    OK    18.moti
+   5  src=1    old=1    parsed=1    nested=0    OK    25.moti
+   6  src=2    old=2    parsed=2    nested=0    OK    26.moti
+   7  src=2    old=2    parsed=2    nested=0    OK    27.moti
+   8  src=3    old=3    parsed=3    nested=0    OK    28.moti
+   9  src=3    old=3    parsed=3    nested=0    OK    4时空隧道.moti
+  10  src=2    old=2    parsed=2    nested=0    OK    5.moti
+  11  src=1    old=1    parsed=1    nested=0    OK    6.moti
+  12  src=11   old=11   parsed=11   nested=0    OK    婚礼模板.moti
+  13  src=1    old=1    parsed=1    nested=0    OK    射线.moti
+  14  src=6    old=3    parsed=6    nested=0    OK    折纸.moti
+  15  src=4    old=4    parsed=4    nested=0    OK    爆炸.moti
+  16  src=4    old=4    parsed=4    nested=0    OK    爆炸2.moti
+  17  src=4    old=4    parsed=4    nested=0    OK    移动.moti
+  18  src=1    old=1    parsed=1    nested=0    OK    路线擦除.moti
+  19  src=2    old=2    parsed=2    nested=0    OK    音符飘.moti
+  20  src=564  old=5    parsed=564  nested=559  OK    10 字母.moti
+  21  src=539  old=5    parsed=539  nested=534  OK    5 字母.moti
+  22  src=14   old=2    parsed=14   nested=12   OK    名称条.moti
+  23  src=23   old=11   parsed=23   nested=0    OK    屏幕 02.moti
+  24  src=25   old=2    parsed=25   nested=22   OK    某人4文本.moti
+  25  src=17   old=1    parsed=17   nested=0    OK    屏幕 01.moti
+  26  src=14   old=1    parsed=14   nested=0    OK    美味家伙 17.moti
+  27  src=16   old=2    parsed=16   nested=0    OK    图标 04.moti
+  28  src=129  old=5    parsed=129  nested=124  OK    路线 09.moti
+  29  src=12   old=12   parsed=12   nested=0    OK    50.moti
+  30  src=8    old=8    parsed=8    nested=0    OK    T01_领衔呈现_竖版.moti
+  31  src=11   old=11   parsed=11   nested=0    OK    婚礼字幕模板.moti
+  32  src=8    old=8    parsed=8    nested=0    OK    T01_领衔呈现_竖版.moti
+  33  src=9    old=9    parsed=9    nested=0    OK    T23_含装饰_横版.moti
+VERDICT: PASS

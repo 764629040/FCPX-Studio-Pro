@@ -439,21 +439,16 @@ public final class MainWindowController: NSWindowController,
         canvasView.originalCompositePath = nil
         canvasView.setResolution(width: CGFloat(snapshot.canvasWidth),
                                  height: CGFloat(snapshot.canvasHeight))
+        // TR-019-R：只读预览没有位图贴图，打开占位绘制保证画布不空黑
+        canvasView.motiPreviewMode = true
         canvasView.layers = models
         inspectorView.layers = models
 
-        var warnings = snapshot.warnings
-        warnings.append("TR-019 阶段一：.moti 只读预览，图层已锁定，禁止写回 / 导出。")
-        inspectorView.updateDiagnostics(
-            aspectRatio: "\(snapshot.canvasWidth):\(snapshot.canvasHeight)",
-            resolutionSpec: "\(snapshot.canvasWidth)×\(snapshot.canvasHeight) (Motion ozml)",
-            width: CGFloat(snapshot.canvasWidth),
-            height: CGFloat(snapshot.canvasHeight),
-            warnings: warnings,
-            isValid: true,
-            failureReason: nil,
-            layerCount: models.count
-        )
+        // TR-019-R：绕开 PSD 诊断逻辑，幅面规格常驻 + 白话诊断默认折叠
+        inspectorView.updateMotiReadOnlyInfo(canvasWidth: snapshot.canvasWidth,
+                                             canvasHeight: snapshot.canvasHeight,
+                                             layerCount: models.count,
+                                             notes: snapshot.warnings)
         canvasView.fitArtboard()
         print("[TR-019] moti read-only preview: \(path) layers=\(models.count) "
               + "canvas=\(snapshot.canvasWidth)x\(snapshot.canvasHeight)")
@@ -465,6 +460,9 @@ public final class MainWindowController: NSWindowController,
         guard motiReadOnlyMode else { return }
         motiReadOnlyMode = false
         currentMotiPath = nil
+        // TR-019-R：退出只读态后恢复常规画布渲染与锁定提示文案
+        canvasView.motiPreviewMode = false
+        inspectorView.motiReadOnlyMode = false
         inspectorView.saveButton?.isEnabled = true
         inspectorView.batchExportButton?.isEnabled = true
     }

@@ -18,11 +18,30 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     public var posYField: NSTextField!
 
     public var resolutionLabel: NSTextField!
+    /// TR-019-R：只读态常驻标签，挂在幅面规格下方，固定高度 + 抗压缩，谁都挤不掉
+    public var readOnlyBadgeLabel: NSTextField!
     public var diagnosticsBox: NSTextField!
+
+    // TR-019-R：诊断收进「默认折叠」的小角标，不再把整块红字塞进主布局顶掉幅面规格
+    public var diagnosticsBadgeBox: NSView!
+    public var diagnosticsSummaryLabel: NSTextField!
+    public var diagnosticsToggleButton: NSButton!
+    public var diagnosticsDetailBox: NSView!
 
     // R36 / D-74: 锁定横幅插口与回调
     public var lockBannerBox: NSView!
     public var lockBannerLabel: NSTextField!
+
+    /// TR-019-R：.moti 只读预览态。
+    /// 为真时锁定横幅与所有 toolTip 改显示「只读，不可编辑」，⌘L 解锁被吞掉。
+    public var motiReadOnlyMode: Bool = false {
+        didSet { applyMotiReadOnlyText() }
+    }
+
+    // TR-019-R：只读态把图层表拉高以一次显示 11 行，并隐藏不可编辑的属性区
+    private weak var mainStackView: NSStackView?
+    private var tableScrollHeight: NSLayoutConstraint?
+    private let motionPropsTag = 9901
     public var onLayerLockChanged: ((LayerModel) -> Void)?
 
     // 发布复选框插口
@@ -107,6 +126,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         mainStack.spacing = 10
         mainStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(mainStack)
+        mainStackView = mainStack
 
         NSLayoutConstraint.activate([
             mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 14),
@@ -115,17 +135,84 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
         ])
 
-        // ── 0. 画幅规格与转换诊断 ──
-        resolutionLabel = NSTextField(labelWithString: "📐 画幅规格: 1920×1080 (16:9 横版宽屏)")
-        resolutionLabel.font = .systemFont(ofSize: 11, weight: .semibold)
-        resolutionLabel.textColor = NSColor(calibratedWhite: 0.85, alpha: 1.0)
+        // ── 0. 幅面规格（TR-019-R：固定高度 + 抗压缩，任何诊断都挤不掉）──
+        resolutionLabel = NSTextField(labelWithString: "📐 幅面规格 1920×1080")
+        resolutionLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        resolutionLabel.textColor = NSColor(calibratedWhite: 0.92, alpha: 1.0)
+        resolutionLabel.translatesAutoresizingMaskIntoConstraints = false
+        resolutionLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 20).isActive = true
+        resolutionLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        resolutionLabel.setContentHuggingPriority(.required, for: .vertical)
         mainStack.addArrangedSubview(resolutionLabel)
+        resolutionLabel.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        resolutionLabel.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
+
+        // TR-019-R：只读态常驻提示，与幅面规格同级、同样抗压缩
+        readOnlyBadgeLabel = NSTextField(labelWithString: "🔒 只读，不可编辑")
+        readOnlyBadgeLabel.font = .systemFont(ofSize: 11, weight: .semibold)
+        readOnlyBadgeLabel.textColor = NSColor(calibratedRed: 1.0, green: 0.82, blue: 0.35, alpha: 1.0)
+        readOnlyBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        readOnlyBadgeLabel.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        readOnlyBadgeLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        readOnlyBadgeLabel.isHidden = true
+        mainStack.addArrangedSubview(readOnlyBadgeLabel)
+        readOnlyBadgeLabel.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        readOnlyBadgeLabel.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
+
+        // TR-019-R：诊断收进「默认折叠」的小角标，只显示一句白话摘要
+        diagnosticsBadgeBox = NSView()
+        diagnosticsBadgeBox.translatesAutoresizingMaskIntoConstraints = false
+        diagnosticsBadgeBox.heightAnchor.constraint(equalToConstant: 24).isActive = true
+
+        diagnosticsSummaryLabel = NSTextField(labelWithString: "ⓘ 解析完成")
+        diagnosticsSummaryLabel.font = .systemFont(ofSize: 10)
+        diagnosticsSummaryLabel.textColor = NSColor(calibratedWhite: 0.62, alpha: 1.0)
+        diagnosticsSummaryLabel.lineBreakMode = .byTruncatingTail
+        diagnosticsSummaryLabel.translatesAutoresizingMaskIntoConstraints = false
+        diagnosticsBadgeBox.addSubview(diagnosticsSummaryLabel)
+
+        diagnosticsToggleButton = NSButton(title: "详情", target: self, action: #selector(onToggleDiagnostics(_:)))
+        diagnosticsToggleButton.bezelStyle = .inline
+        diagnosticsToggleButton.font = .systemFont(ofSize: 10)
+        diagnosticsToggleButton.translatesAutoresizingMaskIntoConstraints = false
+        diagnosticsBadgeBox.addSubview(diagnosticsToggleButton)
+
+        NSLayoutConstraint.activate([
+            diagnosticsSummaryLabel.leadingAnchor.constraint(equalTo: diagnosticsBadgeBox.leadingAnchor),
+            diagnosticsSummaryLabel.centerYAnchor.constraint(equalTo: diagnosticsBadgeBox.centerYAnchor),
+            diagnosticsSummaryLabel.trailingAnchor.constraint(equalTo: diagnosticsToggleButton.leadingAnchor, constant: -6),
+            diagnosticsToggleButton.trailingAnchor.constraint(equalTo: diagnosticsBadgeBox.trailingAnchor),
+            diagnosticsToggleButton.centerYAnchor.constraint(equalTo: diagnosticsBadgeBox.centerYAnchor),
+            diagnosticsToggleButton.widthAnchor.constraint(equalToConstant: 58)
+        ])
+        mainStack.addArrangedSubview(diagnosticsBadgeBox)
+        diagnosticsBadgeBox.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        diagnosticsBadgeBox.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
+
+        // 展开区：固定 108 高，默认隐藏（NSStackView 对 hidden arranged subview 不分配空间）
+        diagnosticsDetailBox = NSView()
+        diagnosticsDetailBox.translatesAutoresizingMaskIntoConstraints = false
+        diagnosticsDetailBox.heightAnchor.constraint(equalToConstant: 108).isActive = true
+        diagnosticsDetailBox.wantsLayer = true
+        diagnosticsDetailBox.layer?.backgroundColor = NSColor(calibratedWhite: 0.10, alpha: 0.55).cgColor
+        diagnosticsDetailBox.layer?.cornerRadius = 5
 
         diagnosticsBox = NSTextField(wrappingLabelWithString: "✓ 矢量文字层完整提取")
         diagnosticsBox.font = .systemFont(ofSize: 10)
         diagnosticsBox.textColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 0.45, alpha: 1.0)
-        diagnosticsBox.maximumNumberOfLines = 6
-        mainStack.addArrangedSubview(diagnosticsBox)
+        diagnosticsBox.maximumNumberOfLines = 8
+        diagnosticsBox.translatesAutoresizingMaskIntoConstraints = false
+        diagnosticsDetailBox.addSubview(diagnosticsBox)
+        NSLayoutConstraint.activate([
+            diagnosticsBox.topAnchor.constraint(equalTo: diagnosticsDetailBox.topAnchor, constant: 6),
+            diagnosticsBox.leadingAnchor.constraint(equalTo: diagnosticsDetailBox.leadingAnchor, constant: 8),
+            diagnosticsBox.trailingAnchor.constraint(equalTo: diagnosticsDetailBox.trailingAnchor, constant: -8),
+            diagnosticsBox.bottomAnchor.constraint(lessThanOrEqualTo: diagnosticsDetailBox.bottomAnchor, constant: -6)
+        ])
+        diagnosticsDetailBox.isHidden = true
+        mainStack.addArrangedSubview(diagnosticsDetailBox)
+        diagnosticsDetailBox.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        diagnosticsDetailBox.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
 
         // R46: 字体拖拽一键补全提示区
         fontDropPromptBox = NSBox()
@@ -173,7 +260,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
         let tableScroll = NSScrollView()
         tableScroll.translatesAutoresizingMaskIntoConstraints = false
-        tableScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 180).isActive = true
+        // TR-019-R：保存约束，只读态拉高到能一次显示 11 行
+        tableScrollHeight = tableScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 180)
+        tableScrollHeight?.isActive = true
         tableScroll.hasVerticalScroller = true
 
         layerTableView = NSTableView(frame: NSRect(x: 0, y: 0, width: 330, height: 180))
@@ -246,6 +335,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
         // ── 2. Motion 属性区块 ──
         let propTitle = NSTextField(labelWithString: "选中图层 Motion 属性")
+        propTitle.tag = motionPropsTag   // TR-019-R：只读态从这里起整块隐藏
         propTitle.font = TypeScale.bodyBold
         propTitle.textColor = .white
         mainStack.addArrangedSubview(propTitle)
@@ -489,6 +579,12 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     }
 
     @objc public func onLockToggled(_ sender: NSButton) {
+        // TR-019-R：只读预览下不允许解锁，也不显示 ⌘L 解锁提示
+        if motiReadOnlyMode {
+            sender.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: "只读")
+            sender.toolTip = "只读，不可编辑"
+            return
+        }
         let row = sender.tag
         guard row >= 0 && row < layers.count else { return }
         let layer = layers[row]
@@ -516,7 +612,10 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     }
 
     public func updateControlStates(isLocked: Bool) {
-        lockBannerBox?.isHidden = !isLocked
+        // TR-019-R：只读预览态下横幅只显示「只读，不可编辑」
+        lockBannerLabel?.stringValue = motiReadOnlyMode ? "只读，不可编辑" : "🔒 图层已锁定 (⌘L 解锁)"
+        // TR-019-R：只读态统一用顶部常驻标签，原横幅不重复出现
+        lockBannerBox?.isHidden = motiReadOnlyMode ? true : !isLocked
         toggleOrientationButton?.isEnabled = !isLocked
         textEditor?.isEditable = !isLocked
         textEditor?.textColor = isLocked ? NSColor(calibratedWhite: 0.45, alpha: 1.0) : .white
@@ -555,6 +654,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         if event.modifierFlags.contains(.command) {
             let chars = event.charactersIgnoringModifiers?.lowercased() ?? ""
             if chars == "l" {
+                // TR-019-R：只读预览下吞掉 ⌘L，不解锁、不给解锁暗示
+                if motiReadOnlyMode { return true }
                 toggleCurrentLayerLock()
                 return true
             } else if chars == "h" {
@@ -628,7 +729,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             btn.image = NSImage(systemSymbolName: symName, accessibilityDescription: layer.isLocked ? "锁定" : "解锁")
             btn.tag = row
             btn.contentTintColor = layer.isLocked ? NSColor.systemYellow : NSColor(calibratedWhite: 0.45, alpha: 1.0)
-            btn.toolTip = layer.isLocked ? "点击解锁图层 (⌘L)" : "点击锁定图层 (⌘L)"
+            btn.toolTip = motiReadOnlyMode
+                ? "只读，不可编辑"
+                : (layer.isLocked ? "点击解锁图层 (⌘L)" : "点击锁定图层 (⌘L)")
             btn.target = self
             btn.action = #selector(onLockToggled(_:))
             return btn
@@ -682,13 +785,72 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             layerCount: layerCount,
             counts: counts
         )
-        resolutionLabel.stringValue = state.resolutionText
-        diagnosticsBox.stringValue = state.text
+        // TR-019-R：幅面规格常驻；诊断只把摘要放角标，全文进折叠区且默认折叠
+        resolutionLabel?.stringValue = state.resolutionText
+        resolutionLabel?.isHidden = false
+        let firstLine = state.text.components(separatedBy: .newlines).first ?? state.text
+        diagnosticsSummaryLabel?.stringValue = "ⓘ " + Self.short(firstLine)
+        diagnosticsBox?.stringValue = state.text
         switch state.tone {
-        case .red:    diagnosticsBox.textColor = .systemRed
-        case .orange: diagnosticsBox.textColor = NSColor(calibratedRed: 0.95, green: 0.65, blue: 0.2, alpha: 1.0)
-        case .green:  diagnosticsBox.textColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 0.45, alpha: 1.0)
+        case .red:    diagnosticsBox?.textColor = .systemRed
+        case .orange: diagnosticsBox?.textColor = NSColor(calibratedRed: 0.95, green: 0.65, blue: 0.2, alpha: 1.0)
+        case .green:  diagnosticsBox?.textColor = NSColor(calibratedRed: 0.35, green: 0.78, blue: 0.45, alpha: 1.0)
         }
+        diagnosticsDetailBox?.isHidden = true
+        diagnosticsToggleButton?.title = "详情"
+        applyMotiReadOnlyText()
+    }
+
+    private static func short(_ s: String, limit: Int = 42) -> String {
+        return s.count > limit ? String(s.prefix(limit)) + "…" : s
+    }
+
+    /// TR-019-R：.moti 只读预览专用信息更新。
+    /// 直接设置幅面规格与白话提示，绕开 PSD 的 ParseDiagnosticsState
+    /// （它的 counts 为空时会输出「桥接未返回层数统计」这类技术黑话）。
+    public func updateMotiReadOnlyInfo(canvasWidth: Int,
+                                       canvasHeight: Int,
+                                       layerCount: Int,
+                                       notes: [String]) {
+        motiReadOnlyMode = true
+        resolutionLabel?.stringValue = "📐 幅面规格 \(canvasWidth)×\(canvasHeight)"
+        resolutionLabel?.isHidden = false
+        let summary = notes.first ?? "只读预览，共 \(layerCount) 层"
+        diagnosticsSummaryLabel?.stringValue = "ⓘ " + Self.short(summary)
+        diagnosticsBox?.stringValue = notes.joined(separator: "\n")
+        diagnosticsBox?.textColor = NSColor(calibratedWhite: 0.86, alpha: 1.0)
+        diagnosticsToggleButton?.title = "详情 (\(notes.count))"
+        diagnosticsDetailBox?.isHidden = true   // 默认折叠
+        applyMotiReadOnlyText()
+    }
+
+    /// 只读态：锁定横幅 / toolTip 一律改「只读，不可编辑」，不出现 ⌘L 解锁。
+    private func applyMotiReadOnlyText() {
+        let banner = motiReadOnlyMode ? "只读，不可编辑" : "🔒 图层已锁定 (⌘L 解锁)"
+        lockBannerLabel?.stringValue = banner
+        lockBannerLabel?.toolTip = motiReadOnlyMode ? "只读预览，不可编辑" : nil
+        lockBannerBox?.toolTip = motiReadOnlyMode ? "只读，不可编辑" : nil
+        // 常驻只读标签由本方法统一控制；原锁定横幅在只读态隐藏，避免两处重复
+        readOnlyBadgeLabel?.isHidden = !motiReadOnlyMode
+        if motiReadOnlyMode { lockBannerBox?.isHidden = true }
+
+        // TR-019-R：只读态把图层表拉到 320pt、行高 20pt，11 行一次全可见；
+        // 属性区控件本就不可编辑，整块隐藏腾出空间（NSStackView 对 hidden view 不分配高度）。
+        tableScrollHeight?.constant = motiReadOnlyMode ? 320 : 180
+        layerTableView?.rowHeight = motiReadOnlyMode ? 20 : 24
+        if let stack = mainStackView,
+           let idx = stack.arrangedSubviews.firstIndex(where: { $0.tag == motionPropsTag }) {
+            for v in stack.arrangedSubviews.suffix(from: idx) {
+                v.isHidden = motiReadOnlyMode
+            }
+        }
+        layerTableView?.reloadData()
+    }
+
+    @objc private func onToggleDiagnostics(_ sender: NSButton) {
+        guard let box = diagnosticsDetailBox else { return }
+        box.isHidden.toggle()
+        sender.title = box.isHidden ? "详情" : "收起"
     }
 
     public func tableViewSelectionDidChange(_ notification: Notification) {

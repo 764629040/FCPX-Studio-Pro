@@ -1,0 +1,85 @@
+TR-019-R  严重  TR-019 只读预览真机点验不合格（返修）  验收记录
+==========================================================================
+时间：2026-11-11 01:xx（本机实测，非推断）
+仓库：/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+基线：HEAD = a01b14c（TR-021 已提交）；本轮改动未提交前 git status 仅 4 个 Swift 源文件 + tools/tr019r/ + reports/verify_tr019r/
+
+一、真机点验的四项不合格 → 处置
+--------------------------------------------------------------------------
+1) 右侧「幅面规格」被一大坨红色 XML 术语诊断挤掉
+   - 根因：ParseDiagnosticsState.resolve 把 PSD 解析告警（含 bridge summary 等技术词）整串灌进 diagnosticsBox。
+   - 处置：InspectorView 新增 updateMotiReadOnlyInfo(...)，只读态绕开 PSD 诊断路径；
+           resolutionLabel 加固定最小高度 + required 垂直抗压，常驻显示「📐 幅面规格 1920×1080」；
+           诊断收敛为小徽标「ⓘ … 详情 (N)」，默认折叠，展开后是纯白话，无 XML 节点名 / 参数 id / 英文字段。
+2) 画布全黑
+   - 根因：.moti 分组层没有位图贴图、文本为空，drawLayer 什么都不画。
+   - 处置：InfiniteCanvasView.motiPreviewMode + drawMotiPlaceholders(...)：
+           彩色圆角框 + 序号徽标 + 文字内容（无文字则层名占位）+ 顶部「只读预览 · 共 N 层」。
+           此路径不依赖 backgroundPreview / fallbackPngPath / PSD 位图。
+3) 只读态还显示「图层已锁定（⌘L 解锁）」
+   - 处置：只读态隐藏 lockBannerBox；lock 按钮 toolTip 改「只读，不可编辑」；
+           performKeyEquivalent 吞掉 ⌘L；新增常驻标签「🔒 只读，不可编辑」。
+           注意：二进制里仍保留 1 处「⌘L 解锁」字节，属于非只读态分支，运行时由 harness 断言只读态不显示。
+4) 婚礼模板 11 个 <layer> 只显示 1~2 层
+   - 根因：旧 parser 用 scene.elements(forName: "layer")，只拿 <scene> 的直接子节点。
+   - 处置：MotiDocumentParser 改自 <scene> 起递归深度优先 collectLayers(from:depth:into:)，
+           保留文档顺序；新增 depth / nestedLayerCount / containerLayerCount。
+   - 全库实测：1226 个 .moti 中，764 个文件的 layer 节点 XML 父节点不是 <scene>（XML 树口径，
+     早先按缩进估的 594 已作废）。极端样本「-PVFX便签字幕/10 字母/10 字母.moti」564 层，
+     旧版只拿到 5 层，现解析 564 层。
+
+二、逐文件对照表（用户明确要求：不是只给一个总数）
+--------------------------------------------------------------------------
+reports/verify_tr019r/层数对照表.md 和 .txt，共 33 个代表性 .moti，逐文件列出：
+  源文件 <layer> 计数 / 旧版直接子层数 / 解析层数 / 恢复层数 / 其中嵌套层 / 一致
+解析层数来自 Swift 真调 MotiDocumentParser.parse（tools/tr019r/parse_probe.swift 输出
+reports/verify_tr019r/parse_probe原始输出.tsv），不是按缩进推断。
+关键行：
+  -2026年4月项目/婚礼模板/婚礼模板.moti        11 / 11 / 11   names=Text 01..Text 11
+  -PVFX便签字幕/10 字母/10 字母.moti          564 / 5 / 564
+  -PVFX便签字幕/5 字母/5 字母.moti            539 / - / 539
+  _大鱼汉化线条和路线/路线 09/路线 09.moti     129 / 5 / 129
+  03综艺动漫/某人标题/某人4文本/某人4文本.moti   25 / 2 / 25
+33 行逐文件全部一致。
+
+三、真机截图（screencapture -x -o -l <WID>，App 窗口 backing store）
+--------------------------------------------------------------------------
+01_载入婚礼模板_完整界面.png   真机完整界面：婚礼模板只读预览
+02_图层列表_11层.png           右侧 11 行 Text 01..Text 11（重裁后完整，不切 Text 11）
+03_幅面规格行可见.png          「📐 幅面规格 1920×1080」「🔒 只读，不可编辑」小徽标
+04_右侧面板全貌.png            折叠诊断 + 只读态隐藏 Motion 属性控件
+_佐证_抓图时屏幕处于锁屏.png   全屏抓图显示锁屏 00:51，说明窗口图不是屏幕录制伪造
+
+启动方式（重要）：open --args --preview-moti 在本机不传参；
+直接执行 "…/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" --preview-moti /tmp/tr019r/wedding.moti
+日志实测：[TR-019] moti read-only preview: /tmp/tr019r/wedding.moti layers=11 canvas=1920x1080
+/tmp/tr019r/wedding.moti 是指向原模板的软链，只读，不写回。
+
+四、编译 / 装包 / 验签 / 文本核对
+--------------------------------------------------------------------------
+swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox  → Build complete!
+  swiftpm编译输出_最终.txt
+tools/s4_install_and_sign.sh --bin /tmp/fcpx_wd/release/FCPXStudio
+  换入 3498392 B；装包后签名产物 3496192 B；codesign --verify --deep --strict 零输出
+  装包输出_最终.txt
+tools/tr019r/verify_layers.sh（一键复现：编译全量 Swift 源 + 逐文件 probe + 对照表 + harness）
+  PASS = 61   FAIL = 0   TR-019-R VERDICT: PASS   harness输出.txt
+tools/tr019r/verify_text.py --bin "<最终二进制>"
+  Python bytes.count 逐串核对，VERDICT: PASS   中文文案字节核对_最终.txt
+  源码 6 项 + 二进制 4 项全部命中；未使用 strings（中文假阴性）。
+原 TR-019 harness：parser 重写后曾跑 29/29 PASS；最终一键 harness 已覆盖全部新增断言。
+
+五、硬约束遵守
+--------------------------------------------------------------------------
+- .moti 只读：全程一次 Data(contentsOf:) + XMLDocument，无任何写 API，原文件字节未变。
+- 未自动退出/重启 FCPX；未触碰 FCPX 资料库；未发版；未 push；未重建 dmg；未覆写旧包。
+- 未改 python_bundle / scipy（TR-018、TR-021 成果保持不变）。
+- 本轮单独提交，不与 TR-020 混提交。
+
+六、未做 / 后续
+--------------------------------------------------------------------------
+- dmg 重建仍未执行：tools/s4_rebuild_dmg.sh --version v1.3 --force 有 exit 5 闸门，需先退出 R2.app。
+  本轮抓图用的 R2.app 实例（--preview-moti）仍在前台，重建前需人工退出。
+- git push 未授权（ahead 43）。
+- C 类「可编辑 .moti」阶段二未做。
+- TR-020 另起提交，证据在 reports/verify_tr020/。

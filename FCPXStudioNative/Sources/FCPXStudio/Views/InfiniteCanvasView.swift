@@ -77,6 +77,15 @@ public final class InfiniteCanvasView: NSView {
     public var originalCompositeImage: NSImage?
     private var isDraggingDivider: Bool = false
 
+    /// TR-019-R：.moti 只读预览态。
+    /// 只读预览没有 PSD 位图贴图（backgroundPreview / fallbackPngPath 全为空），
+    /// 分组层又没有文字，旧版 drawLayer 会什么都不画，画布就是一片黑。
+    /// 打开此开关后画布改走 drawMotiPlaceholders：按每层坐标画彩色占位框 +
+    /// 序号 + 文字（或层名），保证「没有贴图也看得见模板长什么样」。
+    public var motiPreviewMode: Bool = false {
+        didSet { needsDisplay = true }
+    }
+
     public override var acceptsFirstResponder: Bool { true }
 
     /// 位图贴图缓存：避免每次 draw 都从磁盘解码大图（2848×1600 每帧重读会卡顿）
@@ -266,9 +275,14 @@ public final class InfiniteCanvasView: NSView {
             // 4. 绘制安全框与十字准星
             drawSafeFrames(in: artboardRect, ctx: ctx)
             // 5. 绘制图层：从底往顶画
-            for (idx, layer) in layers.enumerated().reversed() {
-                guard layer.visible else { continue }
-                drawLayer(layer, isSelected: idx == selectedLayerIndex, ctx: ctx)
+            // TR-019-R：只读预览改走占位绘制（不依赖位图贴图，分组层也可见）
+            if motiPreviewMode {
+                drawMotiPlaceholders(in: artboardRect, ctx: ctx)
+            } else {
+                for (idx, layer) in layers.enumerated().reversed() {
+                    guard layer.visible else { continue }
+                    drawLayer(layer, isSelected: idx == selectedLayerIndex, ctx: ctx)
+                }
             }
             // 6. R35 / D-73：绘制高光智能对齐辅助线
             drawAlignmentGuides(in: artboardRect, ctx: ctx)
@@ -293,6 +307,89 @@ public final class InfiniteCanvasView: NSView {
             ]
             let astr = NSAttributedString(string: " \(badge) ", attributes: badgeAttrs)
             astr.draw(at: CGPoint(x: artboardRect.minX + 16, y: artboardRect.minY + 16))
+        }
+    }
+
+    /// TR-019-R：只读预览的可见占位绘制。
+    /// 每个图层按其 Motion 坐标画一个彩色边框占位块，块内写文字内容（无文字则写层名），
+    /// 左上角标序号，底部标层名。全程不读位图，因此分组层 / 无贴图模板也不会全黑。
+    private func drawMotiPlaceholders(in artboardRect: CGRect, ctx: CGContext) {
+        guard !layers.isEmpty else { return }
+
+        let palette: [NSColor] = [
+            NSColor(calibratedRed: 1.00, green: 0.42, blue: 0.42, alpha: 1.0),
+            NSColor(calibratedRed: 0.31, green: 0.80, blue: 0.77, alpha: 1.0),
+            NSColor(calibratedRed: 1.00, green: 0.82, blue: 0.40, alpha: 1.0),
+            NSColor(calibratedRed: 0.65, green: 0.55, blue: 0.98, alpha: 1.0),
+            NSColor(calibratedRed: 0.49, green: 0.83, blue: 0.99, alpha: 1.0),
+            NSColor(calibratedRed: 0.98, green: 0.63, blue: 0.83, alpha: 1.0)
+        ]
+
+        // 画板顶部标题条：让「预览」有明确的内容标识
+        let titleAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.boldSystemFont(ofSize: 46),
+            .foregroundColor: NSColor(calibratedWhite: 0.92, alpha: 1.0)
+        ]
+        NSAttributedString(string: "只读预览 · 共 \(layers.count) 层", attributes: titleAttrs)
+            .draw(at: CGPoint(x: artboardRect.minX + 36, y: artboardRect.maxY - 82))
+
+        let centerStyle = NSMutableParagraphStyle()
+        centerStyle.alignment = .center
+        centerStyle.lineBreakMode = .byTruncatingTail
+
+        for (i, layer) in layers.enumerated() {
+            guard layer.visible else { continue }
+            let color = palette[i % palette.count]
+            let hasText = !layer.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let display = hasText
+                ? layer.text.replacingOccurrences(of: "\n", with: " ")
+                : "［\(layer.name)］"
+
+            // 框宽按文字长度估，限制在画板宽度内
+            let boxW = min(artboardRect.width * 0.44, max(260, CGFloat(display.count) * 32))
+            let boxH: CGFloat = hasText ? 118 : 94
+            // Motion 坐标：X 向右、Y 向上；与 drawLayer 保持同一约定
+            let cx = CGFloat(layer.posX)
+            let cy = CGFloat(-layer.posY)
+            let rect = CGRect(x: cx - boxW / 2, y: cy - boxH / 2, width: boxW, height: boxH)
+
+            ctx.saveGState()
+            ctx.setFillColor(color.withAlphaComponent(hasText ? 0.20 : 0.10).cgColor)
+            let path = CGPath(roundedRect: rect, cornerWidth: 10, cornerHeight: 10, transform: nil)
+            ctx.addPath(path)
+            ctx.fillPath()
+            ctx.setStrokeColor(color.withAlphaComponent(0.95).cgColor)
+            ctx.setLineWidth(3.0)
+            ctx.addPath(path)
+            ctx.strokePath()
+            ctx.restoreGState()
+
+            // 左上角序号
+            let badgeAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.boldSystemFont(ofSize: 26),
+                .foregroundColor: NSColor.black.withAlphaComponent(0.85)
+            ]
+            NSAttributedString(string: " \(i + 1) ", attributes: badgeAttrs)
+                .draw(at: CGPoint(x: rect.minX + 10, y: rect.maxY - 34))
+
+            // 中间文字 / 占位层名
+            let clipped = display.count > 26 ? String(display.prefix(26)) + "…" : display
+            let textAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: hasText ? 48 : 36, weight: .semibold),
+                .foregroundColor: hasText ? NSColor.white : color.withAlphaComponent(0.92),
+                .paragraphStyle: centerStyle
+            ]
+            NSAttributedString(string: clipped, attributes: textAttrs)
+                .draw(in: CGRect(x: rect.minX + 10, y: rect.midY - 30, width: rect.width - 20, height: 60))
+
+            // 底部层名
+            let nameAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 22, weight: .medium),
+                .foregroundColor: NSColor(calibratedWhite: 0.78, alpha: 1.0),
+                .paragraphStyle: centerStyle
+            ]
+            NSAttributedString(string: layer.name, attributes: nameAttrs)
+                .draw(in: CGRect(x: rect.minX + 8, y: rect.minY + 6, width: rect.width - 16, height: 28))
         }
     }
 
