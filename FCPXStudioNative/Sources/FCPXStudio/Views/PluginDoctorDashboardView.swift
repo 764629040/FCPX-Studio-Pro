@@ -37,6 +37,16 @@ public final class PluginDoctorDashboardView: NSView,
 
     public var onScanFinished: ((DoctorReport) -> Void)?
 
+    // MARK: – Test Injection Points (TR-016，TR-013 风格；生产恒为 nil)
+
+    /// 仅测试用：非 nil 时接管 NSAlert 的决策返回，供 harness 捕获真实弹窗并注入「取消 / 确认」。
+    /// 生产恒为 nil —— 一律走 NSAlert.runModal()，单条隔离的二次确认不会被弱化或绕过。
+    public var alertResponseHandler: ((NSAlert) -> NSApplication.ModalResponse)?
+
+    /// 仅测试用：非 nil 时替代真实全盘扫描，供 harness 计数并避免触碰真实模板库。
+    /// 生产恒为 nil —— startScan(customRoots:) 逻辑零变化。
+    public var startScanOverride: (() -> Void)?
+
     // MARK: – Init
     public override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -279,11 +289,20 @@ public final class PluginDoctorDashboardView: NSView,
 
     // MARK: – Actions
 
+    /// 统一的弹窗决策入口：测试注入时由 harness 接管；生产恒为 nil → 直接 NSAlert.runModal()。
+    /// 只负责「返回用户决策」，自身不构造弹窗、不含任何单条隔离文案，批量入口调用它
+    /// 不会引入单条确认，也不会多弹一个框。
+    private func presentConfirmation(_ alert: NSAlert) -> NSApplication.ModalResponse {
+        if let handler = alertResponseHandler { return handler(alert) }
+        return alert.runModal()
+    }
+
     @objc public func onScanClicked() {
         startScan()
     }
 
     public func startScan(customRoots: [String]? = nil) {
+        if let override = startScanOverride { override(); return }
         spinner?.startAnimation(nil)
         statusSummaryLabel?.stringValue = "正在深度体检 Motion Templates 全盘目录，排查断链、破损与贴图缺失…"
 
@@ -364,7 +383,10 @@ public final class PluginDoctorDashboardView: NSView,
         alert.alertStyle = .warning
         alert.addButton(withTitle: "执行隔离")
         alert.addButton(withTitle: "取消")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        // FCPX-055 的批量确认保持原样（文案/按钮/quarantineAll 均未动），
+        // 仅把 runModal 换成等价的 presentConfirmation 以便 harness 注入决策；
+        // 生产 alertResponseHandler == nil 时行为零变化。此处绝不调用单条 handler。
+        guard presentConfirmation(alert) == .alertFirstButtonReturn else { return }
 
         let (success, failed) = GhostPluginDoctor.shared.quarantineAll(issues: report.issues)
         statusSummaryLabel?.stringValue = "一键隔离完成：已安全移入 _Quarantine \(success) 项，失败 \(failed) 项（可随时点击下方【一键全部还原】恢复）。"
@@ -461,6 +483,20 @@ public final class PluginDoctorDashboardView: NSView,
         let idx = sender.tag
         guard idx < issues.count else { return }
         let issue = issues[idx]
+
+        // TR-016: 单条隔离前二次确认。
+        // 只挂在单条入口；批量 onQuarantineAllClicked 有自己独立的 FCPX-055 确认，
+        // 不经过这里、不循环调用本 handler，因此批量路径不会重复弹框。
+        let alert = NSAlert()
+        alert.messageText = "确认隔离该插件?"
+        alert.informativeText = "会将该插件文件移入隔离区，正在使用它的工程可能报缺失；可用『还原隔离』恢复"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "取消")
+        alert.addButton(withTitle: "确认隔离")
+        // 取消（默认按钮 / 第一个）= 零文件操作：不 quarantine、不写 ledger、
+        // 不 invalidateAll、不 startScan。确认（第二个）后才走原有隔离逻辑。
+        guard presentConfirmation(alert) == .alertSecondButtonReturn else { return }
+
         do {
             _ = try GhostPluginDoctor.shared.quarantine(issue: issue)
             statusSummaryLabel?.stringValue = "已移入安全隔离区: \(issue.templateName)"

@@ -1,0 +1,111 @@
+TR-016 单条隔离二次确认 · 行为验证
+时间: 2026-11-10 12:58:25 +0000
+项目根: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+硬约束: 不启动/激活/前置任何 App；不跑真机；不 open / 不 screencapture / 不抢焦点
+隔离现场: 合成模板与隔离区全部位于 /tmp；真实模板库 ~/Movies/Motion Templates.localized 零读写
+
+=== 0. 现场准备（全 /tmp 合成，不碰真实模板库） ===
+  ✅ 合成模板已在 /tmp 就位
+  ✅ 隔离区已重定向到 /tmp
+  ✅ 隔离区不在用户目录/外置卷
+  ✅ 隔离区初始无条目
+  ✅ ledger 初始不存在
+  ✅ ledger 初始 0 条记录
+  ✅ 经既有注入口 applyReport 预置 issues = 1
+  ✅ currentReport 同步预置（批量入口的 guard 可通过）
+  ✅ applyReport 设置了 doctor 内存缓存（作为 invalidateAll 观察基线）
+  ✅ TR-013 风格注入点已挂上（生产恒 nil，不弱化确认）
+
+=== 1. 源码静态证据（grep 单条 / 批量 handler） ===
+  ✅ 成功切出两个 handler 函数体
+  ✅ 单条 handler 内含 NSAlert
+  ✅ 单条 handler 只有 1 个 NSAlert（不重复弹框）
+  ✅ 单条 handler 含标题「确认隔离该插件?」
+  ✅ 单条 handler 含正文「会将该插件文件移入隔离区，正在使用它的工程可能报缺失；可用『还原隔离』恢复」
+  ✅ 单条 handler 含按钮「取消」
+  ✅ 单条 handler 含按钮「确认隔离」
+  ✅ 确认后才执行原有 quarantine 逻辑
+  ✅ 确认判定位于 quarantine 调用之前
+  ✅ 批量 handler 保留自己原有的 NSAlert 确认
+  ✅ 批量 handler 只弹 1 个框
+  ✅ 批量 handler 保留原有 quarantineAll 逻辑
+  ✅ 批量 handler 不含单条确认标题
+  ✅ 批量 handler 不含单条确认正文
+  ✅ 批量 handler 不含「确认隔离」按钮
+  ✅ 批量 handler 不调用单条 handler（不循环）
+    源码: FCPXStudioNative/Sources/FCPXStudio/Views/PluginDoctorDashboardView.swift
+
+=== 2. 单条入口 → 「取消」：零文件操作 ===
+    [ALERT] 确认隔离该插件? | 会将该插件文件移入隔离区，正在使用它的工程可能报缺失；可用『还原隔离』恢复
+    [ALERT] buttons=["取消", "确认隔离"] -> response=1000
+  ✅ 出现且仅出现 1 个确认弹窗
+  ✅ 标题逐字相等「确认隔离该插件?」
+  ✅ 正文逐字相等「会将该插件文件移入隔离区，正在使用它的工程可能报缺失；可用『还原隔离』恢复」
+  ✅ 两个按钮逐字且顺序相等 ["取消", "确认隔离"]
+  ✅ 按钮数量 = 2
+  ✅ 第 1 个按钮 = 取消
+  ✅ 第 2 个按钮 = 确认隔离
+  ✅ 取消后合成模板目录仍在原位
+  ✅ 取消后 .moti 源文件仍在原位
+  ✅ 取消后 /tmp 隔离区无新增项
+  ✅ 取消后未生成 ledger 文件
+  ✅ 取消后 ledger 无新增记录
+  ✅ 取消后 startScan 调用 0 次
+  ✅ 取消后 doctor 缓存未被 invalidateAll 清掉（0 次失效）
+  ✅ 取消后状态栏文本未变（无 startScan / 成功提示副作用）
+    取消 = 未调用 quarantine、未写 ledger、未 invalidateAll、未 startScan
+
+=== 3. 单条入口 → 「确认隔离」：执行原有 quarantine 逻辑 ===
+    [ALERT] 确认隔离该插件? | 会将该插件文件移入隔离区，正在使用它的工程可能报缺失；可用『还原隔离』恢复
+    [ALERT] buttons=["取消", "确认隔离"] -> response=1001
+  ✅ 确认路径同样只弹 1 个确认框
+  ✅ 确认路径标题逐字相等
+  ✅ 确认路径正文逐字相等
+  ✅ 确认路径按钮逐字相等
+  ✅ 确认后合成模板目录已移出原位
+  ✅ 确认后 .moti 源文件不在原位
+  ✅ 确认后 /tmp 隔离区出现被搬入的模板目录
+  ✅ 被搬入的目录内含原 .moti 文件
+  ✅ 确认后生成 quarantine_ledger.json
+  ✅ ledger 新增 1 条记录
+  ✅ ledger 记录 templateName 对应合成模板
+  ✅ ledger 记录 originalPath 对应 /tmp 原位
+  ✅ ledger 记录 quarantinePath 实际存在
+    [LEDGER] TR016_合成模板 | /tmp/tr016_sandbox/Templates/Titles.localized/TR016_合成模板 -> /tmp/tr016_sandbox/Quarantine/Titles.localized_TR016_合成模板_1794315505
+  ✅ 确认后 startScan 调用 1 次（原有刷新逻辑执行）
+  ✅ 确认后 doctor 缓存被 invalidateAll 清掉（原有失效逻辑执行）
+  ✅ ledger 按月归档文件已写出（quarantine 原有逻辑完整）
+  ✅ 确认后状态栏为原有成功文案
+
+=== 4. 批量 onQuarantineAllClicked：单条确认框出现 0 次 ===
+    [ALERT] 确认一键隔离破损模板？ | 将把检测到的全部 1 项破损模板安全移入隔离区（_Quarantine 目录）。隔离后可随时在下方点击【一键全部还原】撤销恢复。
+    [ALERT] buttons=["执行隔离", "取消"] -> response=1001
+  ✅ 批量入口只弹 1 个框（不重复弹两个）
+  ✅ 弹的是 FCPX-055 批量确认框，不是单条框
+  ✅ 批量按钮保持原有文案
+  ✅ 单条确认标题出现 0 次
+  ✅ 单条确认正文出现 0 次
+  ✅ 单条按钮组合出现 0 次
+  ✅ 批量取消未触发 startScan 副作用
+  ✅ 批量取消未写 ledger
+  ✅ 批量取消未搬动 /tmp 合成模板
+    批量 handler 静态已证：不含单条确认文案、不调用 onSingleQuarantineClicked
+
+=== 5. AppKit 控件离屏渲染 PNG（非真机截屏） ===
+    wrote /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_tr016/01_单条隔离二次确认.png  (780x286)
+  ✅ 01_单条隔离二次确认.png 已写出
+  ✅ PNG 非空且体积合理（65380 B）
+
+=== 6. 硬约束复核（零自动退出/重启 FCPX） ===
+  ✅ 全量 Swift 源码无自动退出/重启 FCPX 关键字
+    本 harness 未调用 open / launchApplication / activate / screencapture；NSApp 策略 = prohibited
+    未读写 ~/Movies/Motion Templates.localized；未读写任何 .app 包；未写外置卷用户数据
+
+=== Z. 清理 /tmp 现场 ===
+  ✅ /tmp 合成现场已清理
+  ✅ reports/verify_tr016 证据目录保留
+
+================ RESULT ================
+PASS = 72   FAIL = 0
+TR-016 VERDICT: PASS
+========================================
