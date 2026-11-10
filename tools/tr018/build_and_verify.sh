@@ -58,7 +58,8 @@ echo "=== 5. 逐层 PNG sha256（项目真实渲染入口） ==="
 if [ -d "$ROOT/FCPX Studio Pro R2.app/Contents/Resources/core" ]; then
   RES_DIR="$ROOT/FCPX Studio Pro R2.app/Contents/Resources"
 else
-  RES_DIR="$ROOT/.."
+  # 仓库根自带 core/，sys.path 必须直接指向根才能 `import core`
+  RES_DIR="$ROOT"
 fi
 TR018_PROJECT_ROOT="$ROOT" "$SLIM_PY" "$HERE/render_layers_sha.py" \
   "$RES_DIR" "$WORK/png_app" "$WORK/sha_app.json"
