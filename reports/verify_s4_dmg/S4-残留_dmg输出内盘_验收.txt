@@ -1,0 +1,49 @@
+S4-残留 / dmg 输出改到内盘 验收记录
+====================================
+时间      : 2026-11-10 19:5x CST
+执行方    : 集成方（总控）
+用户指令  : 「dmg 输出改到内盘路径，等用户定完唯一包再重建。」
+
+── 1. 改了什么 ───────────────────────────────────────────────────────
+tools/s4_rebuild_dmg.sh：
+  * 新增 DIST_DIR，默认 $HOME/Desktop/FCPX_Studio_Pro_Dist（内盘/系统卷），
+    可用环境变量 S4_DIST_DIR 覆盖。构建中间产物仍在 /tmp/s4_dmg_out。
+  * 校验通过后【默认自动并列拷贝到内盘 DIST_DIR】，不再把产物只留在 /tmp，
+    也不再需要 --publish 才落地。
+  * 新增 assert_internal_disk()：输出目录以 /Volumes/ 开头、等于项目根、
+    或与项目根同一设备号，一律 die。--publish 指向外置卷同样硬拒。
+  * --replace 已禁用（原来会把新内容覆盖写回外置卷上的 v1.0.dmg，
+    等于在「唯一可用包」未定之前就对外发）。相关落地代码整块移除。
+  * usage / 顶部注释同步更新。
+  * 修掉新增代码里 $p（ 后接全角标点在 set -u 下的 unbound variable。
+
+── 2. 只读实测（全部 dry-run / help / 负例，未生成任何 dmg） ──────────
+[1] --help                       exit=0  用法显示内盘目录与 --replace 已禁用
+[2] --dry-run                    exit=5
+    ▶ [闸门 0] 目标 App / 进程 / 空间 / 旧镜像记账（只读）
+    ▶   输出目录（内盘）: /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist
+    ▶   源包: .../FCPX Studio Pro R2.app (149160 KiB)
+    ❌ R2.app 仍在运行，禁止在 App 运行态重建分发镜像
+       96268 .../FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+    → 符合硬约束：R2.app 未退出，脚本不替用户退出
+[3] --publish <外置卷路径> --dry-run   exit=1
+    ❌ --publish 指向外置卷，禁止写入: /Volumes/摄影师工具箱128GB/...（本脚本输出固定内盘）
+[4] --replace --dry-run          exit=1
+    ❌ --replace 已禁用：等用户定完唯一可用包再重建；产物固定内盘
+       /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist，不覆盖外置卷上的旧 dmg
+[5] bash -n                     SYNTAX_OK
+
+── 3. 现场未动 ───────────────────────────────────────────────────────
+  FCPX_Studio_Pro_v1.0.dmg : 67M / 2026-11-08 02:05（过期镜像，未被改写）
+  $HOME/Desktop/FCPX_Studio_Pro_Dist : 不存在（dry-run 未创建，符合预期）
+  R2.app 二进制            : 3370288 B / sha 97df3658…（未装包、未重签）
+  外置卷                   : 249 MiB 可用 / 100%
+
+── 4. 状态 ───────────────────────────────────────────────────────────
+**dmg 未重建。** 双重阻塞：
+  ① 用户未主动退出 R2.app（脚本闸门 exit 5）；
+  ② 用户尚未定「唯一可用包」（旧包 FCPX Studio Pro.app 与 R2.app 并存）。
+等这两条解除后执行：
+  tools/s4_rebuild_dmg.sh --version v1.1
+产物会落在 /Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.1.dmg，
+旧 v1.0.dmg 保持不动。

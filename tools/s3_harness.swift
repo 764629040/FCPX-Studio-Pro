@@ -6,7 +6,7 @@ import Darwin
 //
 //  编译（不碰整个源码树、不跑 SwiftPM）：
 //    swiftc -O -swift-version 5 \
-//      FCPXStudioNative/Sources/FCPXStudio/Performance/*.swift \
+//      FCPXStudioNative/Performance/*.swift \
 //      tools/s3_harness_models.swift tools/s3_harness.swift \
 //      -o /tmp/s3_verify/s3_harness
 //

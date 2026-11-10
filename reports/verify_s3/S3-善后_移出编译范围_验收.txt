@@ -1,0 +1,59 @@
+S3-善后 / Performance 整体移出编译范围 验收记录
+================================================
+时间        : 2026-11-10 19:49 CST
+执行方      : 集成方（总控）
+用户指令    : 「把 FCPXStudioNative/Sources/FCPXStudio/Performance/ 整体移出编译范围
+              （保留代码，不参与构建），重编确认二进制回落到 ~3.38MB 量级、
+              S3ThumbnailCache 字符串不再进产物。不接线、不重构。」
+
+── 1. 改动 ──────────────────────────────────────────────────────────
+移出前 : FCPXStudioNative/Sources/FCPXStudio/Performance/  (4 个 .swift)
+移出后 : FCPXStudioNative/Performance/                     (4 个 .swift，逐字节未改)
+原因   : Package.swift 的 executableTarget path = "Sources/FCPXStudio"，
+         会递归编译该目录下全部 .swift。移到 Sources/ 之外后，
+         SwiftPM 与任何 `find Sources -name "*.swift"` 直编都不会再带上它们。
+         代码完整保留，不做任何接线、不做任何重构。
+
+同步的路径引用（只改路径字符串，不动逻辑）：
+  tools/s3_run.sh                 2 处（元数据回显 + swiftc 输入）
+  tools/s3_harness.swift          1 处（注释里的编译命令示例）
+  reports/verify_s3/INTEGRATION.md   2 处 + 头部 S3-善后说明
+  reports/verify_s3/ACCEPTANCE.md    1 处
+保留原文不动（历史证据 / 历史陈述，改了反而是伪造）：
+  reports/verify_s3/run_metadata.txt（原始输出）
+  reports/verify_s2/README_S2_本轮交付.md（当时的事实记录）
+  docs/s4_交付代理_说明_20261110.md（当时的 WIP 记录）
+
+── 2. 重编（用户指定命令，未改参数） ─────────────────────────────────
+cd FCPXStudioNative && swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+输出尾部 : Build complete! (19.02s)
+BUILD_EXIT : 0
+warning    : 仅 AudioManager.swift:165 'duration' deprecated（历史既有，与本轮无关）
+
+── 3. 产物验收 ───────────────────────────────────────────────────────
+                        移出前          移出后        差
+  二进制大小            3614600 B       3410840 B    -203760 B
+  sha256 前16           1e3b93509320593f 94ca00f05928a0ca  —
+
+  TR-013 基线（S1 改动前，仅 TR-013）：3381096 B
+  移出后 3410840 B = 基线 + 29744 B，这 29744 B 是 S1 本轮
+  TR-012/TR-014 的 UI 代码增量（refreshTierStats / actionFeedbackLabel /
+  postFeedback 等），不是 S3 残留。量级符合「~3.38MB」。
+
+  UTF-8 字节级符号计数（strings 只认 ASCII，中文需按字节搜）：
+    S3ThumbnailCache            0   ← 要求「不再进产物」✅
+    S3GridPerformanceController 0
+    S3ViewportReuseEngine       0
+    S3GridLayout                0
+    refreshTierStats            2   ← S1 修复仍在 ✅
+    actionFeedbackLabel        10  ← S1 修复仍在 ✅
+    postFeedback                2   ← S1 修复仍在 ✅
+    已生效，重启 FCPX 后可见     1   ← TR-013 文案仍在 ✅
+
+── 4. 边界声明 ───────────────────────────────────────────────────────
+* 未接线：AssetHubView.swift / ResourceCardView.swift 本轮一个字没改。
+* 未重构：4 个 S3 源文件逐字节未改，只换目录。
+* 性能数字（万级掉帧 46.4→1.4）仍只来自独立 harness，非真机 App 实测；
+  主 App 现在连这些类都不含，收益为 0。接线说明见 INTEGRATION.md。
+* 该产物 /tmp/fcpx_wd/release/FCPXStudio (3410840 B / sha 94ca00f0…)
+  是 S5 装包的唯一来源；S5 因 R2.app（PID 96268）仍在运行而尚未执行。

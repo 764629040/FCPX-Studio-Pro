@@ -26,7 +26,7 @@
 
 | 文件 | 能力 |
 |---|---|
-| `FCPXStudioNative/Sources/FCPXStudio/Performance/S3GridLayout.swift` | 网格几何；由 `documentVisibleRect` 计算「可见 + 缓冲行」的 index 区间；列宽公式 1:1 复刻 `reloadCardGrid` |
+| `FCPXStudioNative/Performance/S3GridLayout.swift` | 网格几何；由 `documentVisibleRect` 计算「可见 + 缓冲行」的 index 区间；列宽公式 1:1 复刻 `reloadCardGrid` |
 | `.../Performance/S3ViewportReuseEngine.swift` | 视口复用：`active: [index: card]` 只留可见范围，离屏 detach 进有上限的 reusePool，进入视口优先复用；每帧布局 O(visible)，与数据总量无关 |
 | `.../Performance/S3ThumbnailCache.swift` | 多级缓存：L1 内存 LRU（字节 costLimit，存**已解码**位图，主线程不再解码）／L2 磁盘 LRU（字节上限 + mtime 淘汰）／异步生成队列（`maxConcurrentGenerations` 硬上限）／in-flight 同 key 去重／离屏 cancel／deliveries 主线程 drain 后校验绑定再应用 |
 | `.../Performance/S3PerformanceFacade.swift` | 一行接入门面 `S3GridPerformanceController.scrollDidChange(visibleRect:)`，把三者串起来；含完整接入注释 |

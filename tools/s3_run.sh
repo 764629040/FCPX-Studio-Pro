@@ -33,7 +33,7 @@ COUNTS="${S3_COUNTS:-1000,10000}"
   echo "memsz : $(sysctl -n hw.memsize)"
   echo "--- disk ---"; df -h /tmp "$ROOT"
   echo "--- harness compile ---"
-  echo "swiftc -O -swift-version 5 FCPXStudioNative/Sources/FCPXStudio/Performance/*.swift tools/s3_harness_models.swift tools/s3_harness.swift -o /tmp/s3_verify/s3_harness"
+  echo "swiftc -O -swift-version 5 FCPXStudioNative/Performance/*.swift tools/s3_harness_models.swift tools/s3_harness.swift -o /tmp/s3_verify/s3_harness"
   echo "--- probe compile ---"
   echo "swiftc -O tools/s3_vsync_probe.swift -o /tmp/s3_verify/s3_vsync_probe"
   echo "--- rounds=$ROUNDS frames=$FRAMES counts=$COUNTS ---"
@@ -60,7 +60,7 @@ echo "vsync period (ms) = $PERIOD" | tee "$OUT/period.txt"
 
 # ── 4. swiftc 直编（仅新增组件 + harness，不依赖现有 Sources 类）──
 swiftc -O -swift-version 5 \
-  FCPXStudioNative/Sources/FCPXStudio/Performance/*.swift \
+  FCPXStudioNative/Performance/*.swift \
   tools/s3_harness_models.swift \
   tools/s3_harness.swift \
   -o "$TMP/s3_harness" 2> "$OUT/harness_compile.txt"

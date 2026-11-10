@@ -1,3 +1,10 @@
+> **S3-善后（2026-11-10 19:49）**：`Performance/` 已整体移出 SwiftPM 编译范围，代码保留在
+> `FCPXStudioNative/Performance/`（在 `Sources/` 之外，`Package.swift` 的 target path 不再覆盖它）。
+> 重编 `BUILD_EXIT=0`，产物由 3614600 B 回落到 3410840 B，字节级校验 `S3ThumbnailCache` /
+> `S3GridPerformanceController` / `S3ViewportReuseEngine` / `S3GridLayout` 全部 0 命中。
+> 主 App 产物不再包含任何 S3 符号。**本文件以下接线步骤仍然全部未执行**——不接线、不重构是既定边界；
+> 若将来要接线，需先把该目录移回 `Sources/FCPXStudio/` 或显式声明为 target。
+
 # S3 / P1 集成阶段接线说明
 
 > ## ⚠️ 本轮未接线
@@ -12,7 +19,7 @@
 ## 0. 本轮已有的文件（不需要再写）
 
 ```
-FCPXStudioNative/Sources/FCPXStudio/Performance/
+FCPXStudioNative/Performance/
   S3GridLayout.swift              几何 / 可见 index 区间
   S3ViewportReuseEngine.swift     视口复用 + reusePool
   S3ThumbnailCache.swift          L1 内存 LRU / L2 磁盘 LRU / 并发上限 / 去重 / 取消
@@ -31,7 +38,7 @@ FCPXStudioNative/Sources/FCPXStudio/Performance/
 `@MainActor` 隔离检查，破坏「harness 自包含」这条硬约束。
 
 集成阶段请新增
-`FCPXStudioNative/Sources/FCPXStudio/Performance/S3AppKitAdapters.swift`
+`FCPXStudioNative/Performance/S3AppKitAdapters.swift`
 （**新增文件，不改任何现有文件**），内容如下（示意代码，按实际 `TemplateItem` 字段微调）：
 
 ```swift

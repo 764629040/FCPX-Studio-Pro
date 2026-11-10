@@ -15,29 +15,30 @@
 # 【外置卷只剩 ~255 MiB（df: 255Mi / 100%），临时文件绝不写外置卷】
 #   R2.app 本体 146M，压缩 dmg 约 67M。所有中间产物（stage 目录、
 #   临时 dmg、挂载点、旧 dmg 备份）一律写 /tmp（系统卷可用 ~14 Gi）。
-#   默认行为【只】在 /tmp 产出新 dmg 并校验，不往项目根/外置卷写任何东西；
-#   只有显式 --publish / --replace 才落地，且带可用空间检查。
+#   默认行为：构建中间产物在 /tmp，校验通过后【并列拷贝到内盘固定目录】，
+#   绝不写项目根 / 外置卷。--publish 指向外置卷一律拒绝；--replace 已禁用
+#   （等用户定完「唯一可用包」后再重建，不许覆盖已过期的 v1.0.dmg）。
 #
 # 流程：
 #   0. 前置只读闸门：R2.app 已退出(pgrep) / 目标 .app 校验 / /tmp 空间 / 旧 dmg 记账
 #   1. 在 /tmp 建 stage 目录，cp -R 当前 R2.app 进去（不写外置卷）
 #   2. hdiutil create -srcfolder stage -format UDZO  → 输出到 /tmp 的新版本号 dmg
 #   3. 校验体积 + 挂载校验内容（可执行文件存在/与源一致/严格验签）
-#   4. 默认「并列新版本号」：产物留在 /tmp，打印给集成方；
-#      显式 --publish <dir> 才拷贝成并列文件；--replace 才备份旧 dmg 后替换同名
+#   4. 默认「并列新版本号」：产物固定落在内盘 DIST_DIR；
+#      --publish <dir> 可另指定内盘目录；--replace 已禁用（等用户定唯一包）
 #
 # 用法：
 #   tools/s4_rebuild_dmg.sh --dry-run
 #   tools/s4_rebuild_dmg.sh --version v1.1
 #   tools/s4_rebuild_dmg.sh --version v1.1 --publish /path/to/dist
-#   tools/s4_rebuild_dmg.sh --version v1.1 --replace        # 需 --publish 或默认项目根
+#   （--replace 已禁用：等用户定完唯一可用包再重建）
 #   tools/s4_rebuild_dmg.sh --help
 #
 # 参数：
 #   --app <path>        源 .app；缺省 $PROJECT_ROOT/"FCPX Studio Pro R2.app"
 #   --version <ver>     新版本号；缺省 v1.1（绝不覆盖 v1.0）
-#   --publish <dir>     校验通过后把新 dmg 并列拷到该目录（不删旧 dmg）
-#   --replace           备份旧 v1.0.dmg 到 /tmp 后，以新 dmg 替换同名文件
+#   --publish <dir>     另指定输出目录；【仅内盘】，指向外置卷直接报错
+#   --replace           【已禁用】等用户定完唯一可用包，本脚本不再覆盖旧镜像
 #   --force             允许覆盖已存在的输出 dmg（默认拒绝，幂等保护）
 #   --dry-run           只跑只读闸门 + 打印命令序列，不写任何文件、不挂载
 #   -h, --help          显示帮助
@@ -50,10 +51,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP=""
 VERSION="v1.1"
 PUBLISH_DIR=""
-DO_REPLACE=0
 FORCE=0
 DRY_RUN=0
 OLD_DMG="$PROJECT_ROOT/FCPX_Studio_Pro_v1.0.dmg"
+# S4-残留：dmg 最终产物固定落在内盘（系统卷），绝不写项目根 / 外置卷。
+# 可用环境变量 S4_DIST_DIR 覆盖；等用户定完「唯一可用包」后才执行重建。
+DIST_DIR="${S4_DIST_DIR:-$HOME/Desktop/FCPX_Studio_Pro_Dist}"
 
 die()  { echo "❌ $*" >&2; exit 1; }
 info() { echo "▶ $*"; }
@@ -61,21 +64,22 @@ warn() { echo "⚠️  $*" >&2; }
 
 usage() {
     cat <<'USAGE'
-用法： tools/s4_rebuild_dmg.sh [--version <ver>] [--publish <dir>] [--replace]
+用法： tools/s4_rebuild_dmg.sh [--version <ver>] [--publish <dir>] [--force]
                               [--force] [--dry-run]
 
   --app <path>       源 .app，缺省为项目根下的 "FCPX Studio Pro R2.app"。
   --version <ver>    新版本号，缺省 v1.1。现有 v1.0.dmg 已过期，绝不覆盖它。
-  --publish <dir>    校验通过后把新 dmg 并列拷到该目录（不删旧 dmg）。
-  --replace          备份旧 v1.0.dmg 到 /tmp 后用新 dmg 替换同名文件。
+  --publish <dir>    另指定输出目录【仅内盘】；指向外置卷直接报错。
+  --replace          【已禁用】等用户定完唯一可用包，不再覆盖旧镜像。
   --force            允许覆盖已存在的输出 dmg（默认拒绝）。
   --dry-run          只跑只读闸门 + 打印命令序列，不写文件、不挂载、不签名。
   -h, --help         显示本帮助。
 
 ⚠️  执行前置条件：用户必须【主动退出】R2.app（pgrep 检查，进程在就报错退出）。
 ⚠️  现有 FCPX_Studio_Pro_v1.0.dmg（69899130 B / 2026-11-08 02:05）已过期，不能对外发。
-⚠️  外置卷只剩 ~255 MiB：stage / 临时 dmg / 挂载点 / 旧 dmg 备份全部写 /tmp，
-    默认产物也留在 /tmp，不往外置卷写任何大文件。
+⚠️  外置卷只剩 ~249 MiB：stage / 临时 dmg / 挂载点全部写 /tmp，
+    校验通过后产物【并列拷贝到内盘】$HOME/Desktop/FCPX_Studio_Pro_Dist，
+    不往外置卷写任何大文件；--publish 指向外置卷会被硬拒。
 USAGE
 }
 
@@ -87,7 +91,7 @@ while (( $# )); do
         --version=*)  VERSION="${1#--version=}" ;;
         --publish)    shift; (( $# )) || die "--publish 缺少目录参数"; PUBLISH_DIR="$1" ;;
         --publish=*)  PUBLISH_DIR="${1#--publish=}" ;;
-        --replace)    DO_REPLACE=1 ;;
+        --replace)    die "--replace 已禁用：等用户定完唯一可用包再重建；产物固定内盘 ${DIST_DIR}，不覆盖外置卷上的旧 dmg" ;;
         --force)      FORCE=1 ;;
         --dry-run)    DRY_RUN=1 ;;
         -h|--help)    usage; exit 0 ;;
@@ -107,8 +111,30 @@ NEW_DMG_NAME="FCPX_Studio_Pro_${VERSION}.dmg"
 TMP_OUT_DIR="/tmp/s4_dmg_out"
 NEW_DMG="$TMP_OUT_DIR/$NEW_DMG_NAME"
 
+# S4-残留：输出目录必须在内盘（与项目根不同设备号），拒绝任何外置卷落地。
+assert_internal_disk() {
+    local p="$1" label="$2"
+    case "$p" in
+        /Volumes/*) die "$label 指向外置卷，禁止写入: ${p}（本脚本输出固定内盘）" ;;
+    esac
+    [ "$p" != "$PROJECT_ROOT" ] || die "$label 指向项目根（外置卷），禁止写入: $p"
+    local probe="$p"
+    while [ ! -d "$probe" ] && [ "$probe" != "/" ]; do probe="$(dirname "$probe")"; done
+    local dev root_dev
+    dev="$(stat -f %d "$probe" 2>/dev/null || echo unknown)"
+    root_dev="$(stat -f %d "$PROJECT_ROOT" 2>/dev/null || echo unknown)"
+    if [ "$dev" != "unknown" ] && [ "$root_dev" != "unknown" ] && [ "$dev" = "$root_dev" ]; then
+        die "$label 与项目根同一外置卷，禁止写入: $p"
+    fi
+}
+
 # ── 0. 前置只读闸门（--dry-run 同样执行）──────────────────────────────────────
 info "[闸门 0] 目标 App / 进程 / 空间 / 旧镜像记账（只读）"
+
+# 0.0 输出目录必须是内盘（dry-run 同样校验）
+assert_internal_disk "$DIST_DIR" "DIST_DIR"
+[ -z "$PUBLISH_DIR" ] || assert_internal_disk "$PUBLISH_DIR" "--publish"
+info "  输出目录（内盘）: ${PUBLISH_DIR:-$DIST_DIR}"
 
 # 0.1 目标 .app
 [ -d "$APP" ] || die "源 .app 不是已存在的目录: $APP"
@@ -190,16 +216,10 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "codesign --verify --deep --strict \"\$MNT/$APP_BASE\"   # 期望零输出"
     echo "hdiutil detach \"\$MNT\""
     echo
-    echo "# 4. 落地策略"
-    if [ -n "$PUBLISH_DIR" ]; then
-        echo "cp \"$NEW_DMG\" \"$PUBLISH_DIR/$NEW_DMG_NAME\"      # 并列新版本号（不删旧 dmg）"
-    else
-        echo "#   （未给 --publish：新 dmg 只留在 ${TMP_OUT_DIR}，由集成方取用）"
-    fi
-    if [ "$DO_REPLACE" -eq 1 ]; then
-        echo "cp -p \"$OLD_DMG\" \"/tmp/s4_dmg_old_${VERSION}_\$(date +%Y%m%d_%H%M%S).dmg\"   # 旧镜像备份到 /tmp"
-        echo "cp \"$NEW_DMG\" \"$OLD_DMG\"                    # 用新内容替换同名 v1.0.dmg（内容已是新版本）"
-    fi
+    echo "# 4. 落地策略（固定内盘，绝不写外置卷）"
+    echo "mkdir -p \"${PUBLISH_DIR:-$DIST_DIR}\""
+    echo "cp \"$NEW_DMG\" \"${PUBLISH_DIR:-$DIST_DIR}/$NEW_DMG_NAME\"   # 并列新版本号（不删旧 dmg）"
+    echo "#   --replace 已禁用；过期镜像 $OLD_DMG 保持不动"
     echo
     echo "[--dry-run] 未创建 stage、未生成 dmg、未挂载、未发布、未替换。"
     echo "[--dry-run] 过期镜像 $OLD_DMG 未被改动，Exit 0。"
@@ -268,36 +288,23 @@ hdiutil detach "$MNT" >/dev/null || die "hdiutil detach 失败，请手动卸载
 MNT=""
 info "  内容校验通过（二进制逐字节一致 + strict 验签 exit 0）"
 
-# 4. 落地策略：默认并列新版本号并留在 /tmp；显式 --publish / --replace 才写盘
-info "[4/4] 落地策略"
-if [ -n "$PUBLISH_DIR" ]; then
-    # 写盘前空间检查（dst 可能在外置卷，只剩 ~255 MiB）
-    DST_AVAIL_KB=$(df -k "$PUBLISH_DIR" | awk 'NR==2 {print $4}')
-    DST_NEED_KB=$(( DMG_SIZE / 1024 + 51200 ))
-    [ "${DST_AVAIL_KB:-0}" -ge "$DST_NEED_KB" ] \
-        || die "目标目录可用空间不足（需 ≥ ${DST_NEED_KB} KiB，当前 ${DST_AVAIL_KB:-unknown} KiB），拒绝写入。新镜像仍安全留在 $NEW_DMG"
-    DST="$PUBLISH_DIR/$NEW_DMG_NAME"
-    if [ -e "$DST" ] && [ "$FORCE" -eq 0 ]; then
-        die "目标已存在: ${DST}（幂等保护）。加 --force 才允许覆盖"
-    fi
-    cp "$NEW_DMG" "$DST"
-    info "  已并列发布: $DST"
-else
-    info "  未给 --publish：新镜像只留在 /tmp（${NEW_DMG}），由集成方取用"
-fi
+# 4. 落地策略：固定并列拷贝到内盘，绝不写外置卷；--replace 已禁用
+info "[4/4] 落地到内盘（默认 DIST_DIR；--publish 可另指定内盘目录）"
+DEST_DIR="${PUBLISH_DIR:-$DIST_DIR}"
+assert_internal_disk "$DEST_DIR" "输出目录"
 
-if [ "$DO_REPLACE" -eq 1 ]; then
-    OLD_BACKUP="/tmp/s4_dmg_old_${VERSION}_$(date +%Y%m%d_%H%M%S).dmg"
-    cp -p "$OLD_DMG" "$OLD_BACKUP"
-    info "  旧镜像已备份到 /tmp: $OLD_BACKUP"
-    # 替换前再检查一次项目根（外置卷）空间
-    ROOT_AVAIL_KB=$(df -k "$PROJECT_ROOT" | awk 'NR==2 {print $4}')
-    ROOT_NEED_KB=$(( DMG_SIZE / 1024 + 51200 ))
-    [ "${ROOT_AVAIL_KB:-0}" -ge "$ROOT_NEED_KB" ] \
-        || die "外置卷可用空间不足（需 ≥ ${ROOT_NEED_KB} KiB，当前 ${ROOT_AVAIL_KB:-unknown} KiB），拒绝替换。旧镜像未动，备份在 $OLD_BACKUP"
-    cp "$NEW_DMG" "$OLD_DMG"
-    info "  已用新内容替换同名 ${OLD_DMG}（内容已是 ${VERSION}，对外发布时请改用新版本号命名）"
+mkdir -p "$DEST_DIR"
+DEST_AVAIL_KB=$(df -k "$DEST_DIR" | awk 'NR==2 {print $4}')
+DEST_NEED_KB=$(( DMG_SIZE / 1024 + 51200 ))
+[ "${DEST_AVAIL_KB:-0}" -ge "$DEST_NEED_KB" ] \
+    || die "内盘可用空间不足（需 ≥ ${DEST_NEED_KB} KiB，当前 ${DEST_AVAIL_KB:-unknown} KiB）；新镜像仍安全留在 $NEW_DMG"
+DST="$DEST_DIR/$NEW_DMG_NAME"
+if [ -e "$DST" ] && [ "$FORCE" -eq 0 ]; then
+    die "目标已存在: ${DST}（幂等保护）。加 --force 才允许覆盖"
 fi
+cp "$NEW_DMG" "$DST"
+info "  已并列发布到内盘: $DST"
+info "  过期镜像 ${OLD_DMG} 未被改动（--replace 已禁用，等用户定完唯一可用包）"
 
 echo "=================================================="
 echo "✅ 镜像重建完成"
