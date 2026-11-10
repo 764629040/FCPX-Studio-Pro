@@ -5,10 +5,22 @@
 #
 # 功能：
 #   将当前运行环境中的核心 Python 运行时、动态库、psd-tools 与核心
-#   依赖完整精简封装至 FCPX Studio Pro.app/Contents/Resources/python_bundle，
+#   依赖完整精简封装至 <--target 指定的 .app>/Contents/Resources/python_bundle，
 #   并将 core 源码封装至 Contents/Resources/core。
 #   对所有 Mach-O 动态库执行 install_name_tool 相对路径重定向与深度签名，
 #   确保在未安装 Python / Homebrew 的纯净裸机 Mac 上双击即用。
+#
+# ── S4 交付代理保护性修改（2026-11-10）──────────────────────────
+#   1. 移除写死的 APP_PATH="$PROJECT_ROOT/FCPX Studio Pro.app"；
+#      必须显式 --target <path>，无参数直接报错退出并给用法提示。
+#   2. 拒绝任何「解析后」指向用户旧包 FCPX Studio Pro.app 的目标：
+#      绝对路径 / 相对路径 / 大小写变体 / 尾斜杠 / .. 绕路 / 符号链接 一律判。
+#      理由：该旧包是用户手上的旧产物（TR-009/010/011 全都没有），
+#      就地封装会毁掉它，必须显式改指新包。
+#   3. 目标必须是已存在的 .app 目录。
+#   4. --dry-run 只打印将写入的路径，不实际写任何文件。
+#   5. --help 打印用法。
+#   注：tools/generate_license.py 与本脚本无关，本次未改动。
 # ═══════════════════════════════════════════════════════════════
 set -e
 
@@ -16,7 +28,109 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-APP_PATH="$PROJECT_ROOT/FCPX Studio Pro.app"
+usage() {
+    cat <<'USAGE'
+用法： tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]
+
+  --target <path>   【必填】目标 .app 目录，必须已存在。
+                    相对路径按项目根目录解析（脚本会 cd 到项目根）。
+                    禁止指向用户旧包 "FCPX Studio Pro.app" 或其任意子路径。
+  --target=<path>   同上，等号形式。
+  --dry-run         只打印将写入的路径，不实际写任何文件（不执行任何写操作）。
+  -h, --help        显示本帮助并退出（Exit 0）。
+
+示例：
+  tools/bundle_standalone_runtime.sh --target "FCPX Studio Pro R2.app" --dry-run
+  tools/bundle_standalone_runtime.sh --target "/path/to/NewBuild.app"
+
+⚠️  禁止覆盖用户旧包：FCPX Studio Pro.app（TR-009/010/011 全都没有的旧产物）。
+    绝对路径 / 相对路径 / 大小写变体 / 尾斜杠 / .. 绕路 / 符号链接 均会被拒绝。
+USAGE
+}
+
+TARGET_ARG=""
+DRY_RUN=0
+while (( $# )); do
+    case "$1" in
+        --target)
+            shift
+            if (( $# == 0 )) || [[ "$1" == --* ]]; then
+                echo "❌ 错误: --target 缺少路径参数" >&2
+                echo "   用法: tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]" >&2
+                exit 2
+            fi
+            TARGET_ARG="$1"
+            ;;
+        --target=*)
+            TARGET_ARG="${1#--target=}"
+            if [[ -z "$TARGET_ARG" ]]; then
+                echo "❌ 错误: --target= 不能为空" >&2
+                echo "   用法: tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]" >&2
+                exit 2
+            fi
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "❌ 错误: 未知参数 '$1'" >&2
+            echo "   用法: tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]" >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+if [[ -z "$TARGET_ARG" ]]; then
+    echo "❌ 错误: 必须显式指定 --target <path-to-.app>（已移除写死的旧包路径）" >&2
+    echo >&2
+    usage >&2
+    exit 2
+fi
+
+# ── 归一化目标路径：去尾斜杠 → 绝对化 → 词法归一化 + 符号链接解析 ──
+# ${var:A} 为 zsh 修饰符：转绝对路径、折叠 . / ..、解析已存在部分的符号链接。
+NORM="$TARGET_ARG"
+while [[ "$NORM" == */ && "$NORM" != "/" ]]; do NORM="${NORM%/}"; done
+if [[ "$NORM" == /* ]]; then
+    ABS="$NORM"
+else
+    ABS="$PWD/$NORM"
+fi
+ABS="${ABS:A}"
+
+# 旧包基准路径，同样归一化
+OLD_APP_ABS="${PROJECT_ROOT}/FCPX Studio Pro.app"
+OLD_APP_ABS="${OLD_APP_ABS:A}"
+
+# 大小写折叠比较：macOS 默认大小写不敏感，大小写变体同样指向旧包
+ABS_L="${(L)ABS}"
+OLD_L="${(L)OLD_APP_ABS}"
+if [[ "$ABS_L" == "$OLD_L" ]] || [[ "$ABS_L" == "$OLD_L/"* ]]; then
+    echo "❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'" >&2
+    echo "   输入:   $TARGET_ARG" >&2
+    echo "   解析后: $ABS" >&2
+    echo "   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。" >&2
+    echo "   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'" >&2
+    exit 3
+fi
+
+# 目标必须是已存在的 .app 目录
+if [[ ! -d "$ABS" ]]; then
+    echo "❌ 错误: 目标不是已存在的目录: $ABS" >&2
+    echo "   （由 --target '$TARGET_ARG' 解析而来）" >&2
+    exit 4
+fi
+if [[ "$ABS_L" != *.app ]]; then
+    echo "❌ 错误: 目标必须是 .app 目录（当前: $ABS）" >&2
+    exit 4
+fi
+
+APP_PATH="$ABS"
 RESOURCES_DIR="$APP_PATH/Contents/Resources"
 BUNDLE_DIR="$RESOURCES_DIR/python_bundle"
 CORE_DEST_DIR="$RESOURCES_DIR/core"
@@ -26,10 +140,31 @@ echo "  FCPX Studio Pro —— 零依赖便携运行时封装器"
 echo "=================================================="
 echo "目标 App 路径: $APP_PATH"
 echo "便携包路径:   $BUNDLE_DIR"
+echo "core 目标:    $CORE_DEST_DIR"
 
-if [ ! -d "$APP_PATH" ]; then
-    echo "❌ 错误: 未找到 $APP_PATH，请先编译生成 App Bundle"
-    exit 1
+# ── --dry-run：只打印将写入的路径，绝不执行任何写操作 ──
+if (( DRY_RUN )); then
+    echo "--------------------------------------------------"
+    echo "[--dry-run] 以下路径将被写入 / 重建（本次不实际写任何文件）："
+    echo "  [清空重建] $BUNDLE_DIR"
+    echo "  [清空重建] $CORE_DEST_DIR"
+    echo "  [创建目录] $BUNDLE_DIR/bin"
+    echo "  [创建目录] $BUNDLE_DIR/lib/python<VER>"
+    echo "  [创建目录] $BUNDLE_DIR/lib/python<VER>/site-packages"
+    echo "  [创建目录] $BUNDLE_DIR/lib/dylibs"
+    echo "  [写入文件] $BUNDLE_DIR/bin/python3 (+ 2 个符号链接 python / python<VER>)"
+    echo "  [写入文件] $BUNDLE_DIR/Python"
+    echo "  [写入目录] $BUNDLE_DIR/lib/python<VER>/  (标准库 rsync)"
+    echo "  [写入目录] $BUNDLE_DIR/lib/dylibs/       (Homebrew dylibs)"
+    echo "  [写入目录] $BUNDLE_DIR/lib/python<VER>/site-packages/ (三方依赖)"
+    echo "  [写入目录] $CORE_DEST_DIR/               (cp -R $PROJECT_ROOT/core)"
+    echo "  [删除清理] 上述目录内 __pycache__ / *.pyc / *.pyo / *.dSYM / tests"
+    echo "  [就地改写] $BUNDLE_DIR 下 Mach-O 的 install_name_tool rpath/-id"
+    echo "  [代码签名] $BUNDLE_DIR 下所有 *.dylib / *.so / python3 / Python"
+    echo "  [只读自检] env -i 纯净环境 import + cli_bridge.py parse（不写任何文件）"
+    echo "[--dry-run] 未执行任何 rm / mkdir / cp / ln / rsync / chmod / install_name_tool / codesign。"
+    echo "[--dry-run] 目标 App 未被改动，Exit 0。"
+    exit 0
 fi
 
 # 1. 探测主机环境中的 Python 3.14 及其 framework

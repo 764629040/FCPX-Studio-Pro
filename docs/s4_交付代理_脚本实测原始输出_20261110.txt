@@ -1,0 +1,210 @@
+════════════════════════════════════════════════════════════════
+ tools/bundle_standalone_runtime.sh 保护性改造 · 实测原始输出
+ 执行时间 : 2026-11-10 19:04:10 CST
+ 执行主机 : Darwin arm64 / zsh 5.9 (arm64-apple-darwin25.0)
+ 脚本路径 : /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/tools/bundle_standalone_runtime.sh
+ 项目根   : /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+ 说明     : 下列每条 [exit=N] 为该命令真实退出码；stdout/stderr 均原样合并落盘
+            本轮只跑无参数/help/旧包拒绝/dry-run，未执行任何真实封装写操作
+════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────
+情形 1｜无参数（应报错退出 + 清晰用法提示）
+$ tools/bundle_standalone_runtime.sh
+────────────────────────────────────────────────────────────────
+❌ 错误: 必须显式指定 --target <path-to-.app>（已移除写死的旧包路径）
+
+用法： tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]
+
+  --target <path>   【必填】目标 .app 目录，必须已存在。
+                    相对路径按项目根目录解析（脚本会 cd 到项目根）。
+                    禁止指向用户旧包 "FCPX Studio Pro.app" 或其任意子路径。
+  --target=<path>   同上，等号形式。
+  --dry-run         只打印将写入的路径，不实际写任何文件（不执行任何写操作）。
+  -h, --help        显示本帮助并退出（Exit 0）。
+
+示例：
+  tools/bundle_standalone_runtime.sh --target "FCPX Studio Pro R2.app" --dry-run
+  tools/bundle_standalone_runtime.sh --target "/path/to/NewBuild.app"
+
+⚠️  禁止覆盖用户旧包：FCPX Studio Pro.app（TR-009/010/011 全都没有的旧产物）。
+    绝对路径 / 相对路径 / 大小写变体 / 尾斜杠 / .. 绕路 / 符号链接 均会被拒绝。
+[exit=2]
+
+────────────────────────────────────────────────────────────────
+情形 2｜--help（应打印用法，Exit 0）
+$ tools/bundle_standalone_runtime.sh --help
+────────────────────────────────────────────────────────────────
+用法： tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]
+
+  --target <path>   【必填】目标 .app 目录，必须已存在。
+                    相对路径按项目根目录解析（脚本会 cd 到项目根）。
+                    禁止指向用户旧包 "FCPX Studio Pro.app" 或其任意子路径。
+  --target=<path>   同上，等号形式。
+  --dry-run         只打印将写入的路径，不实际写任何文件（不执行任何写操作）。
+  -h, --help        显示本帮助并退出（Exit 0）。
+
+示例：
+  tools/bundle_standalone_runtime.sh --target "FCPX Studio Pro R2.app" --dry-run
+  tools/bundle_standalone_runtime.sh --target "/path/to/NewBuild.app"
+
+⚠️  禁止覆盖用户旧包：FCPX Studio Pro.app（TR-009/010/011 全都没有的旧产物）。
+    绝对路径 / 相对路径 / 大小写变体 / 尾斜杠 / .. 绕路 / 符号链接 均会被拒绝。
+[exit=0]
+
+────────────────────────────────────────────────────────────────
+情形 3｜指向旧包 FCPX Studio Pro.app（应拒绝，写明「禁止覆盖用户旧包」）
+  3a 绝对路径
+$ tools/bundle_standalone_runtime.sh --target '/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app'
+────────────────────────────────────────────────────────────────
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3b 相对路径
+$ tools/bundle_standalone_runtime.sh --target 'FCPX Studio Pro.app'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   FCPX Studio Pro.app
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3c 尾斜杠
+$ tools/bundle_standalone_runtime.sh --target 'FCPX Studio Pro.app/'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   FCPX Studio Pro.app/
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3d 大小写变体（全小写）
+$ tools/bundle_standalone_runtime.sh --target 'fcpx studio pro.app'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   fcpx studio pro.app
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3e .. 绕路
+$ tools/bundle_standalone_runtime.sh --target 'FCPX Studio Pro R2.app/../FCPX Studio Pro.app'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   FCPX Studio Pro R2.app/../FCPX Studio Pro.app
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3f 符号链接（/tmp 软链指向旧包，验证「解析后指向」）
+$ tools/bundle_standalone_runtime.sh --target '/tmp/s4_oldapp_link.app'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   /tmp/s4_oldapp_link.app
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+  3g 旧包子路径
+$ tools/bundle_standalone_runtime.sh --target 'FCPX Studio Pro.app/Contents'
+❌ 禁止覆盖用户旧包: 目标解析后指向 'FCPX Studio Pro.app'
+   输入:   FCPX Studio Pro.app/Contents
+   解析后: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro.app/Contents
+   该包是用户手上的旧产物（TR-009/010/011 全都没有），就地封装会毁掉它。
+   请改用 --target 指向新包，例如: --target 'FCPX Studio Pro R2.app'
+[exit=3]
+
+────────────────────────────────────────────────────────────────
+情形 4｜合理 target + --dry-run（只打印将写入路径，不实际写）
+$ tools/bundle_standalone_runtime.sh --target '/tmp/s4_dryrun_target/Test.app' --dry-run
+────────────────────────────────────────────────────────────────
+==================================================
+  FCPX Studio Pro —— 零依赖便携运行时封装器
+==================================================
+目标 App 路径: /private/tmp/s4_dryrun_target/Test.app
+便携包路径:   /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle
+core 目标:    /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/core
+--------------------------------------------------
+[--dry-run] 以下路径将被写入 / 重建（本次不实际写任何文件）：
+  [清空重建] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle
+  [清空重建] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/core
+  [创建目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/bin
+  [创建目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/python<VER>
+  [创建目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/python<VER>/site-packages
+  [创建目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/dylibs
+  [写入文件] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/bin/python3 (+ 2 个符号链接 python / python<VER>)
+  [写入文件] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/Python
+  [写入目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/python<VER>/  (标准库 rsync)
+  [写入目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/dylibs/       (Homebrew dylibs)
+  [写入目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle/lib/python<VER>/site-packages/ (三方依赖)
+  [写入目录] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/core/               (cp -R /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/core)
+  [删除清理] 上述目录内 __pycache__ / *.pyc / *.pyo / *.dSYM / tests
+  [就地改写] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle 下 Mach-O 的 install_name_tool rpath/-id
+  [代码签名] /private/tmp/s4_dryrun_target/Test.app/Contents/Resources/python_bundle 下所有 *.dylib / *.so / python3 / Python
+  [只读自检] env -i 纯净环境 import + cli_bridge.py parse（不写任何文件）
+[--dry-run] 未执行任何 rm / mkdir / cp / ln / rsync / chmod / install_name_tool / codesign。
+[--dry-run] 目标 App 未被改动，Exit 0。
+[exit=0]
+
+  [dry-run 前后目标目录对比] 用于证明未实际写入：
+  BEFORE: 1794308649 22
+1
+  AFTER : 1794308649 22
+1
+  VERDICT: 目标目录无任何变化（dry-run 未写入任何文件）
+
+────────────────────────────────────────────────────────────────
+附加校验 A｜--target 指向不存在的 .app（应报「目标不是已存在的目录」）
+$ tools/bundle_standalone_runtime.sh --target '/tmp/s4_no_such.app' --dry-run
+❌ 错误: 目标不是已存在的目录: /private/tmp/s4_no_such.app
+   （由 --target '/tmp/s4_no_such.app' 解析而来）
+[exit=4]
+
+附加校验 B｜--target 指向存在的非 .app 目录（应报「必须是 .app 目录」）
+$ tools/bundle_standalone_runtime.sh --target 'core' --dry-run
+❌ 错误: 目标必须是 .app 目录（当前: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/core）
+[exit=4]
+
+附加校验 C｜合理 target（相对路径，真实新包 R2）+ --dry-run（仅打印，不写运行中 App）
+$ tools/bundle_standalone_runtime.sh --target 'FCPX Studio Pro R2.app' --dry-run
+==================================================
+  FCPX Studio Pro —— 零依赖便携运行时封装器
+==================================================
+目标 App 路径: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app
+便携包路径:   /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+core 目标:    /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/core
+--------------------------------------------------
+[--dry-run] 以下路径将被写入 / 重建（本次不实际写任何文件）：
+  [清空重建] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle
+  [清空重建] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/core
+  [创建目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/bin
+  [创建目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python<VER>
+  [创建目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python<VER>/site-packages
+  [创建目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/dylibs
+  [写入文件] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/bin/python3 (+ 2 个符号链接 python / python<VER>)
+  [写入文件] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/Python
+  [写入目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python<VER>/  (标准库 rsync)
+  [写入目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/dylibs/       (Homebrew dylibs)
+  [写入目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle/lib/python<VER>/site-packages/ (三方依赖)
+  [写入目录] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/core/               (cp -R /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/core)
+  [删除清理] 上述目录内 __pycache__ / *.pyc / *.pyo / *.dSYM / tests
+  [就地改写] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle 下 Mach-O 的 install_name_tool rpath/-id
+  [代码签名] /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/FCPX Studio Pro R2.app/Contents/Resources/python_bundle 下所有 *.dylib / *.so / python3 / Python
+  [只读自检] env -i 纯净环境 import + cli_bridge.py parse（不写任何文件）
+[--dry-run] 未执行任何 rm / mkdir / cp / ln / rsync / chmod / install_name_tool / codesign。
+[--dry-run] 目标 App 未被改动，Exit 0。
+[exit=0]
+
+附加校验 D｜--target 缺参数
+$ tools/bundle_standalone_runtime.sh --target
+❌ 错误: --target 缺少路径参数
+   用法: tools/bundle_standalone_runtime.sh --target <path-to-.app> [--dry-run]
+[exit=2]
+
+════════════════════════════════════════════════════════════════
+ 实测结束。全程未执行真实封装（rm/mkdir/cp/rsync/codesign 均未触发）。
+════════════════════════════════════════════════════════════════
