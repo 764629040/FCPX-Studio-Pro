@@ -88,6 +88,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         openDir.keyEquivalentModifierMask = [.command, .shift]
         fileMenu.addItem(openDir)
 
+        fileMenu.addItem(.separator())
+        // TR-020：两步人工确认的 PNG 多元素拆图层
+        let splitItem = NSMenuItem(title: "PNG 智能拆图层…",
+                                   action: #selector(MainWindowController.openPngSplit(_:)),
+                                   keyEquivalent: "")
+        fileMenu.addItem(splitItem)
+
         fileItem.submenu = fileMenu
 
         // 图层菜单（R36 / D-74: ⌘L 锁定，⌘H 隐藏）

@@ -46,6 +46,9 @@ public final class MainWindowController: NSWindowController,
     public private(set) var motiReadOnlyMode: Bool = false
     public private(set) var currentMotiPath: String?
 
+    // MARK: – TR-020 PNG 智能拆图层（人工确认窗口需强持有）
+    public private(set) var pngSplitConfirmWindow: PngSplitConfirmWindowController?
+
     // MARK: – Init
     public convenience init() {
         let screen = NSScreen.screens.first(where: { $0.frame.origin.x == 0 })
@@ -117,6 +120,14 @@ public final class MainWindowController: NSWindowController,
             let target = (args[idx + 1] as NSString).expandingTildeInPath
             DispatchQueue.main.async { [weak self] in
                 self?.previewMotiInDesigner(path: target)
+            }
+        } else if let idx = args.firstIndex(of: "--split-png"), idx + 1 < args.count {
+            // TR-020：真机验收直接打开预切确认窗口；--split-auto-confirm 仅用于
+            // 无人值守截图，触发的是 UI 里同一个「确认并导出」按钮，不绕过确认。
+            let target = (args[idx + 1] as NSString).expandingTildeInPath
+            let auto = args.contains("--split-auto-confirm")
+            DispatchQueue.main.async { [weak self] in
+                self?.startPngSplit(path: target, autoConfirm: auto)
             }
         } else if let idx = args.firstIndex(of: "--open"), idx + 1 < args.count {
             // `--open <psd 路径>` 启动参数：走与 ⌘O 完全相同的单文件导入路径
@@ -471,6 +482,59 @@ public final class MainWindowController: NSWindowController,
         showAlert(title: "只读预览",
                   msg: "当前处于 .moti 只读预览（TR-019 阶段一），不写回、不导出。\n"
                      + "请先在左侧选择一个 PSD 文件，即可恢复编辑态。")
+    }
+
+    // MARK: – TR-020 PNG 智能拆图层：两步（预切 → 人工确认 → 双路导出）
+
+    /// 文件菜单入口：选一张 PNG，先预切再让人确认，绝不静默决定层数。
+    @objc public func openPngSplit(_ sender: Any?) {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        if let png = UTType(filenameExtension: "png") {
+            panel.allowedContentTypes = [png]
+        }
+        panel.prompt = "选择 PNG"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        startPngSplit(path: url.path, autoConfirm: false)
+    }
+
+    /// 预切（后台）→ 弹人工确认窗口 → 确认后导出多层 PSD → 走真实 PSD 解析链装进设计器。
+    public func startPngSplit(path: String, autoConfirm: Bool = false) {
+        exitMotiReadOnlyMode()
+        let workDir = "/tmp/tr020_ui"
+        let fm = FileManager.default
+        try? fm.removeItem(atPath: workDir)
+        try? fm.createDirectory(atPath: workDir, withIntermediateDirectories: true)
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = PngSplitSocket.analyze(pngPath: path, workDir: workDir)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                switch result {
+                case .failure(let err):
+                    self.showAlert(title: "PNG 智能拆图层", msg: err.message)
+                case .success(let doc):
+                    let ctrl = PngSplitConfirmWindowController(
+                        splitDocument: doc, pngPath: path, workDir: workDir,
+                        autoConfirm: autoConfirm) { [weak self] psdPath in
+                            // 路径 B：多层 PSD 回导设计器，图层树由真实解析链生成
+                            self?.exitMotiReadOnlyMode()
+                            self?.importPsdPaths([psdPath])
+                            print("[TR-020] installed split layers into designer: \(psdPath)")
+                            fflush(stdout)
+                        }
+                    self.pngSplitConfirmWindow = ctrl
+                    ctrl.showWindow(nil)
+                    ctrl.window?.makeKeyAndOrderFront(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                    print("[TR-020] split confirm: \(doc.candidateCount) candidates, "
+                          + "r=\(doc.adaptive.radiusPx)px, autoConfirm=\(autoConfirm)")
+                    fflush(stdout)
+                }
+            }
+        }
     }
 
     // MARK: – PSD Loading（目录 / 单文件 / 拖放统一入口）
