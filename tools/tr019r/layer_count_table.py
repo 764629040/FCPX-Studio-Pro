@@ -190,7 +190,8 @@ def report(probe_path, out_md):
     lines.append("旧版只取 `scene` 直接子节点，合计只拿到 **%d** 层，修复后 **%d** 层，找回 **%d** 层。" %
                  (total_old, total_got, total_got - total_old))
     lines.append("")
-    lines.append("> 注：按 XML 树精确统计，素材库 1226 个 .moti 中 **764** 个的 layer 不是 scene 直接子节点；")
+    lines.append("> 注（TR-022-3 校正口径）：素材库全库 .moti 总数 **1247**（rglob 递归），XML 解析成功 **1241**、失败 **6**；")
+    lines.append("> 1241 个可解析文件中 **764** 个的 layer 不是 scene 直接子节点；")
     lines.append("> 最极端的 `10 字母.moti` 共 564 层，旧版只出 5 层。")
     lines.append("> 用户点名的「文件夹 1 = 2 层 群组」即 `-2026年4月项目/1/1.moti`。")
     lines.append("")

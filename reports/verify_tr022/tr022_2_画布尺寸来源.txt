@@ -1,0 +1,46 @@
+==========================================================================
+文件: /tmp/tr022/wedding.moti
+  根节点: ozml version= 5.14
+  ① 根下 <canvas> 节点数: 1
+     canvas[0] width=None height=None 子节点=['layout', 'activeView']
+  ② <scene> 节点数: 1
+     scene[0]/sceneSettings[0] 解析结果 width=1920 height=1080
+       子节点 <width> 文本='1920' 属性={}
+       子节点 <height> 文本='1080' 属性={}
+  ③ 带 id=302(固定宽度) 的节点数: 11 ; id=303(固定高度): 11
+     样本 id=302 tag=parameter text='' attr={'name': '固定宽度', 'id': '302', 'flags': '12884901908', 'default': '1920', 'value': '1920'}
+     样本 id=303 tag=parameter text='' attr={'name': '固定高度', 'id': '303', 'flags': '12884901908', 'default': '1080', 'value': '1080'}
+     样本 id=302 tag=parameter text='' attr={'name': '固定宽度', 'id': '302', 'flags': '12884901908', 'default': '1920', 'value': '1920'}
+     样本 id=303 tag=parameter text='' attr={'name': '固定高度', 'id': '303', 'flags': '12884901908', 'default': '1080', 'value': '1080'}
+  => 本次文案档位: ② sceneSettings -> 按模板里的画面设置 (1920×1080)
+==========================================================================
+文件: /tmp/tr022/letters.moti
+  根节点: ozml version= 5.13
+  ① 根下 <canvas> 节点数: 1
+     canvas[0] width=None height=None 子节点=['layout', 'activeView']
+  ② <scene> 节点数: 1
+     scene[0]/sceneSettings[0] 解析结果 width=3840 height=2160
+       子节点 <width> 文本='3840' 属性={}
+       子节点 <height> 文本='2160' 属性={}
+  ③ 带 id=302(固定宽度) 的节点数: 576 ; id=303(固定高度): 576
+     样本 id=302 tag=parameter text='' attr={'name': 'Fixed Width', 'id': '302', 'flags': '12901679120', 'default': '3840', 'value': '3840'}
+     样本 id=303 tag=parameter text='' attr={'name': 'Fixed Height', 'id': '303', 'flags': '12901679120', 'default': '2160', 'value': '2160'}
+     样本 id=302 tag=parameter text='' attr={'name': 'Fixed Width', 'id': '302', 'flags': '12901679124', 'default': '3840', 'value': '3840'}
+     样本 id=303 tag=parameter text='' attr={'name': 'Fixed Height', 'id': '303', 'flags': '12901679124', 'default': '2160', 'value': '2160'}
+  => 本次文案档位: ② sceneSettings -> 按模板里的画面设置 (3840×2160)
+==========================================================================
+文件: /tmp/tr022/one.moti
+  根节点: ozml version= 5.13
+  ① 根下 <canvas> 节点数: 1
+     canvas[0] width=None height=None 子节点=['layout', 'activeView']
+  ② <scene> 节点数: 1
+     scene[0]/sceneSettings[0] 解析结果 width=1920 height=1080
+       子节点 <width> 文本='1920' 属性={}
+       子节点 <height> 文本='1080' 属性={}
+  ③ 带 id=302(固定宽度) 的节点数: 5 ; id=303(固定高度): 5
+     样本 id=302 tag=parameter text='' attr={'name': '固定宽度', 'id': '302', 'flags': '12884901910', 'default': '1920', 'value': '1920'}
+     样本 id=303 tag=parameter text='' attr={'name': '固定高度', 'id': '303', 'flags': '12884901910', 'default': '1080', 'value': '1080'}
+     样本 id=302 tag=parameter text='' attr={'name': '固定宽度', 'id': '302', 'flags': '12884901910', 'default': '1920', 'value': '1920'}
+     样本 id=303 tag=parameter text='' attr={'name': '固定高度', 'id': '303', 'flags': '12884901910', 'default': '1080', 'value': '1080'}
+  => 本次文案档位: ② sceneSettings -> 按模板里的画面设置 (1920×1080)
+==========================================================================

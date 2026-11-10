@@ -1,0 +1,39 @@
+{
+  "total": 1247,
+  "ok": 1241,
+  "fail": [
+    {
+      "file": "点 03.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/不要T战斗/点文本/点 03/点 03.moti",
+      "error": "ParseError"
+    },
+    {
+      "file": "点 07.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/不要T战斗/点文本/点 07/点 07.moti",
+      "error": "ParseError"
+    },
+    {
+      "file": "点文本 03.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/会议广场/点文本/点文本 03/点文本 03.moti",
+      "error": "ParseError"
+    },
+    {
+      "file": "菜单条修复.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/尹住宿/条/菜单条修复/菜单条修复.moti",
+      "error": "ParseError"
+    },
+    {
+      "file": "菜单条自定义.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/尹住宿/条/菜单条自定义/菜单条自定义.moti",
+      "error": "ParseError"
+    },
+    {
+      "file": "条01.moti",
+      "path": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/03综艺动漫/条/条01/条01.moti",
+      "error": "ParseError"
+    }
+  ],
+  "nested_file_count": 764,
+  "max_file": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/-PVFX便签字幕/10 字母/10 字母.moti",
+  "max_layers": 564
+}

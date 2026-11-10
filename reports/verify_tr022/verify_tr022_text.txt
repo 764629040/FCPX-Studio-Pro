@@ -1,0 +1,43 @@
+TR-022 文案 / 结构核对（Python bytes.count，不用 strings）
+==============================================================================
+— TR-022-2 三档文案必须逐字存在
+   ✅ 「画布尺寸 \(width)×\(height」                       命中 1    TR-022-2 档① 画布节点自带宽高
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+   ✅ 「画布尺寸 \(width)×\(height」                       命中 2    TR-022-2 档② sceneSettings / 图层固定宽高
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+   ✅ 「这份模板没写尺寸，已按 1920×1080 」                       命中 1    TR-022-2 档④ 兜底
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+— TR-022-2 旧文案必须已清除
+   ✅ 「按模板的场景设置」                                     命中 0    TR-022-2 旧文案残留
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+   ✅ 「这份模板没写画布尺寸」                                   命中 0    TR-022-2 旧兜底残留
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+— TR-022-3 新口径
+   ✅ 「1247 个 .moti（XML 解析成功 」                       命中 1    TR-022-3 头注释口径
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+— TR-022-3 旧分母必须已清除
+   ✅ 「1226」                                         命中 0    TR-022-3 旧分母残留
+      文件 FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift
+— TR-022-7 只读态列移除接线
+   ✅ 「removeTableColumn」                            命中 1    TR-022-7 只读态整列移除
+      文件 FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+   ✅ 「addTableColumn」                               命中 5    TR-022-7 退出只读态恢复
+      文件 FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+   ✅ 「publishColumn」                                命中 3    TR-022-7 列引用
+      文件 FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+— TR-022-1 PSD 语义层名
+   ✅ 「psd_layer_name」                               命中 4    TR-022-1 语义层名拼接函数
+      文件 tools/tr020/png_split.py
+   ✅ 「psd_name」                                     命中 2    TR-022-1 层名随层条目走到写盘
+      文件 tools/tr020/png_split.py
+   ✅ 「第 %d 层名称 = 标题·HEX」                            命中 1    TR-022-1 回导校验项改名
+      文件 tools/tr020/png_split.py
+— 二进制逐串字节命中
+  二进制 FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio (3806800 B)
+   ✅「（模板里写明的）」 命中 1  
+   ✅「（按模板里的画面设置）」 命中 1  
+   ✅「这份模板没写尺寸，已按 1920×1080 处理」 命中 1  
+   ✅「只读，不可编辑」 命中 2  
+   ✅「只读预览 · 共」 命中 1  
+==============================================================================
+VERDICT: PASS

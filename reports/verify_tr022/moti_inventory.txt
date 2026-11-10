@@ -1,0 +1,23 @@
+========================================================================
+TR-022-3  .moti 全量口径
+========================================================================
+统计范围：/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized（rglob 递归）
+可复现命令（照抄一行，得到分母）：
+  python3 -c "import pathlib;print(len(list(pathlib.Path.home().joinpath('Movies/Motion Templates.localized/Titles.localized').rglob('*.moti'))))"
+------------------------------------------------------------------------
+总数 total           = 1247
+XML 解析成功 ok      = 1241
+XML 解析失败 fail    = 6
+    FAIL 点 03.moti  (ParseError)
+    FAIL 点 07.moti  (ParseError)
+    FAIL 点文本 03.moti  (ParseError)
+    FAIL 菜单条修复.moti  (ParseError)
+    FAIL 菜单条自定义.moti  (ParseError)
+    FAIL 条01.moti  (ParseError)
+含非 scene 父节点 layer 的文件 = 764
+最大层数文件 = /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/-PVFX便签字幕/10 字母/10 字母.moti
+最大层数 = 564
+------------------------------------------------------------------------
+一行命令（精确版）：
+  python3 tools/tr022/moti_inventory.py
+WROTE /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_tr022/moti_inventory.json

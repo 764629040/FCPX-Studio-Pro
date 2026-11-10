@@ -19,7 +19,8 @@ SRC = ROOT + "/FCPXStudioNative/Sources/FCPXStudio"
 SOURCE_CHECKS = [
     ("只读，不可编辑", SRC + "/Views/InspectorView.swift", "只读态锁定横幅文案"),
     ("幅面规格", SRC + "/Views/InspectorView.swift", "幅面规格行常驻文案"),
-    ("这份模板没写画布尺寸，已按 1920×1080 处理", SRC + "/Models/MotiDocumentParser.swift", "用户指定的大白话兜底文案"),
+    ("这份模板没写尺寸，已按 1920×1080 处理", SRC + "/Models/MotiDocumentParser.swift",
+     "大白话兜底文案（TR-022-2 起去掉「画布」二字，档位说明见 tools/tr022/verify_tr022_text.py）"),
     ("这份模板里有分组", SRC + "/Models/MotiDocumentParser.swift", "分组展开大白话提示"),
     ("只读预览 · 共", SRC + "/Views/InfiniteCanvasView.swift", "画布只读预览标题条"),
     ("updateMotiReadOnlyInfo", SRC + "/Views/MainWindowController.swift", "设计器侧只读接线（token 核对）"),
@@ -29,7 +30,7 @@ SOURCE_CHECKS = [
 BINARY_CHECKS = [
     "只读，不可编辑",
     "幅面规格",
-    "这份模板没写画布尺寸，已按 1920×1080 处理",
+    "这份模板没写尺寸，已按 1920×1080 处理",
     "只读预览 · 共",
 ]
 

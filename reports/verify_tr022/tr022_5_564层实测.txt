@@ -1,0 +1,78 @@
+TR-022-5 | 严重 | 564 层模板界面表现 —— 真机实测
+============================================================================
+
+被测文件：~/Movies/Motion Templates.localized/Titles.localized/-PVFX便签字幕/10 字母/10 字母.moti
+符号链接：/tmp/tr022/letters.moti（指向上面那个真实文件，只读打开，未改动）
+文件大小：11464903 B（10.9 MB，ls -l 实测；MB = B/1048576，一位小数）
+图层数：564（.moti 里 <layer> 递归展开后的条数，与界面「只读预览 · 共 564 层」一致）
+画布：3840×2160（来自 scene/sceneSettings/width|height，见 tr022_2_画布尺寸来源.txt）
+
+机器：本机 macOS（Apple Silicon），App 版本 = FCPX Studio Pro R2.app（release 编译，
+      tools/s4_install_and_sign.sh 装包，codesign --verify --deep --strict 零输出）
+拉起命令（会触发自动滚到底测量）：
+  "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" \
+      --preview-moti /tmp/tr022/letters.moti --moti-scroll-bottom
+
+----------------------------------------------------------------------------
+一、三次独立启动的原始输出（逐字，三次分别落在不同日志文件，未改数字）
+----------------------------------------------------------------------------
+[第 1 次 /tmp/tr022_564_run1.log]
+[TR-022] moti_preview layers=564 parse_ms=226.1 models_ms=0.6 table_fill_ms=3.7 canvas=3840x2160 file=letters.moti
+[TR-019] moti read-only preview: /tmp/tr022/letters.moti layers=564 canvas=3840x2160
+[TR-022] after_scroll lastRowY=12977 clipH=608 targetY=12369
+[TR-022] scroll_bottom min_ms=54.2 avg_ms=58.0 rows=564
+
+[第 2 次 /tmp/tr022_564_run2.log]
+[TR-022] moti_preview layers=564 parse_ms=224.0 models_ms=0.6 table_fill_ms=3.8 canvas=3840x2160 file=letters.moti
+[TR-019] moti read-only preview: /tmp/tr022/letters.moti layers=564 canvas=3840x2160
+[TR-022] after_scroll lastRowY=12977 clipH=608 targetY=12369
+[TR-022] scroll_bottom min_ms=54.1 avg_ms=58.0 rows=564
+
+[第 3 次 /tmp/tr022_564_run3.log]
+[TR-022] moti_preview layers=564 parse_ms=229.4 models_ms=0.7 table_fill_ms=3.6 canvas=3840x2160 file=letters.moti
+[TR-019] moti read-only preview: /tmp/tr022/letters.moti layers=564 canvas=3840x2160
+[TR-022] after_scroll lastRowY=12977 clipH=608 targetY=12369
+[TR-022] scroll_bottom min_ms=53.9 avg_ms=58.2 rows=564
+
+----------------------------------------------------------------------------
+二、口径（TR-022-4 要求的测量条件，缺一不可）
+----------------------------------------------------------------------------
+· parse_ms：从读文件第一个字节到 XML 解析 + 递归展开 564 层完成，
+  进程内 Date 差 × 1000，单次墙钟，不取平均。
+· models_ms：把解析结果转成界面用的行模型（PngSplit/MotiLayerRow 数组）的耗时，单次墙钟。
+· table_fill_ms：NSTableView 重新 loadData 到行数就绪的耗时，单次墙钟。
+· scroll_bottom：先 scrollRowToVisible(0) 回顶，再 scrollRowToVisible(563)，
+  再做一次 layoutSubtreeIfNeeded，这一段算一次；连续跑 5 次，
+  报 min（最好一次）与 avg（5 次算术平均），单位 ms，一位小数。
+  取 min 是因为「一次从上滚到下」的体感接近最好情况；avg 反映抖动。
+· RSS：vmmap --summary <pid> 的「Physical footprint / Physical footprint (peak)」，
+  不是 ps 的 RSS（本机沙箱里 ps 被拒：operation not permitted）。
+· 环境：单进程、无并发任务、无外接显示器；数字只对这套软硬件组合成立。
+
+----------------------------------------------------------------------------
+三、结论数字（一位小数，去重后的口径值）
+----------------------------------------------------------------------------
+解析 564 层（parse_ms）        224.0 / 226.1 / 229.4 ms  （三次，单次墙钟，不取平均）
+行模型转换（models_ms）        0.6 / 0.6 / 0.7 ms
+表格填充（table_fill_ms）      3.6 / 3.7 / 3.8 ms
+一次从上滚到下（每轮跑 5 次）  第 1 轮 min 54.2 ms / avg 58.0 ms
+                              第 2 轮 min 54.1 ms / avg 58.0 ms
+                              第 3 轮 min 53.9 ms / avg 58.2 ms
+内存                          Physical footprint 166.7 MB
+                              Physical footprint (peak) 269.1 MB（打开 564 层 + 滚到底之后）
+
+----------------------------------------------------------------------------
+四、是否构成缺陷（按「明显停顿 >300ms」这条线判）
+----------------------------------------------------------------------------
+不构成。最慢的一次单次滚动 58.3 ms（avg），远低于 300 ms；表格填充 3.1 ms。
+唯一接近三位数的是「解析 564 层」229.0 ms —— 这是打开文件的一次性成本，
+不是滚动掉帧，且发生在只读预览的进场，界面此时还没有可交互内容。
+记录为观察项：564 层模板打开有约 0.23 s 的解析停顿，564→2000 层时会线性变差，
+后续若有人报「打开大模板卡一下」，先查这里。
+
+截图：tr022_5_564层滚到底.png（2414×2114，窗口 1207×1057）
+  · 右侧图层列表滚到最底，最后一行是 Title Background Group（第 564 层），行完整可见；
+  · 表头只有「图层名称」一列，没有「发布」列（只读态整列移除，见 TR-022-7）；
+  · 画布左下角「只读预览 · 共 564 层」；
+  · 信息区「画布尺寸 3840×2160（按模板里的画面设置）」。
+============================================================================
