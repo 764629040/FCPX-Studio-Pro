@@ -42,6 +42,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     private weak var mainStackView: NSStackView?
     private var tableScrollHeight: NSLayoutConstraint?
     private let motionPropsTag = 9901
+    /// TR-022-7：保留「发布」列引用，只读态整列移除（连表头），非只读态再加回。
+    private var publishColumn: NSTableColumn?
     public var onLayerLockChanged: ((LayerModel) -> Void)?
 
     // 发布复选框插口
@@ -291,6 +293,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         colPub.title = "发布"
         colPub.width = 55
         layerTableView.addTableColumn(colPub)
+        publishColumn = colPub   // TR-022-7：只读态整列移除用
 
         layerTableView.dataSource = self
         layerTableView.delegate   = self
@@ -844,7 +847,52 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
                 v.isHidden = motiReadOnlyMode
             }
         }
+
+        // TR-022-7：只读态整列移除「发布」（含表头），避免出现可勾选外观；
+        // 退出只读态再加回。用对象身份判断，避免重复增删。
+        if let pubCol = publishColumn, let table = layerTableView {
+            let present = table.tableColumns.contains { $0 === pubCol }
+            if motiReadOnlyMode && present {
+                table.removeTableColumn(pubCol)
+            } else if !motiReadOnlyMode && !present {
+                table.addTableColumn(pubCol)
+            }
+        }
+
         layerTableView?.reloadData()
+    }
+
+    /// TR-022-5：真机测量「表格从上滚到底」耗时。滚动到最后一行的耗时，
+    /// 连做 runs 次，返回 最小 / 平均（毫秒）与行数，用于 564 层模板性能验收。
+    public func tr022MeasureScrollToBottom(runs: Int = 5) -> (min: Double, avg: Double, rows: Int) {
+        guard let table = layerTableView, layers.count > 1 else { return (0, 0, layers.count) }
+        let lastRow = layers.count - 1
+        table.layoutSubtreeIfNeeded()
+        table.scrollRowToVisible(0)
+        var times: [Double] = []
+        for _ in 0..<max(1, runs) {
+            table.scrollRowToVisible(0)
+            let t0 = Date()
+            table.scrollRowToVisible(lastRow)
+            table.layoutSubtreeIfNeeded()
+            times.append(Date().timeIntervalSince(t0) * 1000.0)
+        }
+        // 测完停在最底：用最后一行 rect 的 maxY 减可视高度算出精确 offset，必贴底。
+        table.scrollRowToVisible(lastRow)
+        table.layoutSubtreeIfNeeded()
+        if let scroll = table.enclosingScrollView {
+            let rowRect = table.rect(ofRow: lastRow)
+            let clipH = scroll.contentView.bounds.height
+            let targetY = max(0, rowRect.maxY - clipH)
+            scroll.contentView.scroll(to: NSPoint(x: 0, y: targetY))
+            scroll.reflectScrolledClipView(scroll.contentView)
+            print(String(format: "[TR-022] after_scroll lastRowY=%.0f clipH=%.0f targetY=%.0f",
+                         rowRect.maxY, clipH, targetY))
+            fflush(stdout)
+        }
+        let mx = times.min() ?? 0
+        let avg = times.reduce(0, +) / Double(max(1, times.count))
+        return ((mx * 10).rounded() / 10, (avg * 10).rounded() / 10, layers.count)
     }
 
     @objc private func onToggleDiagnostics(_ sender: NSButton) {

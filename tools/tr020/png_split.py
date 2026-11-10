@@ -62,6 +62,19 @@ def hex_of(rgb) -> str:
     return "#%02X%02X%02X" % tuple(int(round(v)) for v in rgb[:3])
 
 
+def psd_layer_name(name: str, hex_value: str) -> str:
+    """TR-022-1：PSD 层名 = 确认卡标题 + ' · #HEX'。
+
+    · 若标题里已含该 HEX（UI 默认标题就是「图层 NN · #HEX」），原样返回，不重复拼；
+    · 若标题是语义名（用户在确认窗填的「邀请函蓝」等），拼成「邀请函蓝 · #3C78FF」。
+    这样设计器/psd_tools 回读时既能认人话，也带颜色定位。
+    """
+    n = (name or "").strip()
+    if hex_value and hex_value.upper() not in n.upper():
+        return f"{n} · {hex_value}" if n else hex_value
+    return n if n else hex_value
+
+
 def read_rgba(path: str):
     """保留 alpha。convert('RGBA') 对 RGBA 输入保留原始 RGB，绝不合成白底。"""
     with Image.open(path) as im:
@@ -416,15 +429,17 @@ def cut_blocks(rgba: np.ndarray, alpha: np.ndarray, mask: np.ndarray,
         png = os.path.join(out, "layer_%02d.png" % i)
         Image.fromarray(cut).save(png)
         c = alpha_weighted_rgb(rgb[m].reshape(-1, 3), alpha[m].reshape(-1))
+        hv = hex_of(c)
         layers.append({
             "index": i,
-            "name": b["name"],
+            "name": b["name"],                       # 确认卡标题（用户可填语义名）
+            "psd_name": psd_layer_name(b["name"], hv),  # 真正写进 PSD 的层名
             "component_ids": ids,
             "bbox": bbox,
             "pixels": int(m.sum()),
             "alpha_pixels": int(alpha[m].sum()),
             "rgb": c,
-            "hex": hex_of(c),
+            "hex": hv,
             "png": os.path.basename(png),
             "png_bytes": os.path.getsize(png),
             "png_kb": f1(os.path.getsize(png) / 1024.0),
@@ -446,12 +461,18 @@ def write_psd(base_rgba: np.ndarray, W: int, H: int, layers: list, psd_path: str
         px = psd.create_pixel_layer(Image.fromarray(l["_cut"]),
                                     name="placeholder", top=y0, left=x0,
                                     compression=Compression.RLE, opacity=255)
-        px.name = l["name"]        # setter 写 luni，psd_tools 回读中文不乱码
+        # TR-022-1：写「标题 · #HEX」，语义名进入 PSD，psd_tools 回读含中文
+        px.name = l.get("psd_name") or psd_layer_name(l["name"], l["hex"])
     psd.save(psd_path)
     return psd
 
 
 def commit(src: str, out: str, approved_path: str = "", psd_path: str = "") -> dict:
+    # 【TR-022-4 测量口径】所有 elapsed_ms 为单次运行的墙钟时间，不取平均；
+    # 分段边界：read=读盘+连通块重算；cut=按批准 ids 切块+写 layer PNG；
+    # psd_write=psd_tools 建层+保存。f1() 统一保留一位小数，不写「约/基本」。
+    # psd.bytes 含 PSD 头 + 合并图像数据 + 层记录；PSD 内无时间戳，同输入同实现下逐字节稳定，
+    # 不同 psd_tools 版本 / 压缩参数会变动 ±0.1 KB 量级。
     t0 = time.perf_counter()
     src = os.path.abspath(src)
     os.makedirs(out, exist_ok=True)
@@ -545,7 +566,9 @@ def verify(src: str, psd_path: str, approved_path: str, out: str = "") -> dict:
         got = tuple(int(v) for v in pl.bbox)
         ck("第 %d 层 bbox 对齐" % (i + 1), got == tuple(bbox), "psd=%s src=%s" % (got, bbox))
         ck("第 %d 层 opacity=255" % (i + 1), int(pl.opacity) == 255, pl.opacity)
-        ck("第 %d 层名称可读" % (i + 1), pl.name == b["name"], "%r vs %r" % (pl.name, b["name"]))
+        expect_name = psd_layer_name(b["name"], b.get("hex", ""))
+        ck("第 %d 层名称 = 标题·HEX" % (i + 1), pl.name == expect_name,
+           "%r vs %r" % (pl.name, expect_name))
         topil = pl.topil()
         if topil is None:
             ck("第 %d 层像素可读" % (i + 1), False, "topil=None")

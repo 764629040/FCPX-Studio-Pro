@@ -11,7 +11,7 @@
 //   1) 层数：旧版只取 <scene> 的【直接】layer 子节点，导致分组/嵌套模板只出
 //      1~2 层。现改为自 <scene> 起递归展开【任意深度】的 layer 节点，
 //      文档顺序保留，层数与源文件 layer 节点总数严格一致。
-//      素材库实测 1226 个 .moti 中 764 个的 layer 不是 scene 直接子节点，
+//      素材库实测 1247 个 .moti（XML 解析成功 1241）中 764 个的 layer 不是 scene 直接子节点，
 //      最极端者 564 层里 559 层嵌套，旧版只出 5 层。
 //   2) 诊断文案：旧版逐层刷「未找到 对象/文本(369)<text> 节点…posX 按 0 处理…」
 //      这类含 XML 节点名的原始 warning，几十条拼成一整块红字把「幅面规格」顶掉。
@@ -328,28 +328,29 @@ public final class MotiDocumentParser {
             }
         }
 
-        // 2) 真实画布尺寸通常在 scene 的场景设置里
+        // 2) 真实画布尺寸通常在 scene 的画面设置（sceneSettings）里
+        //    TR-022-2：文案按真实来源分档，sceneSettings = 「模板里的画面设置」。
         for scene in scenes {
             for settings in scene.elements(forName: "sceneSettings") {
                 let width = parseInt(settings.elements(forName: "width").first?.stringValue)
                 let height = parseInt(settings.elements(forName: "height").first?.stringValue)
                 if let width = width, let height = height {
-                    return (width, height, "画布尺寸 \(width)×\(height)（按模板的场景设置）。")
+                    return (width, height, "画布尺寸 \(width)×\(height)（按模板里的画面设置）。")
                 }
             }
         }
 
-        // 3) 再退回首层的文字框尺寸
+        // 3) 再退回首层的固定宽高（也属「模板里的画面设置」）
         if let first = layers.first,
            let fixedWidth = first.fixedWidth,
            let fixedHeight = first.fixedHeight {
             let width = Int(fixedWidth.rounded())
             let height = Int(fixedHeight.rounded())
-            return (width, height, "这份模板没写画布尺寸，已按文字框大小 \(width)×\(height) 处理。")
+            return (width, height, "画布尺寸 \(width)×\(height)（按模板里的画面设置）。")
         }
 
-        // 4) 兜底：用户指定文案
-        return (1920, 1080, "这份模板没写画布尺寸，已按 1920×1080 处理")
+        // 4) 兜底：模板确实没写尺寸，按 1920×1080 处理
+        return (1920, 1080, "这份模板没写尺寸，已按 1920×1080 处理")
     }
 
     private static func canvasInteger(_ parent: XMLElement,

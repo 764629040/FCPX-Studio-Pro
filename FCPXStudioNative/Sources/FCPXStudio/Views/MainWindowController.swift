@@ -124,10 +124,19 @@ public final class MainWindowController: NSWindowController,
         } else if let idx = args.firstIndex(of: "--split-png"), idx + 1 < args.count {
             // TR-020：真机验收直接打开预切确认窗口；--split-auto-confirm 仅用于
             // 无人值守截图，触发的是 UI 里同一个「确认并导出」按钮，不绕过确认。
+            // TR-022：--split-names "a,b,c" 预置卡片语义名；--split-selftest 跑合并/拆分/删除自检。
             let target = (args[idx + 1] as NSString).expandingTildeInPath
             let auto = args.contains("--split-auto-confirm")
+            let selfTest = args.contains("--split-selftest")
+            let scrollBottom = args.contains("--split-scroll-bottom")
+            var presetNames: [String]? = nil
+            if let ni = args.firstIndex(of: "--split-names"), ni + 1 < args.count {
+                presetNames = args[ni + 1].split(separator: ",").map { String($0) }
+            }
             DispatchQueue.main.async { [weak self] in
-                self?.startPngSplit(path: target, autoConfirm: auto)
+                self?.startPngSplit(path: target, autoConfirm: auto,
+                                    presetNames: presetNames, selfTest: selfTest,
+                                    scrollBottom: scrollBottom)
             }
         } else if let idx = args.firstIndex(of: "--open"), idx + 1 < args.count {
             // `--open <psd 路径>` 启动参数：走与 ⌘O 完全相同的单文件导入路径
@@ -423,13 +432,17 @@ public final class MainWindowController: NSWindowController,
     /// 阶段一硬约束：不生成任何文件、不修改 .moti、不调用 MotionBuilderSocket；
     /// 保存与批量导出在只读态下被硬阻断，生成的 LayerModel 一律 isLocked=true。
     public func previewMotiInDesigner(path: String) {
+        // TR-022-5：真机性能埋点（解析 / 建模型 / 表格填充），打印到 stdout 供验收采集
+        let tStart = Date()
         let snapshot = MotiDocumentParser.parse(path: path)
+        let tParse = Date()
         guard snapshot.isValid else {
             showAlert(title: "只读预览失败",
                       msg: (snapshot.failureReason ?? "无法解析该 .moti 文件。") + "\n\(path)")
             return
         }
         let models = MotiDocumentParser.toLayerModels(snapshot)
+        let tModels = Date()
         guard !models.isEmpty else {
             showAlert(title: "只读预览失败",
                       msg: "该 .moti 未解析出任何图层，设计器保持原状。\n\(path)")
@@ -453,6 +466,8 @@ public final class MainWindowController: NSWindowController,
         // TR-019-R：只读预览没有位图贴图，打开占位绘制保证画布不空黑
         canvasView.motiPreviewMode = true
         canvasView.layers = models
+
+        let tTable0 = Date()
         inspectorView.layers = models
 
         // TR-019-R：绕开 PSD 诊断逻辑，幅面规格常驻 + 白话诊断默认折叠
@@ -460,10 +475,38 @@ public final class MainWindowController: NSWindowController,
                                              canvasHeight: snapshot.canvasHeight,
                                              layerCount: models.count,
                                              notes: snapshot.warnings)
+        let tTable1 = Date()
         canvasView.fitArtboard()
+
+        let parseMs = tParse.timeIntervalSince(tStart) * 1000.0
+        let modelsMs = tModels.timeIntervalSince(tParse) * 1000.0
+        let fillMs = tTable1.timeIntervalSince(tTable0) * 1000.0
+        print(String(format: "[TR-022] moti_preview layers=%d parse_ms=%.1f models_ms=%.1f table_fill_ms=%.1f canvas=%dx%d file=%@",
+                     models.count, parseMs, modelsMs, fillMs,
+                     snapshot.canvasWidth, snapshot.canvasHeight,
+                     (path as NSString).lastPathComponent))
         print("[TR-019] moti read-only preview: \(path) layers=\(models.count) "
               + "canvas=\(snapshot.canvasWidth)x\(snapshot.canvasHeight)")
         fflush(stdout)
+
+        // TR-022-5：真机验收 --moti-scroll-bottom 时测量「从上滚到底」耗时并打印
+        if ProcessInfo.processInfo.arguments.contains("--moti-scroll-bottom") {
+            // 先把窗口拉高到屏幕可用高度，避免 564 层表格底部被窗口底边裁掉
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let win = self?.window, let scr = win.screen else { return }
+                var f = win.frame
+                f.size.height = scr.visibleFrame.height - 16
+                f.origin.y = scr.visibleFrame.maxY - f.size.height - 8
+                win.setFrame(f, display: true)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { [weak self] in
+                guard let self = self else { return }
+                let r = self.inspectorView.tr022MeasureScrollToBottom(runs: 5)
+                print(String(format: "[TR-022] scroll_bottom min_ms=%.1f avg_ms=%.1f rows=%d",
+                             r.min, r.avg, r.rows))
+                fflush(stdout)
+            }
+        }
     }
 
     /// 退出只读态：恢复保存 / 导出按钮。任何 PSD 相关操作前调用。
@@ -501,7 +544,9 @@ public final class MainWindowController: NSWindowController,
     }
 
     /// 预切（后台）→ 弹人工确认窗口 → 确认后导出多层 PSD → 走真实 PSD 解析链装进设计器。
-    public func startPngSplit(path: String, autoConfirm: Bool = false) {
+    public func startPngSplit(path: String, autoConfirm: Bool = false,
+                              presetNames: [String]? = nil, selfTest: Bool = false,
+                              scrollBottom: Bool = false) {
         exitMotiReadOnlyMode()
         let workDir = "/tmp/tr020_ui"
         let fm = FileManager.default
@@ -518,7 +563,8 @@ public final class MainWindowController: NSWindowController,
                 case .success(let doc):
                     let ctrl = PngSplitConfirmWindowController(
                         splitDocument: doc, pngPath: path, workDir: workDir,
-                        autoConfirm: autoConfirm) { [weak self] psdPath in
+                        autoConfirm: autoConfirm, presetNames: presetNames,
+                        selfTest: selfTest, scrollBottomOnly: scrollBottom) { [weak self] psdPath in
                             // 路径 B：多层 PSD 回导设计器，图层树由真实解析链生成
                             self?.exitMotiReadOnlyMode()
                             self?.importPsdPaths([psdPath])

@@ -10,6 +10,7 @@ public final class PngSplitConfirmWindowController: NSWindowController {
     private let pngPath: String
     private let workDir: String
     private let autoConfirm: Bool
+    private let selfTest: Bool
     private let onConfirm: (String) -> Void
 
     private var blocks: [PngSplitBlock]
@@ -27,15 +28,61 @@ public final class PngSplitConfirmWindowController: NSWindowController {
                 pngPath: String,
                 workDir: String,
                 autoConfirm: Bool = false,
+                presetNames: [String]? = nil,
+                selfTest: Bool = false,
+                scrollBottomOnly: Bool = false,
                 onConfirm: @escaping (String) -> Void) {
         self.splitDocument = splitDocument
         self.pngPath = pngPath
         self.workDir = workDir
         self.autoConfirm = autoConfirm
+        self.selfTest = selfTest
         self.onConfirm = onConfirm
-        self.blocks = splitDocument.candidates.map { PngSplitBlock(candidate: $0, workDir: workDir) }
+        var built = splitDocument.candidates.map { PngSplitBlock(candidate: $0, workDir: workDir) }
+        // TR-022-1：允许预置语义名（真机验收 / 批量命名），数量对齐才套用
+        if let names = presetNames, names.count == built.count {
+            for i in built.indices { built[i].name = names[i] }
+        }
+        self.blocks = built
         super.init(window: nil)
         buildWindow()
+        if selfTest {
+            // TR-022-6：30+ 候选自检（合并/拆分/删除 + 滚到底），触发的是同一套 UI 动作
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+                self?.tr022RunSelfTest()
+            }
+        } else if scrollBottomOnly {
+            // 只滚到底、不改块，用于截「35 候选滚到底」原始列表
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.scrollCardsToBottom()
+            }
+        }
+    }
+
+    /// TR-022-6：把候选列表滚到最底（不改层数），供真机截图。
+    private func scrollCardsToBottom() {
+        cardStack.layoutSubtreeIfNeeded()
+        guard let last = cardStack.arrangedSubviews.last,
+              let scroll = cardStack.enclosingScrollView else {
+            print("[TR-022] scroll_bottom cards=\(blocks.count) NIL")
+            fflush(stdout)
+            return
+        }
+        // 标准做法：让最后一张卡 scrollToVisible，AppKit 自己处理翻转坐标
+        _ = last.scrollToVisible(last.bounds)
+        scroll.layoutSubtreeIfNeeded()
+        // 再补一次：只把最后一张卡的「最底 1px」滚进可视区，
+        // 否则 scrollToVisible 只保证卡片可见，卡片下沿可能还压在窗口边上。
+        _ = last.scrollToVisible(NSRect(x: 0,
+                                        y: max(0, last.bounds.maxY - 1),
+                                        width: last.bounds.width,
+                                        height: 1))
+        scroll.layoutSubtreeIfNeeded()
+        print(String(format: "[TR-022] scroll_bottom cards=%d contentH=%.0f clipH=%.0f visY=%.0f",
+                     blocks.count, cardStack.frame.height,
+                     scroll.contentView.bounds.height,
+                     scroll.contentView.bounds.origin.y))
+        fflush(stdout)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -201,6 +248,8 @@ public final class PngSplitConfirmWindowController: NSWindowController {
     }
 
     private func rebuildCards() {
+        // TR-022-6：卡片渲染耗时（建卡 + 装 stack + 约束 + 布局），单次墙钟，不取平均。
+        let tCards0 = Date()
         for v in cardStack.arrangedSubviews {
             cardStack.removeArrangedSubview(v)
             v.removeFromSuperview()
@@ -211,6 +260,11 @@ public final class PngSplitConfirmWindowController: NSWindowController {
             // 必须在加入 stack 之后再加宽度约束，否则两端不在同一视图树会抛异常
             card.widthAnchor.constraint(equalTo: cardStack.widthAnchor, constant: -16).isActive = true
         }
+        cardStack.layoutSubtreeIfNeeded()
+        let cardsMs = Date().timeIntervalSince(tCards0) * 1000.0
+        print(String(format: "[TR-022] cards_build blocks=%d cards_ms=%.1f contentH=%.0f",
+                     blocks.count, cardsMs, cardStack.frame.height))
+        fflush(stdout)
         statusLabel.stringValue = "当前候选 \(blocks.count) 块，已选 \(selected.count) 块  |  "
             + "确认后导出层数 = \(blocks.count)（由你批准）  |  操作记录 \(actions.count) 条"
         updateButtons()
@@ -407,6 +461,33 @@ public final class PngSplitConfirmWindowController: NSWindowController {
                                       note: "人工删除 \(n) 个候选块"))
         selected.removeAll()
         rebuildCards()
+    }
+
+    /// TR-022-6：30+ 候选自检。走的是与按钮完全相同的 onMerge/onSplit/onRemove，
+    /// 打印每一步块数；最后把候选列表滚到最底，便于真机截图。
+    private func tr022RunSelfTest() {
+        let t0 = Date()
+        print("[TR-022] selftest start blocks=\(blocks.count)")
+        if blocks.count >= 2 {
+            selected = [0, 1]
+            onMerge()
+            print("[TR-022] after_merge blocks=\(blocks.count)")
+        }
+        if let multi = blocks.firstIndex(where: { $0.componentIds.count > 1 }) {
+            selected = [multi]
+            onSplit()
+            print("[TR-022] after_split blocks=\(blocks.count)")
+        }
+        if !blocks.isEmpty {
+            selected = [blocks.count - 1]
+            onRemove()
+            print("[TR-022] after_remove blocks=\(blocks.count)")
+        }
+        scrollCardsToBottom()
+        let ms = Date().timeIntervalSince(t0) * 1000.0
+        print(String(format: "[TR-022] selftest done final_blocks=%d elapsed_ms=%.1f",
+                     blocks.count, ms))
+        fflush(stdout)
     }
 
     @objc private func onCancel() {
