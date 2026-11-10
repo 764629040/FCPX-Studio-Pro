@@ -1,0 +1,21 @@
+TR-013 编译与二进制文案校验 2026-11-10 18:33:26
+
+[A] swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+[0/1] Planning build
+Building for production...
+[0/2] Write swift-version--415827A96FC6CDF.txt
+Build complete! (0.12s)
+BUILD_EXIT=0
+
+[B] 编译产物 UTF-8 字节级文案校验（strings 只认 ASCII，中文需按字节搜）
+  已生效，重启 FCPX 后可见: 1
+  该模板若正被某个工程使用: 1
+  确认禁用模板？: 1
+  模板文件本身不删除: 2
+  随时可在本 App 启用回来: 2
+  已禁用: 0
+  binary bytes: 3381096
+
+[C] 产物指纹
+  3381096 bytes  Nov 10 18:31:17 2026
+a1f2cfd790a2d19348892b9ca1447593c6f154f66cd8bc99f1f7ea1ca1e05017  /tmp/fcpx_wd/release/FCPXStudio

@@ -1315,11 +1315,29 @@ public final class AssetHubView: NSVisualEffectView,
     @objc private func onSelectAllClicked() {
         let allActive = plugins.allSatisfy { $0.isEnabled }
         let target = !allActive
+        // TR-013：批量「全部禁用」先做一次总确认（避免逐项弹 N 个框），取消则整套都不动。
+        // 逐项执行时传 skipConfirmation，确认只在入口做一次。
+        let disableCount = target ? 0 : plugins.filter { $0.isEnabled }.count
+        if !target && disableCount > 0 {
+            let alert = NSAlert()
+            alert.messageText = "确认批量禁用模板？"
+            alert.informativeText = AssetHubView.batchDisableConfirmMessage(count: disableCount)
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "确认禁用 \(disableCount) 套")
+            alert.addButton(withTitle: "取消")
+            guard runTR013Alert(alert) == .alertFirstButtonReturn else { return }
+        }
         for it in plugins {
             if it.isEnabled != target {
-                toggleTemplateItem(it)
+                toggleTemplateItem(it, skipConfirmation: true)
             }
         }
+        let action = target ? "启用" : "禁用"
+        let msg = "\(action) \(plugins.count) 套模板完成：\(AssetHubView.effectNotice)"
+        statusLabel?.stringValue = msg
+        updateStatusLine(overrideMessage: msg)
+        // runTR013Alert 内部已统一处理 harness 注入 / 静默模式，不会在无 UI 环境下阻塞。
+        presentToggleSuccess(message: msg)
     }
 
     @objc private func onRightFinderClicked() {
@@ -1685,7 +1703,65 @@ public final class AssetHubView: NSVisualEffectView,
         }
     }
 
-    public func toggleTemplateItem(_ item: TemplateItem) {
+    // MARK: - TR-013 禁用/启用交互的安全与提示（禁止任何自动退出/重启 FCPX）
+    //
+    // 文案唯一真源：单项确认、批量确认、成功提示、离屏渲染物证、自动化 harness
+    // 全部引用以下常量/函数，杜绝「代码改了但截图还是旧文案」。
+    // 硬约束：本文件及全项目不得出现任何自动退出/重启 FCPX 的代码；
+    //        文案只告知用户「重启 FCPX 后可见」，何时重启完全由用户决定。
+    public static let disableConfirmTitle = "确认禁用模板？"
+    public static let effectNotice = "已生效，重启 FCPX 后可见"
+
+    public static func disableConfirmMessage(forName name: String) -> String {
+        return """
+        该模板若正被某个工程使用，重启 FCPX 后该工程中的对应片段可能显示缺失；模板文件本身不删除，随时可在本 App 启用回来。
+
+        模板：\(name)
+        """
+    }
+
+    public static func batchDisableConfirmMessage(count: Int) -> String {
+        return """
+        即将禁用当前分类下 \(count) 套模板。该操作若涉及正被某个工程使用的模板，重启 FCPX 后该工程中的对应片段可能显示缺失；模板文件本身不删除，随时可在本 App 启用回来。
+        """
+    }
+
+    /// 成功提示：不使用「已禁用」这类容易让人误以为 FCPX 里立即生效的措辞。
+    public static func toggleSuccessMessage(name: String, enabled: Bool) -> String {
+        let action = enabled ? "启用" : "禁用"
+        return "模板「\(name)」\(action)完成：\(effectNotice)"
+    }
+
+    /// TR-013 测试注入：接管本轮新增弹窗的模态结果。nil = 真实 NSAlert。
+    /// 仅供自动化 harness 验证「取消什么都不做 / 确认才执行」并抓取真实文案；生产路径恒为 nil。
+    public var alertResponseHandler: ((NSAlert) -> NSApplication.ModalResponse)? = nil
+
+    private func runTR013Alert(_ alert: NSAlert) -> NSApplication.ModalResponse {
+        if let handler = alertResponseHandler { return handler(alert) }
+        if suppressAlertsForTesting { return .alertSecondButtonReturn }
+        return alert.runModal()
+    }
+
+    private func presentDisableConfirmation(for item: TemplateItem) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = AssetHubView.disableConfirmTitle
+        alert.informativeText = AssetHubView.disableConfirmMessage(forName: item.name)
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "确认禁用")
+        alert.addButton(withTitle: "取消")
+        return runTR013Alert(alert) == .alertFirstButtonReturn
+    }
+
+    private func presentToggleSuccess(message: String) {
+        let alert = NSAlert()
+        alert.messageText = "操作已完成"
+        alert.informativeText = message
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "好")
+        _ = runTR013Alert(alert)
+    }
+
+    public func toggleTemplateItem(_ item: TemplateItem, skipConfirmation: Bool = false) {
         if item.isMismatchedDisk {
             if !suppressAlertsForTesting {
                 let alert = NSAlert()
@@ -1710,6 +1786,12 @@ public final class AssetHubView: NSVisualEffectView,
             return
         }
 
+        // TR-013：仅「禁用」方向弹二次确认。取消直接返回，不触发任何文件操作，模板原地不动。
+        // 启用方向不弹（用户只要求禁用前确认）。
+        if item.isEnabled && !skipConfirmation {
+            guard presentDisableConfirmation(for: item) else { return }
+        }
+
         do {
             let updated = try TemplateInstaller.shared.toggleTemplate(item: item)
             // 即时更新内存数据模型，避免整页销毁重刷
@@ -1724,8 +1806,15 @@ public final class AssetHubView: NSVisualEffectView,
                 card.item = updated
             }
             pluginTableView?.reloadData()
-            let stateDesc = updated.isEnabled ? "已启用" : "已休眠"
-            statusLabel?.stringValue = "模板「\(updated.name)」\(stateDesc)"
+            // TR-013：成功提示写明「已生效，重启 FCPX 后可见」。
+            // 原 statusLabel 自初始化起 isHidden = true，仅写它用户根本看不到，故补一个真实可见的提示弹窗。
+            let msg = AssetHubView.toggleSuccessMessage(name: updated.name, enabled: updated.isEnabled)
+            statusLabel?.stringValue = msg
+            updateStatusLine(overrideMessage: msg)
+            // runTR013Alert 内部已统一处理 harness 注入 / 静默模式，不会在无 UI 环境下阻塞。
+            if !skipConfirmation {
+                presentToggleSuccess(message: msg)
+            }
         } catch {
             showAlert(title: "状态切换失败", message: error.localizedDescription)
         }
@@ -3779,6 +3868,8 @@ public final class AssetHubView: NSVisualEffectView,
         toggleTemplateItem(p)
     }
 
+    /// TR-013 注：这是无 UI 的编程接口（自动化 harness / 表格内部契约），不弹二次确认。
+    /// 所有用户可触达的 UI 路径一律走 toggleTemplateItem(_:)，由那里统一做禁用前确认与成功提示。
     @discardableResult
     public func toggleItem(at row: Int) throws -> TemplateItem {
         guard let p = item(at: row) else {

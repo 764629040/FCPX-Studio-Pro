@@ -546,6 +546,17 @@ public final class ResourceCardView: NSView {
         if let onToggle = onToggle {
             onToggle(item)
         } else {
+            // TR-013：无宿主注入 onToggle 的降级路径同样必须过禁用前二次确认，
+            // 不能变成绕过确认的旁路。生产中所有卡片均由 AssetHubView 注入 onToggle。
+            if item.isEnabled {
+                let alert = NSAlert()
+                alert.messageText = AssetHubView.disableConfirmTitle
+                alert.informativeText = AssetHubView.disableConfirmMessage(forName: item.name)
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "确认禁用")
+                alert.addButton(withTitle: "取消")
+                guard alert.runModal() == .alertFirstButtonReturn else { return }
+            }
             do {
                 let updated = try TemplateInstaller.shared.toggleTemplate(item: item)
                 self.item = updated
