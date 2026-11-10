@@ -1,0 +1,13 @@
+===== TR-011 [1/3] Swift release 编译 =====
+$ cd FCPXStudioNative && swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+[0/1] Planning build
+Building for production...
+[0/2] Write swift-version--415827A96FC6CDF.txt
+Build complete! (0.12s)
+BUILD_EXIT=0
+
+产物: /tmp/fcpx_wd/release/FCPXStudio
+-rwxr-xr-x@ 1 mrhuang  wheel  3371720 Nov 10 13:37 /tmp/fcpx_wd/release/FCPXStudio
+产物 strings 命中 TemplateIsolationStore = 1
+
+===== 截图点 1/3 结束 =====

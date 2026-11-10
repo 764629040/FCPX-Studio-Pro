@@ -1,0 +1,14 @@
+===== TR-011 [3/3] 重签 / 严格验签 / 体积对比 =====
+SIGN (已执行): codesign --force --deep --sign - "FCPX Studio Pro R2.app"  ->  SIGN_EXIT=0
+VERIFY: codesign --verify --deep --strict  ->  exit=0  output=[]
+CodeResources 存在: YES
+
+--- 包体体积前后对比 (du -sk, KB) ---
+前 149116 KB  /  后 149160 KB  /  差 +44 KB
+主二进制  前 3343872 B  /  后 3370288 B
+core/motion_builder.py  前 45019 B  /  后 54637 B
+python_bundle           140M 未改
+
+旧包 FCPX Studio Pro.app 二进制 sha (须未变 619d4e51...): 619d4e514664edb932d119cf
+
+===== 截图点 3/3 结束 =====

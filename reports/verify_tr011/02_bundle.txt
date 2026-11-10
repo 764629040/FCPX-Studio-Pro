@@ -1,0 +1,15 @@
+===== TR-011 [2/3] 新包内容验收 =====
+[A] 新包 strings 命中 TemplateIsolationStore = 1
+TemplateIsolationStore
+[B] 包内 grep -c _is_inside_motion_templates = 2
+[C] core/ + python_bundle 路径（含 cli_bridge.py）
+-rw-rw-rw-@ 1 mrhuang  staff  10992 Nov  8 20:45 FCPX Studio Pro R2.app/Contents/Resources/core/cli_bridge.py
+-rw-rw-rw-@ 1 mrhuang  staff  54637 Nov 10 12:14 FCPX Studio Pro R2.app/Contents/Resources/core/motion_builder.py
+-rwxr-xr-x@ 1 mrhuang  staff  51392 Nov  6 23:28 FCPX Studio Pro R2.app/Contents/Resources/python_bundle/bin/python3
+[D] 包内 python3 实读 App 配置路径
+  core/motion_builder.py exists= True readable= True
+  core/cli_bridge.py exists= True readable= True
+  python_bundle/bin/python3 exists= True readable= True
+  python 3.14.6 | psd_tools 1.24.0
+
+===== 截图点 2/3 结束 =====
