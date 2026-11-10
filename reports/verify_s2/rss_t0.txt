@@ -1,0 +1,34 @@
+S2 / t0 RSS 快照（只读观测，未触碰 FCPX 库）
+================================================
+采集时间      : 2026-11-10T18:51:59+08:00 (CST)
+目标进程      : FCPX Studio Pro R2.app, PID 96268
+用户指定命令  : ps -o rss= -p 96268
+实际采集路径  : libproc proc_pidinfo(PROC_PIDTASKINFO) 的 pti_resident_size / 1024
+原因（如实记录，不伪装）:
+  当前会话沙箱拒绝 ps / top 的 exec —— `/bin/ps` 与 `top` 均报
+  "operation not permitted"；python subprocess 调 /bin/ps 同样 PermissionError [Errno 1]。
+  改用 libproc 公开只读接口，与 `ps -o rss=` 同为 KB 口径（resident_size/1024），
+  不需要 task_for_pid，不 attach 进程，不启动/退出任何 App，不触碰任何 FCPX 库。
+
+resident_size : 83984384 bytes
+RSS (KB)      : 82016 KB          <-- t0 数值
+RSS (MB)      : 80.09375 MB  ≈ 80.09 MB   (82016 / 1024)
+
+旁路佐证（仅证明 FCPX 在跑，不动它的库）:
+  Final Cut Pro PID 97387 : 291651584 bytes = 284816 KB = 278.140625 MB
+
+现场状态      : FCPX (97387) 与 R2.app (96268) 均在跑；本轮未触碰真实模板库、
+                ~/Movies/Motion Templates.localized、FCPX 缓存 / Render Files。
+约束          : leaks / footprint 需 task_for_pid，沙箱已拒；
+                本轮只做 RSS 观测，不宣称做了泄漏检测。
+
+t1            : 未采集。t1 需会话后续或用户回来再采：
+                python3 rss_sample.py sample_once --label t1
+                python3 rss_sample.py report
+                采样间隔设计 600 s（10 min），目标跨度 7200 s（2 h），
+                共 13 个点（t0 + 12 个 10 分钟点，t1 = t0 + 120 min）。
+                本轮不等待 2 小时、不起 detach/nohup/后台进程。
+                若用户已主动退出 R2.app，t1 须在 R2 再次处于运行态的后续会话里采；
+                本代理不启动/重启任何 App。
+
+真机验证尚未执行，本轮未产出真机结论。

@@ -1,0 +1,1 @@
+{"label":"t0","ts":"2026-11-10T18:51:59+08:00","pid":96268,"rss_kb":82016,"rss_mb":80.09375,"resident_bytes":83984384,"source":"libproc proc_pidinfo(PROC_PIDTASKINFO) [ps exec denied by sandbox, same KB unit as ps -o rss=]","note":"只读 RSS 观测，未触碰 FCPX 库；非泄漏检测；t1 待采（需会话后续或用户回来再采）"}
