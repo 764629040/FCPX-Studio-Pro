@@ -1,0 +1,16 @@
+[TR-023-B] 导入 PSD: tests/data/wedding_with_decorations_23.psd
+[A-72] PSD loaded: tests/data/wedding_with_decorations_23.psd layers=9 valid=true includeHidden=false
+[TR-023-B] 解析完成，图层数 = 9
+[TR-023-B] 选中 #0 |无限湾酒店 kind=type font=FZZYSK--GBK1-0 size=33.33333 align=left color=#FFFFFF
+[TR-023-B] 控件状态: 字号=true 对齐=true 颜色=true 字体=true
+[TR-023-B] 诊断: alignment=left selectedSegment=0 标题hidden=false 标题frame=(-2.0, 94.0, 56.0, 18.0) 标题文字=文字样式
+[TR-023-B] 截图 tr023b_1_可编辑态新分组.png  466822 B  (window id 4608)
+[TR-023-B] 改前 fontSize=33.33333 textColor=#FFFFFF
+[TR-023-B] 改后 fontSize=160.0 textColor=#E5484D 面板字号框=160 面板HEX=#E5484D
+[TR-023-B] 截图 tr023b_3b_改字号与颜色后.png  487691 B  (window id 4608)
+[TR-023-B] 进入只读预览: /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/-2026年4月项目/婚礼模板/婚礼模板.moti
+[TR-022] moti_preview layers=11 parse_ms=30.5 models_ms=0.0 table_fill_ms=6.3 canvas=1920x1080 file=婚礼模板.moti
+[TR-019] moti read-only preview: /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized/-2026年4月项目/婚礼模板/婚礼模板.moti layers=11 canvas=1920x1080
+[TR-023-B] 只读态: motiReadOnlyMode=true 发布列存在=false 字号控件可见=true 可编辑=false
+[TR-023-B] 只读态面板: 字号=66.7 字体=FZZYSK--GBK1-0 HEX=#FFFFFF
+[TR-023-B] 截图 tr023b_2_只读态灰掉无发布列.png  435970 B  (window id 4608)

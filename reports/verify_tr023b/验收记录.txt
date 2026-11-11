@@ -1,0 +1,125 @@
+TR-023-B｜阶段 2 验收记录：字幕文字属性面板补全
+================================================================================
+生成时间        2026-11-11 14:5x
+本轮范围        字号 / 对齐 / 文字颜色 / 当前字体名 —— 只做这四项
+不做            字距、行距、行高、描边、阴影、渐变、单字编辑、批量全部文字、
+                复制字幕到时间线、导出透明 PNG、分辨率切换、模板库、音效库
+
+一、改了哪几个文件（逐条列，方便你只挑一条回退）
+--------------------------------------------------------------------------------
+1. FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift   主改动
+   · 新增「文字样式」分组（复用 mainStack 垂直分组 + TypeScale.bodyBold 标题，
+     没有新造样式体系），四行控件：字号（输入框 + Stepper）、对齐（左/中/右分段）、
+     颜色（NSColorWell + HEX 输入）、字体名（只读标签 + 替换入口）。
+   · 新增 refreshTextStyleControls() / applyTextStyleEnabledState()，
+     统一判据：editable = !motiReadOnlyMode && !layer.isLocked，且该属性必须真有值。
+   · updateControlStates(isLocked:) 末尾接同一个判据（只读态 / 锁定态一并禁用）。
+   · 只读预览态保留「文字样式（只读）」分组可见但全灰，其余属性区继续隐藏，
+     表格仍一次显示 11 行。
+   · 修一个既有 bug：layers 换了数据源后，旧 currentSelectedLayer 不在新列表里时
+     不重选，导致面板一直挂着上一份数据源的值（PSD → .moti 预览会串值）。
+2. FCPXStudioNative/Sources/FCPXStudio/Models/LayerModel.swift   加 1 个字段
+   · textColor: String（"#RRGGBB"，空串 = 没取到），init / copyModel / sync 三处同步。
+3. FCPXStudioNative/Sources/FCPXStudio/Models/MotiDocumentParser.swift   只读补充提取
+   · MotiLayerSnapshot 新增只读字段：fontName / fontSize / alignment / textColor /
+     colorSourcePath（全部带默认值，既有字段与既有解析行为一行未改）。
+   · 反查到颜色值常写在 <curve value="…"> 而不是参数 @value 上，两者都认。
+   · Motion 允许只写部分颜色通道（例如只写「红色」），缺失通道按同族参数自己声明的
+     @default 补齐（红/绿/蓝默认都是 1）；一个通道都没写才算「没有颜色」。
+4. FCPXStudioNative/Sources/FCPXStudio/Views/InfiniteCanvasView.swift   2 处
+   · drawLayer 的文字前景色：NSColor.labelColor → layer.textColor 解析，空则退回 labelColor。
+   · 新增 static textColor(fromHex:) 解析器。
+5. FCPXStudioNative/Sources/FCPXStudio/Sockets/PSDParserSocket.swift   1 行
+   · 读 item["text_color"] 并传进 LayerModel。
+6. core/psd_parser.py   只读补 3 处
+   · PSDLayerInfo 加 text_color，从 StyleSheetData.FillColor.Values 取 RGB 转 HEX，
+     取不到留空串。这一段本来就在读 StyleSheetData（字号/字距同处），没有新开解析路径。
+
+说明：为了让「改值即时反映画布」成立，第 4 条必须改（原来颜色是硬编码 labelColor）；
+      为了让颜色有真值，第 3、6 条必须补（否则面板永远是空态）。
+
+二、每个属性实际取到哪个路径
+--------------------------------------------------------------------------------
+字号    style/Size 或 style/大小
+        取值：参数 @value 优先，缺则子元素 <curve> @value；都没有才算「没取到」。
+对齐    paragraphStyle/Alignment 或 paragraphStyle/对齐
+        退路：对象/段落/段落/对齐
+        取值按 AppKit NSTextAlignment（0 左 / 1 右 / 2 居中；与 core/psd_parser.py
+        里 justification 1=right、2=center 的映射一致）。3 及以上（两端对齐等）
+        不在三档内 → 面板空态 + 禁用，不写入。
+字体名  style/Font 或 style/字体 下的 <font> 元素文本
+颜色    按优先级命中即停：
+          1. style/Face/Color/{Red,Green,Blue}           ← 主源
+          2. style/面/颜色/{红,绿,蓝}
+          3. style/表面/颜色/{红色,绿色,蓝色}
+          4. 渐变首色标：style/表面/渐变/RGB/RGB1/颜色/…、
+             style/Face/Gradient/RGB/RGB1/Color/…、顶层 渐变/RGB/RGB1/…
+        明确排除：对象/基础|基本/物质/颜色、Object/Basic/Substance/Color
+                  （全库实测只有 <foldFlags> 空壳，0 个带 RGB）
+                  图层/物质/颜色（29 个模板确实带 RGB，但按你的指令「禁止物质/颜色」不用）
+                  轮廓/Outline 颜色（描边色，不算主色）
+
+三、全库取到率（Swift 侧实际取到的值，分母 1241 个可解析模板）
+--------------------------------------------------------------------------------
+属性        命中模板    取到率     阶段 1 数字    差异
+字体名         910     73.3%        904        +6
+字号           891     71.8%        885        +6
+对齐           694     55.9%        681       +13
+文字颜色       686     55.3%        723       -37
+
+层级口径（分母 12324 层）：字体 3629 / 字号 3583 / 对齐 2736 / 颜色 2743。
+
+■ 差异为什么存在（不是把数字凑上去，是口径不同）
+  · 阶段 1 数「最内层文字对象（scenenode）」，本表数「MotiDocumentParser 展开的 layer」。
+    字体/字号/对齐各高 6~13，是因为少数 layer 的 style 不挂在文字对象上，阶段 1 不计、
+    UI 里却真能选中并编辑。
+  · 颜色低 37：其中 29 个模板只有 图层/物质/颜色 带 RGB（按你的指令明确禁用），
+    另有 8 个是边界（只有描边色或不在上述任何一条路径下）。
+  · 颜色分源（互斥，命中即停）：Face/Color 374 · 面/颜色 160 · 表面/颜色 92 ·
+    渐变首色标 60。Face/Color 的 374 与阶段 1 逐位一致。
+
+■ 颜色禁用态（你要求单列）
+  禁用模板 555 个（44.7% of 1241），禁用层 9581 个（77.7% of 12324）。
+  这些层色块显示灰底 + 「未取到」文案，控件禁用，toolTip 写明原因。
+
+四、真机截图（reports/verify_tr023b/shots/）
+--------------------------------------------------------------------------------
+1. tr023b_1_可编辑态新分组.png
+   PSD 导入 9 层 → 选中「|无限湾酒店」→ 右侧「文字样式」分组完整可见：
+   字号 33.3 + Stepper、对齐选中「左」、颜色白色 #FFFFFF、字体 FZZYSK--GBK1-0 + 替换。
+2. tr023b_2_只读态灰掉无发布列.png
+   .moti 只读预览（婚礼模板 11 层）：顶部「🔒 只读，不可编辑」；
+   图层表格只剩「图层名称」一列，「发布」整列（含表头）已移除；
+   底部「文字样式（只读）」可见但全灰：字号 66.7 / 对齐三档无选中 / #FFFFFF /
+   FZZYSK--GBK1-0，控件 isEnabled 全 false。
+3. tr023b_3b_改字号与颜色后.png（对照 tr023b_1）
+   字号 33.3 → 160、颜色 #FFFFFF → #E5484D：画布上该文字明显变大并变红，
+   面板字号框与 HEX 框同步。
+
+截图方式：/tmp/tr023b_ui 复用真实 MainWindowController 窗口、真实 PSD 解析链，
+用系统 screencapture -l <windowID> 抓真实窗口像素（不是 AppKit 离屏渲染）。
+运行日志见 ui_evidence_运行日志.txt。
+
+五、tr019r_harness 原样照抄
+--------------------------------------------------------------------------------
+  ✅ 检查器诊断默认折叠
+  ✅ 画布含只读占位绘制函数
+  ✅ 解析器含递归展开 collectLayers
+PASS = 61   FAIL = 0
+TR-019-R VERDICT: PASS
+
+全文见 tr019r_harness_重跑.txt（本轮改动后重跑，新增字段全部带默认值，未破坏任何既有断言）。
+
+六、装包体积（只报一个数）
+--------------------------------------------------------------------------------
+$ stat -f "%z B  %Sm" "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+3897120 B  Nov 11 14:55:00 2026
+
+装包前 pgrep 确认无 FCPXStudio / FCPX 进程；旧二进制备份在
+/tmp/fcpx_bin_backup_20261111_145456/FCPXStudio.old；
+codesign --verify --deep --strict 通过。
+
+七、纪律
+--------------------------------------------------------------------------------
+未 push、未重建 dmg、未启动 FCPX、未自动退出 App。
+本轮没有改任何 .moti 文件（只读解析）。
