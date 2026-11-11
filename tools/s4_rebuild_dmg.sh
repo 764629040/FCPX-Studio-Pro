@@ -200,6 +200,9 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "STAGE_DIR=\$(mktemp -d /tmp/s4_dmg_stage.XXXXXX)"
     echo "mkdir -p \"\$STAGE_DIR\""
     echo "cp -R \"$APP_ABS\" \"\$STAGE_DIR/\""
+    echo "# TR-026-A：dmg 根目录补 /Applications 软链 + 安装说明（v1.3 缺这两项）"
+    echo "ln -s /Applications \"\$STAGE_DIR/Applications\""
+    echo "printf '%s\\n' ... > \"\$STAGE_DIR/安装说明.txt\"   # 版本/安装方法/内容/二进制 sha16"
     echo "find \"\$STAGE_DIR\" \\( -name \"*.cstemp\" -o -name \"._*\" -o -name \".DS_Store\" \\) -delete"
     echo
     echo "# 2. 从 stage 生成 dmg，输出到 /tmp"
@@ -254,9 +257,30 @@ echo "=================================================="
 info "[1/4] 在 /tmp 建 stage 并复制当前 R2.app（不写外置卷）"
 STAGE_DIR="$(mktemp -d /tmp/s4_dmg_stage.XXXXXX)"
 cp -R "$APP_ABS" "$STAGE_DIR/"
+# TR-026-A：v1.3 只有 .app，缺 /Applications 软链与说明文件；在 stage 里补齐，
+# 仍用本脚本现有流程打包，不另写打包脚本。stage 全程在 /tmp，不落外置卷。
+ln -s /Applications "$STAGE_DIR/Applications"
+SRC_SHA16="$(shasum -a 256 "$APP_ABS/Contents/MacOS/FCPXStudio" | cut -c1-16)"
+{
+    printf '%s\n' \
+        "FCPX Studio Pro ${VERSION} 安装说明" \
+        "" \
+        "安装：把「${APP_BASE}」拖到本窗口的 Applications 快捷方式即可。" \
+        "内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 —— 含真反相（不吃目标色）、" \
+        "      「⇄ 对比色」按钮、X/Y 数值框左右拖动。" \
+        "" \
+        "校验（挂载后执行）：" \
+        "  shasum -a 256 \"${APP_BASE}/Contents/MacOS/FCPXStudio\"" \
+        "  sha256 前 16 位应为 ${SRC_SHA16}" \
+        "" \
+        "本镜像由 tools/s4_rebuild_dmg.sh --version ${VERSION} 生成；" \
+        "stage 与临时 dmg 均只在 /tmp，成品并列发布，未覆盖旧版本镜像。"
+} > "$STAGE_DIR/安装说明.txt"
 find "$STAGE_DIR" \( -name "*.cstemp" -o -name "._*" -o -name ".DS_Store" \) -delete
 [ -f "$STAGE_DIR/$APP_BASE/Contents/MacOS/FCPXStudio" ] \
     || die "stage 内缺可执行文件，已中止（$STAGE_DIR/${APP_BASE}）"
+[ -L "$STAGE_DIR/Applications" ] || die "stage 内缺 /Applications 软链"
+[ -f "$STAGE_DIR/安装说明.txt" ] || die "stage 内缺安装说明.txt"
 
 # 2. hdiutil create → /tmp
 info "[2/4] hdiutil create → $NEW_DMG"

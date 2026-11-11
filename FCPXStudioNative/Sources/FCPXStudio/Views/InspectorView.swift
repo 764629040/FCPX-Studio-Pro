@@ -956,7 +956,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         sender.contentTintColor = layer.isLocked ? NSColor.systemYellow : NSColor(calibratedWhite: 0.45, alpha: 1.0)
         sender.toolTip = layer.isLocked ? "点击解锁图层 (⌘L)" : "点击锁定图层 (⌘L)"
         if currentSelectedLayer?.id == layer.id {
-            updateControlStates(isLocked: layer.isLocked)
+            updateControlStates(isLocked: layer.isLocked || motiReadOnlyMode)
         }
         onLayerLockChanged?(layer)
         onLayerModified?(layer)
@@ -1371,22 +1371,31 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     }
 
     public func updateControlStates(isLocked: Bool) {        // TR-019-R：只读预览态下横幅只显示「只读，不可编辑」
+        // TR-026-B：三个调用点统一传 layer.isLocked || motiReadOnlyMode。本函数区分两种判据：
+        //   isLocked   = 含只读态的「几何不可编辑」，只作用于旋转/缩放/X/Y 六个控件，
+        //                让只读 .moti 预览下 DraggableNumberField.mouseDown 的
+        //                guard isEnabled 自然兜住拖动误触。
+        //   lockedOnly = 图层真锁定（currentSelectedLayer.isLocked）：发布复选框、
+        //                文字编辑、横排/竖排按钮继续按 TR-025 原样，零顺带改动。
+        // applyTextStyleEnabledState() / refreshBitmapRecolorControls() 内部各自读
+        // motiReadOnlyMode + layer.isLocked，不依赖本参数，同样不变。
+        let lockedOnly = currentSelectedLayer?.isLocked ?? false
         lockBannerLabel?.stringValue = motiReadOnlyMode ? "只读，不可编辑" : "🔒 图层已锁定 (⌘L 解锁)"
-        // TR-019-R：只读态统一用顶部常驻标签，原横幅不重复出现
+        // TR-019-R：只读态统一用顶部常驻标签，原横幅不重复出现（本行判据未改，行为不变）
         lockBannerBox?.isHidden = motiReadOnlyMode ? true : !isLocked
-        toggleOrientationButton?.isEnabled = !isLocked
-        textEditor?.isEditable = !isLocked
-        textEditor?.textColor = isLocked ? NSColor(calibratedWhite: 0.45, alpha: 1.0) : .white
+        toggleOrientationButton?.isEnabled = !lockedOnly
+        textEditor?.isEditable = !lockedOnly
+        textEditor?.textColor = lockedOnly ? NSColor(calibratedWhite: 0.45, alpha: 1.0) : .white
         rotationSlider?.isEnabled = !isLocked
         rotationField?.isEnabled = !isLocked
         scaleSlider?.isEnabled = !isLocked
         scaleField?.isEnabled = !isLocked
         posXField?.isEnabled = !isLocked
         posYField?.isEnabled = !isLocked
-        publishTextCheck?.isEnabled = !isLocked
-        publishPosCheck?.isEnabled = !isLocked
-        publishRotCheck?.isEnabled = !isLocked
-        publishScaleCheck?.isEnabled = !isLocked
+        publishTextCheck?.isEnabled = !lockedOnly
+        publishPosCheck?.isEnabled = !lockedOnly
+        publishRotCheck?.isEnabled = !lockedOnly
+        publishScaleCheck?.isEnabled = !lockedOnly
         // TR-023-B：文字样式四项跟锁定态 / 只读态走同一处判据
         applyTextStyleEnabledState()
         // TR-024：位图换色同判据
@@ -1397,7 +1406,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         guard let layer = currentSelectedLayer,
               let idx = layers.firstIndex(where: { $0.id == layer.id }) else { return }
         layer.isLocked.toggle()
-        updateControlStates(isLocked: layer.isLocked)
+        updateControlStates(isLocked: layer.isLocked || motiReadOnlyMode)
         layerTableView?.reloadData(forRowIndexes: IndexSet(integer: idx), columnIndexes: IndexSet(integersIn: 0..<layerTableView.tableColumns.count))
         onLayerLockChanged?(layer)
         onLayerModified?(layer)
@@ -1454,7 +1463,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         refreshTextStyleControls()
         // TR-024：位图换色组按图层类型显隐 + 刷真值
         refreshBitmapRecolorControls()
-        updateControlStates(isLocked: layer.isLocked)
+        updateControlStates(isLocked: layer.isLocked || motiReadOnlyMode)
     }
 
     public func updateFromCanvasMove(_ layer: LayerModel) {
