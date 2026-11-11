@@ -2,7 +2,7 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 ==========================================================================
 
 【口径】
-  生成时间      2026-11-11 12:19:28
+  生成时间      2026-11-11 12:54:09
   统计范围      /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized 递归（rglob "*.moti"）
   总数          1247 个 .moti
   XML 解析成功  1241
@@ -11,7 +11,7 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   分母          一律用 1241（可解析模板数），不用 1247
   含文字对象模板 904 / 1241 = 72.8%
   文字对象总数  2860 个 <scenenode>
-  耗时          19.3 s（单次墙钟，不取平均）
+  耗时          22.6 s（单次墙钟，不取平均）
 
   一行复现：
     cd "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro" && \
@@ -25,8 +25,8 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 大小         885     885    71.3%     885    71.3%     97.9%
 字距         182     182    14.7%     182    14.7%     20.1%
 对齐         693     693    55.8%     693    55.8%     76.7%
-颜色         822     631    50.8%     631    50.8%     69.8%
-渐变         232     232    18.7%     232    18.7%     25.7%
+颜色         822     723    58.3%     723    58.3%     80.0%
+渐变         265     265    21.4%     237    19.1%     26.2%
 阴影         904     904    72.8%     234    18.9%     25.9%
 描边         904     904    72.8%     162    13.1%     17.9%
 行距         242     242    19.5%     242    19.5%     26.8%
@@ -40,8 +40,8 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   · 「文字内率」 分母是 904 个含文字对象的模板，看「真做 UI 时能覆盖多少真字幕」。
   · 双语重复：同一模板里 Font 与 字体、Size 与 大小 会同时出现（Motion 同时写本地化名与原名），
     所以下面「路径写法」的出现次数会大于模板数，不是重复统计错误。
-  · 颜色有一批模板只有 物质/颜色 空壳节点（<foldFlags> 之外没有红绿蓝），
-    这类计入「节点存在」但不算「有值」，差额 191 个模板就是空壳。
+  · 颜色：节点存在 822 个模板，其中 723 个真的带红绿蓝数值，差额 99 个是
+    容器空壳（例如只有 面/颜色 节点、下面没有 RGB）。逐源明细见「颜色源优先级表」。
 
 【逐属性路径写法】同类但命名不同的写法分开列
 --------------------------------------------------------------------------
@@ -103,14 +103,32 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/对象/路径选项/沿路径对齐                               391
     scenenode/对象/对齐/垂直对齐                                      33
 
-■ 颜色 —— 文字填充颜色（物质/表面 下的 红绿蓝）
-  节点存在 822 / 1241   有值 631 / 1241   可控 631 / 1241
+■ 颜色 —— 文字填充颜色（物质/面/表面/Face 的 RGB，或填充渐变的两端色标）
+  节点存在 822 / 1241   有值 723 / 1241   可控 723 / 1241
   路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
     scenenode/Object/Basic/Substance/Color                          1065
     scenenode/style/Face/Color/Blue                                  910
     scenenode/style/Face/Color/Red                                   905
     scenenode/style/Face/Color/Green                                 873
     scenenode/对象/基本/物质/颜色                                    768
+    scenenode/style/表面/渐变/RGB/RGB1/位置                          524
+    scenenode/style/表面/渐变/RGB/RGB1/中间                          524
+    scenenode/style/表面/渐变/RGB/RGB1/插值                          524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/红色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/位置                          524
+    scenenode/style/表面/渐变/RGB/RGB2/中间                          524
+    scenenode/style/表面/渐变/RGB/RGB2/插值                          524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/红色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/绿色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/蓝色                     524
+    scenenode/style/表面/渐变/不透明度/不透明度1/位置                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/中间                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/插值                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/不透明度            524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/色彩空间                 515
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/色彩空间                 515
     scenenode/对象/基础/物质/颜色                                    395
     scenenode/基本/物质/颜色                                         322
     scenenode/style/面/颜色/红                                       281
@@ -119,32 +137,26 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/表面/颜色                                              224
     scenenode/style/表面/颜色/红色                                   208
     scenenode/Basic/Substance/Color                                  202
-    scenenode/style/表面/颜色/绿色                                   143
-    scenenode/style/表面/颜色/蓝色                                   143
-    scenenode/style/层/物质/颜色/红色                                 51
-    scenenode/style/层/物质/颜色/绿色                                 51
-    scenenode/style/层/物质/颜色/蓝色                                 51
-    scenenode/Basic/物质/颜色                                         48
-    scenenode/对象/Basic/物质/颜色                                    26
-    scenenode/基础/物质/颜色                                          25
-    scenenode/Chrome/物质/颜色                                        24
-    scenenode/对象/Chrome/物质/颜色                                   11
-    scenenode/style/表面/颜色/颜色空间                                 8
-    scenenode/面/颜色                                                  7
-    scenenode/style/图层/物质/颜色/红                                  5
-    scenenode/style/图层/物质/颜色/绿                                  5
-    scenenode/style/图层/物质/颜色/蓝                                  5
-    scenenode/style/面/颜色/色彩空间                                   1
+    scenenode/style/Face/Gradient/RGB/RGB1/Location                  200
+    scenenode/style/Face/Gradient/RGB/RGB1/Middle                    200
+    scenenode/style/Face/Gradient/RGB/RGB1/Interpolation             200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Red                 200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Green               200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Blue                200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Color Space         200
+    scenenode/style/Face/Gradient/RGB/RGB2/Location                  200
+    scenenode/style/Face/Gradient/RGB/RGB2/Middle                    200
+    …… 另有 93 种写法（完整清单见 .json）
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/Face/Color/Blue                                  910
     scenenode/style/Face/Color/Red                                   905
     scenenode/style/Face/Color/Green                                 873
-    scenenode/style/面/颜色/红                                       281
-    scenenode/style/面/颜色/蓝                                       279
-    scenenode/style/面/颜色/绿                                       278
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/红色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色                     524
 
-■ 渐变 —— 文字填充渐变（表面/Face 下的渐变组）
-  节点存在 232 / 1241   有值 232 / 1241   可控 232 / 1241
+■ 渐变 —— 文字填充渐变（面/表面/Face 下的渐变组，含顶层 渐变）
+  节点存在 265 / 1241   有值 265 / 1241   可控 237 / 1241
   路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
     scenenode/style/表面/渐变/RGB/RGB1/位置                          524
     scenenode/style/表面/渐变/RGB/RGB1/中间                          524
@@ -186,11 +198,12 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/面/渐变/RGB/RGB1/中间                             79
     scenenode/style/面/渐变/RGB/RGB1/插值                             79
     scenenode/style/面/渐变/RGB/RGB1/颜色/红                          79
-    …… 另有 48 种写法（完整清单见 .json）
+    …… 另有 66 种写法（完整清单见 .json）
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/表面/渐变/RGB/RGB2/颜色/红色                     524
     scenenode/style/Face/Gradient/RGB/RGB2/Color/Red                 200
     scenenode/style/面/渐变/RGB/RGB2/颜色/红                          79
+    scenenode/渐变/RGB/RGB2/颜色/红                                    7
 
 ■ 阴影 —— 投影 / 图层阴影
   节点存在 904 / 1241   有值 904 / 1241   可控 234 / 1241
@@ -314,13 +327,241 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   节点存在 0 / 1241   有值 0 / 1241   可控 0 / 1241
   路径写法：无（全库 0 个模板出现过）
 
-【颜色来源细分】做取色器前必须知道颜色到底存在哪个节点
---------------------------------------------------------------------------
-  物质/颜色（2D 基本物质里的 RGB）                 29 个模板
-  表面/面 颜色（2D 表面颜色 RGB）                 629 个模板
-  渐变首色标 RGB1（渐变模板只能取首色标当颜色）   232 个模板
-  注：三类会重叠（同一模板既有 物质/颜色 又有渐变的情况存在），不能相加当总数；
-      颜色总命中仍是上面总表的 631 个模板。
+【颜色源优先级表】分母 1241；取色器按这个顺序回退，多源会重叠，不能相加
+------------------------------------------------------------------------------------------------
+序  源（真实路径前缀）                        模板数    有值   有值率  一条样例模板
+------------------------------------------------------------------------------------------------
+1   对象/基础/物质/颜色                          226       0     0.0%  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti  ← 空壳，取不到 RGB
+2   面/颜色                                      165     163    13.1%  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+3   表面/颜色                                    106      92     7.4%  MS标题字幕S5/1/1.moti
+4   渐变（面/表面/Face/顶层 合并）               265     265    21.4%  -2026年4月项目/婚礼模板/婚礼模板.moti
+5   对象/基本/物质/颜色                          147       0     0.0%  -2026年4月项目/婚礼模板/婚礼模板.moti  ← 空壳，取不到 RGB
+6   Object/Basic|基础|基本/Substance|物质/Color|颜色     244       0     0.0%  -PVFX便签字幕/10 字母/10 字母.moti  ← 空壳，取不到 RGB
+7   基本|Basic/物质|Substance/颜色|Color         138       0     0.0%  MS标题字幕S5/1/1.moti  ← 空壳，取不到 RGB
+8   Face/Color                                   374     374    30.1%  -PVFX便签字幕/10 字母/10 字母.moti
+9   图层|层/物质|Substance/颜色|Color             29      29     2.3%  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
+------------------------------------------------------------------------------------------------
+并集  上面 9 个源全算（= 总表的「颜色」行）        822     723    58.3%
+
+  中英分开看（同一模板可能两边都有，交集 0）：
+    中文写法并集 404 个模板 / 英文写法并集 418 个模板 / 总并集 822
+    你报中文并集 405，我数 404，差 1；404 个模板的清单在 .json 的
+    color_zh_templates 里，直接 diff 就能定位是哪一份。
+
+  口径说明（TR-023-A1 修正）：
+    · 每个源数的是「该路径前缀在该模板的某个文字对象里出现过」的模板数，
+      容器节点本身也算（面/颜色 没有子节点时也是一条参数路径），
+      所以是 226 / 165 / 106，而不是只数红绿蓝叶子得到的 163 / 92。
+    · 「有值」= 该路径自身带 value，或其下红绿蓝叶子带 value。
+    · 226 个 对象/基础/物质/颜色 的「有值」是 0：这批节点全是
+      <parameter name="颜色"><foldFlags>15</foldFlags></parameter> 空壳，
+      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance、基本/物质 一样是 0。
+      结论：物质/颜色 这一族不能当取色源，能取到 RGB 的只有 面 / 表面 / Face / 渐变，
+      外加 29 个 图层|层/物质/颜色（图层级物质色，见第 9 行）。
+    · 上一版「物质/颜色 仅 29」的 29 其实是 图层/物质/颜色（29 个模板，真带 RGB），
+      不是 对象/基础/物质/颜色（226 个模板，0 个带 RGB）—— 两族被我混成了一个正则。
+    · 上一版 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；
+      631 = 629 + 2 个只靠 图层/物质/颜色 才有值的模板。
+      629 这个数本身不假，但把它标成「表面/面 颜色 629」是错标：
+      它是三个族的并集，其中「表面/颜色」只占 92/106。
+    · 描边色 轮廓|Outline / 颜色|Color 归「描边」，不计入主色。
+    · 投影 / 光晕 的渐变（投影/渐变、光晕/渐变）不是填充色，已排除在主色之外。
+
+  不计入主色的颜色路径（单独统计，确认没有漏算填充色）：
+    描边色（轮廓|Outline / 颜色|Color）→ 归「描边」             198 个模板
+    投影渐变（投影|Drop Shadow / 渐变|Gradient）→ 不是填充色     68 个模板
+    光晕渐变（光晕|Glow / 渐变|Gradient）→ 不是填充色            68 个模板
+    色彩管理（属性|Properties / 颜色|Color）→ 不是颜色值        208 个模板
+
+【颜色逐路径明细】每条给 模板数 + 出现次数 + 样例模板（全量，不汇总）
+------------------------------------------------------------------------------------------------
+  scenenode/Face/Color/Blue                                    359    910  -PVFX便签字幕/10 字母/10 字母.moti
+  scenenode/Face/Color/Red                                     354    905  -PVFX便签字幕/10 字母/10 字母.moti
+  scenenode/Face/Color/Green                                   344    873  -PVFX便签字幕/10 字母/10 字母.moti
+  scenenode/Object/Basic/Substance/Color                       244   1065  -PVFX便签字幕/10 字母/10 字母.moti
+  scenenode/对象/基础/物质/颜色                                226    395  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/面/颜色/红                                         157    281  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/面/颜色/绿                                         157    278  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/面/颜色/蓝                                         157    279  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/对象/基本/物质/颜色                                147    768  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/Face/Gradient/Opacity/Opacity1/Interpolation       100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/Opacity/Opacity1/Location            100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/Opacity/Opacity1/Middle              100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/Opacity/Opacity1/Opacity             100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Color/Blue                  100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Color/Color Space           100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Color/Green                 100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Color/Red                   100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Interpolation               100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Location                    100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB1/Middle                      100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Color/Blue                  100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Color/Color Space           100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Color/Green                 100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Color/Red                   100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Interpolation               100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Location                    100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/Face/Gradient/RGB/RGB2/Middle                      100    200  易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti
+  scenenode/表面/颜色/红色                                      89    208  MS标题字幕S5/1/1.moti
+  scenenode/表面/渐变/RGB/RGB1/中间                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB1/位置                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB1/插值                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/红色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/绿色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/蓝色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/中间                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/位置                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/插值                             70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/红色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/绿色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/蓝色                        70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/不透明度/不透明度1/不透明度               70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/不透明度/不透明度1/中间                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/不透明度/不透明度1/位置                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/不透明度/不透明度1/插值                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/基本/物质/颜色                                      64    322  MS标题字幕S5/1/1.moti
+  scenenode/面/渐变/RGB/RGB1/Location                           62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/中间                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/插值                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/颜色/红                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/颜色/绿                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/颜色/色彩空间                      62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB1/颜色/蓝                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/Location                           62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/中间                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/插值                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/颜色/红                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/颜色/绿                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/颜色/色彩空间                      62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB2/颜色/蓝                            62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/不透明度/不透明度 1/Location                62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/不透明度/不透明度 1/不透明度                62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/不透明度/不透明度 1/中间                    62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/不透明度/不透明度 1/插值                    62     79  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/色彩空间                    61    515  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/色彩空间                    61    515  -2026年4月项目/婚礼模板/婚礼模板.moti
+  scenenode/表面/颜色/绿色                                      57    143  MS标题字幕S5/1/1.moti
+  scenenode/表面/颜色/蓝色                                      57    143  MS标题字幕S5/1/1.moti
+  scenenode/Basic/Substance/Color                               50    202  _大鱼汉化极简标注/描述 01/描述 01.moti
+  scenenode/渐变/RGB/RGB1/Location                              44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/中间                                  44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/插值                                  44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/颜色/红                               44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/颜色/绿                               44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/颜色/色彩空间                         44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/RGB/RGB1/颜色/蓝                               44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/不透明度/不透明度 1/Location                   44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/不透明度/不透明度 1/不透明度                   44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/不透明度/不透明度 1/中间                       44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/渐变/不透明度/不透明度 1/插值                       44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+  scenenode/表面/颜色                                           38    224  MS标题字幕S5/1/1.moti
+  scenenode/层/物质/颜色/红色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
+  scenenode/层/物质/颜色/绿色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
+  scenenode/层/物质/颜色/蓝色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
+  scenenode/层/物质/颜色类型                                    26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
+  scenenode/Basic/物质/颜色                                     24     48  易安装 - 26个文字标题实用动画预设/易安装 03/文字标题 03.moti
+  scenenode/面/渐变/角度                                        20     26  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/Location                           11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/中间                               11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/插值                               11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/颜色/红                            11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/颜色/绿                            11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/颜色/色彩空间                      11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/面/渐变/RGB/RGB3/颜色/蓝                            11     11  03综艺动漫/6sense/条/条 04/条 04.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/颜色空间                     9      9  易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/颜色空间                     9      9  易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti
+  scenenode/表面/颜色/颜色空间                                   8      8  易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti
+  scenenode/渐变/RGB/RGB2/Location                               6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/中间                                   6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/插值                                   6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/颜色/红                                6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/颜色/绿                                6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/颜色/色彩空间                          6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/渐变/RGB/RGB2/颜色/蓝                                6      7  03综艺动漫/全知/点文本/点文本 01/点文本 01.moti
+  scenenode/面/渐变/RGB/RGB4/Location                            5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/中间                                5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/插值                                5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/颜色/红                             5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/颜色/绿                             5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/颜色/色彩空间                       5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/渐变/RGB/RGB4/颜色/蓝                             5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
+  scenenode/面/颜色                                              5      7  03综艺动漫/尹住宿/点文本/点文本 01/点文本 01.moti
+  scenenode/面/渐变/类型                                         4      7  03综艺动漫/不要T战斗/点文本/点 02/点 02.moti
+  scenenode/图层/物质/颜色/红                                    3      5  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
+  scenenode/图层/物质/颜色/绿                                    3      5  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
+  scenenode/图层/物质/颜色/蓝                                    3      5  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
+  scenenode/面/渐变/不透明度/不透明度 2/Location                 2      2  03综艺动漫/名称条 1/名称条 09/名称条 09.moti
+  scenenode/面/渐变/不透明度/不透明度 2/不透明度                 2      2  03综艺动漫/名称条 1/名称条 09/名称条 09.moti
+  scenenode/面/渐变/不透明度/不透明度 2/中间                     2      2  03综艺动漫/名称条 1/名称条 09/名称条 09.moti
+  scenenode/面/渐变/不透明度/不透明度 2/插值                     2      2  03综艺动漫/名称条 1/名称条 09/名称条 09.moti
+  scenenode/表面/渐变/RGB/RGB1/颜色/灰度系数                     1      1  MS标题字幕S5/2/2.moti
+  scenenode/表面/渐变/RGB/RGB2/颜色/灰度系数                     1      1  MS标题字幕S5/2/2.moti
+  scenenode/面/渐变/RGB/RGB1/颜色/Gamma                          1      1  03综艺动漫/自由文本() 2/文本/文本.moti
+  scenenode/面/渐变/RGB/RGB2/颜色/Gamma                          1      1  03综艺动漫/自由文本() 2/文本/文本.moti
+  scenenode/面/渐变/RGB/RGB3/颜色/Gamma                          1      1  03综艺动漫/自由文本() 2/文本/文本.moti
+  scenenode/面/渐变/RGB/RGB5/Location                            1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/中间                                1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/插值                                1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/颜色/红                             1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/颜色/绿                             1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/颜色/色彩空间                       1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/渐变/RGB/RGB5/颜色/蓝                             1      1  03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti
+  scenenode/面/颜色/色彩空间                                     1      1  03综艺动漫/名称条 1/名称条 01/名称条 01.moti
+
+  已排除、但确实存在的颜色路径（不进主色）：
+
+【阴影「可控」判定规则原文 + 命中清单】
+------------------------------------------------------------------------------------------------
+  规则（脚本里逐字对应 SHADOW_CTL）：
+    文字对象内存在参数路径
+      scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance)
+      scenenode/(投影|拖放阴影|Drop Shadow)/(不透明度|Opacity)
+      scenenode/(投影|拖放阴影|Drop Shadow)/(模糊|Blur|Blur/X|Blur/Y)
+    且该参数带数值（value 或 <curve>@value）。三者取并集。
+
+  各参数命中：距离 218 / 不透明度 50 / 模糊 167 → 并集 234
+  更严口径对照：只数中文 投影/距离 = 14；距离数值 ≠ 0 = 86
+  说明：并集从 218 抬到 234 的是「模糊」这一项；只要求「有距离」就是 218。
+        你数到 51，我这几个口径都不是 51（中文 投影/距离 14、距离≠0 86、距离 218）。
+        51 若是「距离≠0 且中文拼写」或别的组合，把命中清单一给，我照你的口径对齐。
+
+  并集口径命中的模板，前 20 个：
+    03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti
+    03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti
+    03综艺动漫/会议广场/条/条 03/条 03.moti
+    03综艺动漫/会议广场/点文本/点文本 06/点文本 06.moti
+    03综艺动漫/会议广场/点文本/点文本 07/点文本 07.moti
+    03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti
+    03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti
+    03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti
+    03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti
+    03综艺动漫/名称条/名称条01/名称条01.moti
+    03综艺动漫/名称条 1/名称条 05/名称条 05.moti
+    03综艺动漫/工具套件/标注/标注.moti
+    03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti
+    03综艺动漫/日期/点组/点天使/点天使.moti
+    03综艺动漫/某人标题/名称/某人名称 01/某人名称 01.moti
+    03综艺动漫/某人标题/某人心形/某人心形.moti
+    03综艺动漫/某人标题/某人扩音器/某人扩音器.moti
+    03综艺动漫/某人标题/某人简单清除/某人简单清除.moti
+    03综艺动漫/某人标题/点/某人点 02/某人点 02.moti
+    03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti
+
+【文字对象口径】一句话规则 + 三档数字 + 边界样本
+------------------------------------------------------------------------------------------------
+  规则：取所有「子树里存在叶子 <parameter name="文本"|"Text">」的 <scenenode>，
+        去掉「本身是另一个候选的祖先」的，只留最内层；文本值为空也算一个对象。
+
+  A 全部候选（含外层群组）      2904
+  B 最内层（本报告采用）        2860   （排掉 44 个外层）
+  C 最内层且文本非空            2852   （= QC 的 2852，差 8 个空文本对象）
+
+  边界样本 1（计入）：PSD婚礼字幕/10/10.moti scenenode id=3001702 —— 文本为空，
+    本报告算 1 个文字对象，QC 的 2852 不含它；8 个空文本对象全在这个差里。
+  边界样本 2（不计入）：03综艺动漫/6sense/条/条 03/条 03.moti scenenode id=3000586089 —— 它内部还有带文本叶子的 scenenode，
+    属于群组外壳，按「最内层」规则排掉，避免把群组算成一个字幕对象。
+  边界样本 3（计入，普通）：-2026年4月项目/婚礼模板/婚礼模板.moti 的 11 个 scenenode
+    （id 3000102…3001102），每层一个文本，全部计入。
 
 【结论】
 --------------------------------------------------------------------------
@@ -329,14 +570,14 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 A. 可以直接做 UI（可控率 ≥50%，多数模板都取得到值）：
   · 字体   可控  904/1241 =  72.8%（文字模板内 100.0%），主写法 scenenode/style/Font
   · 大小   可控  885/1241 =  71.3%（文字模板内  97.9%），主写法 scenenode/style/Size
+  · 颜色   可控  723/1241 =  58.3%（文字模板内  80.0%），主写法 scenenode/style/Face/Color/Red
   · 对齐   可控  693/1241 =  55.8%（文字模板内  76.7%），主写法 scenenode/paragraphStyle/Alignment
-  · 颜色   可控  631/1241 =  50.8%（文字模板内  69.8%），主写法 scenenode/style/Face/Color/Red
 
 B. 有数据来源但覆盖不全（5%~50%）：能做，但大多数模板要显示空态/禁用，
    不能给默认 0 值控件冒充可用：
   · 行距   可控  242/1241 =  19.5%（文字模板内  26.8%），主写法 scenenode/paragraphStyle/Line Spacing
+  · 渐变   可控  237/1241 =  19.1%（文字模板内  26.2%），主写法 scenenode/style/表面/渐变/RGB/RGB2/颜色/红色
   · 阴影   可控  234/1241 =  18.9%（文字模板内  25.9%），主写法 scenenode/style/Drop Shadow/Distance
-  · 渐变   可控  232/1241 =  18.7%（文字模板内  25.7%），主写法 scenenode/style/表面/渐变/RGB/RGB2/颜色/红色
   · 字距   可控  182/1241 =  14.7%（文字模板内  20.1%），主写法 scenenode/style/间距/字距
   · 描边   可控  162/1241 =  13.1%（文字模板内  17.9%），主写法 scenenode/style/轮廓/宽度
 

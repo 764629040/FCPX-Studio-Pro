@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generated_at": "2026-11-11 12:19:28",
+    "generated_at": "2026-11-11 12:54:09",
     "root": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized",
-    "elapsed_s": 19.3,
+    "elapsed_s": 22.6,
     "script": "tools/tr023/attr_coverage.py",
     "read_only": true
   },
@@ -25,12 +25,1742 @@
   "text_scope": {
     "templates_with_text_object": 904,
     "text_objects": 2860,
-    "definition": "含叶子 <parameter name='文本'|'Text'> 的 <scenenode>"
+    "definition": "最内层 <scenenode>，其子树里存在叶子 <parameter name='文本'|'Text'>；文本为空也算对象",
+    "candidates_all": 2904,
+    "innermost": 2860,
+    "nested_excluded": 44,
+    "nonempty_text_objects": 2852,
+    "empty_text_objects": 8,
+    "empty_text_samples": [
+      {
+        "file": "PSD婚礼字幕/10/10.moti",
+        "scenenode_id": "3001702"
+      },
+      {
+        "file": "PSD婚礼字幕/11/11.moti",
+        "scenenode_id": "3000702"
+      },
+      {
+        "file": "PSD婚礼字幕/12/12.moti",
+        "scenenode_id": "3002902"
+      },
+      {
+        "file": "PSD婚礼字幕/49/49.moti",
+        "scenenode_id": "3001002"
+      },
+      {
+        "file": "PSD婚礼字幕/8/8.moti",
+        "scenenode_id": "3000202"
+      },
+      {
+        "file": "PSD婚礼字幕/9/9.moti",
+        "scenenode_id": "3001502"
+      },
+      {
+        "file": "PSD婚礼字幕/批量体检/02.moti",
+        "scenenode_id": "3000402"
+      },
+      {
+        "file": "易安装 - 30个创意简约大气标题预设/American Royale/American Royale.moti",
+        "scenenode_id": "1825747293"
+      }
+    ],
+    "nested_excluded_samples": [
+      {
+        "file": "03综艺动漫/6sense/条/条 03/条 03.moti",
+        "outer_scenenode_id": "3000586089"
+      },
+      {
+        "file": "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "outer_scenenode_id": "16515"
+      },
+      {
+        "file": "03综艺动漫/6sense/条/条01/条01.moti",
+        "outer_scenenode_id": "3000567880"
+      },
+      {
+        "file": "03综艺动漫/6sense/条/条02/条02.moti",
+        "outer_scenenode_id": "3000567880"
+      },
+      {
+        "file": "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti",
+        "outer_scenenode_id": "1999655828"
+      }
+    ]
   },
-  "color_families": {
-    "物质/颜色（2D 基本物质里的 RGB）": 29,
-    "表面/面 颜色（2D 表面颜色 RGB）": 629,
-    "渐变首色标 RGB1（渐变模板只能取首色标当颜色）": 232
+  "color_sources": {
+    "对象/基础/物质/颜色": {
+      "templates": 226,
+      "templates_with_value": 0,
+      "hit_rate_pct": 18.2
+    },
+    "面/颜色": {
+      "templates": 165,
+      "templates_with_value": 163,
+      "hit_rate_pct": 13.3
+    },
+    "表面/颜色": {
+      "templates": 106,
+      "templates_with_value": 92,
+      "hit_rate_pct": 8.5
+    },
+    "渐变（面/表面/Face/顶层 合并）": {
+      "templates": 265,
+      "templates_with_value": 265,
+      "hit_rate_pct": 21.4
+    },
+    "对象/基本/物质/颜色": {
+      "templates": 147,
+      "templates_with_value": 0,
+      "hit_rate_pct": 11.8
+    },
+    "Object/Basic|基础|基本/Substance|物质/Color|颜色": {
+      "templates": 244,
+      "templates_with_value": 0,
+      "hit_rate_pct": 19.7
+    },
+    "基本|Basic/物质|Substance/颜色|Color": {
+      "templates": 138,
+      "templates_with_value": 0,
+      "hit_rate_pct": 11.1
+    },
+    "Face/Color": {
+      "templates": 374,
+      "templates_with_value": 374,
+      "hit_rate_pct": 30.1
+    },
+    "图层|层/物质|Substance/颜色|Color": {
+      "templates": 29,
+      "templates_with_value": 29,
+      "hit_rate_pct": 2.3
+    }
+  },
+  "color_sources_union": 822,
+  "color_union_with_value": 723,
+  "color_zh_union": 404,
+  "color_en_union": 418,
+  "color_zh_en_intersection": 0,
+  "color_zh_templates": [
+    "-2026年4月项目/婚礼模板/婚礼模板.moti",
+    "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti",
+    "03综艺动漫/6sense/条/条 03/条 03.moti",
+    "03综艺动漫/6sense/条/条 04/条 04.moti",
+    "03综艺动漫/6sense/条/条01/条01.moti",
+    "03综艺动漫/6sense/条/条02/条02.moti",
+    "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/6sense/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/6sense/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/6sense/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/6sense/点文本/点文本 06/点文本 06.moti",
+    "03综艺动漫/6sense/语音气泡/语音气泡 01/语音气泡 01.moti",
+    "03综艺动漫/6sense/语音气泡/语音气泡 02/语音气泡 02.moti",
+    "03综艺动漫/不要T战斗/名称条/名称条01/名称条01.moti",
+    "03综艺动漫/不要T战斗/名称条/名称条02/名称条02.moti",
+    "03综艺动漫/不要T战斗/子文本/子 01/子 01.moti",
+    "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+    "03综艺动漫/不要T战斗/点文本/点 02/点 02.moti",
+    "03综艺动漫/不要T战斗/点文本/点 04/点 04.moti",
+    "03综艺动漫/不要T战斗/点文本/点 05/点 05.moti",
+    "03综艺动漫/不要T战斗/点文本/点 06/点 06.moti",
+    "03综艺动漫/不要T战斗/点文本/点 08/点 08.moti",
+    "03综艺动漫/不要T战斗/点文本/点 09/点 09.moti",
+    "03综艺动漫/不要T战斗/点文本/点 10/点 10.moti",
+    "03综艺动漫/不要T战斗/点文本/点 11/点 11.moti",
+    "03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti",
+    "03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/会议广场/条/名称条/名称条.moti",
+    "03综艺动漫/会议广场/条/条 03/条 03.moti",
+    "03综艺动漫/会议广场/条/条02/条02.moti",
+    "03综艺动漫/会议广场/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/会议广场/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/会议广场/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/会议广场/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/会议广场/点文本/点文本 06/点文本 06.moti",
+    "03综艺动漫/会议广场/点文本/点文本 07/点文本 07.moti",
+    "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti",
+    "03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti",
+    "03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti",
+    "03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti",
+    "03综艺动漫/全知/名称条/名称条01/名称条01.moti",
+    "03综艺动漫/全知/名称条/名称条02/名称条02.moti",
+    "03综艺动漫/全知/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/全知/子文本/子文本 02/子文本 02.moti",
+    "03综艺动漫/全知/条/条01/条01.moti",
+    "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/全知/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/全知/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/全知/语音气泡/语音气泡 01/语音气泡 01.moti",
+    "03综艺动漫/全知/语音气泡/语音气泡 02/语音气泡 02.moti",
+    "03综艺动漫/全知/语音气泡/语音气泡 03/语音气泡 03.moti",
+    "03综艺动漫/卡通标题包/卡通标题 01/卡通标题 01.moti",
+    "03综艺动漫/卡通标题包/卡通标题 06/卡通标题 06.moti",
+    "03综艺动漫/卡通标题包/卡通标题 07/卡通标题 07.moti",
+    "03综艺动漫/卡通标题包/卡通标题 09/卡通标题 09.moti",
+    "03综艺动漫/卡通标题包/卡通标题 12/卡通标题 12.moti",
+    "03综艺动漫/名称条 1/名称条 01/名称条 01.moti",
+    "03综艺动漫/名称条 1/名称条 02/名称条 02.moti",
+    "03综艺动漫/名称条 1/名称条 03/名称条 03.moti",
+    "03综艺动漫/名称条 1/名称条 04/名称条 04.moti",
+    "03综艺动漫/名称条 1/名称条 05/名称条 05.moti",
+    "03综艺动漫/名称条 1/名称条 06/名称条 06.moti",
+    "03综艺动漫/名称条 1/名称条 07/名称条 07.moti",
+    "03综艺动漫/名称条 1/名称条 09/名称条 09.moti",
+    "03综艺动漫/名称条 1/名称条 10/名称条 10.moti",
+    "03综艺动漫/名称条 1/名称条 11/名称条 11.moti",
+    "03综艺动漫/名称条 1/名称条 13/名称条 13.moti",
+    "03综艺动漫/名称条 1/名称条(自定义) 01 02/名称条(自定义) 01 02.moti",
+    "03综艺动漫/名称条/名称条01/名称条01.moti",
+    "03综艺动漫/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/尹住宿/基础/基础 01/基础 01.moti",
+    "03综艺动漫/尹住宿/基础/基础 02/基础 02.moti",
+    "03综艺动漫/尹住宿/基础/基础 03/基础 03.moti",
+    "03综艺动漫/尹住宿/基础/基础 04/基础 04.moti",
+    "03综艺动漫/尹住宿/基础/基础 05/基础 05.moti",
+    "03综艺动漫/尹住宿/扩音器/扩音器/扩音器.moti",
+    "03综艺动漫/尹住宿/条/主条/主条.moti",
+    "03综艺动漫/尹住宿/条/名称条/名称条.moti",
+    "03综艺动漫/尹住宿/条/子条 01/子条 01.moti",
+    "03综艺动漫/尹住宿/条/子条 02/子条 02.moti",
+    "03综艺动漫/尹住宿/条/子条 03/子条 03.moti",
+    "03综艺动漫/尹住宿/条/条01/条01.moti",
+    "03综艺动漫/尹住宿/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/尹住宿/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/尹住宿/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/屏幕/屏幕 01/屏幕 01.moti",
+    "03综艺动漫/屏幕/屏幕 02/屏幕 02.moti",
+    "03综艺动漫/屏幕/屏幕 03/屏幕 03.moti",
+    "03综艺动漫/工具套件/标注/标注.moti",
+    "03综艺动漫/房子丈夫 2/名称条/名称条.moti",
+    "03综艺动漫/房子丈夫 2/名称条02/名称条02.moti",
+    "03综艺动漫/房子丈夫 2/情感 01/情感 01.moti",
+    "03综艺动漫/房子丈夫 2/情感 02/情感 02.moti",
+    "03综艺动漫/房子丈夫 2/情感 03/情感 03.moti",
+    "03综艺动漫/房子丈夫 2/扩音器/扩音器.moti",
+    "03综艺动漫/房子丈夫 2/文本条/文本条.moti",
+    "03综艺动漫/房子丈夫 2/点文本 02/点文本 02.moti",
+    "03综艺动漫/房子丈夫 2/点文本 03/点文本 03.moti",
+    "03综艺动漫/房子丈夫 2/点文本 04/点文本 04.moti",
+    "03综艺动漫/房子丈夫 2/点文本 05/点文本 05.moti",
+    "03综艺动漫/房子丈夫 2/点文本 06/点文本 06.moti",
+    "03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti",
+    "03综艺动漫/房子丈夫 2/点文本 08/点文本 08.moti",
+    "03综艺动漫/房子丈夫 2/点文本/点文本.moti",
+    "03综艺动漫/扩音器/扩音器01/扩音器01.moti",
+    "03综艺动漫/日期/条/女人与男人条/女人与男人条.moti",
+    "03综艺动漫/日期/条/子条 02/子条 02.moti",
+    "03综艺动漫/日期/条/日期条 01/日期条 01.moti",
+    "03综艺动漫/日期/点组/扩音器/扩音器.moti",
+    "03综艺动漫/日期/点组/挤压文本/挤压文本.moti",
+    "03综艺动漫/日期/点组/点天使/点天使.moti",
+    "03综艺动漫/日期/点组/点文本 02/点文本 02.moti",
+    "03综艺动漫/日期/点组/点文本/点文本.moti",
+    "03综艺动漫/日期/点组/点条/点条.moti",
+    "03综艺动漫/日期/语音气泡/语音气泡 01/语音气泡 01.moti",
+    "03综艺动漫/日期/语音气泡/语音气泡 02/语音气泡 02.moti",
+    "03综艺动漫/某人标题/名称/某人名称 01/某人名称 01.moti",
+    "03综艺动漫/某人标题/名称/某人名称 02/某人名称 02.moti",
+    "03综艺动漫/某人标题/某人4文本/某人4文本.moti",
+    "03综艺动漫/某人标题/某人发光/某人发光.moti",
+    "03综艺动漫/某人标题/某人心形/某人心形.moti",
+    "03综艺动漫/某人标题/某人打字/某人打字.moti",
+    "03综艺动漫/某人标题/某人扩音器/某人扩音器.moti",
+    "03综艺动漫/某人标题/某人简单清除/某人简单清除.moti",
+    "03综艺动漫/某人标题/某人线条/某人线条.moti",
+    "03综艺动漫/某人标题/点/某人点 01/某人点 01.moti",
+    "03综艺动漫/某人标题/点/某人点 02/某人点 02.moti",
+    "03综艺动漫/某人标题/点/某人点 03/某人点 03.moti",
+    "03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti",
+    "03综艺动漫/某人标题/语音气泡/某人语音气泡 02/某人语音气泡 02.moti",
+    "03综艺动漫/汽车 1/子文本/子文本 02/子文本 02.moti",
+    "03综艺动漫/汽车 1/子文本/子文本/子文本.moti",
+    "03综艺动漫/汽车 1/屏幕/屏幕 01/屏幕 01.moti",
+    "03综艺动漫/汽车 1/扩音器/扩音器01/扩音器01.moti",
+    "03综艺动漫/汽车 1/条/名称/名称.moti",
+    "03综艺动漫/汽车 1/条/条01/条01.moti",
+    "03综艺动漫/汽车 1/条/条02/条02.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 06/点文本 06.moti",
+    "03综艺动漫/汽车 1/点文本/点文本 07/点文本 07.moti",
+    "03综艺动漫/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/点文本/点文本 06/点文本 06.moti",
+    "03综艺动漫/点文本/点文本 08/点文本 08.moti",
+    "03综艺动漫/点文本/点文本 09/点文本 09.moti",
+    "03综艺动漫/点文本/点文本 10/点文本 10.moti",
+    "03综艺动漫/点文本/点文本 11/点文本 11.moti",
+    "03综艺动漫/美味家伙/美味家伙 01/美味家伙 01.moti",
+    "03综艺动漫/美味家伙/美味家伙 02/美味家伙 02.moti",
+    "03综艺动漫/美味家伙/美味家伙 03/美味家伙 03.moti",
+    "03综艺动漫/美味家伙/美味家伙 04/美味家伙 04.moti",
+    "03综艺动漫/美味家伙/美味家伙 05/美味家伙 05.moti",
+    "03综艺动漫/美味家伙/美味家伙 06/美味家伙 06.moti",
+    "03综艺动漫/美味家伙/美味家伙 07/美味家伙 07.moti",
+    "03综艺动漫/美味家伙/美味家伙 08/美味家伙 08.moti",
+    "03综艺动漫/美味家伙/美味家伙 09/美味家伙 09.moti",
+    "03综艺动漫/美味家伙/美味家伙 10/美味家伙 10.moti",
+    "03综艺动漫/美味家伙/美味家伙 11/美味家伙 11.moti",
+    "03综艺动漫/美味家伙/美味家伙 12/美味家伙 12.moti",
+    "03综艺动漫/美味家伙/美味家伙 13/美味家伙 13.moti",
+    "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti",
+    "03综艺动漫/美味家伙/美味家伙 16/美味家伙 16.moti",
+    "03综艺动漫/美味家伙/美味家伙 17/美味家伙 17.moti",
+    "03综艺动漫/美味家伙/美味家伙 18/美味家伙 18.moti",
+    "03综艺动漫/自由文本() 2/双文本/双文本.moti",
+    "03综艺动漫/自由文本() 2/名称文本/名称文本.moti",
+    "03综艺动漫/自由文本() 2/愤怒文本/愤怒文本.moti",
+    "03综艺动漫/自由文本() 2/文本/文本.moti",
+    "03综艺动漫/自由文本() 2/点文本/点文本.moti",
+    "03综艺动漫/自由文本() 2/点文本2/点文本2.moti",
+    "03综艺动漫/自由文本() 2/简单标题/简单标题.moti",
+    "03综艺动漫/自由文本() 2/红色简单/红色简单.moti",
+    "03综艺动漫/超人/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/超人/扩音器/扩音器01/扩音器01.moti",
+    "03综艺动漫/超人/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/超人/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/超人/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/超人/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/超人/点文本/点文本 07/点文本 07.moti",
+    "03综艺动漫/超人/点文本/点文本 08/点文本 08.moti",
+    "03综艺动漫/超人/点文本/点文本 09/点文本 09.moti",
+    "03综艺动漫/超人/语音气泡/语音气泡 01/语音气泡 01.moti",
+    "03综艺动漫/超人/语音气泡/语音气泡 02/语音气泡 02.moti",
+    "03综艺动漫/餐馆/名称条/名称条01/名称条01.moti",
+    "03综艺动漫/餐馆/名称条/名称条02/名称条02.moti",
+    "03综艺动漫/餐馆/子文本/子文本 01/子文本 01.moti",
+    "03综艺动漫/餐馆/子文本/子文本 02/子文本 02.moti",
+    "03综艺动漫/餐馆/子文本/子文本 03/子文本 03.moti",
+    "03综艺动漫/餐馆/扩音器/扩音器01/扩音器01.moti",
+    "03综艺动漫/餐馆/播放标题/双条/双条.moti",
+    "03综艺动漫/餐馆/播放标题/名称条/名称条.moti",
+    "03综艺动漫/餐馆/播放标题/圆形文本/圆形文本.moti",
+    "03综艺动漫/餐馆/播放标题/大文本/大文本.moti",
+    "03综艺动漫/餐馆/播放标题/大条/大条.moti",
+    "03综艺动漫/餐馆/播放标题/微笑文本/微笑文本.moti",
+    "03综艺动漫/餐馆/播放标题/心形/心形.moti",
+    "03综艺动漫/餐馆/播放标题/恐慌文本 02/恐慌文本 02.moti",
+    "03综艺动漫/餐馆/播放标题/恐慌文本/恐慌文本.moti",
+    "03综艺动漫/餐馆/播放标题/扩音器/扩音器.moti",
+    "03综艺动漫/餐馆/播放标题/旋转文本/旋转文本.moti",
+    "03综艺动漫/餐馆/播放标题/点/点.moti",
+    "03综艺动漫/餐馆/播放标题/简单条/简单条.moti",
+    "03综艺动漫/餐馆/播放标题/箭头文本/箭头文本.moti",
+    "03综艺动漫/餐馆/播放标题/纹理文本/纹理文本.moti",
+    "03综艺动漫/餐馆/播放标题/线条文本/线条文本.moti",
+    "03综艺动漫/餐馆/播放标题/花朵文本/花朵文本.moti",
+    "03综艺动漫/餐馆/播放标题/语音气泡/语音气泡.moti",
+    "03综艺动漫/餐馆/条/条01/条01.moti",
+    "03综艺动漫/餐馆/条/条02/条02.moti",
+    "03综艺动漫/餐馆/点文本/点文本 01/点文本 01.moti",
+    "03综艺动漫/餐馆/点文本/点文本 02/点文本 02.moti",
+    "03综艺动漫/餐馆/点文本/点文本 03/点文本 03.moti",
+    "03综艺动漫/餐馆/点文本/点文本 04/点文本 04.moti",
+    "03综艺动漫/餐馆/点文本/点文本 05/点文本 05.moti",
+    "03综艺动漫/餐馆/点文本/点文本 06/点文本 06.moti",
+    "03综艺动漫/餐馆/点文本/点文本 07/点文本 07.moti",
+    "03综艺动漫/餐馆/点文本/点文本 08/点文本 08.moti",
+    "03综艺动漫/餐馆/点文本/点文本 09/点文本 09.moti",
+    "MS标题字幕S5/1/1.moti",
+    "MS标题字幕S5/10/10.moti",
+    "MS标题字幕S5/11/11.moti",
+    "MS标题字幕S5/12/12.moti",
+    "MS标题字幕S5/13/13.moti",
+    "MS标题字幕S5/14/14.moti",
+    "MS标题字幕S5/15/15.moti",
+    "MS标题字幕S5/16/16.moti",
+    "MS标题字幕S5/17/17.moti",
+    "MS标题字幕S5/18/18.moti",
+    "MS标题字幕S5/19/19.moti",
+    "MS标题字幕S5/2/2.moti",
+    "MS标题字幕S5/20/20.moti",
+    "MS标题字幕S5/21/21.moti",
+    "MS标题字幕S5/22/22.moti",
+    "MS标题字幕S5/23/23.moti",
+    "MS标题字幕S5/24/24.moti",
+    "MS标题字幕S5/25/25.moti",
+    "MS标题字幕S5/26/26.moti",
+    "MS标题字幕S5/27/27.moti",
+    "MS标题字幕S5/28/28.moti",
+    "MS标题字幕S5/29/29.moti",
+    "MS标题字幕S5/3/3.moti",
+    "MS标题字幕S5/30/30.moti",
+    "MS标题字幕S5/31/31.moti",
+    "MS标题字幕S5/32/32.moti",
+    "MS标题字幕S5/33/33.moti",
+    "MS标题字幕S5/34/34.moti",
+    "MS标题字幕S5/35/35.moti",
+    "MS标题字幕S5/36/36.moti",
+    "MS标题字幕S5/37/37.moti",
+    "MS标题字幕S5/38/38.moti",
+    "MS标题字幕S5/39/39.moti",
+    "MS标题字幕S5/4/4.moti",
+    "MS标题字幕S5/40/40.moti",
+    "MS标题字幕S5/41/41.moti",
+    "MS标题字幕S5/42/42.moti",
+    "MS标题字幕S5/43/43.moti",
+    "MS标题字幕S5/44/44.moti",
+    "MS标题字幕S5/45/45.moti",
+    "MS标题字幕S5/46/46.moti",
+    "MS标题字幕S5/47/47.moti",
+    "MS标题字幕S5/48/48.moti",
+    "MS标题字幕S5/49/49.moti",
+    "MS标题字幕S5/5/5.moti",
+    "MS标题字幕S5/50/50.moti",
+    "MS标题字幕S5/6/6.moti",
+    "MS标题字幕S5/7/7.moti",
+    "MS标题字幕S5/8/8.moti",
+    "MS标题字幕S5/9/9.moti",
+    "PSD婚礼字幕/10/10.moti",
+    "PSD婚礼字幕/11/11.moti",
+    "PSD婚礼字幕/12/12.moti",
+    "PSD婚礼字幕/13/13.moti",
+    "PSD婚礼字幕/14/14.moti",
+    "PSD婚礼字幕/15/15.moti",
+    "PSD婚礼字幕/16/16.moti",
+    "PSD婚礼字幕/17/17.moti",
+    "PSD婚礼字幕/18/18.moti",
+    "PSD婚礼字幕/19/19.moti",
+    "PSD婚礼字幕/2/2.moti",
+    "PSD婚礼字幕/20/20.moti",
+    "PSD婚礼字幕/21/21.moti",
+    "PSD婚礼字幕/22/22.moti",
+    "PSD婚礼字幕/24/24.moti",
+    "PSD婚礼字幕/25/25.moti",
+    "PSD婚礼字幕/26/26.moti",
+    "PSD婚礼字幕/27/27.moti",
+    "PSD婚礼字幕/28/28.moti",
+    "PSD婚礼字幕/29/29.moti",
+    "PSD婚礼字幕/3/3.moti",
+    "PSD婚礼字幕/30/30.moti",
+    "PSD婚礼字幕/31/31.moti",
+    "PSD婚礼字幕/32/32.moti",
+    "PSD婚礼字幕/33/33.moti",
+    "PSD婚礼字幕/34/34.moti",
+    "PSD婚礼字幕/35/35.moti",
+    "PSD婚礼字幕/36/36.moti",
+    "PSD婚礼字幕/37/37.moti",
+    "PSD婚礼字幕/38/38.moti",
+    "PSD婚礼字幕/39/39.moti",
+    "PSD婚礼字幕/4/4.moti",
+    "PSD婚礼字幕/40/40.moti",
+    "PSD婚礼字幕/41/41.moti",
+    "PSD婚礼字幕/42/42.moti",
+    "PSD婚礼字幕/43/43.moti",
+    "PSD婚礼字幕/44/44.moti",
+    "PSD婚礼字幕/45/45.moti",
+    "PSD婚礼字幕/46/46.moti",
+    "PSD婚礼字幕/47/47.moti",
+    "PSD婚礼字幕/48/48.moti",
+    "PSD婚礼字幕/49/49.moti",
+    "PSD婚礼字幕/5/5.moti",
+    "PSD婚礼字幕/50/50.moti",
+    "PSD婚礼字幕/6/6.moti",
+    "PSD婚礼字幕/7/7.moti",
+    "PSD婚礼字幕/8/8.moti",
+    "PSD婚礼字幕/9/9.moti",
+    "PSD婚礼字幕/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti",
+    "PSD婚礼字幕/T23_含装饰_横版/T23_含装饰_横版.moti",
+    "PSD婚礼字幕/于归之喜/于归之喜.moti",
+    "PSD婚礼字幕/婚礼字幕模板/婚礼字幕模板.moti",
+    "PSD婚礼字幕/批量体检/01.moti",
+    "PSD婚礼字幕/批量体检/02.moti",
+    "PSD婚礼字幕/批量体检/03.moti",
+    "PSD婚礼字幕/批量体检/04.moti",
+    "PSD婚礼字幕/批量体检/05.moti",
+    "PSD婚礼字幕/批量体检/06.moti",
+    "PSD婚礼字幕/批量体检/07.moti",
+    "光视婚礼摄影工作室/光视婚礼摄影工作室/PRODUCED BY TIMERIVER/PRODUCED BY TIMERIVER.moti",
+    "光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室.moti",
+    "光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室承接项目/光视婚礼摄影工作室承接项目.moti",
+    "光视婚礼摄影工作室/光视婚礼摄影工作室/片尾字幕/片尾字幕.moti",
+    "易安装 - 18个动态图形遮罩效果预设/文字大小自定义动画/文字大小自定义动画.moti",
+    "易安装 - 18个动态图形遮罩效果预设/文字放大遮罩/文字放大遮罩.moti",
+    "易安装 - 18个动态图形遮罩效果预设/文字缩小遮罩/文字缩小遮罩.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 01/简洁字幕 01.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 02/简洁字幕 02.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 03/简洁字幕 03.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 04/简洁字幕 04.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 05/简洁字幕 05.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 06/简洁字幕 06.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 07/简洁字幕 07.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 08/简洁字幕 08.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 09/简洁字幕 09.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 10/简洁字幕 10.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 11/简洁字幕 11.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 12/简洁字幕 12.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 13/简洁字幕 13.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 14/简洁字幕 14.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 15/简洁字幕 15.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 16/简洁字幕 16.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 17/简洁字幕 17.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 18/简洁字幕 18.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 19/简洁字幕 19.moti",
+    "易安装 - 20个清新简约字幕动画预设 v2/易安装 20/简洁字幕 20.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 03/文字标题 03.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 04/文字标题 04.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 05/文字标题 05.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 06/文字标题 06.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 07/文字标题 07.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 08/文字标题 08.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 09/文字标题 09.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 10/文字标题 10.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 11/文字标题 11.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 12/文字标题 12.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 13/文字标题 13.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 14/文字标题 14.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 15/文字标题 15.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 16/文字标题 16.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 17/文字标题 17.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 18/文字标题 18.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 19/文字标题 19.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 20/文字标题 20.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 21/文字标题 21.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 22/文字标题 22.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 23/文字标题 23.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 24/文字标题 24.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 25/文字标题 25.moti",
+    "易安装 - 26个文字标题实用动画预设/易安装 26/文字标题 26.moti",
+    "易安装 - 30个创意简约大气标题预设/Designer/Designer.moti",
+    "易安装 - 30个创意简约大气标题预设/Floresence/Floresence.moti",
+    "易安装 - 30个创意简约大气标题预设/Freesia/Freesia.moti",
+    "易安装 - 30个创意简约大气标题预设/Greyscale Daisy/Greyscale Daisy.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 2/Glass Title 2.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 3/Glass Title 3.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 4/Glass Title 4.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 5/Glass Title 5.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 6/Glass Title 6.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 7/Glass Title 7.moti",
+    "易安装 - 8个磨砂玻璃标题效果预设/Glass Title [ custom ]/Glass Title [ custom ].moti",
+    "易安装 - 标题字幕高级真实阴影效果/易安装-高级阴影标题/易安装 - 高级阴影标题.moti",
+    "易安装 - 电影片尾上滚字幕效果预设/易安装 - 片尾上滚字幕模板/上滚字幕自动速度/片尾上滚字幕自动速度.moti",
+    "易安装 - 电影片尾上滚字幕效果预设/易安装 - 片尾上滚字幕模板/上滚字幕自定义/片尾上滚字幕自定义.moti"
+  ],
+  "color_excluded": {
+    "描边色（轮廓|Outline / 颜色|Color）→ 归「描边」": 198,
+    "投影渐变（投影|Drop Shadow / 渐变|Gradient）→ 不是填充色": 68,
+    "光晕渐变（光晕|Glow / 渐变|Gradient）→ 不是填充色": 68,
+    "色彩管理（属性|Properties / 颜色|Color）→ 不是颜色值": 208
+  },
+  "color_paths": [
+    {
+      "path": "scenenode/Face/Color/Blue",
+      "templates": 359,
+      "occurrences": 910,
+      "samples": [
+        "-PVFX便签字幕/10 字母/10 字母.moti",
+        "-PVFX便签字幕/5 字母/5 字母.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Color/Red",
+      "templates": 354,
+      "occurrences": 905,
+      "samples": [
+        "-PVFX便签字幕/10 字母/10 字母.moti",
+        "-PVFX便签字幕/5 字母/5 字母.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Color/Green",
+      "templates": 344,
+      "occurrences": 873,
+      "samples": [
+        "-PVFX便签字幕/10 字母/10 字母.moti",
+        "-PVFX便签字幕/5 字母/5 字母.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Object/Basic/Substance/Color",
+      "templates": 244,
+      "occurrences": 1065,
+      "samples": [
+        "-PVFX便签字幕/10 字母/10 字母.moti",
+        "-PVFX便签字幕/5 字母/5 字母.moti"
+      ]
+    },
+    {
+      "path": "scenenode/对象/基础/物质/颜色",
+      "templates": 226,
+      "occurrences": 395,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/颜色/红",
+      "templates": 157,
+      "occurrences": 281,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/颜色/绿",
+      "templates": 157,
+      "occurrences": 278,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/颜色/蓝",
+      "templates": 157,
+      "occurrences": 279,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/对象/基本/物质/颜色",
+      "templates": 147,
+      "occurrences": 768,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/1/1.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/Opacity/Opacity1/Interpolation",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/Opacity/Opacity1/Location",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/Opacity/Opacity1/Middle",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/Opacity/Opacity1/Opacity",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Color/Blue",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Color/Color Space",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Color/Green",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Color/Red",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Interpolation",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Location",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB1/Middle",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Color/Blue",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Color/Color Space",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Color/Green",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Color/Red",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Interpolation",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Location",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Face/Gradient/RGB/RGB2/Middle",
+      "templates": 100,
+      "occurrences": 200,
+      "samples": [
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 1/Aura 1.moti",
+        "易安装 - 100个绚丽渐变背景标题预设/Aura/Aura 2/Aura 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/颜色/红色",
+      "templates": 89,
+      "occurrences": 208,
+      "samples": [
+        "MS标题字幕S5/1/1.moti",
+        "MS标题字幕S5/10/10.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/中间",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/位置",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/插值",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/红色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/绿色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/蓝色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/中间",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/位置",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/插值",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/红色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/绿色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/蓝色",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/不透明度/不透明度1/不透明度",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/不透明度/不透明度1/中间",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/不透明度/不透明度1/位置",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/不透明度/不透明度1/插值",
+      "templates": 70,
+      "occurrences": 524,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/基本/物质/颜色",
+      "templates": 64,
+      "occurrences": 322,
+      "samples": [
+        "MS标题字幕S5/1/1.moti",
+        "MS标题字幕S5/10/10.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/Location",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/中间",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/插值",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/颜色/红",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/颜色/绿",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/颜色/色彩空间",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/颜色/蓝",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/Location",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/中间",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/插值",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/颜色/红",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/颜色/绿",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/颜色/色彩空间",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/颜色/蓝",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 1/Location",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 1/不透明度",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 1/中间",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 1/插值",
+      "templates": 62,
+      "occurrences": 79,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/6sense/点文本/点文本 01/点文本 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/色彩空间",
+      "templates": 61,
+      "occurrences": 515,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/色彩空间",
+      "templates": 61,
+      "occurrences": 515,
+      "samples": [
+        "-2026年4月项目/婚礼模板/婚礼模板.moti",
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/颜色/绿色",
+      "templates": 57,
+      "occurrences": 143,
+      "samples": [
+        "MS标题字幕S5/1/1.moti",
+        "MS标题字幕S5/10/10.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/颜色/蓝色",
+      "templates": 57,
+      "occurrences": 143,
+      "samples": [
+        "MS标题字幕S5/1/1.moti",
+        "MS标题字幕S5/10/10.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Basic/Substance/Color",
+      "templates": 50,
+      "occurrences": 202,
+      "samples": [
+        "_大鱼汉化极简标注/描述 01/描述 01.moti",
+        "_大鱼汉化极简标注/数字 01/数字 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/Location",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/中间",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/插值",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/颜色/红",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/颜色/绿",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/颜色/色彩空间",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB1/颜色/蓝",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/不透明度/不透明度 1/Location",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/不透明度/不透明度 1/不透明度",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/不透明度/不透明度 1/中间",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/不透明度/不透明度 1/插值",
+      "templates": 44,
+      "occurrences": 56,
+      "samples": [
+        "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
+        "03综艺动漫/6sense/子文本/子文本 02/子文本 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/颜色",
+      "templates": 38,
+      "occurrences": 224,
+      "samples": [
+        "MS标题字幕S5/1/1.moti",
+        "MS标题字幕S5/10/10.moti"
+      ]
+    },
+    {
+      "path": "scenenode/层/物质/颜色/红色",
+      "templates": 26,
+      "occurrences": 51,
+      "samples": [
+        "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
+        "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/层/物质/颜色/绿色",
+      "templates": 26,
+      "occurrences": 51,
+      "samples": [
+        "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
+        "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/层/物质/颜色/蓝色",
+      "templates": 26,
+      "occurrences": 51,
+      "samples": [
+        "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
+        "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/层/物质/颜色类型",
+      "templates": 26,
+      "occurrences": 51,
+      "samples": [
+        "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
+        "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti"
+      ]
+    },
+    {
+      "path": "scenenode/Basic/物质/颜色",
+      "templates": 24,
+      "occurrences": 48,
+      "samples": [
+        "易安装 - 26个文字标题实用动画预设/易安装 03/文字标题 03.moti",
+        "易安装 - 26个文字标题实用动画预设/易安装 04/文字标题 04.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/角度",
+      "templates": 20,
+      "occurrences": 26,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/Location",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/中间",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/插值",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/颜色/红",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/颜色/绿",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/颜色/色彩空间",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/颜色/蓝",
+      "templates": 11,
+      "occurrences": 11,
+      "samples": [
+        "03综艺动漫/6sense/条/条 04/条 04.moti",
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/颜色空间",
+      "templates": 9,
+      "occurrences": 9,
+      "samples": [
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti",
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 2/Glass Title 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/颜色空间",
+      "templates": 9,
+      "occurrences": 9,
+      "samples": [
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti",
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 2/Glass Title 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/颜色/颜色空间",
+      "templates": 8,
+      "occurrences": 8,
+      "samples": [
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/Glass Title 1.moti",
+        "易安装 - 8个磨砂玻璃标题效果预设/Glass Title 2/Glass Title 2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/Location",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/中间",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/插值",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/颜色/红",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/颜色/绿",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/颜色/色彩空间",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/渐变/RGB/RGB2/颜色/蓝",
+      "templates": 6,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/全知/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/日期/点组/挤压文本/挤压文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/Location",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/中间",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/插值",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/颜色/红",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/颜色/绿",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/颜色/色彩空间",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB4/颜色/蓝",
+      "templates": 5,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 01/点 01.moti",
+        "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/颜色",
+      "templates": 5,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/尹住宿/点文本/点文本 01/点文本 01.moti",
+        "03综艺动漫/自由文本() 2/双文本/双文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/类型",
+      "templates": 4,
+      "occurrences": 7,
+      "samples": [
+        "03综艺动漫/不要T战斗/点文本/点 02/点 02.moti",
+        "03综艺动漫/美味家伙/美味家伙 01/美味家伙 01.moti"
+      ]
+    },
+    {
+      "path": "scenenode/图层/物质/颜色/红",
+      "templates": 3,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti",
+        "03综艺动漫/工具套件/标注/标注.moti"
+      ]
+    },
+    {
+      "path": "scenenode/图层/物质/颜色/绿",
+      "templates": 3,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti",
+        "03综艺动漫/工具套件/标注/标注.moti"
+      ]
+    },
+    {
+      "path": "scenenode/图层/物质/颜色/蓝",
+      "templates": 3,
+      "occurrences": 5,
+      "samples": [
+        "03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti",
+        "03综艺动漫/工具套件/标注/标注.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 2/Location",
+      "templates": 2,
+      "occurrences": 2,
+      "samples": [
+        "03综艺动漫/名称条 1/名称条 09/名称条 09.moti",
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 2/不透明度",
+      "templates": 2,
+      "occurrences": 2,
+      "samples": [
+        "03综艺动漫/名称条 1/名称条 09/名称条 09.moti",
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 2/中间",
+      "templates": 2,
+      "occurrences": 2,
+      "samples": [
+        "03综艺动漫/名称条 1/名称条 09/名称条 09.moti",
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/不透明度/不透明度 2/插值",
+      "templates": 2,
+      "occurrences": 2,
+      "samples": [
+        "03综艺动漫/名称条 1/名称条 09/名称条 09.moti",
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB1/颜色/灰度系数",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/表面/渐变/RGB/RGB2/颜色/灰度系数",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "MS标题字幕S5/2/2.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB1/颜色/Gamma",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB2/颜色/Gamma",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB3/颜色/Gamma",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/自由文本() 2/文本/文本.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/Location",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/中间",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/插值",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/颜色/红",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/颜色/绿",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/颜色/色彩空间",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/渐变/RGB/RGB5/颜色/蓝",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/美味家伙/美味家伙 14/美味家伙 14.moti"
+      ]
+    },
+    {
+      "path": "scenenode/面/颜色/色彩空间",
+      "templates": 1,
+      "occurrences": 1,
+      "samples": [
+        "03综艺动漫/名称条 1/名称条 01/名称条 01.moti"
+      ]
+    }
+  ],
+  "shadow": {
+    "rule": "文字对象内存在 <parameter> 路径 scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)，且该参数带数值（value 或 <curve>@value）",
+    "by_param": {
+      "距离": 218,
+      "不透明度": 50,
+      "模糊": 167
+    },
+    "union": 234,
+    "cn_only_dist": 14,
+    "dist_nonzero": 86,
+    "samples": [
+      "03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti",
+      "03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti",
+      "03综艺动漫/会议广场/条/条 03/条 03.moti",
+      "03综艺动漫/会议广场/点文本/点文本 06/点文本 06.moti",
+      "03综艺动漫/会议广场/点文本/点文本 07/点文本 07.moti",
+      "03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti",
+      "03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti",
+      "03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti",
+      "03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti",
+      "03综艺动漫/名称条/名称条01/名称条01.moti",
+      "03综艺动漫/名称条 1/名称条 05/名称条 05.moti",
+      "03综艺动漫/工具套件/标注/标注.moti",
+      "03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti",
+      "03综艺动漫/日期/点组/点天使/点天使.moti",
+      "03综艺动漫/某人标题/名称/某人名称 01/某人名称 01.moti",
+      "03综艺动漫/某人标题/某人心形/某人心形.moti",
+      "03综艺动漫/某人标题/某人扩音器/某人扩音器.moti",
+      "03综艺动漫/某人标题/某人简单清除/某人简单清除.moti",
+      "03综艺动漫/某人标题/点/某人点 02/某人点 02.moti",
+      "03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti"
+    ]
   },
   "attributes": {
     "字体": {
@@ -202,14 +1932,14 @@
       ]
     },
     "颜色": {
-      "desc": "文字填充颜色（物质/表面 下的 红绿蓝）",
+      "desc": "文字填充颜色（物质/面/表面/Face 的 RGB，或填充渐变的两端色标）",
       "hit_templates_node": 822,
       "hit_rate_node_pct": 66.2,
-      "hit_templates_with_value": 631,
-      "hit_rate_value_pct": 50.8,
-      "hit_templates_controllable": 631,
-      "hit_rate_controllable_pct": 50.8,
-      "hit_rate_among_text_pct": 69.8,
+      "hit_templates_with_value": 723,
+      "hit_rate_value_pct": 58.3,
+      "hit_templates_controllable": 723,
+      "hit_rate_controllable_pct": 58.3,
+      "hit_rate_among_text_pct": 80.0,
       "spellings": [
         {
           "path": "scenenode/Object/Basic/Substance/Color",
@@ -230,6 +1960,78 @@
         {
           "path": "scenenode/对象/基本/物质/颜色",
           "occurrences": 768
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/蓝色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/不透明度",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 515
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 515
         },
         {
           "path": "scenenode/对象/基础/物质/颜色",
@@ -264,12 +2066,204 @@
           "occurrences": 202
         },
         {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Blue",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Color Space",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Blue",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Color Space",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Opacity",
+          "occurrences": 200
+        },
+        {
           "path": "scenenode/style/表面/颜色/绿色",
           "occurrences": 143
         },
         {
           "path": "scenenode/style/表面/颜色/蓝色",
           "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/不透明度",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/Location",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/中间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/插值",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/Location",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/中间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/插值",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/不透明度",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色类型",
+          "occurrences": 51
         },
         {
           "path": "scenenode/style/层/物质/颜色/红色",
@@ -288,24 +2282,84 @@
           "occurrences": 48
         },
         {
+          "path": "scenenode/style/面/渐变/角度",
+          "occurrences": 26
+        },
+        {
           "path": "scenenode/对象/Basic/物质/颜色",
           "occurrences": 26
         },
         {
-          "path": "scenenode/基础/物质/颜色",
-          "occurrences": 25
-        },
-        {
-          "path": "scenenode/Chrome/物质/颜色",
-          "occurrences": 24
-        },
-        {
-          "path": "scenenode/对象/Chrome/物质/颜色",
+          "path": "scenenode/style/面/渐变/RGB/RGB3/Location",
           "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/中间",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/插值",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/红",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/绿",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/蓝",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/色彩空间",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/颜色空间",
+          "occurrences": 9
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/颜色空间",
+          "occurrences": 9
         },
         {
           "path": "scenenode/style/表面/颜色/颜色空间",
           "occurrences": 8
+        },
+        {
+          "path": "scenenode/style/面/渐变/类型",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/Location",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/中间",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/插值",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 7
         },
         {
           "path": "scenenode/面/颜色",
@@ -324,7 +2378,99 @@
           "occurrences": 5
         },
         {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/Location",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/中间",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/插值",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/红",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/绿",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/蓝",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/色彩空间",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/Location",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/中间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/插值",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/不透明度",
+          "occurrences": 2
+        },
+        {
           "path": "scenenode/style/面/颜色/色彩空间",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/Location",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/中间",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/插值",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/红",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/绿",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/蓝",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/色彩空间",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/灰度系数",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/灰度系数",
           "occurrences": 1
         }
       ],
@@ -340,6 +2486,30 @@
         {
           "path": "scenenode/style/Face/Color/Green",
           "occurrences": 873
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/蓝色",
+          "occurrences": 524
         },
         {
           "path": "scenenode/style/面/颜色/红",
@@ -358,12 +2528,72 @@
           "occurrences": 208
         },
         {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Blue",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Blue",
+          "occurrences": 200
+        },
+        {
           "path": "scenenode/style/表面/颜色/绿色",
           "occurrences": 143
         },
         {
           "path": "scenenode/style/表面/颜色/蓝色",
           "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 56
         },
         {
           "path": "scenenode/style/层/物质/颜色/红色",
@@ -378,6 +2608,30 @@
           "occurrences": 51
         },
         {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/红",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/绿",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/蓝",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 7
+        },
+        {
           "path": "scenenode/style/图层/物质/颜色/红",
           "occurrences": 5
         },
@@ -388,18 +2642,42 @@
         {
           "path": "scenenode/style/图层/物质/颜色/蓝",
           "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/红",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/绿",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/蓝",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/红",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/绿",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/蓝",
+          "occurrences": 1
         }
       ]
     },
     "渐变": {
-      "desc": "文字填充渐变（表面/Face 下的渐变组）",
-      "hit_templates_node": 232,
-      "hit_rate_node_pct": 18.7,
-      "hit_templates_with_value": 232,
-      "hit_rate_value_pct": 18.7,
-      "hit_templates_controllable": 232,
-      "hit_rate_controllable_pct": 18.7,
-      "hit_rate_among_text_pct": 25.7,
+      "desc": "文字填充渐变（面/表面/Face 下的渐变组，含顶层 渐变）",
+      "hit_templates_node": 265,
+      "hit_rate_node_pct": 21.4,
+      "hit_templates_with_value": 265,
+      "hit_rate_value_pct": 21.4,
+      "hit_templates_controllable": 237,
+      "hit_rate_controllable_pct": 19.1,
+      "hit_rate_among_text_pct": 26.2,
       "spellings": [
         {
           "path": "scenenode/style/表面/渐变/RGB/RGB1/位置",
@@ -618,6 +2896,50 @@
           "occurrences": 79
         },
         {
+          "path": "scenenode/渐变/RGB/RGB1/Location",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/中间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/插值",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/Location",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/中间",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/插值",
+          "occurrences": 56
+        },
+        {
+          "path": "scenenode/渐变/不透明度/不透明度 1/不透明度",
+          "occurrences": 56
+        },
+        {
           "path": "scenenode/style/面/渐变/角度",
           "occurrences": 26
         },
@@ -659,6 +2981,34 @@
         },
         {
           "path": "scenenode/style/面/渐变/类型",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/Location",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/中间",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/插值",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/色彩空间",
           "occurrences": 7
         },
         {
@@ -766,6 +3116,10 @@
         {
           "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/红",
           "occurrences": 79
+        },
+        {
+          "path": "scenenode/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 7
         }
       ]
     },

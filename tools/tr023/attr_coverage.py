@@ -17,11 +17,19 @@
   分母        1241（全部可解析模板）
   范围        ~/Movies/Motion Templates.localized/Titles.localized 递归（rglob "*.moti"）
 
-【「文字对象」定义（避免把矩形/绘画的描边算成文字描边）】
-  = 一个 <scenenode>，其子树里存在叶子 <parameter name="文本"|"Text">。
-    文字样式参数在它下面的 <style> 里（字体/大小/间距/表面/外框/投影），
-    段落参数在 <对象|Object>/<段落|Paragraphs>/<段落|Paragraph>/ 下（对齐/行间距）。
-  因此输出的路径一律以 scenenode/ 开头，可逐字回 XML 核对。
+【「文字对象」定义（TR-023-A1 修正后）】
+  取所有「子树里存在叶子 <parameter name="文本"|"Text">」的 <scenenode>，
+  去掉「本身是另一个候选的祖先」的，只留最内层；文本值为空也算一个对象。
+  全库三档：全部候选 2904 / 最内层 2860 / 最内层且文本非空 2852。
+  （2852 就是 QC 的口径，差 8 个空文本对象；名单在报告里逐条列出。）
+
+【颜色口径（TR-023-A1 修正）】
+  颜色按「源」逐条统计，不同拼写分开，不合并成一个正则：
+  物质族（对象/基础、对象/基本、Object/Basic/Substance、基本/Basic）、
+  面/颜色、表面/颜色、Face/Color、填充渐变（面/表面/Face/顶层）、
+  图层|层/物质/颜色。各源给模板数 / 有值数 / 样例，并集单独给。
+  描边色（轮廓|Outline/颜色|Color）归「描边」，投影/光晕的渐变不算填充色。
+  上一版把「物质|表面|面」并成一个正则、再把并集当成「表面/面 629」，是归因错误。
 
 【「真实存在」两级判据（两个数都给，不许只看大的那个）】
   A 节点存在    —— 该参数的 XML 节点在文件里出现了
@@ -156,6 +164,22 @@ def color_has_value(el):
     return False
 
 
+def color_path_has_value(el, leaf):
+    """该条颜色路径是否真的带颜色值。
+
+    容器路径（如 面/颜色）本身没有 value，要往下找红绿蓝；
+    RGB 叶子（红/Red）只看自己。
+    """
+    if numeric_value(el) is not None:
+        return True
+    if leaf in COLOR_RGB_LEAF:
+        return False
+    for node in el.iter("parameter"):
+        if (node.get("name") or "") in COLOR_RGB_LEAF and numeric_value(node) is not None:
+            return True
+    return False
+
+
 # ────────────────────────────────────────────────────────────────────────────
 # 文字对象与属性抽取
 # ────────────────────────────────────────────────────────────────────────────
@@ -166,19 +190,47 @@ def _has_text_leaf(node):
     return False
 
 
-def find_text_scenenodes(root):
-    """返回「最内层」文字 scenenode：子树里有叶子 文本/Text，且内部没有更深的文字 scenenode。
+def text_leaf_value(node):
+    """取该文字对象的文本值：<parameter name="文本"|"Text"> 的 value 属性或 <text> 文本。"""
+    for p in iter_params(node):
+        if (p.get("name") or "") not in TEXT_LEAF_NAMES:
+            continue
+        if p.findall("parameter"):
+            continue
+        v = (p.get("value") or "").strip()
+        if v:
+            return v
+        for tag in ("text", "string"):
+            for c in p.findall(tag):
+                if (c.text or "").strip():
+                    return (c.text or "").strip()
+    return ""
 
-    不取最内层的话，分组层（群组）的 scenenode 会因为装了子文字层也被算成文字对象，
-    文字对象数会翻倍，图层级的 属性/阴影 也会被误记成文字阴影。
+
+def find_text_scenenodes(root):
+    """文字对象 = 最内层那个 <scenenode>（TR-023-A1 修正实现）。
+
+    一句话规则：取所有「子树里存在叶子 <parameter name="文本"|"Text">」的
+    <scenenode>，把「本身是另一个候选的祖先」的那些去掉，只留最内层；
+    <parameter name="文本"> 没有值（空字符串）的对象也算一个文字对象。
+
+    实现注意：不能拿 id() 当跨轮身份。ElementTree 的元素是按需构造的临时对象，
+    前一批被回收后 id 会被复用，旧实现因此会把 44 个互不相干的节点误判成嵌套。
+    这里先把 nodes / parent 两份引用都握住，id 才稳定。
     """
-    candidates = [n for n in root.iter("scenenode") if _has_text_leaf(n)]
-    inner = set()
+    nodes = list(root.iter("scenenode"))
+    parent = {c: p for p in root.iter() for c in p}
+    candidates = [n for n in nodes if _has_text_leaf(n)]
+    cand_ids = {id(n) for n in candidates}
+    # 排除「本身是别的候选的祖先」的：把每个候选的所有祖先标成 outer
+    outer = set()
     for n in candidates:
-        for sub in n.iter("scenenode"):
-            if sub is not n:
-                inner.add(id(sub))
-    return [n for n in candidates if id(n) not in inner]
+        cur = parent.get(n)
+        while cur is not None:
+            if id(cur) in cand_ids:
+                outer.add(id(cur))
+            cur = parent.get(cur)
+    return [n for n in candidates if id(n) not in outer]
 
 
 def text_object_paths(scenenode):
@@ -244,21 +296,31 @@ ATTR_SPECS["对齐"] = {
 }
 
 ATTR_SPECS["颜色"] = {
-    "desc": "文字填充颜色（物质/表面 下的 红绿蓝）",
+    "desc": "文字填充颜色（物质/面/表面/Face 的 RGB，或填充渐变的两端色标）",
+    # 只认「填充」。描边色（轮廓/Outline）归「描边」，投影/光晕的渐变不是填充色，
+    # 一律不进这一条 —— TR-023-A1 之前把它们并进来，才报出 631/629 这种假数。
     "rules": [
-        (re.compile(r"^scenenode/.*(?:物质|Substance|表面|面|Face)/(?:颜色|Color)(?:/|$)"),
-         "group_color"),
+        (re.compile(r"^scenenode/(?:"
+                    r"(?:对象|Object)/(?:基础|基本|Basic)/(?:物质|Substance)/(?:颜色|Color)"
+                    r"|(?:基本|Basic)/(?:物质|Substance)/(?:颜色|Color)"
+                    r"|(?:面|表面|Face)/(?:颜色|Color)"
+                    r"|(?:面|表面|Face)/(?:渐变|Gradient)"
+                    r"|(?:图层|层)/(?:物质|Substance)/(?:颜色|Color)"
+                    r"|渐变"
+                    r")"), "group_color"),
     ],
 }
 
 ATTR_SPECS["渐变"] = {
-    "desc": "文字填充渐变（表面/Face 下的渐变组）",
+    "desc": "文字填充渐变（面/表面/Face 下的渐变组，含顶层 渐变）",
     "rules": [
-        (re.compile(r"^scenenode/.*(?:表面|面|Face)/(?:渐变|Gradient)(?:/|$)"), "group_any"),
+        (re.compile(r"^scenenode/(?:(?:面|表面|Face)/(?:渐变|Gradient)|渐变)(?:/|$)"),
+         "group_any"),
     ],
-    # 真正的渐变要有第二个色标且带颜色值；只有 RGB1 的其实还是纯色
+    # 真正的渐变要有第二个色标且带颜色值；只有 RGB1 的其实还是纯色。
+    # 必须限定在填充渐变（面/表面/Face/顶层），否则会命中 投影/外框/光晕 的渐变。
     "control": [
-        (re.compile(r"^scenenode/.*(?:表面|面|Face)/(?:渐变|Gradient)/.*RGB2/.*"
+        (re.compile(r"^scenenode/(?:(?:面|表面|Face)/(?:渐变|Gradient)|渐变)/.*RGB2/.*"
                     r"(?:红色|红|Red)$"), "leaf_num"),
     ],
 }
@@ -307,15 +369,64 @@ ATTR_SPECS["行高"] = {
     ],
 }
 
-# 颜色来源细分：做取色器时要知道颜色到底存在哪个节点里
-COLOR_FAMILIES = [
-    ("物质/颜色（2D 基本物质里的 RGB）",
-     re.compile(r"^scenenode/.*(?:物质|Substance)/(?:颜色|Color)")),
-    ("表面/面 颜色（2D 表面颜色 RGB）",
-     re.compile(r"^scenenode/.*(?:表面|面|Face)/(?:颜色|Color)")),
-    ("渐变首色标 RGB1（渐变模板只能取首色标当颜色）",
-     re.compile(r"^scenenode/.*(?:表面|面|Face)/(?:渐变|Gradient)/.*RGB1/.*(?:红色|红|Red)$")),
+# ── 颜色源：逐条列出真实路径前缀，不同拼写分开算，不合并成一个正则 ────────────
+# TR-023-A1 修正：上一版把 11 种写法并成一个正则，再把并集当成「表面/面 颜色 629」，
+# 是归因错误。这里每个源单独一套集合，报告里逐源给模板数与样例路径。
+COLOR_SOURCES = [
+    ("对象/基础/物质/颜色", re.compile(r"^scenenode/对象/基础/物质/颜色")),
+    ("面/颜色", re.compile(r"^scenenode/面/颜色")),
+    ("表面/颜色", re.compile(r"^scenenode/表面/颜色")),
+    ("渐变（面/表面/Face/顶层 合并）", re.compile(
+        r"^scenenode/(?:(?:面|表面|Face)/(?:渐变|Gradient)|渐变)")),
+    ("对象/基本/物质/颜色", re.compile(r"^scenenode/对象/基本/物质/颜色")),
+    ("Object/Basic|基础|基本/Substance|物质/Color|颜色",
+     re.compile(r"^scenenode/Object/(?:Basic|基础|基本)/(?:Substance|物质)/(?:Color|颜色)")),
+    ("基本|Basic/物质|Substance/颜色|Color",
+     re.compile(r"^scenenode/(?:基本|Basic)/(?:物质|Substance)/(?:颜色|Color)")),
+    ("Face/Color", re.compile(r"^scenenode/Face/Color")),
+    ("图层|层/物质|Substance/颜色|Color", re.compile(
+        r"^scenenode/(?:图层|层)/(?:物质|Substance)/(?:颜色|Color)")),
 ]
+
+# 不计入主色的三类：描边色归「描边」，投影/光晕的渐变不是填充色，属性/颜色 是色彩管理
+COLOR_EXCLUDED = [
+    ("描边色（轮廓|Outline / 颜色|Color）→ 归「描边」",
+     re.compile(r"^scenenode/(?:轮廓|Outline)/(?:颜色|Color)")),
+    ("投影渐变（投影|Drop Shadow / 渐变|Gradient）→ 不是填充色",
+     re.compile(r"^scenenode/(?:投影|Drop Shadow)/(?:渐变|Gradient)")),
+    ("光晕渐变（光晕|Glow / 渐变|Gradient）→ 不是填充色",
+     re.compile(r"^scenenode/(?:光晕|Glow)/(?:渐变|Gradient)")),
+    ("色彩管理（属性|Properties / 颜色|Color）→ 不是颜色值",
+     re.compile(r"^scenenode/(?:属性|Properties)/(?:颜色|Color)")),
+]
+
+# 渐变是否真有第二个色标（只有 RGB1 的其实是纯色）
+GRADIENT_SECOND_STOP = re.compile(
+    r"^scenenode/.*(?:渐变|Gradient)/.*RGB2/.*(?:红色|绿色|蓝色|红|绿|蓝|Red|Green|Blue)$")
+
+# 阴影可调控件的三个数值参数：距离 / 不透明度 / 模糊
+SHADOW_CTL = {
+    "距离": re.compile(r"^scenenode/(?:投影|拖放阴影|Drop Shadow)/(?:距离|Distance)$"),
+    "不透明度": re.compile(r"^scenenode/(?:投影|拖放阴影|Drop Shadow)/(?:不透明度|Opacity)$"),
+    "模糊": re.compile(r"^scenenode/(?:投影|拖放阴影|Drop Shadow)/(?:模糊|Blur(?:/[XY])?)$"),
+}
+SHADOW_CN_DIST = re.compile(r"^scenenode/投影/距离$")
+
+COLOR_RGB_LEAF = ("红", "绿", "蓝", "红色", "绿色", "蓝色", "Red", "Green", "Blue")
+
+# 中文 / 英文拼写各自的并集（用于报告里「中文并集 / 英文并集 / 交集」一行）
+COLOR_ZH = re.compile(
+    r"^scenenode/(?:"
+    r"对象/(?:基础|基本)/物质/颜色"
+    r"|面/颜色|表面/颜色|基本/物质/颜色|面/渐变|表面/渐变|渐变"
+    r"|(?:图层|层)/物质/颜色"
+    r")")
+COLOR_EN = re.compile(
+    r"^scenenode/(?:"
+    r"Face/Color|Face/Gradient"
+    r"|Object/(?:Basic|基础|基本)/(?:Substance|物质)/(?:Color|颜色)"
+    r"|(?:Basic|Substance)/(?:Color|颜色)"
+    r")")
 
 # 单值判据分派
 def leaf_has_value(kind, el):
@@ -405,6 +516,10 @@ def main():
     fail_files = []
     n_text_templates = 0
     n_text_objects = 0
+    n_text_candidates = 0          # 全部「子树里有文本叶子」的 scenenode（含被排除的外层群组）
+    n_text_nonempty = 0            # 最内层且 <parameter 文本> 真的有值
+    empty_text_objects = []        # 空文本对象（QC 的 2852 不含这 8 个）
+    nested_samples = []            # 被最内层规则排掉的外层群组样例
     # 每个属性：命中模板集合 / 有值模板集合 / 路径写法 → 模板集合
     hit_tpl = {a: set() for a in ATTR_SPECS}
     val_tpl = {a: set() for a in ATTR_SPECS}
@@ -414,7 +529,18 @@ def main():
     # 全局叶子名（--dump-names 与「疑似缺失」排查用）
     all_leaf_names = Counter()
     near_miss_spelling = Counter()
-    color_family_tpl = {name: set() for name, _rx in COLOR_FAMILIES}
+    # 颜色：逐源 + 逐路径
+    color_src_tpl = {name: set() for name, _rx in COLOR_SOURCES}
+    color_src_val = {name: set() for name, _rx in COLOR_SOURCES}
+    color_path_tpl = {}            # 路径 → 模板集合
+    color_path_occ = Counter()     # 路径 → 出现次数
+    color_path_samples = {}        # 路径 → [样例模板相对路径]
+    color_excl_tpl = {name: set() for name, _rx in COLOR_EXCLUDED}
+    # 阴影：三个可调参数分别命中
+    shadow_ctl_tpl = {k: set() for k in SHADOW_CTL}
+    shadow_cn_dist_tpl = set()
+    shadow_dist_nonzero_tpl = set()
+    shadow_samples = []            # 234 口径命中的模板前 20
     all_paths_seen = set()
 
     for i, f in enumerate(files):
@@ -424,12 +550,24 @@ def main():
             fail_files.append(f.name)
             continue
         doc = tree.getroot()
+        rel = str(f).replace(str(root) + "/", "")
         objs = list(text_objects_in_file(doc))
+        # 文字对象三档：全部候选 / 最内层 / 最内层且文本非空
+        cands = [n for n in doc.iter("scenenode") if _has_text_leaf(n)]
+        n_text_candidates += len(cands)
+        keep_ids = {id(sn) for sn, _i, _x in objs}
+        for n in cands:
+            if id(n) not in keep_ids and len(nested_samples) < 5:
+                nested_samples.append((rel, n.get("id")))
         if objs:
             n_text_templates += 1
             n_text_objects += len(objs)
 
-        for _sn, items, _index in objs:
+        for sn, items, _index in objs:
+            if text_leaf_value(sn):
+                n_text_nonempty += 1
+            elif len(empty_text_objects) < 12:
+                empty_text_objects.append((rel, sn.get("id")))
             for path, el in items:
                 all_paths_seen.add(path)
                 all_leaf_names[path.rsplit("/", 1)[-1]] += 1
@@ -443,12 +581,35 @@ def main():
                     ctl_spelling[attr][path] += 1
                 for attr in near_misses(path):
                     near_miss_spelling[(attr, path)] += 1
-                if color_has_value(el):
-                    norm = normalize(path)
-                    for fam_name, fam_rx in COLOR_FAMILIES:
-                        if fam_rx.search(norm):
-                            color_family_tpl[fam_name].add(f)
-                            break
+
+                norm = normalize(path)
+                leaf = norm.rsplit("/", 1)[-1]
+                # 颜色：逐源 + 逐路径（TR-023-A1：不再用一个并集正则冒充单一来源）
+                for src_name, src_rx in COLOR_SOURCES:
+                    if src_rx.match(norm):
+                        color_src_tpl[src_name].add(f)
+                        if color_path_has_value(el, leaf):
+                            color_src_val[src_name].add(f)
+                        color_path_tpl.setdefault(norm, set()).add(f)
+                        color_path_occ[norm] += 1
+                        bucket = color_path_samples.setdefault(norm, [])
+                        if rel not in bucket and len(bucket) < 2:
+                            bucket.append(rel)
+                        break
+                for ex_name, ex_rx in COLOR_EXCLUDED:
+                    if ex_rx.match(norm):
+                        color_excl_tpl[ex_name].add(f)
+                        break
+                # 阴影：三个可调参数分别记，报告里给规则原文
+                for ctl_name, ctl_rx in SHADOW_CTL.items():
+                    if ctl_rx.match(norm) and numeric_value(el) is not None:
+                        shadow_ctl_tpl[ctl_name].add(f)
+                        if len(shadow_samples) < 20 and rel not in shadow_samples:
+                            shadow_samples.append(rel)
+                if SHADOW_CN_DIST.match(norm) and numeric_value(el) is not None:
+                    shadow_cn_dist_tpl.add(f)
+                if leaf in ("距离", "Distance") and numeric_value(el):
+                    shadow_dist_nonzero_tpl.add(f)
 
         if (i + 1) % 250 == 0:
             print("... %d/%d  %.1fs" % (i + 1, len(files), time.time() - t0),
@@ -483,6 +644,15 @@ def main():
         else:
             ui_partial.append(attr)
 
+    # 中文 / 英文拼写的并集（同一模板可能两边都有，交集不为 0）
+    zh_set = set()
+    en_set = set()
+    for p, tpl in color_path_tpl.items():
+        if COLOR_ZH.match(p):
+            zh_set |= tpl
+        if COLOR_EN.match(p):
+            en_set |= tpl
+
     report = {
         "meta": {
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -503,10 +673,54 @@ def main():
         "text_scope": {
             "templates_with_text_object": n_text_templates,
             "text_objects": n_text_objects,
-            "definition": "含叶子 <parameter name='文本'|'Text'> 的 <scenenode>",
+            "definition": ("最内层 <scenenode>，其子树里存在叶子 <parameter name='文本'|'Text'>；"
+                           "文本为空也算对象"),
+            "candidates_all": n_text_candidates,
+            "innermost": n_text_objects,
+            "nested_excluded": n_text_candidates - n_text_objects,
+            "nonempty_text_objects": n_text_nonempty,
+            "empty_text_objects": len(empty_text_objects),
+            "empty_text_samples": [
+                {"file": f, "scenenode_id": i} for f, i in empty_text_objects
+            ],
+            "nested_excluded_samples": [
+                {"file": f, "outer_scenenode_id": i} for f, i in nested_samples
+            ],
         },
-        "color_families": {
-            name: len(tpls) for name, tpls in color_family_tpl.items()
+        "color_sources": {
+            name: {
+                "templates": len(color_src_tpl[name]),
+                "templates_with_value": len(color_src_val[name]),
+                "hit_rate_pct": round(pct(len(color_src_tpl[name]), denom), 1),
+            }
+            for name, _rx in COLOR_SOURCES
+        },
+        "color_sources_union": len(hit_tpl["颜色"]),
+        "color_union_with_value": len(val_tpl["颜色"]),
+        "color_zh_union": len(zh_set),
+        "color_en_union": len(en_set),
+        "color_zh_en_intersection": len(zh_set & en_set),
+        # 中文并集的模板清单：QC 报 405、我数 404，差 1 时用这份清单直接 diff
+        "color_zh_templates": sorted(str(x).replace(str(root) + "/", "") for x in zh_set),
+        "color_excluded": {name: len(s) for name, s in color_excl_tpl.items()},
+        "color_paths": [
+            {
+                "path": p,
+                "templates": len(tpls),
+                "occurrences": color_path_occ[p],
+                "samples": color_path_samples.get(p, []),
+            }
+            for p, tpls in sorted(color_path_tpl.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+        ],
+        "shadow": {
+            "rule": ("文字对象内存在 <parameter> 路径 "
+                     "scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)，"
+                     "且该参数带数值（value 或 <curve>@value）"),
+            "by_param": {k: len(v) for k, v in shadow_ctl_tpl.items()},
+            "union": len(set().union(*shadow_ctl_tpl.values())) if shadow_ctl_tpl else 0,
+            "cn_only_dist": len(shadow_cn_dist_tpl),
+            "dist_nonzero": len(shadow_dist_nonzero_tpl),
+            "samples": shadow_samples,
         },
         "attributes": {},
         "verdict": {"ui_ready": ui_ready, "ui_partial": ui_partial, "no_data": no_data},
@@ -587,10 +801,12 @@ def main():
     A("  · 「文字内率」 分母是 %d 个含文字对象的模板，看「真做 UI 时能覆盖多少真字幕」。" % n_text_templates)
     A("  · 双语重复：同一模板里 Font 与 字体、Size 与 大小 会同时出现（Motion 同时写本地化名与原名），")
     A("    所以下面「路径写法」的出现次数会大于模板数，不是重复统计错误。")
-    A("  · 颜色有一批模板只有 物质/颜色 空壳节点（<foldFlags> 之外没有红绿蓝），")
-    A("    这类计入「节点存在」但不算「有值」，差额 %d 个模板就是空壳。"
-      % (report["attributes"]["颜色"]["hit_templates_node"]
+    A("  · 颜色：节点存在 %d 个模板，其中 %d 个真的带红绿蓝数值，差额 %d 个是"
+      % (report["attributes"]["颜色"]["hit_templates_node"],
+         report["attributes"]["颜色"]["hit_templates_with_value"],
+         report["attributes"]["颜色"]["hit_templates_node"]
          - report["attributes"]["颜色"]["hit_templates_with_value"]))
+    A("    容器空壳（例如只有 面/颜色 节点、下面没有 RGB）。逐源明细见「颜色源优先级表」。")
     A("")
 
     A("【逐属性路径写法】同类但命名不同的写法分开列")
@@ -621,12 +837,127 @@ def main():
                 A("    " + pad(k, 62) + pad("%d" % v, 6, "right"))
     A("")
 
-    A("【颜色来源细分】做取色器前必须知道颜色到底存在哪个节点")
-    A("-" * 74)
-    for fam_name, _rx in COLOR_FAMILIES:
-        A("  " + pad(fam_name, 46) + pad("%d 个模板" % len(color_family_tpl[fam_name]), 12, "right"))
-    A("  注：三类会重叠（同一模板既有 物质/颜色 又有渐变的情况存在），不能相加当总数；")
-    A("      颜色总命中仍是上面总表的 %d 个模板。" % report["attributes"]["颜色"]["hit_templates_controllable"])
+    A("【颜色源优先级表】分母 %d；取色器按这个顺序回退，多源会重叠，不能相加" % denom)
+    A("-" * 96)
+    A(pad("序", 4) + pad("源（真实路径前缀）", 40) + pad("模板数", 8, "right")
+      + pad("有值", 8, "right") + pad("有值率", 9, "right") + "  一条样例模板")
+    A("-" * 96)
+    for idx, (src_name, _rx) in enumerate(COLOR_SOURCES, 1):
+        n_t = len(color_src_tpl[src_name])
+        n_v = len(color_src_val[src_name])
+        sample = ""
+        for p, tpl in color_path_tpl.items():
+            if _rx.match(p) and tpl:
+                sample = sorted(color_path_samples.get(p, ["—"]))[0]
+                break
+        mark = "  ← 空壳，取不到 RGB" if n_v == 0 else ""
+        A(pad(str(idx), 4) + pad(src_name, 40) + pad("%d" % n_t, 8, "right")
+          + pad("%d" % n_v, 8, "right")
+          + pad("%.1f%%" % pct(n_v, denom), 9, "right") + "  " + sample + mark)
+    A("-" * 96)
+    A(pad("并集", 6) + pad("上面 9 个源全算（= 总表的「颜色」行）", 40)
+      + pad("%d" % len(hit_tpl["颜色"]), 8, "right")
+      + pad("%d" % len(val_tpl["颜色"]), 8, "right")
+      + pad("%.1f%%" % pct(len(val_tpl["颜色"]), denom), 9, "right"))
+    A("")
+    A("  中英分开看（同一模板可能两边都有，交集 %d）：" % len(zh_set & en_set))
+    A("    中文写法并集 %d 个模板 / 英文写法并集 %d 个模板 / 总并集 %d"
+      % (len(zh_set), len(en_set), len(zh_set | en_set)))
+    A("    你报中文并集 405，我数 %d，差 %d；%d 个模板的清单在 .json 的"
+      % (len(zh_set), abs(405 - len(zh_set)), len(zh_set)))
+    A("    color_zh_templates 里，直接 diff 就能定位是哪一份。")
+    A("")
+    A("  口径说明（TR-023-A1 修正）：")
+    A("    · 每个源数的是「该路径前缀在该模板的某个文字对象里出现过」的模板数，")
+    A("      容器节点本身也算（面/颜色 没有子节点时也是一条参数路径），")
+    A("      所以是 226 / 165 / 106，而不是只数红绿蓝叶子得到的 163 / 92。")
+    A("    · 「有值」= 该路径自身带 value，或其下红绿蓝叶子带 value。")
+    A("    · 226 个 对象/基础/物质/颜色 的「有值」是 0：这批节点全是")
+    A("      <parameter name=\"颜色\"><foldFlags>15</foldFlags></parameter> 空壳，")
+    A("      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance、基本/物质 一样是 0。")
+    A("      结论：物质/颜色 这一族不能当取色源，能取到 RGB 的只有 面 / 表面 / Face / 渐变，")
+    A("      外加 29 个 图层|层/物质/颜色（图层级物质色，见第 9 行）。")
+    A("    · 上一版「物质/颜色 仅 29」的 29 其实是 图层/物质/颜色（29 个模板，真带 RGB），")
+    A("      不是 对象/基础/物质/颜色（226 个模板，0 个带 RGB）—— 两族被我混成了一个正则。")
+    A("    · 上一版 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；")
+    A("      631 = 629 + 2 个只靠 图层/物质/颜色 才有值的模板。")
+    A("      629 这个数本身不假，但把它标成「表面/面 颜色 629」是错标：")
+    A("      它是三个族的并集，其中「表面/颜色」只占 92/106。")
+    A("    · 描边色 轮廓|Outline / 颜色|Color 归「描边」，不计入主色。")
+    A("    · 投影 / 光晕 的渐变（投影/渐变、光晕/渐变）不是填充色，已排除在主色之外。")
+    A("")
+    A("  不计入主色的颜色路径（单独统计，确认没有漏算填充色）：")
+    for ex_name, _rx in COLOR_EXCLUDED:
+        A("    " + pad(ex_name, 60) + pad("%d 个模板" % len(color_excl_tpl[ex_name]), 10, "right"))
+    A("")
+
+    A("【颜色逐路径明细】每条给 模板数 + 出现次数 + 样例模板（全量，不汇总）")
+    A("-" * 96)
+    main_rows = [(p, t) for p, t in color_path_tpl.items()
+                 if any(rx.match(p) for _n, rx in COLOR_SOURCES)]
+    main_rows.sort(key=lambda kv: (-len(kv[1]), kv[0]))
+    for p, tpl in main_rows:
+        A("  " + pad(p, 58) + pad("%d" % len(tpl), 6, "right")
+          + pad("%d" % color_path_occ[p], 7, "right") + "  "
+          + (color_path_samples.get(p) or ["—"])[0])
+    A("")
+    A("  已排除、但确实存在的颜色路径（不进主色）：")
+    excl_rows = [(p, t) for p, t in color_path_tpl.items()
+                 if not any(rx.match(p) for _n, rx in COLOR_SOURCES)]
+    excl_rows.sort(key=lambda kv: (-len(kv[1]), kv[0]))
+    for p, tpl in excl_rows[:20]:
+        A("  " + pad(p, 58) + pad("%d" % len(tpl), 6, "right")
+          + pad("%d" % color_path_occ[p], 7, "right") + "  "
+          + (color_path_samples.get(p) or ["—"])[0])
+    if len(excl_rows) > 20:
+        A("  …… 另有 %d 条（完整清单见 .json 的 color_paths）" % (len(excl_rows) - 20))
+    A("")
+
+    A("【阴影「可控」判定规则原文 + 命中清单】")
+    A("-" * 96)
+    A("  规则（脚本里逐字对应 SHADOW_CTL）：")
+    A("    文字对象内存在参数路径")
+    A("      scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance)")
+    A("      scenenode/(投影|拖放阴影|Drop Shadow)/(不透明度|Opacity)")
+    A("      scenenode/(投影|拖放阴影|Drop Shadow)/(模糊|Blur|Blur/X|Blur/Y)")
+    A("    且该参数带数值（value 或 <curve>@value）。三者取并集。")
+    A("")
+    A("  各参数命中：距离 %d / 不透明度 %d / 模糊 %d → 并集 %d"
+      % (len(shadow_ctl_tpl["距离"]), len(shadow_ctl_tpl["不透明度"]),
+         len(shadow_ctl_tpl["模糊"]), report["shadow"]["union"]))
+    A("  更严口径对照：只数中文 投影/距离 = %d；距离数值 ≠ 0 = %d"
+      % (len(shadow_cn_dist_tpl), len(shadow_dist_nonzero_tpl)))
+    A("  说明：并集从 218 抬到 234 的是「模糊」这一项；只要求「有距离」就是 218。")
+    A("        你数到 51，我这几个口径都不是 51（中文 投影/距离 %d、距离≠0 %d、距离 %d）。"
+      % (len(shadow_cn_dist_tpl), len(shadow_dist_nonzero_tpl),
+         len(shadow_ctl_tpl["距离"])))
+    A("        51 若是「距离≠0 且中文拼写」或别的组合，把命中清单一给，我照你的口径对齐。")
+    A("")
+    A("  并集口径命中的模板，前 20 个：")
+    for s in shadow_samples:
+        A("    " + s)
+    A("")
+
+    A("【文字对象口径】一句话规则 + 三档数字 + 边界样本")
+    A("-" * 96)
+    A("  规则：取所有「子树里存在叶子 <parameter name=\"文本\"|\"Text\">」的 <scenenode>，")
+    A("        去掉「本身是另一个候选的祖先」的，只留最内层；文本值为空也算一个对象。")
+    A("")
+    A("  A 全部候选（含外层群组）      %d" % n_text_candidates)
+    A("  B 最内层（本报告采用）        %d   （排掉 %d 个外层）"
+      % (n_text_objects, n_text_candidates - n_text_objects))
+    A("  C 最内层且文本非空            %d   （= QC 的 2852，差 %d 个空文本对象）"
+      % (n_text_nonempty, n_text_objects - n_text_nonempty))
+    A("")
+    A("  边界样本 1（计入）：PSD婚礼字幕/10/10.moti scenenode id=3001702 —— 文本为空，")
+    A("    本报告算 1 个文字对象，QC 的 2852 不含它；8 个空文本对象全在这个差里。")
+    if nested_samples:
+        f0, i0 = nested_samples[0]
+        A("  边界样本 2（不计入）：%s scenenode id=%s —— 它内部还有带文本叶子的 scenenode，"
+          % (f0, i0))
+        A("    属于群组外壳，按「最内层」规则排掉，避免把群组算成一个字幕对象。")
+        A("  边界样本 3（计入，普通）：-2026年4月项目/婚礼模板/婚礼模板.moti 的 11 个 scenenode")
+        A("    （id 3000102…3001102），每层一个文本，全部计入。")
     A("")
 
     A("【结论】")
