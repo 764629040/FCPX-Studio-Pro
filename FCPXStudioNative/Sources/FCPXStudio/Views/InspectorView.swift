@@ -1145,8 +1145,11 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             : NSColor(calibratedWhite: 0.72, alpha: 1.0)
 
         let editable = canEditRecolor
-        recolorColorWell?.isEnabled = editable
-        recolorHexField?.isEnabled = editable
+        // TR-024-2：反相不吃目标色，色块与 HEX 一律灰掉；本函数每次切模式都会重算，
+        // 所以切回其它模式立刻恢复可点。
+        let colorEditable = editable && mode != .invert
+        recolorColorWell?.isEnabled = colorEditable
+        recolorHexField?.isEnabled = colorEditable
         recolorModePopup?.isEnabled = editable
 
         var tip: String? = nil
@@ -1157,9 +1160,10 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         } else if layer.isLocked {
             tip = "图层已锁定（⌘L 解锁后可换色）"
         }
-        recolorColorWell?.toolTip = tip
-        recolorHexField?.toolTip = tip
         recolorModePopup?.toolTip = tip
+        let colorTip = (mode == .invert && tip == nil) ? "反相不使用目标色，黑白互换" : tip
+        recolorColorWell?.toolTip = colorTip
+        recolorHexField?.toolTip = colorTip
     }
 
     /// 提示行文案。多色判断走 PngRecolor 的 CIAreaAverage/AreaMaximum 面积采样，不遍历像素。
@@ -1170,6 +1174,11 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         }
         let stats = PngRecolor.stats(forFileAt: p)
         let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        // TR-024-2：反相是纯像素取反 —— 不吃目标色，也不存在「多色被压成单色」这回事，
+        // 所以这里必须早退，不能落到下面那条多色提示上。
+        if mode == .invert {
+            return ("反相：不使用目标色，黑白互换", false)
+        }
         guard Self.color(fromHex: layer.colorOverride) != nil else {
             return ("未设置换色，当前显示原图像素", false)
         }

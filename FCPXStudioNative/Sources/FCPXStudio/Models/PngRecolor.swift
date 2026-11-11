@@ -9,6 +9,7 @@
 //   · 唯一的「读像素」是 1×1 的 CIAreaAverage / AreaMaximum 结果（4 字节），
 //     用于判断原图是否含多色，不是遍历整图。
 //   · 四种模式各自一条固定滤镜链，见 apply(_:to:rgb:)。
+//     其中「反相」是真反相（RGB 取反、alpha 原样），不使用目标色 —— 没设色也生效。
 //
 // 验收落点：
 //   · 画布：InfiniteCanvasView.image(for:) 按 「路径 + 模式 + 颜色」缓存换色结果
@@ -26,7 +27,7 @@ public enum RecolorMode: Int, CaseIterable {
     case auto = 0        // 自动：按原图色彩分布自动选 direct / luminance
     case direct = 1      // 直接替换：整片墨色换成目标色，alpha 原样
     case luminance = 2   // 明暗上色（默认）：暗墨→目标色亮部，亮部→暗端，保留原图明暗梯度
-    case invert = 3      // 反相：明暗映射掉头（等价于 CIColorInvert 后再上色）
+    case invert = 3      // 反相：真反相（RGB 取反、alpha 原样），不使用目标色
     case hueRotate = 4   // 色相旋转：CIHueAdjust
 
     /// 新建位图层 / 解析缺省时的模式：明暗上色。
@@ -90,17 +91,20 @@ public enum PngRecolor {
     /// - Parameters:
     ///   - image: 原始像素图
     ///   - mode: 用户选择的模式（可为 .auto）
-    ///   - color: 目标色，内部统一转 sRGB
-    public static func recolor(_ image: CGImage, mode: RecolorMode, color: NSColor) -> CGImage? {
-        let rgb = srgbComponents(color)
-        let ci = CIImage(cgImage: image)
+    ///   - color: 目标色，内部统一转 sRGB。**反相不吃目标色**，可以传 nil；
+    ///            其它模式传 nil 时直接返回 nil（调用方退回原图，不拿默认色冒充）。
+    public static func recolor(_ image: CGImage, mode: RecolorMode, color: NSColor?) -> CGImage? {
         let resolved = mode.resolved(stats: analyze(image))
+        // 闸门只对 .invert 放开：其余模式没有目标色就不出图，行为与 TR-024 完全一致。
+        guard resolved == .invert || color != nil else { return nil }
+        let rgb = color.map { srgbComponents($0) } ?? (r: 0, g: 0, b: 0)   // 反相路径不读这个值
+        let ci = CIImage(cgImage: image)
         guard let out = apply(resolved, to: ci, rgb: rgb) else { return nil }
         return ciContext.createCGImage(out, from: ci.extent, format: .RGBA8, colorSpace: srgb)
     }
 
-    /// 导出用：把换色后的像素写成 PNG。
-    public static func writePNG(_ src: CGImage, mode: RecolorMode, color: NSColor, to url: URL) -> Bool {
+    /// 导出用：把换色后的像素写成 PNG。color 语义同 recolor。
+    public static func writePNG(_ src: CGImage, mode: RecolorMode, color: NSColor?, to url: URL) -> Bool {
         guard let out = recolor(src, mode: mode, color: color) else { return false }
         guard let dest = CGImageDestinationCreateWithURL(url as CFURL,
                                                          UTType.png.identifier as CFString,
@@ -218,15 +222,14 @@ public enum PngRecolor {
         case .luminance:
             // 链：CIColorControls(saturation=0) → CIColorMatrix(out = target - (target-dark)*luma)
             // 暗墨（luma≈0）落到目标色亮部 → 黑字换色后就是目标色本身；亮部落到暗端。
-            return toneMapped(ci, rgb: rgb, inverted: false)
+            return toneMapped(ci, rgb: rgb)
 
         case .invert:
-            // 链：CIColorInvert → CIColorControls(saturation=0) → CIColorMatrix(同上)
-            // 反相后 luma 变成 1-luma，明暗映射整体掉头：墨芯落到暗端。
+            // 真反相：RGB 取反、alpha 原样，**不使用目标色**。
+            // 黑墨 → 白墨、白墨 → 黑墨、灰阶连续反转、彩色 → 补色，一条 CIColorInvert 全包。
             let inv = CIFilter.colorInvert()
             inv.inputImage = ci
-            guard let inverted = inv.outputImage else { return nil }
-            return toneMapped(inverted, rgb: rgb, inverted: true)
+            return inv.outputImage
 
         case .hueRotate:
             // 链：CIConstantColorGenerator + CIBlendWithAlphaMask → CIHueAdjust(angle=+30°)
@@ -250,12 +253,11 @@ public enum PngRecolor {
         return blend.outputImage
     }
 
-    /// out = target - (target - dark) * gray
-    ///   · 未反相时 gray = 原图 luma（暗墨 → 目标色亮部）
-    ///   · 反相时 gray = 1 - 原图 luma（暗墨 → 暗端）
+    /// out = target - (target - dark) * gray，dark = target * 0.35
+    ///   · gray = 传入图去饱和后的 luma（CIColorControls saturation=0，只取输入 G 通道）
+    ///   · 只有「明暗上色」走这条公式；反相是纯 RGB 取反，跟这里无关
     private static func toneMapped(_ ci: CIImage,
-                                   rgb: (r: CGFloat, g: CGFloat, b: CGFloat),
-                                   inverted: Bool) -> CIImage? {
+                                   rgb: (r: CGFloat, g: CGFloat, b: CGFloat)) -> CIImage? {
         let gray = CIFilter.colorControls()
         gray.inputImage = ci
         gray.saturation = 0

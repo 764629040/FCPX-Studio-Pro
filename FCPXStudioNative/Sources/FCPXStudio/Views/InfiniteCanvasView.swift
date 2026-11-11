@@ -464,11 +464,16 @@ public final class InfiniteCanvasView: NSView {
 
         let base = NSImage(contentsOfFile: path)
         var img = base
-        if !recolorKey.isEmpty, let base = base, let target = Self.recolorColor(for: layer) {
-            var proposed = CGRect(origin: .zero, size: base.size)
-            if let cg = base.cgImage(forProposedRect: &proposed, context: nil, hints: nil),
-               let recolored = PngRecolor.recolor(cg, mode: Self.recolorMode(for: layer), color: target) {
-                img = NSImage(cgImage: recolored, size: base.size)
+        if !recolorKey.isEmpty, let base = base {
+            let mode = Self.recolorMode(for: layer)
+            let target = Self.recolorColor(for: layer)   // 反相不吃目标色，这里可以是 nil
+            // 闸门只对 .invert 放开；其余模式没有目标色就不进换色路径（与 TR-024 一致）。
+            if mode == .invert || target != nil {
+                var proposed = CGRect(origin: .zero, size: base.size)
+                if let cg = base.cgImage(forProposedRect: &proposed, context: nil, hints: nil),
+                   let recolored = PngRecolor.recolor(cg, mode: mode, color: target) {
+                    img = NSImage(cgImage: recolored, size: base.size)
+                }
             }
         }
         guard let img = img else { return nil }
@@ -477,9 +482,13 @@ public final class InfiniteCanvasView: NSView {
     }
 
     /// TR-024：换色缓存键片段（""=不换色）。换模式或换颜色都必须换 key，否则画布不刷新 / 串色。
+    /// TR-024-2：反相不吃目标色，所以反相的 key 只带模式位 —— 没设色也必须进换色路径。
     static func recolorCacheKey(for layer: LayerModel) -> String {
-        guard layer.isBitmapLayer, let color = recolorColor(for: layer) else { return "" }
-        return "\(recolorMode(for: layer).rawValue)#\(InfiniteCanvasView.hexString(from: color))"
+        guard layer.isBitmapLayer else { return "" }
+        let mode = recolorMode(for: layer)
+        if mode == .invert { return "\(mode.rawValue)#invert" }
+        guard let color = recolorColor(for: layer) else { return "" }
+        return "\(mode.rawValue)#\(InfiniteCanvasView.hexString(from: color))"
     }
 
     static func recolorMode(for layer: LayerModel) -> RecolorMode {

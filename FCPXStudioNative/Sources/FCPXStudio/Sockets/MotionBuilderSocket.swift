@@ -199,16 +199,19 @@ public final class MotionBuilderSocket: MotionBuilderSocketProtocol {
     // MARK: - TR-024 位图换色 → 导出临时 PNG
 
     /// 为单个位图层生成换色后的临时 PNG。
-    /// 任何一环不满足（不是位图层 / 没有目标色 / 没有贴图 / 写盘失败）都返回 nil，
-    /// 该层 payload 完全保持改动前的样子，旧行为零变化。
+    /// 任何一环不满足（不是位图层 / 没有贴图 / 写盘失败）都返回 nil，该层 payload 完全保持
+    /// 改动前的样子，旧行为零变化。
+    /// 目标色：反相不吃色，没设色也照换（TR-024-2）；其余模式没设色仍然直接返回 nil。
     static func recoloredPng(for layer: LayerModel, offset: Int, workDir: URL) -> URL? {
+        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        let color = recolorColor(fromHex: layer.colorOverride)
+        if mode != .invert, color == nil { return nil }
+
         guard layer.isBitmapLayer,
               let src = layer.fallbackPngPath, !src.isEmpty,
-              let color = recolorColor(fromHex: layer.colorOverride),
               FileManager.default.fileExists(atPath: src),
               let cg = PngRecolor.loadCGImage(path: src) else { return nil }
 
-        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
         let stem = ((src as NSString).lastPathComponent as NSString).deletingPathExtension
         let outURL = workDir.appendingPathComponent("\(offset)_\(stem)_tr024.png")
         guard PngRecolor.writePNG(cg, mode: mode, color: color, to: outURL) else { return nil }
