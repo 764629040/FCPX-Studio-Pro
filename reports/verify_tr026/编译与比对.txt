@@ -1,0 +1,70 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-026 编译与比对              2026-11-11 23:1x
+项目根 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+═══════════════════════════════════════════════════════════════════════════
+
+一、TR-026-B 取证工具编译 / 运行
+───────────────────────────────────────────────────────────────────────────
+  $ FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+  $ swiftc -O -j 8 ${=FILES} tools/tr026/tr026_evidence.swift -o /tmp/tr026_evidence_bin
+    compile_exit=0（唯一告警 AudioManager.swift:165 的 AVURLAsset.duration 弃用，历史遗留）
+  $ /tmp/tr026_evidence_bin
+    run_exit=0；四条硬断言 + 其它控件零顺带改动旁证全 PASS
+    全文 取证工具stdout.txt / 结构化 取证运行日志.txt
+
+  编译期两处小修（只改取证工具，不碰产品代码）：
+    ① 顶层 `TR026Evidence.main()` 在多文件编译下不允许 → 改 @main + static func main()
+       （与 tools/tr025/tr025_evidence.swift 同一入口写法）
+    ② MainWindowController.inspectorView 是 optional → 全部 force-unwrap
+
+二、tr019r harness 原样重跑（确认 61 项没被改挂）
+───────────────────────────────────────────────────────────────────────────
+  $ swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness_tr026
+  $ /tmp/tr019r_harness_tr026
+    compile_exit=0 / run_exit=0 / 69 行 / ❌ 计数 0
+      ✅ 解析器含递归展开 collectLayers
+      PASS = 61   FAIL = 0
+      TR-019-R VERDICT: PASS
+  diff -q 对照（全部逐字节相同）：
+    reports/verify_tr024_1/tr019r_harness_重跑.txt   OK
+    reports/verify_tr024/tr019r_harness_重跑.txt     OK
+    reports/verify_tr024_2/tr019r_harness_重跑.txt   OK
+    reports/verify_tr025/tr019r_harness_重跑.txt     OK
+  全文 tr019r_harness_重跑.txt
+
+三、镜像重建（用现有脚本，未新写打包脚本）
+───────────────────────────────────────────────────────────────────────────
+  $ bash tools/s4_rebuild_dmg.sh --version v1.4 --dry-run   → exit 0
+  $ bash tools/s4_rebuild_dmg.sh --version v1.4              → exit 0
+    Build 输出全文 镜像重建输出.txt
+  $ hdiutil verify <v1.4> → VALID / exit 0（全文 hdiutil_verify.txt）
+  脚本自带校验：体积 46290500 B、hdiutil imageinfo、挂载 cmp -s、
+                codesign --verify --deep --strict、detach、并列 cp 到内盘。
+
+四、代码改动面（本单只改了这些）
+───────────────────────────────────────────────────────────────────────────
+  M  FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+       - 3 个 updateControlStates 调用点传 layer.isLocked || motiReadOnlyMode
+       - 函数体引入 lockedOnly 隔离其它控件（6 行 + 注释）
+  M  tools/s4_rebuild_dmg.sh
+       - stage 里 ln -s /Applications + 生成 安装说明.txt + 两条断言
+       - --dry-run 打印段同步两行 echo
+  ?? tools/tr026/tr026_evidence.swift
+
+  未改（退回条件 4 / 本单明确不做）：
+    PngRecolor.swift                0 行（反相算法 / 四模式 / auto / 默认模式）
+    InfiniteCanvasView.swift        0 行
+    MotionBuilderSocket.swift       0 行
+    LayerModel.swift                0 行
+    MainWindowController.swift      0 行（RIGHT_W = 360 未动）
+    DraggableNumberField            0 行（3pt 死区 / 8s 兜底 / 1pt=1px 全未动）
+    ⇄ 对比色按钮 / 两处反相提示文案   0 行
+    右栏布局 / 图标 / 体积优化        0 行
+    R2.app 包内二进制              未重装（仍 3974096 B / b6efcddd…）
+
+五、体积口径（TR-024-1 坑不重演）
+───────────────────────────────────────────────────────────────────────────
+  交付卷只报：~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg
+              46290500 B / Nov 11 23:18:37 2026（stat 原文）
+  /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.4.dmg 是中间产物，不作交付数字。
+  R2.app 包内二进制本单未重装、体积未变：3974096 B / 22:38:39 / b6efcddd…

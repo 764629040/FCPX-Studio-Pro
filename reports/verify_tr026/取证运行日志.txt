@@ -1,0 +1,28 @@
+窗口 windowNumber=5002；layer.isLocked=false
+只读态 motiReadOnlyMode=true
+只读态 六控件: posXField=false posYField=false rotationField=false scaleField=false rotationSlider=false scaleSlider=false
+只读态 断言 1/3 PASS：六控件全 false
+只读态·按 TR-025 现状 其它控件(期望 true): publishTextCheck=true publishPosCheck=true publishRotCheck=true publishScaleCheck=true textEditor.isEditable=true toggleOrientationButton=true
+只读态·按 TR-025 现状 其它控件零顺带改动 PASS
+只读态拖动探针: layer.posX before=123.4 after=123.4；posXField.isEnabled=false
+只读态断言 2 PASS：mouseDown + 3 dragged + mouseUp 后 posX 前后相等（123.4）
+锁定态 layer.isLocked=true
+锁定态 六控件: posXField=false posYField=false rotationField=false scaleField=false rotationSlider=false scaleSlider=false
+锁定态 断言 1/3 PASS：六控件全 false
+锁定态·按 TR-025 现状 其它控件(期望 false): publishTextCheck=false publishPosCheck=false publishRotCheck=false publishScaleCheck=false textEditor.isEditable=false toggleOrientationButton=false
+锁定态·按 TR-025 现状 其它控件零顺带改动 PASS
+解锁后 layer.isLocked=false
+解锁态 六控件: posXField=true posYField=true rotationField=true scaleField=true rotationSlider=true scaleSlider=true
+解锁态 断言 3 PASS：六控件全 true
+解锁态·按 TR-025 现状 其它控件(期望 true): publishTextCheck=true publishPosCheck=true publishRotCheck=true publishScaleCheck=true textEditor.isEditable=true toggleOrientationButton=true
+解锁态·按 TR-025 现状 其它控件零顺带改动 PASS
+回归 B1 按下不动 field.currentEditor() != nil → true（应 true）
+  回归 B 拖动步 1: delta=9.0 → layer.posX=9.0 stringValue=9.0 进编辑态=false
+  回归 B 拖动步 2: delta=28.0 → layer.posX=37.0 stringValue=37.0 进编辑态=false
+  回归 B 拖动步 3: delta=210.0 → layer.posX=247.0 stringValue=247.0 进编辑态=false
+回归 B1 死区：首个回调 delta=9.0（应 9.0）
+回归 B3 松手前 layer.posX=247.0，松手后=247.0（相等=不补刷新）
+回归 B1/B3 拖动期间进编辑态=false（应 false）
+回归 B5 松手后键入 77.7 + 回车 → layer.posX=77.7（应 77.7）
+可编辑态回归断言 4 PASS：9→37→247 三步 / 松手前后相等 / 全程不进 field editor / 回车 77.7
+DraggableNumberField 的 3pt 死区与 8s 兜底本单未动（探针仍按原行为 PASS）

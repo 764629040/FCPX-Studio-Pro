@@ -1,0 +1,209 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-026：v1.4 分发镜像 + 只读态几何控件禁用 —— 验收记录
+2026-11-11 23:2x  |  项目根 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+分支 main  |  前置 HEAD aaad195（ahead 60、工作区干净）  |  未 push
+═══════════════════════════════════════════════════════════════════════════
+
+【一句话结论】
+A 用现有 tools/s4_rebuild_dmg.sh --version v1.4 封出新镜像，没覆盖 v1.3，
+hdiutil verify VALID、44.15 MiB ≤ 55M、dmg 内 app 二进制与当前 R2.app
+sha256 完整值相同（b6efcdddb2824b506…）、cmp 逐字节相同、严格验签 exit 0，
+/Applications 软链 + 安装说明.txt 在，挂载后真机启动截图读到「⇄ 对比色」按钮，
+验收完 detach 干净。B 三个调用点统一传 layer.isLocked || motiReadOnlyMode，
+函数体用 lockedOnly 隔离发布复选框/文字编辑/横竖排按钮，四条硬断言全 PASS，
+其它控件零顺带改动。本单没有重装 R2.app。
+
+【前置核对】
+  HEAD aaad195 / ahead 60 / 工作区干净；未 push。
+  v1.3.dmg 47855074 B / 11-11 10:35:57 / sha16 0fdf3359f7e1185d，
+  挂载实测内二进制 3806800 B / fcc369177a62b0e5 —— 确实是旧版（落后三个包）。
+  R2.app 包内二进制 3974096 B / 22:38:39 / b6efcdddb2824b50（TR-025），未重装。
+  外置卷 708Mi 可用 / 100% 占用；/tmp（内盘）12Gi 可用。
+  取证实例 PID 76753 在跑；Final Cut Pro 无进程。
+
+───────────────────────────────────────────────────────────────────────────
+一、TR-026-A 分发镜像
+───────────────────────────────────────────────────────────────────────────
+  1. 用现有脚本，没新写打包脚本
+     $ bash tools/s4_rebuild_dmg.sh --version v1.4 --dry-run   → exit 0（闸门全过）
+     $ bash tools/s4_rebuild_dmg.sh --version v1.4              → exit 0
+     脚本原流程：/tmp 建 stage → cp -R R2.app → hdiutil create UDZO →
+     挂载 cmp + strict 验签 → detach → 并列 cp 到内盘 DIST_DIR。
+     输出全文见 镜像重建输出.txt，末行「✅ 镜像重建完成」。
+
+     ★ 对现有脚本的两处最小增量（不是新写脚本，改动理由写在这里）：
+       ① stage 里 `ln -s /Applications "$STAGE_DIR/Applications"` —— v1.3 挂载实测
+          **只有 .app**，没有 /Applications 软链，本单要求"软链+说明文件在"。
+       ② stage 里生成 `安装说明.txt`（版本 / 安装方法 / 内容 / 二进制 sha16 /
+          生成命令 / 中间产物只在 /tmp）。
+       同步在 --dry-run 打印段加两行 echo，保持 dry-run 与实际一致。
+       其余 0 行改动；--replace 仍是禁用状态，v1.3 不在脚本删除路径上。
+
+  2. 成品（只报这一组数字，不拿 /tmp 中间产物冒充）
+     ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg
+       46290500 B = 44.15 MiB   Nov 11 23:18:37 2026
+       红线 55M = 57671680 B → PASS（相对 v1.3 47855074 B 反而小 1564574 B）
+     /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.4.dmg 是**中间产物**，同体积但只作 /tmp 留证，
+     不作为交付卷报数（TR-024-1 那个坑不重演）。
+
+  3. 硬断言逐条
+     A-1 体积 ≤55M ................................. PASS（44.15 MiB）
+     A-2 中间产物只写 /tmp ......................... PASS
+         stage /tmp/s4_dmg_stage.*、临时 dmg /tmp/s4_dmg_out/、
+         挂载点 /tmp/s4_dmg_mnt.* 与 /tmp/tr026_v14_mnt 全在 /tmp；
+         外置卷只新增 reports/verify_tr026/ 下 <1 MiB 的文本与截图。
+     A-3 dmg 内二进制 sha == 包内 sha（同一份字节） PASS
+         dmg 内 3974096 B / 23:18:13
+           b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+         包内   3974096 B / 22:38:39
+           b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+         cmp → BYTE_IDENTICAL=YES。**完整 64 位相等，不是"差不多新"**。
+         codesign --verify --strict --deep <dmg 内 app> → exit 0（零输出）。
+     A-4 挂载后真机启动一次、截图读到「⇄ 对比色」 PASS
+         $ "/tmp/tr026_v14_mnt/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" \
+             --open /tmp/tr0241_black_text.psd
+           PID 83292 / CGWindowNumber 5012 / bounds (255,185) 1207×781
+         $ screencapture -l 5012 -o -x → shots/dmg_装机真机.png（383532 B，2414×1562）
+         局部核对图 shots/dmg_装机真机_右栏局部.png（724×582，原始像素裁剪、未合成）
+         逐字读到：位图换色 / 颜色行「⇄ 对比色」按钮（未设色→灰掉，A3 禁用态）/
+         颜色框「未设置」/ 模式「明暗上色」/「未设置换色，当前显示原图像素」/
+         旋转 0.0° / 缩放 100% / X: 0.0 Y: 0.0 / 四个发布复选框。
+         ★ 额外硬旁证：这张装机真机图与 reports/verify_tr025/shots/
+           tr025_装包后_默认态.png 用 cmp 比对 → BYTE_IDENTICAL=YES。
+           即 dmg 装出来跑的窗口像素与已装包 TR-025 完全一致。
+         ★ v1.3 里没有「⇄ 对比色」按钮（其二进制 3806800 B / fcc36917…），
+           本图能读到该按钮即证明装出来的是 TR-025，不是换文件名换汤不换药。
+
+  4. hdiutil verify
+     $ hdiutil verify ~/Desktop/.../FCPX_Studio_Pro_v1.4.dmg
+       → "checksum of ... is VALID"，verify_exit=0（全文 hdiutil_verify.txt）
+     脚本自身的 hdiutil imageinfo / 挂载 cmp / strict 验签也全过。
+
+  5. v1.3 保全（回滚线索没丢）
+     封包前 47855074 B / 10:35:57 / 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+     封包后 47855074 B / 10:35:57 / 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+     → 逐字节未动。DIST_DIR 现在是 v1.3 与 v1.4 并列两份。
+
+  6. 挂载 / 卸载各一次，卸载干净
+     脚本第 3 步自身 attach → 校验 → detach（exit 0）；
+     本单验收又 attach 一次（/tmp/tr026_v14_mnt）→ 真机启动截图 → 退出实例 →
+     hdiutil detach → "disk8 ejected." exit 0。
+     终检：hdiutil info 里 v1.4 / tr026_v14_mnt / s4_dmg_mnt 出现次数均 0；
+     mount 输出无 FCPX_Studio_Pro / tr026_v14 / s4_dmg 条目；
+     /tmp 下 s4_dmg_mnt.* 七个空目录已 rmdir；
+     /tmp/tr026_v14_mnt 剩一个空目录（rmdir 返回 Operation not permitted，
+     沙盒策略拦了删除），但它已无任何挂载内容，ls 为空、mount/hdiutil info 均无条目；
+     FCPXStudio 与 Final Cut Pro 均无进程。
+
+  ★ 口径披露（重要，别误读交付内容）：
+    用户明确要求「dmg 内 app 二进制必须 3974096 B / b6efcddd…（与当前 R2.app 逐位一致）」
+    且「本单不重装 R2.app 包（里面已经是 TR-025，只封 dmg）」。
+    → v1.4 补齐的是 TR-024-1 / TR-024-2 / TR-025 三个包；
+      **本单 TR-026-B 的只读态修复不在 v1.4 里**，它只进源码与仓库，
+      待下一轮重新构建 + 装包时才进分发。这是用户锁定的口径，不是漏装。
+    → 本单没有 cp 任何新二进制进 R2.app，包内仍是 3974096 B / b6efcddd…。
+
+───────────────────────────────────────────────────────────────────────────
+二、TR-026-B 只读态几何控件禁用
+───────────────────────────────────────────────────────────────────────────
+  实现（只改 InspectorView.swift 一个文件）：
+    ① 三个调用点 959 / 1400 / 1457 统一改为
+       updateControlStates(isLocked: layer.isLocked || motiReadOnlyMode)
+    ② 函数体 1373 起引入 let lockedOnly = currentSelectedLayer?.isLocked ?? false：
+       - 六个几何控件 rotationSlider / rotationField / scaleSlider / scaleField /
+         posXField / posYField 仍用参数 !isLocked（含只读态 → 只读时全灰）
+       - 其它控件 toggleOrientationButton / textEditor / 四个 publish*Check
+         改用 !lockedOnly（只认图层真锁定，不认只读态）→ 行为与 TR-025 逐值相同
+       - lockBannerLabel / lockBannerBox 两行判据一字未改（只读态走 motiReadOnlyMode
+         分支，锁定/解锁态 isLocked 与 lockedOnly 同值）
+       - applyTextStyleEnabledState() / refreshBitmapRecolorControls() 内部各自读
+         motiReadOnlyMode + layer.isLocked，不依赖本参数，未动
+    ③ DraggableNumberField.mouseDown 的 guard isEnabled 自然兜住拖动误触，
+       3pt 死区与 8s nextEvent 超时兜底本单 0 行改动。
+
+  取证工具 tools/tr026/tr026_evidence.swift（@main，同批 43 个 .swift 编译）：
+  硬断言 1 只读态六控件全 false .............................. PASS
+       posXField=false posYField=false rotationField=false scaleField=false
+       rotationSlider=false scaleSlider=false
+  硬断言 2 mouseDown + 3 dragged + mouseUp，layer.posX 前后相等 ... PASS
+       before=123.4 after=123.4；posXField.isEnabled=false
+  硬断言 3 锁定态（⌘L 等价 toggleCurrentLayerLock）全 false、
+       解锁后全 true ............................................ PASS
+  硬断言 4 可编辑态回归 TR-025 B ............................... PASS
+       9.0 → 37.0 → 247.0 三步；首个回调 delta=9.0（3pt 死区未动）；
+       松手前 247.0 == 松手后 247.0；拖动期间进编辑态=false；
+       松手后键入 77.7 + 回车 → posX=77.7
+
+  「其它控件行为不许变」逐条列明（取证工具三态断言，见 控件状态与探针.txt）：
+    只读态（layer 未锁）：publishTextCheck / publishPosCheck / publishRotCheck /
+      publishScaleCheck / textEditor.isEditable / toggleOrientationButton
+      全部 = true —— 与 TR-025 现状逐值相同，零顺带改动。
+    锁定态：上述六项全部 = false —— 与 TR-025 现状逐值相同。
+    解锁态：上述六项全部 = true —— 与 TR-025 现状逐值相同。
+    → 本单**没有顺带改任何其它控件**，故无需列"顺带改"清单。
+    未动：发布列显隐、文字样式四项、位图换色、反相算法、四模式、提示文案。
+
+───────────────────────────────────────────────────────────────────────────
+三、harness 原样重跑（确认 61 项没被改挂）
+───────────────────────────────────────────────────────────────────────────
+  swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift
+  → compile_exit=0 / run_exit=0 / 69 行 / ❌ 0
+    PASS = 61   FAIL = 0   /   TR-019-R VERDICT: PASS
+  与 verify_tr024_1 / verify_tr024 / verify_tr024_2 / verify_tr025
+  四份历史日志 diff -q 全部逐字节相同。全文 tr019r_harness_重跑.txt。
+
+───────────────────────────────────────────────────────────────────────────
+四、纪律与进程（逐条写清）
+───────────────────────────────────────────────────────────────────────────
+  ● 唯一一条 kill -TERM：`kill -TERM 76753`
+    —— 上轮 TR-025 遗留的取证实例，用户点名允许；脚本硬闸门 0.2 要求
+    R2.app 已退出才能封镜像。TERM 前 pgrep -x FCPXStudio=76753，TERM 后为空。
+    后台任务 L3552u / zy0FU8 分别以 exit 143 结束，都是 SIGTERM 的预期结果。
+  ● dmg 挂载点启动的验收实例 PID 83292：**没有用 kill -TERM**。
+    截图完成后用 AppKit `NSRunningApplication.terminate()` + `forceTerminate()`
+    请求正常退出（脚本内等待事件送达），pgrep 归零后 hdiutil detach 才成功。
+    这是本单自己为 A-4 起的临时实例，不是用户既有 App、不是 FCPX。
+  ● Final Cut Pro 全程无进程（前置 / 封包 / 挂载验收 / 终检四次检查均为空）。
+  ● 未自动退出/重启任何用户 App；未动 Motion 模板库。
+  ● 两个 commit：tr026（代码）+ tr026-ev（证据+台账）；台账 M.3.4 append-only、
+    0 删除；全程未 push（提交前 ahead 60、提交后 ahead 62）。
+  ● 未重建其它镜像、未覆盖 v1.3、未重装 R2.app。
+
+───────────────────────────────────────────────────────────────────────────
+五、退回条件自查
+───────────────────────────────────────────────────────────────────────────
+  1 dmg 里 app 的 sha 与 b6efcddd… 不等 / 换汤不换药
+      → 否：完整 sha256 相等、cmp 逐字节相同、装机截图读到「⇄ 对比色」按钮、
+        与 TR-025 装机图 cmp 逐字节相同；v1.3 内是 3806800 B / fcc36917…。
+  2 覆盖删掉了 v1.3.dmg → 否：前后 stat + 完整 sha256 逐值相同，并列保留。
+  3 只读态仍能拖动改位置 / 把可编辑态也一起禁了
+      → 否：只读态 posX 123.4→123.4 不变；可编辑态 9→37→247 与 77.7 仍 PASS。
+  4 顺手改了反相算法 / 对比色按钮 / 提示文案 / harness 61 项改挂
+      → 否：PngRecolor.swift / InfiniteCanvasView / MotionBuilderSocket /
+        LayerModel / MainWindowController 全 0 行；harness 61/0 与四份历史逐字节相同。
+  5 把 /tmp 中间产物的体积/时间当成交付数字报
+      → 否：交付只报 ~/Desktop/.../v1.4.dmg 的 46290500 B / 23:18:37（stat 原文）。
+  6 只读态顺带改了发布复选框 / 文字编辑
+      → 否：三态逐值断言，与 TR-025 现状相同，零顺带改动。
+
+───────────────────────────────────────────────────────────────────────────
+六、交付清单
+───────────────────────────────────────────────────────────────────────────
+  ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg  46290500 B
+  reports/verify_tr026/
+    验收记录.txt、镜像与装包留证.txt、控件状态与探针.txt、编译与比对.txt、
+    hdiutil_verify.txt、镜像重建输出.txt、取证运行日志.txt、取证工具stdout.txt、
+    tr019r_harness_重跑.txt、
+    shots/dmg_装机真机.png、shots/dmg_装机真机_右栏局部.png
+  tools/s4_rebuild_dmg.sh（两处最小增量）
+  tools/tr026/tr026_evidence.swift
+  docs/待办清单_20261110.md M.3.4
+
+  偏差披露：
+    ① AppKit terminate() 第一次是异步的、脚本过早退出没送达，导致第一次
+       hdiutil detach 返回「资源忙」exit 16；改成脚本内等待 + forceTerminate()
+       后进程归零、detach exit 0。第一次失败如实记在第四节，没掩盖。
+    ② v1.4 不含本单 B 修复（口径披露见第一节末），待下一轮装包。
+    ③ 装包后真机截图是默认态（「⇄ 对比色」按钮灰掉=未设色 A3 禁用态），
+       本单没再尝试 UI 切模式；按钮可见 + 窗口像素与 TR-025 装机图逐字节相同，
+       已足够证明装出来的是 TR-025。

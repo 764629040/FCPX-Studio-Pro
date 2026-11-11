@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-026-B 控件状态与拖动探针（取证工具 stdout 逐行）  2026-11-11 23:1x
+工具：tools/tr026/tr026_evidence.swift（@main，同批 43 个 .swift，swiftc -O -j 8）
+运行：/tmp/tr026_evidence_bin → stdout 取证工具stdout.txt / 结构化 取证运行日志.txt
+run_exit=0，末行「TR-026-B 四条硬断言 + 其它控件零顺带改动旁证 → 全部 PASS」
+═══════════════════════════════════════════════════════════════════════════
+
+【源码改动面（只 InspectorView.swift 一个文件）】
+  ① 三个调用点统一传 OR：
+     959  onLockToggled          updateControlStates(isLocked: layer.isLocked || motiReadOnlyMode)
+     1400 toggleCurrentLayerLock 同上
+     1457 selectLayer(at:)       同上
+  ② 函数体 1373 起：
+     let lockedOnly = currentSelectedLayer?.isLocked ?? false
+     六个几何控件（rotationSlider / rotationField / scaleSlider / scaleField /
+       posXField / posYField）仍用 !isLocked（参数含只读态）→ 只读时全灰。
+     其它控件（toggleOrientationButton / textEditor / 四个 publish*Check）
+     改用 !lockedOnly → 只认图层真锁定，行为与 TR-025 逐值相同。
+     lockBannerLabel / lockBannerBox 两行判据一字未改。
+     applyTextStyleEnabledState() / refreshBitmapRecolorControls() 未动。
+  ③ DraggableNumberField.mouseDown 的 guard isEnabled 自然兜住；
+     3pt 死区、8s nextEvent 超时兜底本单 0 行改动。
+
+───────────────────────────────────────────────────────────────────────────
+一、硬断言 1：只读 .moti 打开后六控件全 false
+───────────────────────────────────────────────────────────────────────────
+  入口：inspectorView.updateMotiReadOnlyInfo(canvasWidth:1200, canvasHeight:600,
+        layerCount:1, notes:["TR-026 只读预览取证"]) → motiReadOnlyMode=true
+        再 selectLayer(at: 0) 触发三个调用点之一（isLocked = false || true）
+
+  只读态 六控件:
+    posXField=false  posYField=false  rotationField=false  scaleField=false
+    rotationSlider=false  scaleSlider=false
+  → 断言 1 PASS
+
+  同态「其它控件零顺带改动」旁证（期望 true，按 TR-025 现状）：
+    publishTextCheck=true  publishPosCheck=true  publishRotCheck=true
+    publishScaleCheck=true  textEditor.isEditable=true  toggleOrientationButton=true
+  → PASS（没有把发布复选框 / 文字编辑一起禁用）
+
+───────────────────────────────────────────────────────────────────────────
+二、硬断言 2：禁用态投 mouseDown + 3 dragged + mouseUp，posX 前后相等
+───────────────────────────────────────────────────────────────────────────
+  确定性 NSEvent 序列（NSEvent.mouseEvent + NSApp.postEvent + 直接 mouseDown）：
+    leftMouseDown(0) → leftMouseDragged(+12) → (+40) → (+250) → leftMouseUp(+250)
+  layer.posX 置 123.4 后投序列；
+  DraggableNumberField.mouseDown 的 guard isEnabled=false → 走 super，
+  不进 8s eventTracking loop、不触发 onDragStep。
+
+  只读态拖动探针: layer.posX before=123.4 after=123.4；posXField.isEnabled=false
+  → 断言 2 PASS
+
+───────────────────────────────────────────────────────────────────────────
+三、硬断言 3：锁定态（⌘L）同样全 false；解锁后回到 true
+───────────────────────────────────────────────────────────────────────────
+  ⌘L 的 action 本体 = toggleCurrentLayerLock()（performKeyEquivalent 也走它）。
+
+  锁定态 layer.isLocked=true，六控件:
+    posXField=false posYField=false rotationField=false scaleField=false
+    rotationSlider=false scaleSlider=false                        → PASS
+  锁定态 其它控件(期望 false，按 TR-025 现状):
+    publishTextCheck=false publishPosCheck=false publishRotCheck=false
+    publishScaleCheck=false textEditor.isEditable=false
+    toggleOrientationButton=false                               → PASS
+
+  解锁后 layer.isLocked=false，六控件:
+    posXField=true posYField=true rotationField=true scaleField=true
+    rotationSlider=true scaleSlider=true                         → PASS
+  解锁态 其它控件(期望 true): 六项全 true                        → PASS
+
+───────────────────────────────────────────────────────────────────────────
+四、硬断言 4：可编辑态回归 TR-025 B（不能把对的改坏）
+───────────────────────────────────────────────────────────────────────────
+  回归 B1 按下不动 field.currentEditor() != nil → true（应 true）
+  回归 B 拖动步 1: delta=9.0  → layer.posX=9.0   stringValue=9.0   进编辑态=false
+  回归 B 拖动步 2: delta=28.0 → layer.posX=37.0  stringValue=37.0  进编辑态=false
+  回归 B 拖动步 3: delta=210.0→ layer.posX=247.0 stringValue=247.0 进编辑态=false
+  回归 B1 死区：首个回调 delta=9.0（应 9.0，3pt 死区未动）
+  回归 B3 松手前 layer.posX=247.0，松手后=247.0（相等=不补刷新）
+  回归 B1/B3 拖动期间进编辑态=false（应 false）
+  回归 B5 松手后键入 77.7 + 回车 → layer.posX=77.7（应 77.7）
+  → 断言 4 PASS：9→37→247 三步 / 松手前后相等 / 全程不进 field editor / 回车 77.7
+
+───────────────────────────────────────────────────────────────────────────
+五、三态汇总（六几何控件 / 六其它控件）
+───────────────────────────────────────────────────────────────────────────
+  状态            六几何控件    六其它控件      说明
+  只读 .moti      false ×6     true ×6        TR-026-B 修复点；其它控件按 TR-025 原样
+  锁定 (⌘L)       false ×6     false ×6       TR-025 原行为，未变
+  解锁/可编辑     true ×6      true ×6        TR-025 B 拖动回归全部 PASS
+
+  → 本单没有顺带改任何其它控件，故无需列「顺带改」清单。
+  → 未动：发布列显隐、文字样式四项、位图换色、反相算法、四模式、提示文案、
+         右栏布局、图标、DraggableNumberField 的 3pt 死区与 8s 兜底。

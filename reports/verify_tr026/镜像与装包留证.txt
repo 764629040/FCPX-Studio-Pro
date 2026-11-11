@@ -1,0 +1,141 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-026-A 镜像与装包留证              2026-11-11 23:18 ~ 23:24
+═══════════════════════════════════════════════════════════════════════════
+
+== 0. 现场（封包前）==
+  外置卷 /Volumes/摄影师工具箱128GB：119Gi 总 / 118Gi 已用 / **708Mi 可用 / 100%**
+  内盘 /tmp：12Gi 可用
+  取证实例 PID 76753 在跑；Final Cut Pro 无进程
+  R2.app 包内二进制：
+    3974096 B  Nov 11 22:38:39 2026
+    b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+  旧镜像 v1.3（封包前）：
+    47855074 B  Nov 11 10:35:57 2026
+    0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+  挂载 v1.3 实测内部（证明落后三个包）：
+    3806800 B  Nov 11 10:35:42 2026
+    sha16 fcc369177a62b0e5
+    根目录只有 FCPX Studio Pro R2.app —— **没有 /Applications 软链、没有说明文件**
+
+== 1. 唯一一条 kill -TERM ==
+  $ kill -TERM 76753     # 用户点名允许；脚本硬闸门 0.2 要求 R2.app 已退出
+    TERM 前 pgrep -x FCPXStudio = 76753
+    TERM 后 pgrep -x FCPXStudio = (空)
+    Final Cut Pro 全程 (空)
+  后台任务 L3552u exit 143 / zy0FU8 exit 143，均为 SIGTERM 的预期结果。
+
+== 2. 用现有脚本封包（没有新写打包脚本）==
+  $ bash tools/s4_rebuild_dmg.sh --version v1.4 --dry-run  → exit 0
+    闸门 0：输出目录内盘 OK / 源包 95644 KiB / pgrep 通过 /
+            /tmp 可用 12507616 KiB（需 ≥ 293688 KiB）/ 幂等 OK
+  $ bash tools/s4_rebuild_dmg.sh --version v1.4            → exit 0
+    [1/4] /tmp stage ← cp -R R2.app
+    [2/4] hdiutil create -volname "FCPX Studio Pro v1.4" -srcfolder stage -format UDZO
+          → /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.4.dmg
+    [3/4] 体积 46290500 B；hdiutil imageinfo OK；attach → cmp -s 逐字节一致；
+          codesign --verify --deep --strict exit 0；detach exit 0
+    [4/4] cp 到内盘 DIST_DIR（并列新版本号，不删旧 dmg）
+
+  ★ 现有脚本的两处最小增量（v1.3 缺这两项，不是新写脚本）：
+    stage 里 `ln -s /Applications "$STAGE_DIR/Applications"`
+    stage 里生成 `安装说明.txt`（版本 / 安装方法 / 内容 / 二进制 sha16 /
+      生成命令 / 中间产物只在 /tmp）
+    --dry-run 打印段同步加两行 echo
+    另加两条 stage 断言：软链存在、说明文件存在，缺一即 die。
+    其余流程 / 参数 / --replace 禁用 / 输出目录策略一字未动。
+
+== 3. 成品（交付卷，只报这一组数字）==
+  $ stat -f "%z B  %Sm" ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg
+    46290500 B  Nov 11 23:18:37 2026   (= 44.15 MiB)
+  红线 55M = 57671680 B → PASS；相对 v1.3 47855074 B 小 1564574 B
+  /tmp/s4_dmg_out/FCPX_Studio_Pro_v1.4.dmg 是**中间产物**，同体积但不作交付卷报数。
+
+== 4. hdiutil verify ==
+  $ hdiutil verify ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg
+    Protective MBR / GPT Header / GPT Partition Data / Apple_APFS / Backup GPT
+    逐段 CRC32 已验证；末行
+    "checksum of ... FCPX_Studio_Pro_v1.4.dmg is VALID"
+    verify_exit=0（全文 hdiutil_verify.txt）
+
+== 5. 挂载内容逐项核对（另挂一次，挂载点 /tmp/tr026_v14_mnt）==
+  $ hdiutil attach <v1.4> -readonly -nobrowse -mountpoint /tmp/tr026_v14_mnt → exit 0
+  $ ls -la 挂载点
+    lrwxr-xr-x  Applications -> /Applications
+    drwxr-xr-x  FCPX Studio Pro R2.app
+    -rw-r--r--  安装说明.txt (574 B)
+
+  -- /Applications 软链 --
+    readlink → /Applications   ✔
+
+  -- 安装说明.txt 全文 --
+    FCPX Studio Pro v1.4 安装说明
+
+    安装：把「FCPX Studio Pro R2.app」拖到本窗口的 Applications 快捷方式即可。
+    内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 —— 含真反相（不吃目标色）、
+          「⇄ 对比色」按钮、X/Y 数值框左右拖动。
+
+    校验（挂载后执行）：
+      shasum -a 256 "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+      sha256 前 16 位应为 b6efcdddb2824b50
+
+    本镜像由 tools/s4_rebuild_dmg.sh --version v1.4 生成；
+    stage 与临时 dmg 均只在 /tmp，成品并列发布，未覆盖旧版本镜像。
+
+  -- dmg 内二进制 vs 包内（用户要求"同一份字节"，这里给完整 64 位）--
+    dmg 内 3974096 B  Nov 11 23:18:13 2026
+      b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+    包内   3974096 B  Nov 11 22:38:39 2026
+      b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+    $ cmp → BYTE_IDENTICAL=YES
+    sha256 完整值相等，不是"差不多新"。
+
+  -- dmg 内 App 严格验签 --
+    $ codesign --verify --strict --deep <挂载点>/FCPX Studio Pro R2.app
+      无输出，exit 0   ✔
+
+== 6. 挂载后真机启动（A-4）==
+  $ "/tmp/tr026_v14_mnt/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" \
+        --open /tmp/tr0241_black_text.psd
+    PID 83292 / CGWindowNumber 5012 / bounds (255,185) 1207×781
+  $ screencapture -l 5012 -o -x → shots/dmg_装机真机.png
+    383532 B  2414×1562  2026-11-11 23:20:16
+  $ cmp shots/dmg_装机真机.png reports/verify_tr025/shots/tr025_装包后_默认态.png
+    → BYTE_IDENTICAL=YES（dmg 装出来的窗口像素与已装包 TR-025 完全一致）
+  局部核对图 shots/dmg_装机真机_右栏局部.png（724×582，原始像素裁剪，未合成）
+  逐字读到：位图换色 / 颜色行「⇄ 对比色」按钮（未设色→灰掉，A3 禁用态）/
+            「未设置」/ 模式「明暗上色」/「未设置换色，当前显示原图像素」/
+            旋转 0.0° / 缩放 100% / X: 0.0 Y: 0.0 / 四个发布复选框。
+  v1.3（3806800 B / fcc36917…）里没有「⇄ 对比色」按钮 → 本图证明装的是 TR-025。
+
+== 7. 退出实例 + 卸载干净 ==
+  dmg 验收实例 83292 用 AppKit NSRunningApplication.terminate() +
+  forceTerminate() 正常退出（**未用 kill -TERM**），pgrep 归零。
+  第一次 terminate() 异步未送达 → detach 返回「资源忙」exit 16；
+  改成脚本内等待 + forceTerminate() 后：
+    $ hdiutil detach /tmp/tr026_v14_mnt → "disk8 ejected." exit 0
+  终检：hdiutil info 里 v1.4 / tr026_v14_mnt / s4_dmg_mnt 出现次数均 0；
+       mount 输出无 FCPX_Studio_Pro / tr026_v14 / s4_dmg 条目；
+       /tmp 下 s4_dmg_mnt.* 七个空目录已 rmdir；
+       /tmp/tr026_v14_mnt 剩一个空目录（rmdir → Operation not permitted，沙盒拦截），
+       但目录内已空、无挂载内容，hdiutil info / mount 均无条目 —— 不影响卸载结论；
+       FCPXStudio 与 Final Cut Pro 均无进程。
+
+== 8. v1.3 保全 ==
+  封包前 47855074 B / 10:35:57 / 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+  封包后 47855074 B / 10:35:57 / 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+  → 逐字节未动，回滚线索保留。DIST_DIR 现在 v1.3 与 v1.4 并列。
+
+== 9. 中间产物只在 /tmp（A-2）==
+  /tmp/s4_dmg_stage.*      stage（cp -R R2.app + 软链 + 说明文件）
+  /tmp/s4_dmg_out/         临时 UDZO dmg（v1.1/v1.2/v1.3 历史 + 本单 v1.4）
+  /tmp/s4_dmg_mnt.*        脚本自身挂载点
+  /tmp/tr026_v14_mnt       本单验收挂载点
+  /tmp/tr026_*             取证工具、日志、截图
+  外置卷只新增 reports/verify_tr026/ 下的文本 + 两张截图（<1 MiB）。
+  脚本 assert_internal_disk 硬拒任何 /Volumes/* 输出。
+
+== 10. 口径披露 ==
+  用户要求 dmg 内二进制 == 当前 R2.app（3974096 B / b6efcddd…），且本单
+  **不重装 R2.app**。所以 v1.4 补齐的是 TR-024-1 / TR-024-2 / TR-025；
+  本单 TR-026-B 的只读态修复只进源码与仓库，不在 v1.4 二进制里，
+  待下一轮重新构建 + 装包。不是漏装，是锁定的口径。
