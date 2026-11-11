@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-024-2 装包留证（cp 后立刻落盘，再重签）      2026-11-11 21:01
+═══════════════════════════════════════════════════════════════════════════
+
+== A. 装包前（旧包内二进制，备份到 /tmp/fcpx_old_bundle_binary_tr0242）==
+  3961904 B  Nov 11 19:55:27 2026
+  dffdf8bde12233d692e7eee7046c3a24534db9b2cd0a25b1b8e5dba996e7bed9
+
+== B. cp 后立刻留证：未签名构件的 stat + sha256 ==
+$ cp /tmp/tr0242_build/release/FCPXStudio "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  3967032 B  Nov 11 21:01:22 2026
+  8ce42777a0290c76ec03e8ce14180aa4203cbe8c13c023eacc4c2a8223d09627  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+
+$ cmp "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" /tmp/tr0242_build/release/FCPXStudio
+  → BYTE_IDENTICAL=YES
+  构建产物同值：3967032 B / 8ce42777a0290c76ec03e8ce14180aa4203cbe8c13c023eacc4c2a8223d09627
+  这一行是「装进去的确实是 20:58:17 那份构建产物」的硬证据 —— 采纳上一轮
+  TR-024-1 的流程建议，在签名动作发生之前就把哈希钉死落盘。
+
+== C. 重签 ==
+$ codesign --force --deep --sign - "FCPX Studio Pro R2.app"
+  → replacing existing signature, sign_exit=0
+$ codesign --verify --strict --deep "FCPX Studio Pro R2.app"
+  → 无输出, verify_exit=0   ✔
+
+== D. 重签后包内二进制（本单只报这一个体积数）==
+$ stat -f "%z B  %Sm" "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  3962144 B  Nov 11 21:01:31 2026
+$ shasum -a 256 "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  c3918c1556384b0f86bc1ea965001ef9a845a5981519a7665234544c37665061
+  前 16 位：c3918c1556384b0f
+
+== E. 体积变化的说明（不是意外）==
+  3967032 → 3962144、8ce42777… → c3918c15… 的差异只来自 C 步的 ad-hoc 重签：
+  签名重写 __LINKEDIT 尾部，嵌入签名与「哈希等于未签名产物」物理上互斥。
+  代码区没有第二个变量 —— B 步的 cmp 已经证明装进去的是原产物逐字节副本。
+  相对前置状态 3961904 B / 19:55:27 的变化，原因是本单要求 11 明确要求
+  「装包并入本单」，本轮重新构建（含真反相）+ 装包 + 重签，不是莫名改动。
+
+== F. 包内改动面 ==
+  find "FCPX Studio Pro R2.app" -type f -newermt "2026-11-11 21:00"
+  → 只有两条：
+    Nov 11 21:01:31 2026  3962144 B  Contents/MacOS/FCPXStudio
+    Nov 11 21:01:31 2026   684150 B  Contents/_CodeSignature/CodeResources
+  Info.plist 与 Resources/ 下 2000+ 文件原封不动。

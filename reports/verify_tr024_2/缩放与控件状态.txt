@@ -1,0 +1,4 @@
+step=01_direct mode=直接替换 缩放=100% modePopup.isEnabled=true colorWell.isEnabled=true hexField.isEnabled=true hexText=#1BFF93 提示行=当前模式：直接替换
+step=02_invert mode=反相 缩放=100% modePopup.isEnabled=true colorWell.isEnabled=false hexField.isEnabled=false hexText=#1BFF93 提示行=反相：不使用目标色，黑白互换
+两张截图缩放一致: 100%
+step=03_invert_nocolor mode=反相 colorOverride="" 缩放=100% colorWell.isEnabled=false hexField.isEnabled=false hexText=未设置 提示行=反相：不使用目标色，黑白互换

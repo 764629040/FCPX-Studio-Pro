@@ -1,0 +1,38 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-024-2（真反相口径）：编译 + harness 比对            2026-11-11 21:2x
+═══════════════════════════════════════════════════════════════════════════
+
+== 1. release 编译 ==
+$ cd FCPXStudioNative && swift build -c release --disable-sandbox --scratch-path /tmp/tr0242_build
+  → Build complete!  exit 0
+  备注：直接跑 swift build（不带 --disable-sandbox）会报
+    error: 'fcpxstudionative': Invalid manifest ... sandbox-exec: sandbox_apply: Operation not permitted
+  这是本机沙盒与 SwiftPM manifest 沙盒叠加，不是代码问题。
+  本轮实际构建产物：/tmp/tr0242_build/release/FCPXStudio
+    3967032 B  Nov 11 20:58:17 2026
+    8ce42777a0290c76ec03e8ce14180aa4203cbe8c13c023eacc4c2a8223d09627
+
+== 2. 取证工具编译 ==
+$ FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+$ swiftc -O -j 8 ${=FILES} tools/tr024b/invert_evidence.swift -o /tmp/tr024b_evidence_bin
+  → 43 个源文件，编译通过，运行 exit 0（全部取证完成）
+  完整运行日志见 取证运行日志.txt
+
+== 3. harness 原样重编译重跑 ==
+$ swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness_tr0242b
+  → 43 个源文件，compile_exit=0（唯一告警 AudioManager.swift:165 AVURLAsset.duration 弃用，历史遗留）
+$ /tmp/tr019r_harness_tr0242b            （cwd = 项目根）
+  → exit=0  行数=69  ❌ 计数=0
+  末三行原文：
+    ✅ 解析器含递归展开 collectLayers
+    PASS = 61   FAIL = 0
+    TR-019-R VERDICT: PASS
+  全文见 tr019r_harness_重跑.txt
+
+== 4. diff -q 与历史日志 ==
+$ diff -q reports/verify_tr024_1/tr019r_harness_重跑.txt reports/verify_tr024_2/tr019r_harness_重跑.txt
+  → 无输出 = 逐字节相同
+$ diff -q reports/verify_tr024/tr019r_harness_重跑.txt reports/verify_tr024_2/tr019r_harness_重跑.txt
+  → 无输出 = 逐字节相同
+
+结论：本轮只改了反相那一条滤镜链与相伴随的闸门/UI，harness 61 项逐条结果一字未变。

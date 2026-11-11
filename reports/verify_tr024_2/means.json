@@ -1,0 +1,125 @@
+[
+  {
+    "mode": "直接替换",
+    "key": "01_direct",
+    "shot": "/tmp/tr024b_shots/01_direct.png",
+    "media": "/tmp/tr024b_export/01_direct/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      27.0,
+      254.96,
+      146.98
+    ],
+    "screen_n": 175506,
+    "screen_modal": [
+      27,
+      255,
+      147
+    ],
+    "export_mean": [
+      27.0,
+      255.0,
+      147.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      27,
+      255,
+      147
+    ],
+    "delta": [
+      -0.0,
+      -0.04,
+      -0.02
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  },
+  {
+    "mode": "反相",
+    "key": "02_invert",
+    "shot": "/tmp/tr024b_shots/02_invert.png",
+    "media": "/tmp/tr024b_export/02_invert/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      254.96,
+      254.96,
+      254.96
+    ],
+    "screen_n": 175483,
+    "screen_modal": [
+      255,
+      255,
+      255
+    ],
+    "export_mean": [
+      255.0,
+      255.0,
+      255.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      255,
+      255,
+      255
+    ],
+    "delta": [
+      -0.04,
+      -0.04,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  },
+  {
+    "mode": "反相·未设色",
+    "key": "03_invert_nocolor",
+    "shot": "/tmp/tr024b_shots/03_invert_nocolor.png",
+    "media": "/tmp/tr024b_export/03_invert_nocolor/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      254.96,
+      254.96,
+      254.96
+    ],
+    "screen_n": 175483,
+    "screen_modal": [
+      255,
+      255,
+      255
+    ],
+    "export_mean": [
+      255.0,
+      255.0,
+      255.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      255,
+      255,
+      255
+    ],
+    "delta": [
+      -0.04,
+      -0.04,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  }
+]

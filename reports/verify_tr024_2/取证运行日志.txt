@@ -1,0 +1,18 @@
+[TR-024-2] 黑字源图: /tmp/tr024b_src/black_text.png（透明底 + 纯黑墨，与 PSD 文字层拆分产物同构）
+[TR-024-2] 窗口 windowNumber=4831 canvasZoom=0.592
+[TR-024-2] 截图 01_direct mode=直接替换 -> OK /tmp/tr024b_shots/01_direct.png
+[TR-024-2] step=01_direct mode=直接替换 缩放=100% modePopup.isEnabled=true colorWell.isEnabled=true hexField.isEnabled=true hexText=#1BFF93 提示行=当前模式：直接替换
+[TR-024-2] 截图 02_invert mode=反相 -> OK /tmp/tr024b_shots/02_invert.png
+[TR-024-2] step=02_invert mode=反相 缩放=100% modePopup.isEnabled=true colorWell.isEnabled=false hexField.isEnabled=false hexText=#1BFF93 提示行=反相：不使用目标色，黑白互换
+[TR-024-2] 两张截图缩放一致: 100%
+[TR-024-2] 截图 03_invert_nocolor -> OK /tmp/tr024b_shots/03_invert_nocolor.png
+[TR-024-2] step=03_invert_nocolor mode=反相 colorOverride="" 缩放=100% colorWell.isEnabled=false hexField.isEnabled=false hexText=未设置 提示行=反相：不使用目标色，黑白互换
+[TR-024-2] 导出 01_direct success=true err=-
+[TR-024-2] 导出 01_direct Media = ["0_black_text_tr024.png"]
+[TR-024-2] 导出 02_invert success=true err=-
+[TR-024-2] 导出 02_invert Media = ["0_black_text_tr024.png"]
+[TR-024-2] 导出 03_invert_nocolor success=true err=-
+[TR-024-2] 导出 03_invert_nocolor Media = ["0_black_text_tr024.png"]
+[TR-024-2] 落点：direct = CIConstantColorGenerator + CIBlendWithAlphaMask；invert = 单条 CIColorInvert（不吃目标色）
+[TR-024-2] meta 写入 /tmp/tr024b_shots/meta.txt
+[TR-024-2] 全部取证完成
