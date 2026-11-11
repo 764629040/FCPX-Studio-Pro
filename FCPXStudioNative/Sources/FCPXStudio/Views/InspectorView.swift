@@ -1258,9 +1258,6 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             let targetY = max(0, rowRect.maxY - clipH)
             scroll.contentView.scroll(to: NSPoint(x: 0, y: targetY))
             scroll.reflectScrolledClipView(scroll.contentView)
-            print(String(format: "[TR-022] after_scroll lastRowY=%.0f clipH=%.0f targetY=%.0f",
-                         rowRect.maxY, clipH, targetY))
-            fflush(stdout)
         }
         let mx = times.min() ?? 0
         let avg = times.reduce(0, +) / Double(max(1, times.count))

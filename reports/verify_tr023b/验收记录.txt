@@ -123,3 +123,235 @@ codesign --verify --deep --strict 通过。
 --------------------------------------------------------------------------------
 未 push、未重建 dmg、未启动 FCPX、未自动退出 App。
 本轮没有改任何 .moti 文件（只读解析）。
+
+================================================================================
+TR-023-B-1 口径补充（2026-11-11 15:5x）
+================================================================================
+本轮只做两件事：① 把四个数（910 / 891 / 694 / 686）的判定规则写死到可复算、
+并新增「口径矩阵」证明四个数同口径；② 删 InspectorView 那两行 TR-022 调试输出。
+未改解析器、未改 UI 逻辑、未改任何判据（四个头条数字逐位不变，见下）。
+
+一、原始命令（照抄可复现）
+--------------------------------------------------------------------------------
+$ cd /tmp/wt_tr023b1
+$ FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+$ swiftc -O -j 8 ${=FILES} tools/tr023b/style_coverage.swift -o /tmp/tr023b_coverage_v2
+$ /tmp/tr023b_coverage_v2 > reports/verify_tr023b/style_coverage.txt
+  -> 1247 个 .moti，解析成功 1241，展开后 12324 层，单次墙钟 111.6 s
+$ cd FCPXStudioNative && swift build -c release --build-path /tmp/fcpx_wd_tr023b1 --disable-sandbox
+  -> Build complete! (42.19s)（只有 AudioManager 既有的 macOS 13 duration 弃用告警）
+
+二、四个数还是原来那四个数（判据一个字没动）
+--------------------------------------------------------------------------------
+字体名 910 / 字号 891 / 对齐 694 / 文字颜色 686，分母 1241，与上一版逐位相同。
+证明手段不是「我看着一样」，是脚本里加了一条等价性自检：用原始 XML 复算
+（复刻 MotiDocumentParser 的 style/字号/对齐/取色逻辑）再和解析器快照逐层逐属性比对：
+
+  比对层数 12324；layer 数不一致的模板 0 个
+  字体名 0 层不一致 / 字号 0 / 对齐 0 / 文字颜色 0
+
+四属性在 12324 层上零差异 —— 说明「重新实现一遍」和「真解析器」是同一口径，
+后面矩阵三列才有可比性。
+
+三、每个属性一句判定规则（报告里也有全文）
+--------------------------------------------------------------------------------
+字体名  该 layer 子树里文档顺序第一个 style 的 parameter[name=字体|Font] → <font> 节点文本，
+        去空白后非空即命中（不是 @value，是节点文本）。
+字号    该 layer 子树里第一个 parameter[name=大小|Size]，取值链 @value → 子 <curve>@value，
+        不退回 @default；解析成 Double 且 > 0 即命中。
+对齐    该 layer 子树里第一个 <paragraphStyle>/parameter[name=对齐|Alignment]，无则退
+        子树里第一个带 @value 或 <curve> 的同名 parameter；取值链同上（不退回 @default），
+        0/1/2 → left/right/center 即命中，其它数值（两端对齐等）→ 空串 → 不命中。
+颜色    该 layer 内按 ①Face/Color ②面/颜色 ③表面/颜色 ④渐变首色标 命中即停；
+        每族要凑齐 RGB（@value → <curve>@value → 该通道 @default 补齐），
+        至少一通道有值才成色；明确不用 物质/颜色、Object/Basic/Substance/Color、轮廓/Outline。
+
+统一前提：候选集 = 从 <ozml>/<scene> 起前序展开的全部 <layer>（含任意嵌套，12324 个）；
+「layer 的子树」包含它内部再嵌的 <layer>（解析器 allStyleElements 就这么走，继承属既有行为）；
+命中判据 = snapshot 该字段非空 / 大于 0。
+
+四、口径矩阵（三列由同一次遍历产出）
+--------------------------------------------------------------------------------
+分母：模板 1241（解析成功）／展开后 layer 12324／含文本参数的 layer 3619
+      （分布在 902 个模板；若只算 layer 自身、不吞子层则是 2025 层）
+
+A. 模板计量
+属性      模板级(1241)        全部 layer 级(1241)    含文本参数 layer 级(分母=902 个模板)
+字体名    910 / 1241  73.3%   910 / 1241  73.3%     902 / 902  100.0%
+字号      891 / 1241  71.8%   891 / 1241  71.8%     883 / 902   97.9%
+对齐      694 / 1241  55.9%   694 / 1241  55.9%     682 / 902   75.6%
+文字颜色  686 / 1241  55.3%   686 / 1241  55.3%     686 / 902   76.1%
+
+  列 1 与列 2 逐位相同，这是恒等式不是巧合：模板级判据本来就是「该模板任一 layer 命中」，
+  所以「全部 layer 级」换算成模板计量必然等于模板级。分母相同（1241）、展开粒度相同
+  （同一批 12324 层），两项都不可能产生差。
+
+B. layer 计量
+属性      全部 layer 级(12324)   含文本参数 layer 级(3619)  参考：仅自身范围(12324)
+字体名    3629 / 12324  29.4%    3617 / 3619  99.9%        2033 / 12324  16.5%
+字号      3583 / 12324  29.1%    3572 / 3619  98.7%        1993 / 12324  16.2%
+对齐      2736 / 12324  22.2%    2698 / 3619  74.6%        1407 / 12324  11.4%
+文字颜色  2743 / 12324  22.3%    2743 / 3619  75.8%        1683 / 12324  13.7%
+
+  「仅自身范围」= 只看 layer 自己的参数树，不吞嵌套子层的 style。它与列 1 的差额
+  就是父层继承子层样式的层数：字体 1596、字号 1590、对齐 1329、颜色 1060。
+  这是既有解析行为（allStyleElements 递归整棵 layer 子树），本轮未改，只量化出来。
+
+五、四个数是不是同一口径 —— 是，逐项给证据
+--------------------------------------------------------------------------------
+1. 同一个解析器遍历：四个数全部来自 for layer in snapshot.layers 这同一个循环，
+   snapshot 由 MotiDocumentParser.parse 各调用一次（每模板一次），四个属性没有任何
+   独立的第二次遍历；矩阵三列也是在这一轮里同时累加的。
+2. 同一个分母：1241（本轮 1247 个文件里 6 个 XML 坏掉，逐位与阶段 1 相同）。
+3. 同一个计数单位：模板。判据是「该模板里存在至少一个命中的 layer」。
+4. 同一个命中判据：snapshot 字段非空 / > 0，四个属性用的是同一套「空串与 0 算没取到」。
+   唯一区别是路径与取值链（上节逐条写死），这是格式事实，不是口径差异。
+
+六、QC 的 910/979/709 与 902/883/697 落到哪一列
+--------------------------------------------------------------------------------
+QC 列                 QC 值   本表落位                                      差
+按全部 layer          字体 910  A 列 1/2 模板级                              0（逐位一致）
+按全部 layer          对齐 709  探针「任意数值都算（不过三档）」              0（逐位一致）
+按全部 layer          字号 979  无逐位匹配；本表 A 列 1/2 = 891                -88
+按含文本参数的 layer  字体 902  A 列 3 含文本参数                            0（逐位一致）
+按含文本参数的 layer  字号 883  A 列 3 含文本参数                            0（逐位一致）
+按含文本参数的 layer  对齐 697  探针「含文本参数 + 任意数值都算」            0（逐位一致）
+
+  6 个里 5 个逐位对上。两处差异的机制是逐段量出来的，不是猜的：
+
+  (a) 对齐 709 / 697：判据差异，不是分母也不是展开粒度
+      本表要求数值落在三档（0/1/2）；QC 把任意数值都算命中。
+      709 - 694 = 15 个模板的对齐值是 3 及以上（两端对齐等），本表映射成空串 → 面板禁用。
+      同一件事在含文本参数列同样成立：697 - 682 = 15。字体两列都逐位相等，
+      反向证明「层展开粒度」不是差异来源（层展开若不同，字体不可能逐位相等）。
+
+  (b) 字号 979：候选集边界差异，分母与计数单位都不是原因
+      891 = 本表 A 列 1/2（layer 内 <style> 下的 大小|Size 且真有值）
+      +72 → 963 = 候选集放宽到「layer 子树里任意位置」（不限 <style> 下）
+      +14 → 977 = 再放宽到「全文档任意位置」（含 layer 之外）
+      979 - 977 = 2 个模板：上面任何一条路径都复现不出来。
+      结论：979 不是 1241 这个分母算错了，也不是「按层计数」与「按模板计数」混了，
+      是候选集把 <style> 之外 / layer 之外的 大小|Size 也算成了模板命中。
+      余下那 2 个模板本轮无法定位，不硬凑，需要 QC 给出模板名才能继续。
+
+七、颜色 160 vs 163：差的这 3 个模板逐条列
+--------------------------------------------------------------------------------
+四套模板级聚合方式（同一批 layer、同一套取色判据）：
+
+源          ① 优先级互斥  ② layer 并集  ③ style 并集  ④ 全文档 style 并集
+Face/Color        374          374           374             374
+面/颜色           160          160           160             163
+表面/颜色          92           92            92              92
+渐变首色标         60           60            61              61
+
+  ① = 本表「每个属性实际取自哪条路径」与 UI 判据用的口径（每模板只记第一个取到颜色的
+  layer 的源，四源相加 = 686）。④ = QC 163 的口径。④ - ① = 3，就是全部差额：
+  这 3 个模板的 面/颜色 命中在「没有 layer 祖先的 <style>」里（scenenode/style 直接挂在
+  group 下，外面没有 <layer> 包一层），MotiDocumentParser 只从 <scene> 起展开 <layer>，
+  走不到这些节点，UI 也永远拿不到它们 —— 算成模板命中会让分子（UI 真能显示的）与分母
+  （1241 个模板）不同源，所以本表不计入。
+
+  1. 03综艺动漫/房子丈夫 2/情感 02/情感 02.moti
+     /scene/group[name=全部]/group[name=全部]/group[name=组 1]/group[name=组]/scenenode[name= 이런 기특한]/style[name=样式] ⇒ #4E2F1B
+  2. 03综艺动漫/扩音器/扩音器01/扩音器01.moti
+     /scene/group[name=全部]/group[name=组8]/group[name=修复位置]/group[name=组7]/group[name=组6]/group[name=组 4]/group[name=全部]/scenenode[name=스태프]/style[name=样式] ⇒ #000000
+  3. 03综艺动漫/超人/扩音器/扩音器01/扩音器01.moti
+     /scene/group[name=全部]/group[name=组8]/group[name=修复位置]/group[name=组7]/group[name=组6]/group[name=组 4]/group[name=全部]/scenenode[name=스태프]/style[name=样式] ⇒ #000000
+
+  另有 3 个模板（美味家伙 05、尹住宿/条/子条 03、全知/点文本 02）也有 layer 外的
+  面/颜色 style，但它们在本表口径下已由 layer 内的命中计过账，所以不造成差额：
+  「layer 外命中 6 个模板 - 已计过账 3 个 = 差额 3 个」。
+
+  可粘贴复算片段（独立实现，不依赖 Swift 侧任何代码，直接对 1247 个 .moti 复算）：
+  $ cd /tmp/wt_tr023b1 && python3 - <<'PY'
+  import os, xml.etree.ElementTree as ET
+  root = os.path.expanduser('~/Movies/Motion Templates.localized/Titles.localized')
+  A, B, detail = set(), set(), {}
+  def walk(e, inlayer, rel, path):
+      for c in e:
+          p = path + "/" + c.tag + (f"[name={c.get('name')}]" if c.get('name') else "")
+          il = inlayer or (c.tag == "layer")
+          if c.tag == "style":
+              for face in c:
+                  if face.get("name") != "面": continue
+                  for col in face:
+                      if col.get("name") != "颜色": continue
+                      if any(g.get("value") is not None for g in col.iter()
+                             if g.tag == "parameter" and g.get("name") in ("红","绿","蓝")):
+                          (A if inlayer else B).add(rel)
+                          if not inlayer: detail.setdefault(rel, p)
+          walk(c, il, rel, p)
+  for dp,_,fs in os.walk(root):
+      for f in fs:
+          if not f.endswith(".moti"): continue
+          fp = os.path.join(dp,f)
+          try: t = ET.parse(fp)
+          except Exception: continue
+          walk(t.getroot(), False, os.path.relpath(fp, root), "")
+  print("layer 内 =", len(A), "并集 =", len(A|B), "只由 layer 外贡献 =", len(B-A))
+  for rel in sorted(B-A): print("  ", rel, "|", detail[rel])
+  PY
+
+  实测输出：layer 内 = 160　并集 = 163　只由 layer 外贡献 = 3
+  3 个模板名与上面的 Swift 侧结果逐字相同 —— 两套独立实现（Swift 全库统计 / Python
+  一次性复算）给出同一个数、同一批模板名。
+
+八、调试残留清理
+--------------------------------------------------------------------------------
+1. 已删（本轮唯一删的）
+   FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift 原 1261-1263 行
+     print(String(format: "[TR-022] after_scroll lastRowY=%.0f clipH=%.0f targetY=%.0f",
+                  rowRect.maxY, clipH, targetY))
+     fflush(stdout)
+   两行一起删，没有补注释：同一个块的上一行已经是「测完停在最底：用最后一行 rect 的
+   maxY 减可视高度算出精确 offset，必贴底。」，再补一句只是噪音。
+   删除后 scroll(to:) / reflectScrolledClipView 仍照常执行，行为不变。
+
+2. 全仓扫描结果（FCPXStudioNative/Sources/FCPXStudio/**/*.swift，共 45 个 .swift）
+   扫描命令：rg -n '\bprint\(|\bdebugPrint\(|NSLog\(|fflush\(' FCPXStudioNative/Sources/FCPXStudio
+   剩余 22 处 print / 0 处 debugPrint / 1 处 NSLog / 13 处 fflush。逐条：
+
+   类别 A：错误日志（只在出错分支打印，生产可用）—— 本轮不处理
+     1  Models/AudioManager.swift:258                print("播放失败: \(error)")
+     2  Views/LUTCompareView.swift:88                print("LUT 渲染失败: \(error)")
+     3  Sockets/MotionBuilderSocket.swift:173         print("Motion Builder Socket Error: \(error)")
+     4  Views/ResourceCardView.swift:570              print("[ResourceCardView] Toggle template failed: …")
+     5  Models/WorkspaceProfileManager.swift:487      print("[WorkspaceProfileManager] 警告: …")
+     6  Views/AssetHubView.swift:1841                 print("[statusLabel][silent][\(site)] \(message)")
+     7  Views/TeamSyncDashboardView.swift:614          NSLog("[TeamSync] 启动服务器失败: \(error)")
+
+   类别 B：TR-0xx 验收 / 性能埋点（跟着测试开关走）—— 本轮不处理，交给收尾条目
+     8  Views/InspectorView.swift                     （原 1261，已删 ← 本轮处理）
+     9  Views/PngSplitConfirmWindow.swift:67          [TR-022] scroll_bottom cards=… NIL   + fflush:68
+     10 Views/PngSplitConfirmWindow.swift:81          [TR-022] scroll_bottom cards=…        + fflush:85
+     11 Views/PngSplitConfirmWindow.swift:265         [TR-022] cards_build …               + fflush:267
+     12 Views/PngSplitConfirmWindow.swift:470         [TR-022] selftest start …
+     13 Views/PngSplitConfirmWindow.swift:474         [TR-022] after_merge …
+     14 Views/PngSplitConfirmWindow.swift:479         [TR-022] after_split …
+     15 Views/PngSplitConfirmWindow.swift:484         [TR-022] after_remove …
+     16 Views/PngSplitConfirmWindow.swift:488         [TR-022] selftest done …             + fflush:490
+     17 Views/MainWindowController.swift:484          [TR-022] moti_preview layers=… parse_ms=…
+     18 Views/MainWindowController.swift:488          [TR-019] moti read-only preview: …     + fflush:490
+     19 Views/MainWindowController.swift:505          [TR-022] scroll_bottom min_ms=…         + fflush:507
+     20 Views/MainWindowController.swift:571          [TR-020] installed split layers …      + fflush:572
+     21 Views/MainWindowController.swift:578          [TR-020] split confirm: …              + fflush:580
+     22 Views/MainWindowController.swift:771          [A-72] PSD loaded: …                   + fflush:774
+
+   类别 C：普通运行日志（不是调试残留，也不属上面两类）—— 本轮不处理
+     23 Views/MainWindowController.swift:831          print("[FontInstaller] 注册字体完成: …")
+     24 Views/MainWindowController.swift:914          print("[BatchExport] 用户取消批处理")
+
+   不算调试输出、已排除：
+     Models/AppConfig.swift:409  proc.arguments = ["-c", "import psd_tools; print('OK')"]
+     这是塞给 python3 子进程做依赖探测的脚本内容，不是 Swift 侧调试输出。
+
+3. 三个测试开关：本轮不清理，只在台账 M.2.1 记了一条待收尾
+   --split-names / --split-selftest / --split-scroll-bottom
+   所在文件 Views/MainWindowController.swift:127-139（解析）+ startPngSplit(...) 传参。
+
+九、纪律
+--------------------------------------------------------------------------------
+只改了 3 个文件：统计脚本（tools/tr023b/style_coverage.swift）、InspectorView（删 2 行）、
+两份报告/台账。没有动解析器、没有动 UI 逻辑、没有动任何判据。
+未 push、未重建 dmg、未启动 FCPX、未自动退出/重启任何 App；未写 Motion 模板库（只读）。
+编译验证：swift build -c release 通过（Build complete! 42.19s）。
