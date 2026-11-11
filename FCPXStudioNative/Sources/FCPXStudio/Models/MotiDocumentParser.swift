@@ -49,6 +49,18 @@ public struct MotiLayerSnapshot {
     /// TR-019-R：该层在源文件中的嵌套深度（0 = 顶层 layer）。供画布分层占位使用。
     public let depth: Int
 
+    // MARK: - TR-023-B：文字样式只读取值（全部只读，不写回、不改既有字段）
+    /// 字体名（style/Font|字体 下的 <font> 文本）。空串 = 没取到。
+    public let fontName: String
+    /// 字号（style/Size|大小 的 value）。0 = 没取到。
+    public let fontSize: Double
+    /// 段落水平对齐："left" / "right" / "center"。空串 = 没取到或不在三档内。
+    public let alignment: String
+    /// 文字填充色 "#RRGGBB"。空串 = 没取到（检查器显示禁用空态）。
+    public let textColor: String
+    /// 取色用到的 XML 路径（仅用于自检与统计，不进 UI 文案）。
+    public let colorSourcePath: String
+
     public init(index: Int,
                 id: String,
                 name: String,
@@ -59,7 +71,12 @@ public struct MotiLayerSnapshot {
                 locked: Bool,
                 fixedWidth: Double?,
                 fixedHeight: Double?,
-                depth: Int = 0) {
+                depth: Int = 0,
+                fontName: String = "",
+                fontSize: Double = 0,
+                alignment: String = "",
+                textColor: String = "",
+                colorSourcePath: String = "") {
         self.index = index
         self.id = id
         self.name = name
@@ -71,6 +88,11 @@ public struct MotiLayerSnapshot {
         self.fixedWidth = fixedWidth
         self.fixedHeight = fixedHeight
         self.depth = depth
+        self.fontName = fontName
+        self.fontSize = fontSize
+        self.alignment = alignment
+        self.textColor = textColor
+        self.colorSourcePath = colorSourcePath
     }
 }
 
@@ -250,11 +272,16 @@ public final class MotiDocumentParser {
                               name: layer.name,
                               kind: "type",
                               text: layer.text,
+                              // TR-023-B：只读取值。空串 / 0 表示「没取到」，检查器据此禁用。
+                              fontName: layer.fontName,
+                              fontSize: layer.fontSize,
                               posX: layer.posX,
                               posY: layer.posY,
                               visible: layer.enabled,
                               diagnosticNotes: notes,
-                              isLocked: true)
+                              alignment: layer.alignment,
+                              isLocked: true,
+                              textColor: layer.textColor)
         }
     }
 
@@ -301,6 +328,10 @@ public final class MotiDocumentParser {
         let enabled = boolAttribute(layer, "enabled", default: true)
         let locked = boolAttribute(layer, "locked", default: false)
 
+        // TR-023-B：文字样式只读取值（优先级与阶段 1 实证一致，见 resolveTextColor）
+        let styles = allStyleElements(in: layer)
+        let styleInfo = resolveTextStyle(from: styles)
+
         return MotiLayerSnapshot(index: index,
                                  id: rawID,
                                  name: name,
@@ -311,7 +342,201 @@ public final class MotiDocumentParser {
                                  locked: locked,
                                  fixedWidth: fixedWidth,
                                  fixedHeight: fixedHeight,
-                                 depth: depth)
+                                 depth: depth,
+                                 fontName: styleInfo.fontName,
+                                 fontSize: styleInfo.fontSize,
+                                 alignment: resolveAlignment(in: layer),
+                                 textColor: styleInfo.textColor,
+                                 colorSourcePath: styleInfo.colorSource)
+    }
+
+    // MARK: - TR-023-B：文字样式只读提取（不修改任何既有解析行为）
+
+    /// layer 子树里的全部 <style>（多段文字会有多个），文档顺序。
+    private static func allStyleElements(in layer: XMLElement) -> [XMLElement] {
+        var result: [XMLElement] = []
+        func walk(_ element: XMLElement) {
+            for child in element.children ?? [] {
+                guard let el = child as? XMLElement else { continue }
+                if el.name == "style" { result.append(el) }
+                walk(el)
+            }
+        }
+        walk(layer)
+        return result
+    }
+
+    /// 直接子 parameter 里按名字取第一个。
+    private static func childParameter(_ parent: XMLElement?, names: [String]) -> XMLElement? {
+        guard let parent else { return nil }
+        for parameter in parent.elements(forName: "parameter") {
+            if let name = attribute(parameter, "name"), names.contains(name) {
+                return parameter
+            }
+        }
+        return nil
+    }
+
+    /// 只认「参数自身 @value」或「子元素 <curve> 的 @value」（阶段 1 实证的两种写法）。
+    /// 不退回 @default：缺实际值说明该参数没被写过，不能当数据。
+    private static func explicitValue(_ element: XMLElement?) -> Double? {
+        guard let element else { return nil }
+        if let raw = attribute(element, "value")?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+           let number = Double(raw) {
+            return number
+        }
+        if let curve = element.elements(forName: "curve").first,
+           let raw = attribute(curve, "value")?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty {
+            return Double(raw)
+        }
+        return nil
+    }
+
+    /// 在「参数自身 @value」→「子元素 <curve> 的 @value」→「@default」里取值。
+    /// 只用于颜色三通道：Motion 允许只写部分通道（例如只写 绿/蓝），
+    /// 缺失通道按 XML 自己声明的 @default 补齐，不是我们编造的颜色。
+    private static func declaredValue(_ element: XMLElement?) -> Double? {
+        if let value = explicitValue(element) { return value }
+        guard let element,
+              let raw = attribute(element, "default")?
+                .trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return nil }
+        return Double(raw)
+    }
+
+    /// 取 RGB 三通道。Motion 常只写发生变化的那一两个通道（例如只写「红色」），
+    /// 缺失通道按同族参数自己声明的 @default 补齐（红/绿/蓝默认都是 1），
+    /// 一个通道都没写才算「这一族没有颜色」，避免把 #FFFFFF 猜成 #FF0000。
+    private static func rgbHex(_ parent: XMLElement?,
+                               red: [String], green: [String], blue: [String]) -> String? {
+        let nodes = [childParameter(parent, names: red),
+                     childParameter(parent, names: green),
+                     childParameter(parent, names: blue)]
+        let values = nodes.map { declaredValue($0) }
+        guard values.contains(where: { $0 != nil }) else { return nil }
+        let siblingDefault = parent?.elements(forName: "parameter")
+            .compactMap { attribute($0, "default").flatMap { Double($0.trimmingCharacters(in: .whitespaces)) } }
+            .first ?? 1.0
+        let resolved = values.map { $0 ?? siblingDefault }
+        guard resolved.count == 3 else { return nil }
+        func channel(_ raw: Double) -> Int {
+            return Int((max(0.0, min(1.0, raw)) * 255.0).rounded())
+        }
+        return String(format: "#%02X%02X%02X",
+                      channel(resolved[0]), channel(resolved[1]), channel(resolved[2]))
+    }
+
+    /// 字号 / 字体 / 颜色三件套（都长在 style 下），取第一个有值的 style。
+    private static func resolveTextStyle(from styles: [XMLElement])
+        -> (fontName: String, fontSize: Double, textColor: String, colorSource: String) {
+        var fontName = ""
+        var fontSize: Double = 0
+        var textColor = ""
+        var source = ""
+
+        for style in styles {
+            if fontName.isEmpty,
+               let fontParameter = childParameter(style, names: ["字体", "Font"]),
+               let fontElement = fontParameter.elements(forName: "font").first {
+                let raw = (fontElement.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if !raw.isEmpty { fontName = raw }
+            }
+            if fontSize <= 0,
+               let size = explicitValue(childParameter(style, names: ["大小", "Size"])), size > 0 {
+                fontSize = size
+            }
+            if textColor.isEmpty, let hit = resolveTextColor(style: style) {
+                textColor = hit.hex
+                source = hit.source
+            }
+        }
+        return (fontName, fontSize, textColor, source)
+    }
+
+    /// 取色优先级（阶段 1 实证）：Face/Color → 面/颜色 → 表面/颜色 → 渐变首色标。
+    /// 明确排除 物质/颜色 与 Object/Basic/Substance/Color（全库实测只有空壳），
+    /// 也排除 轮廓/Outline（描边色，不是主色）。
+    private static func resolveTextColor(style: XMLElement) -> (hex: String, source: String)? {
+        if let face = childParameter(style, names: ["Face"]),
+           let color = childParameter(face, names: ["Color"]),
+           let hex = rgbHex(color, red: ["Red"], green: ["Green"], blue: ["Blue"]) {
+            return (hex, "Face/Color")
+        }
+        if let face = childParameter(style, names: ["面"]),
+           let color = childParameter(face, names: ["颜色"]),
+           let hex = rgbHex(color, red: ["红"], green: ["绿"], blue: ["蓝"]) {
+            return (hex, "面/颜色")
+        }
+        if let surface = childParameter(style, names: ["表面"]),
+           let color = childParameter(surface, names: ["颜色"]),
+           let hex = rgbHex(color, red: ["红色", "红"], green: ["绿色", "绿"], blue: ["蓝色", "蓝"]) {
+            return (hex, "表面/颜色")
+        }
+        // 渐变首色标兜底：表面/渐变/RGB/RGB1/颜色、Face/Gradient/RGB/RGB1/Color、顶层 渐变/RGB/RGB1
+        let gradientHosts: [(XMLElement?, [String], [String])] = [
+            (childParameter(style, names: ["表面"]), ["渐变"], ["颜色"]),
+            (childParameter(style, names: ["Face"]), ["Gradient"], ["Color"]),
+            (style, ["渐变", "Gradient"], ["颜色", "Color"])
+        ]
+        for (host, gradientNames, colorNames) in gradientHosts {
+            guard let gradient = childParameter(host, names: gradientNames),
+                  let rgb = childParameter(gradient, names: ["RGB"]),
+                  let stop = childParameter(rgb, names: ["RGB1"]),
+                  let color = childParameter(stop, names: colorNames),
+                  let hex = rgbHex(color,
+                                   red: ["红色", "Red"], green: ["绿色", "Green"], blue: ["蓝色", "Blue"])
+            else { continue }
+            return (hex, "渐变首色标")
+        }
+        return nil
+    }
+
+    /// 段落水平对齐：先 paragraphStyle，再 对象/段落/段落。数值按 AppKit 的
+    /// NSTextAlignment 取值（0 左 / 1 右 / 2 居中，与 core/psd_parser.py 的
+    /// justification 映射一致）；其余值不在三档内，返回空串让控件走空态。
+    private static func resolveAlignment(in layer: XMLElement) -> String {
+        if let paragraphStyle = firstDescendant(in: layer, tag: "paragraphStyle"),
+           let parameter = childParameter(paragraphStyle, names: ["对齐", "Alignment"]),
+           let raw = explicitValue(parameter) {
+            return alignmentName(raw)
+        }
+        if let parameter = firstParameter(in: layer, names: ["对齐", "Alignment"]) {
+            return alignmentName(explicitValue(parameter) ?? -1)
+        }
+        return ""
+    }
+
+    private static func alignmentName(_ raw: Double) -> String {
+        switch Int(raw.rounded()) {
+        case 0: return "left"
+        case 1: return "right"
+        case 2: return "center"
+        default: return ""
+        }
+    }
+
+    private static func firstDescendant(in element: XMLElement, tag: String) -> XMLElement? {
+        for child in element.children ?? [] {
+            guard let el = child as? XMLElement else { continue }
+            if el.name == tag { return el }
+            if let hit = firstDescendant(in: el, tag: tag) { return hit }
+        }
+        return nil
+    }
+
+    /// 全树第一个带 @value 的指定名字 parameter（用于 对象/段落/段落/对齐 这种深层路径）。
+    private static func firstParameter(in element: XMLElement, names: [String]) -> XMLElement? {
+        for child in element.children ?? [] {
+            guard let el = child as? XMLElement else { continue }
+            if el.name == "parameter",
+               let name = attribute(el, "name"), names.contains(name),
+               attribute(el, "value") != nil || el.elements(forName: "curve").first != nil {
+                return el
+            }
+            if let hit = firstParameter(in: el, names: names) { return hit }
+        }
+        return nil
     }
 
     // MARK: - 画布尺寸（只返回一条大白话说明）

@@ -23,6 +23,9 @@ public final class LayerModel: NSObject {
     /// R34: 段落对齐 ("left" / "center" / "right") 与真实行距
     public var alignment: String
     public var lineSpacing: Double
+    /// TR-023-B：文字填充色 HEX（"#RRGGBB"）。空串 = 该层没有取到颜色，
+    /// 检查器据此显示禁用态 + 空态文案，禁止用默认色冒充可用数据。
+    public var textColor: String
     /// R33 / A-68：PSD 图层包围盒 (left, top, right, bottom)，位图层按它定位/缩放。
     /// 文本层也带上，便于画布做选中框与拾取的一致性处理。
     public var psdBBox: [Double]
@@ -74,7 +77,7 @@ public final class LayerModel: NSObject {
                 missingChars: [String] = [], fontStatus: String = "",
                 hasConfirmedMissingGlyphs: Bool = false, hasGlyphRisk: Bool = false,
                 alignment: String = "center", lineSpacing: Double = 0.0,
-                isLocked: Bool = false) {
+                isLocked: Bool = false, textColor: String = "") {
         self.id = id
         self.name = name
         self.kind = kind
@@ -103,6 +106,7 @@ public final class LayerModel: NSObject {
         self.hasGlyphRisk = hasGlyphRisk
         self.alignment = alignment
         self.lineSpacing = lineSpacing
+        self.textColor = textColor
         super.init()
     }
 
@@ -136,7 +140,8 @@ public final class LayerModel: NSObject {
             hasGlyphRisk: hasGlyphRisk,
             alignment: alignment,
             lineSpacing: lineSpacing,
-            isLocked: isLocked
+            isLocked: isLocked,
+            textColor: textColor
         )
         copy.publishText = self.publishText
         copy.publishFont = self.publishFont
@@ -177,6 +182,7 @@ public final class LayerModel: NSObject {
         self.hasGlyphRisk = other.hasGlyphRisk
         self.alignment = other.alignment
         self.lineSpacing = other.lineSpacing
+        self.textColor = other.textColor
         self.publishText = other.publishText
         self.publishFont = other.publishFont
         self.publishSize = other.publishSize

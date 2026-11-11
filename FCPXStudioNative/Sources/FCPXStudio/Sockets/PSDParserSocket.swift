@@ -367,6 +367,8 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             var diagNotes = item["diagnostic_notes"] as? [String] ?? []
             let alignment = item["alignment"] as? String ?? "center"
             let lineSpacing = item["line_spacing"] as? Double ?? (fontSize * 1.2)
+            // TR-023-B：文字填充色（桥接给的 HEX）。空串 = 没取到，检查器走禁用空态。
+            let textColor = item["text_color"] as? String ?? ""
 
             // UI-G049: 关键字段缺失检测与告警
             var layerDegraded = false
@@ -415,7 +417,7 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
                 missingChars: missingChars, fontStatus: fontStatus,
                 hasConfirmedMissingGlyphs: hasConfirmedMissingGlyphs, hasGlyphRisk: hasGlyphRisk,
                 alignment: alignment, lineSpacing: lineSpacing,
-                isLocked: isLocked
+                isLocked: isLocked, textColor: textColor
             )
             result.append(model)
         }

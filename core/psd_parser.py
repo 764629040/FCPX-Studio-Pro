@@ -611,7 +611,8 @@ class PSDLayerInfo:
                  marked_text: str = "",
                  missing_glyph_visible_marker: bool = False,
                  smart_object_policy: str = "flatten",
-                 alignment: str = "center"):
+                 alignment: str = "center",
+                 text_color: str = ""):
         self.index = index
         self.name = name
         self.kind = kind  # "type" (文字) 或 "fallback_png" (降级贴图)
@@ -673,6 +674,8 @@ class PSDLayerInfo:
         self.missing_glyph_visible_marker = missing_glyph_visible_marker
         self.smart_object_policy = smart_object_policy
         self.alignment = alignment
+        # TR-023-B：文字填充色 HEX（"#RRGGBB"），空串 = 未取到
+        self.text_color = text_color
 
         # 详细发布参数清单
         self.published_channels = {
@@ -714,6 +717,7 @@ class PSDLayerInfo:
             "tracking": self.tracking,
             "line_spacing": self.line_spacing,
             "alignment": self.alignment,
+            "text_color": self.text_color,
             "psd_bbox": self.psd_bbox,
             "motion_pos": self.motion_pos,
             "safe_area": self.safe_area,
@@ -1248,6 +1252,9 @@ def parse_psd_file(
             tracking = 0.0
             line_spacing = round(font_size * 1.2, 5)
             alignment = "left"
+            # TR-023-B：文字填充色（PSD 文字层 StyleSheetData.FillColor，0..1 浮点）。
+            # 取不到就留空串，Swift 侧据此显示禁用空态，不填假色。
+            text_color = ""
             try:
                 engine_data = layer.engine_dict
                 style_runs = engine_data.get("StyleRun", {}).get("RunArray", [])
@@ -1255,6 +1262,21 @@ def parse_psd_file(
                     sheet_data = style_runs[0]["StyleSheet"].get("StyleSheetData", {})
                     font_size = float(sheet_data.get("FontSize", 36.0))
                     tracking = float(sheet_data.get("Tracking", 0.0)) / 1000.0
+
+                    # TR-023-B：FillColor.Values = [r, g, b, a]（0..1）。缺项/越界一律丢弃。
+                    fill_values = (sheet_data.get("FillColor") or {}).get("Values") or []
+                    if len(fill_values) >= 3:
+                        channels = []
+                        for raw_channel in fill_values[:3]:
+                            try:
+                                channels.append(max(0.0, min(1.0, float(raw_channel))))
+                            except (TypeError, ValueError):
+                                channels = []
+                                break
+                        if len(channels) == 3:
+                            text_color = "#%02X%02X%02X" % tuple(
+                                int(round(c * 255)) for c in channels
+                            )
 
                     auto_leading = sheet_data.get("AutoLeading", True)
                     leading_val = sheet_data.get("Leading")
@@ -1333,7 +1355,8 @@ def parse_psd_file(
                 marked_text=marked_text,
                 missing_glyph_visible_marker=missing_glyph_visible_marker,
                 smart_object_policy=smart_object_policy,
-                alignment=alignment
+                alignment=alignment,
+                text_color=text_color
             )
             layers_info.append(layer_info)
             text_layers_count += 1

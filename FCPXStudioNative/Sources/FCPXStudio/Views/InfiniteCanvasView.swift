@@ -805,8 +805,19 @@ public final class InfiniteCanvasView: NSView {
         return (finalX, finalY, guides)
     }
 
-    private func drawLayer(_ layer: LayerModel, isSelected: Bool, ctx: CGContext) {
-        // R33 / A-68：位图层走位图渲染分支（旧实现只有文字路径，位图层画出来是空的）
+    /// TR-023-B：把 "#RRGGBB" 解析成 NSColor。空串 / 格式不对返回 nil，
+    /// 调用方退回 labelColor —— 绝不拿默认色冒充「已取到颜色」。
+    static func textColor(fromHex hex: String) -> NSColor? {
+        let raw = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard raw.count == 7, raw.hasPrefix("#"),
+              let value = UInt32(raw.dropFirst(), radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255.0,
+                       green: CGFloat((value >> 8) & 0xFF) / 255.0,
+                       blue: CGFloat(value & 0xFF) / 255.0,
+                       alpha: 1.0)
+    }
+
+    private func drawLayer(_ layer: LayerModel, isSelected: Bool, ctx: CGContext) {        // R33 / A-68：位图层走位图渲染分支（旧实现只有文字路径，位图层画出来是空的）
         if layer.isBitmapLayer {
             drawBitmap(layer: layer, isSelected: isSelected, ctx: ctx)
             return
@@ -840,8 +851,8 @@ public final class InfiniteCanvasView: NSView {
 
         let attrs: [NSAttributedString.Key: Any] = [
             .font: font,
-            // UI-O008: 改用语义化 labelColor，确保未来切浅色主题时文字不消失
-            .foregroundColor: NSColor.labelColor,
+            // UI-O008: 未取到颜色时退回语义化 labelColor，确保未来切浅色主题时文字不消失
+            .foregroundColor: Self.textColor(fromHex: layer.textColor) ?? NSColor.labelColor,
             .paragraphStyle: style
         ]
 

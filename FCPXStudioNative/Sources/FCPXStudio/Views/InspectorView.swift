@@ -52,10 +52,31 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     public var publishRotCheck: NSButton!
     public var publishScaleCheck: NSButton!
 
+    // MARK: - TR-023-B 文字样式分组插口（字号 / 对齐 / 颜色 / 当前字体名）
+    // 只覆盖阶段 2 放行的四项。字距、行距、行高、描边、阴影、渐变一概不做。
+    public private(set) var textStyleGroup: NSStackView!
+    public private(set) var textStyleTitleLabel: NSTextField!
+    public private(set) var fontSizeField: NSTextField!
+    public private(set) var fontSizeStepper: NSStepper!
+    public private(set) var alignmentSegment: NSSegmentedControl!
+    public private(set) var colorWell: NSColorWell!
+    public private(set) var colorHexField: NSTextField!
+    public private(set) var fontNameLabel: NSTextField!
+    public private(set) var fontReplaceButton: NSButton!
+
     public var layers: [LayerModel] = [] {
         didSet {
             layerTableView?.reloadData()
-            if !layers.isEmpty && currentSelectedLayer == nil {
+            // TR-023-B：换数据源（PSD ↔ .moti 预览）时，旧选中对象已经不在新列表里，
+            // 必须重选第 0 层，否则面板会一直挂着上一份数据源的属性值。
+            let stillPresent = currentSelectedLayer.map { current in
+                layers.contains { $0 === current }
+            } ?? false
+            if layers.isEmpty {
+                currentSelectedLayer = nil
+                refreshTextStyleControls()
+            } else if !stillPresent {
+                currentSelectedLayer = nil
                 selectLayer(at: 0)
             }
         }
@@ -370,6 +391,139 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         textScroll.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
         textScroll.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
 
+        // ── 2.5 文字样式（TR-023-B）────────────────────────────────────────
+        // 复用 mainStack 垂直分组 + TypeScale 标题，不新造样式体系。
+        // 无数据的属性一律显示「—」并禁用，不用 0 / 默认值冒充可用。
+        let styleGroup = NSStackView()
+        styleGroup.orientation = .vertical
+        styleGroup.alignment = .leading
+        styleGroup.spacing = 6
+        styleGroup.translatesAutoresizingMaskIntoConstraints = false
+        textStyleGroup = styleGroup
+
+        let styleTitle = NSTextField(labelWithString: "文字样式")
+        styleTitle.font = TypeScale.bodyBold
+        styleTitle.textColor = .white
+        styleTitle.translatesAutoresizingMaskIntoConstraints = false
+        styleTitle.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        styleTitle.setContentCompressionResistancePriority(.required, for: .vertical)
+        styleTitle.setContentHuggingPriority(.required, for: .vertical)
+        textStyleTitleLabel = styleTitle
+        styleGroup.addArrangedSubview(styleTitle)
+
+        let minorLabelColor = NSColor(calibratedWhite: 0.8, alpha: 1.0)
+
+        // 字号
+        let sizeRow = NSStackView()
+        sizeRow.orientation = .horizontal
+        sizeRow.spacing = 6
+        let sizeLabel = NSTextField(labelWithString: "字号:")
+        sizeLabel.font = .systemFont(ofSize: 11)
+        sizeLabel.textColor = minorLabelColor
+        sizeLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        sizeRow.addArrangedSubview(sizeLabel)
+
+        fontSizeField = NSTextField(string: "—")
+        fontSizeField.font = .systemFont(ofSize: 11)
+        fontSizeField.alignment = .right
+        fontSizeField.widthAnchor.constraint(equalToConstant: 74).isActive = true
+        fontSizeField.target = self
+        fontSizeField.action = #selector(onFontSizeFieldCommitted)
+        sizeRow.addArrangedSubview(fontSizeField)
+
+        fontSizeStepper = NSStepper()
+        fontSizeStepper.minValue = 1
+        fontSizeStepper.maxValue = 2000
+        fontSizeStepper.increment = 1
+        fontSizeStepper.valueWraps = false
+        fontSizeStepper.target = self
+        fontSizeStepper.action = #selector(onFontSizeStepperChanged)
+        sizeRow.addArrangedSubview(fontSizeStepper)
+        styleGroup.addArrangedSubview(sizeRow)
+
+        // 对齐（左 / 中 / 右三档，与 AppKit NSTextAlignment 数值一致）
+        let alignRow = NSStackView()
+        alignRow.orientation = .horizontal
+        alignRow.spacing = 6
+        let alignLabel = NSTextField(labelWithString: "对齐:")
+        alignLabel.font = .systemFont(ofSize: 11)
+        alignLabel.textColor = minorLabelColor
+        alignLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        alignRow.addArrangedSubview(alignLabel)
+
+        alignmentSegment = NSSegmentedControl(labels: ["左", "中", "右"],
+                                             trackingMode: .selectOne,
+                                             target: self,
+                                             action: #selector(onAlignmentSegmentChanged))
+        alignmentSegment.segmentStyle = .rounded
+        alignmentSegment.controlSize = .small
+        alignmentSegment.selectedSegment = -1
+        alignRow.addArrangedSubview(alignmentSegment)
+        styleGroup.addArrangedSubview(alignRow)
+
+        // 文字颜色（系统调色板 + HEX 输入）
+        let colorRow = NSStackView()
+        colorRow.orientation = .horizontal
+        colorRow.spacing = 6
+        let colorLabel = NSTextField(labelWithString: "颜色:")
+        colorLabel.font = .systemFont(ofSize: 11)
+        colorLabel.textColor = minorLabelColor
+        colorLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        colorRow.addArrangedSubview(colorLabel)
+
+        colorWell = NSColorWell()
+        colorWell.target = self
+        colorWell.action = #selector(onColorWellChanged)
+        colorWell.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        colorWell.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        colorRow.addArrangedSubview(colorWell)
+
+        colorHexField = NSTextField(string: "未取到")
+        colorHexField.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+        colorHexField.widthAnchor.constraint(equalToConstant: 84).isActive = true
+        colorHexField.target = self
+        colorHexField.action = #selector(onColorHexFieldCommitted)
+        colorRow.addArrangedSubview(colorHexField)
+        styleGroup.addArrangedSubview(colorRow)
+
+        // 当前字体名（只读显示 + 替换入口）
+        let fontRow = NSStackView()
+        fontRow.orientation = .horizontal
+        fontRow.spacing = 6
+        let fontLabel = NSTextField(labelWithString: "字体:")
+        fontLabel.font = .systemFont(ofSize: 11)
+        fontLabel.textColor = minorLabelColor
+        fontLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        fontRow.addArrangedSubview(fontLabel)
+
+        fontNameLabel = NSTextField(labelWithString: "未取到")
+        fontNameLabel.font = .systemFont(ofSize: 11)
+        fontNameLabel.textColor = NSColor(calibratedWhite: 0.9, alpha: 1.0)
+        fontNameLabel.lineBreakMode = .byTruncatingMiddle
+        fontNameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        fontRow.addArrangedSubview(fontNameLabel)
+
+        fontReplaceButton = NSButton(title: "替换", target: self, action: #selector(onReplaceFontClicked))
+        fontReplaceButton.bezelStyle = .rounded
+        fontReplaceButton.controlSize = .small
+        fontReplaceButton.font = .systemFont(ofSize: 11)
+        fontReplaceButton.setContentHuggingPriority(.required, for: .horizontal)
+        fontRow.addArrangedSubview(fontReplaceButton)
+        styleGroup.addArrangedSubview(fontRow)
+
+        mainStack.addArrangedSubview(styleGroup)
+        styleGroup.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        styleGroup.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
+        sizeRow.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
+        sizeRow.trailingAnchor.constraint(equalTo: styleGroup.trailingAnchor).isActive = true
+        alignRow.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
+        alignRow.trailingAnchor.constraint(equalTo: styleGroup.trailingAnchor).isActive = true
+        colorRow.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
+        colorRow.trailingAnchor.constraint(equalTo: styleGroup.trailingAnchor).isActive = true
+        fontRow.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
+        fontRow.trailingAnchor.constraint(equalTo: styleGroup.trailingAnchor).isActive = true
+        styleTitle.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
+
         // 旋转 Rotation 控制
         let rotStack = NSStackView()
         rotStack.orientation = .horizontal
@@ -614,8 +768,216 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         onLayerModified?(layer)
     }
 
-    public func updateControlStates(isLocked: Bool) {
-        // TR-019-R：只读预览态下横幅只显示「只读，不可编辑」
+    // MARK: - TR-023-B 文字样式：动作
+    /// 只读预览态 / 图层锁定态一律不许改（与 updateControlStates 同一处判据）。
+    private var canEditTextStyle: Bool {
+        guard let layer = currentSelectedLayer else { return false }
+        return !motiReadOnlyMode && !layer.isLocked
+    }
+
+    @objc private func onFontSizeFieldCommitted() {
+        guard let layer = currentSelectedLayer, canEditTextStyle else {
+            refreshTextStyleControls()
+            return
+        }
+        let raw = fontSizeField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = Double(raw), value > 0 else {
+            refreshTextStyleControls()
+            return
+        }
+        let clamped = min(2000.0, max(1.0, value))
+        layer.fontSize = (clamped * 10).rounded() / 10
+        fontSizeField.stringValue = Self.formatFontSize(layer.fontSize)
+        fontSizeStepper.doubleValue = layer.fontSize
+        onLayerModified?(layer)
+    }
+
+    @objc private func onFontSizeStepperChanged() {
+        guard let layer = currentSelectedLayer, canEditTextStyle else { return }
+        let value = fontSizeStepper.doubleValue
+        layer.fontSize = (value * 10).rounded() / 10
+        fontSizeField.stringValue = Self.formatFontSize(layer.fontSize)
+        onLayerModified?(layer)
+    }
+
+    @objc private func onAlignmentSegmentChanged() {
+        guard let layer = currentSelectedLayer, canEditTextStyle else { return }
+        switch alignmentSegment.selectedSegment {
+        case 0: layer.alignment = "left"
+        case 1: layer.alignment = "center"
+        case 2: layer.alignment = "right"
+        default: return
+        }
+        onLayerModified?(layer)
+    }
+
+    @objc private func onColorWellChanged() {
+        guard let layer = currentSelectedLayer, canEditTextStyle else { return }
+        let hex = Self.hexString(from: colorWell.color)
+        layer.textColor = hex
+        colorHexField.stringValue = hex
+        onLayerModified?(layer)
+    }
+
+    @objc private func onColorHexFieldCommitted() {
+        guard let layer = currentSelectedLayer, canEditTextStyle else {
+            refreshTextStyleControls()
+            return
+        }
+        guard let color = Self.color(fromHex: colorHexField.stringValue) else {
+            // 输入不合法：回退到图层真值，不静默吞掉也不写入脏值
+            refreshTextStyleControls()
+            return
+        }
+        let hex = Self.hexString(from: color)
+        layer.textColor = hex
+        colorWell.color = color
+        colorHexField.stringValue = hex
+        onLayerModified?(layer)
+    }
+
+    @objc private func onReplaceFontClicked() {
+        guard let layer = currentSelectedLayer, canEditTextStyle,
+              let button = fontReplaceButton else { return }
+        let menu = NSMenu()
+        let current = NSMenuItem(title: "当前：\(layer.fontName)", action: nil, keyEquivalent: "")
+        current.isEnabled = false
+        menu.addItem(current)
+        menu.addItem(.separator())
+        for family in NSFontManager.shared.availableFontFamilies.sorted() {
+            let item = NSMenuItem(title: family, action: #selector(onPickFontFamily(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = family
+            menu.addItem(item)
+        }
+        menu.popUp(positioning: nil,
+                   at: NSPoint(x: 0, y: button.bounds.height + 2),
+                   in: button)
+    }
+
+    @objc private func onPickFontFamily(_ sender: NSMenuItem) {
+        guard let family = sender.representedObject as? String else { return }
+        let postScript = (NSFontManager.shared.availableMembers(ofFontFamily: family)?
+            .first?.first as? String) ?? family
+        applyFontName(postScript)
+    }
+
+    /// 替换字体（harness 直接调这个，不依赖菜单弹出）。
+    public func applyFontName(_ name: String) {
+        guard let layer = currentSelectedLayer, canEditTextStyle else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        layer.fontName = trimmed
+        fontNameLabel.stringValue = trimmed
+        onLayerModified?(layer)
+    }
+
+    // MARK: - TR-023-B 文字样式：状态刷新
+
+    /// 把当前选中图层的文字样式同步到控件。没数据的属性显示「—」并禁用。
+    public func refreshTextStyleControls() {
+        guard let layer = currentSelectedLayer else {
+            fontSizeField?.stringValue = "—"
+            fontSizeStepper?.doubleValue = 1
+            alignmentSegment?.selectedSegment = -1
+            colorHexField?.stringValue = "未取到"
+            colorWell?.color = Self.emptyColorWellPlaceholder
+            fontNameLabel?.stringValue = "未取到"
+            applyTextStyleEnabledState()
+            return
+        }
+        if layer.fontSize > 0 {
+            fontSizeField?.stringValue = Self.formatFontSize(layer.fontSize)
+            fontSizeStepper?.doubleValue = layer.fontSize
+        } else {
+            fontSizeField?.stringValue = "—"
+            fontSizeStepper?.doubleValue = 1
+        }
+        switch layer.alignment.lowercased() {
+        case "left":   alignmentSegment?.selectedSegment = 0
+        case "center": alignmentSegment?.selectedSegment = 1
+        case "right":  alignmentSegment?.selectedSegment = 2
+        default:       alignmentSegment?.selectedSegment = -1
+        }
+        if let color = Self.color(fromHex: layer.textColor) {
+            colorWell?.color = color
+            colorHexField?.stringValue = Self.hexString(from: color)
+        } else {
+            colorWell?.color = Self.emptyColorWellPlaceholder
+            colorHexField?.stringValue = "未取到"
+        }
+        fontNameLabel?.stringValue = layer.fontName.isEmpty ? "未取到" : layer.fontName
+        applyTextStyleEnabledState()
+    }
+
+    /// 启用/禁用只跟「是否可编辑」和「该属性有没有真值」两件事有关。
+    /// 空态一律给 toolTip 说明原因，不出现可点的 0 值控件。
+    private func applyTextStyleEnabledState() {
+        guard let layer = currentSelectedLayer else {
+            fontSizeField?.isEnabled = false
+            fontSizeStepper?.isEnabled = false
+            alignmentSegment?.isEnabled = false
+            colorWell?.isEnabled = false
+            colorHexField?.isEnabled = false
+            fontReplaceButton?.isEnabled = false
+            return
+        }
+        let editable = canEditTextStyle
+        let hasSize = layer.fontSize > 0
+        let hasAlignment = !layer.alignment.isEmpty
+        let hasColor = Self.color(fromHex: layer.textColor) != nil
+        let hasFont = !layer.fontName.isEmpty
+
+        fontSizeField?.isEnabled = editable && hasSize
+        fontSizeStepper?.isEnabled = editable && hasSize
+        alignmentSegment?.isEnabled = editable && hasAlignment
+        colorWell?.isEnabled = editable && hasColor
+        colorHexField?.isEnabled = editable && hasColor
+        fontReplaceButton?.isEnabled = editable && hasFont
+
+        fontSizeField?.toolTip = hasSize ? nil : "该图层没有字号数据（模板未写 Size / 大小）"
+        fontSizeStepper?.toolTip = fontSizeField?.toolTip
+        alignmentSegment?.toolTip = hasAlignment
+            ? nil
+            : "该图层没有左 / 中 / 右三档对齐数据（未写对齐，或为两端对齐等其它取值）"
+        let colorTip = hasColor
+            ? nil
+            : "该图层没有取到文字填充色（物质/颜色 与 Object/Basic/Substance/Color 实测为空壳，不作取色源）"
+        colorWell?.toolTip = colorTip
+        colorHexField?.toolTip = colorTip
+        fontReplaceButton?.toolTip = hasFont ? nil : "该图层没有字体名数据"
+    }
+
+    static func formatFontSize(_ value: Double) -> String {
+        if value == value.rounded() { return String(Int(value)) }
+        return String(format: "%.1f", value)
+    }
+
+    /// 空态下 NSColorWell 的灰底：仅作占位，不代表任何取到的颜色。
+    static let emptyColorWellPlaceholder = NSColor(calibratedWhite: 0.32, alpha: 1.0)
+
+    /// "#RRGGBB" / "RRGGBB" → NSColor；非法返回 nil。
+    static func color(fromHex hex: String) -> NSColor? {
+        var raw = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if raw.hasPrefix("#") { raw.removeFirst() }
+        guard raw.count == 6, let value = UInt32(raw, radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255.0,
+                       green: CGFloat((value >> 8) & 0xFF) / 255.0,
+                       blue: CGFloat(value & 0xFF) / 255.0,
+                       alpha: 1.0)
+    }
+
+    /// NSColor → "#RRGGBB"（用 sRGB 分量，避免不同色彩空间换算漂移）。
+    static func hexString(from color: NSColor) -> String {
+        let rgb = color.usingColorSpace(.sRGB) ?? color
+        func channel(_ raw: CGFloat) -> Int { Int((max(0, min(1, raw)) * 255).rounded()) }
+        return String(format: "#%02X%02X%02X",
+                      channel(rgb.redComponent),
+                      channel(rgb.greenComponent),
+                      channel(rgb.blueComponent))
+    }
+
+    public func updateControlStates(isLocked: Bool) {        // TR-019-R：只读预览态下横幅只显示「只读，不可编辑」
         lockBannerLabel?.stringValue = motiReadOnlyMode ? "只读，不可编辑" : "🔒 图层已锁定 (⌘L 解锁)"
         // TR-019-R：只读态统一用顶部常驻标签，原横幅不重复出现
         lockBannerBox?.isHidden = motiReadOnlyMode ? true : !isLocked
@@ -632,6 +994,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         publishPosCheck?.isEnabled = !isLocked
         publishRotCheck?.isEnabled = !isLocked
         publishScaleCheck?.isEnabled = !isLocked
+        // TR-023-B：文字样式四项跟锁定态 / 只读态走同一处判据
+        applyTextStyleEnabledState()
     }
 
     public func toggleCurrentLayerLock() {
@@ -691,6 +1055,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         publishRotCheck.state = layer.publishRotation ? .on : .off
         publishScaleCheck.state = layer.publishScale ? .on : .off
 
+        // TR-023-B：切图层时先把文字样式四项刷成该层的真值 / 空态
+        refreshTextStyleControls()
         updateControlStates(isLocked: layer.isLocked)
     }
 
@@ -847,6 +1213,12 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
                 v.isHidden = motiReadOnlyMode
             }
         }
+
+        // TR-023-B：只读态保留「文字样式」分组可见（全灰、只供查看真值），
+        // 其余属性区继续隐藏，不挤占表格一次显示 11 行的空间。
+        textStyleGroup?.isHidden = false
+        textStyleTitleLabel?.stringValue = motiReadOnlyMode ? "文字样式（只读）" : "文字样式"
+        refreshTextStyleControls()
 
         // TR-022-7：只读态整列移除「发布」（含表头），避免出现可勾选外观；
         // 退出只读态再加回。用对象身份判断，避免重复增删。
