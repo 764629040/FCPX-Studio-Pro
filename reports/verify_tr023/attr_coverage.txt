@@ -1,0 +1,347 @@
+TR-023 阶段 1｜全库字幕文字属性命中率
+==========================================================================
+
+【口径】
+  生成时间      2026-11-11 12:19:28
+  统计范围      /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized 递归（rglob "*.moti"）
+  总数          1247 个 .moti
+  XML 解析成功  1241
+  XML 解析失败  6（条01.moti、点 03.moti、点 07.moti、点文本 03.moti、菜单条修复.moti、菜单条自定义.moti）
+  失败清单与 TR-022-3 一致：是
+  分母          一律用 1241（可解析模板数），不用 1247
+  含文字对象模板 904 / 1241 = 72.8%
+  文字对象总数  2860 个 <scenenode>
+  耗时          19.3 s（单次墙钟，不取平均）
+
+  一行复现：
+    cd "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro" && \
+      python3 tools/tr023/attr_coverage.py
+
+【命中率总表】分母 1241（可解析模板）；文字模板内率分母 904
+------------------------------------------------------------------------------
+属性    节点存在    有值   有值率    可控   可控率  文字内率
+------------------------------------------------------------------------------
+字体         904     904    72.8%     904    72.8%    100.0%
+大小         885     885    71.3%     885    71.3%     97.9%
+字距         182     182    14.7%     182    14.7%     20.1%
+对齐         693     693    55.8%     693    55.8%     76.7%
+颜色         822     631    50.8%     631    50.8%     69.8%
+渐变         232     232    18.7%     232    18.7%     25.7%
+阴影         904     904    72.8%     234    18.9%     25.9%
+描边         904     904    72.8%     162    13.1%     17.9%
+行距         242     242    19.5%     242    19.5%     26.8%
+行高           0       0     0.0%       0     0.0%      0.0%
+------------------------------------------------------------------------------
+说明：
+  · 「节点存在」= XML 里有这个参数节点，但可能是空壳（例如 物质/颜色 只有 <foldFlags>）。
+  · 「有值」     = 节点上确实带可用值（数值→value/@curve，字体→<font> 文本，颜色→末级红绿蓝的 value）。
+  · 「可控」     = 还能当控件用：渐变要有第二个色标(RGB2)、阴影要有 距离/不透明度、
+                   描边要有 宽度。只有空组 / 只有渐变纹理节点的，一律不算可控。
+  · 「文字内率」 分母是 904 个含文字对象的模板，看「真做 UI 时能覆盖多少真字幕」。
+  · 双语重复：同一模板里 Font 与 字体、Size 与 大小 会同时出现（Motion 同时写本地化名与原名），
+    所以下面「路径写法」的出现次数会大于模板数，不是重复统计错误。
+  · 颜色有一批模板只有 物质/颜色 空壳节点（<foldFlags> 之外没有红绿蓝），
+    这类计入「节点存在」但不算「有值」，差额 191 个模板就是空壳。
+
+【逐属性路径写法】同类但命名不同的写法分开列
+--------------------------------------------------------------------------
+
+■ 字体 —— 字体名（<font> 文本）
+  节点存在 904 / 1241   有值 904 / 1241   可控 904 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/Font                                            1941
+    scenenode/style/字体                                            1274
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/Font                                            1941
+    scenenode/style/字体                                            1274
+
+■ 大小 —— 字号（数值）
+  节点存在 885 / 1241   有值 885 / 1241   可控 885 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/Size                                            1937
+    scenenode/style/大小                                            1226
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/Size                                            1937
+    scenenode/style/大小                                            1226
+
+■ 字距 —— 字距（tracking，数值）
+  节点存在 182 / 1241   有值 182 / 1241   可控 182 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/间距/字距                                        679
+    scenenode/style/Spacing/Tracking                                  80
+    scenenode/Format/Tracking                                         32
+    scenenode/格式/字距                                               29
+    scenenode/style/字距                                               8
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/间距/字距                                        679
+    scenenode/style/Spacing/Tracking                                  80
+    scenenode/Format/Tracking                                         32
+    scenenode/格式/字距                                               29
+    scenenode/style/字距                                               8
+  名字相近但**不计入**的写法（语义不同，别混）：
+    scenenode/style/Spacing/Kerning                                   57
+    scenenode/style/间距/字距微调                                     24
+
+■ 对齐 —— 段落水平对齐（数值枚举）
+  节点存在 693 / 1241   有值 693 / 1241   可控 693 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/paragraphStyle/Alignment                              1690
+    scenenode/Object/Paragraphs/Paragraph/Alignment                 1460
+    scenenode/对象/段落/段落/对齐                                   1167
+    scenenode/paragraphStyle/对齐                                   1161
+    scenenode/对齐                                                    61
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/paragraphStyle/Alignment                              1690
+    scenenode/Object/Paragraphs/Paragraph/Alignment                 1460
+    scenenode/对象/段落/段落/对齐                                   1167
+    scenenode/paragraphStyle/对齐                                   1161
+    scenenode/对齐                                                    61
+  名字相近但**不计入**的写法（语义不同，别混）：
+    scenenode/Object/Path Options/Align to Path                     1606
+    scenenode/对象/路径选项/对齐到路径                               819
+    scenenode/Object/Alignment/Vertical Alignment                    539
+    scenenode/对象/路径选项/沿路径对齐                               391
+    scenenode/对象/对齐/垂直对齐                                      33
+
+■ 颜色 —— 文字填充颜色（物质/表面 下的 红绿蓝）
+  节点存在 822 / 1241   有值 631 / 1241   可控 631 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/Object/Basic/Substance/Color                          1065
+    scenenode/style/Face/Color/Blue                                  910
+    scenenode/style/Face/Color/Red                                   905
+    scenenode/style/Face/Color/Green                                 873
+    scenenode/对象/基本/物质/颜色                                    768
+    scenenode/对象/基础/物质/颜色                                    395
+    scenenode/基本/物质/颜色                                         322
+    scenenode/style/面/颜色/红                                       281
+    scenenode/style/面/颜色/蓝                                       279
+    scenenode/style/面/颜色/绿                                       278
+    scenenode/表面/颜色                                              224
+    scenenode/style/表面/颜色/红色                                   208
+    scenenode/Basic/Substance/Color                                  202
+    scenenode/style/表面/颜色/绿色                                   143
+    scenenode/style/表面/颜色/蓝色                                   143
+    scenenode/style/层/物质/颜色/红色                                 51
+    scenenode/style/层/物质/颜色/绿色                                 51
+    scenenode/style/层/物质/颜色/蓝色                                 51
+    scenenode/Basic/物质/颜色                                         48
+    scenenode/对象/Basic/物质/颜色                                    26
+    scenenode/基础/物质/颜色                                          25
+    scenenode/Chrome/物质/颜色                                        24
+    scenenode/对象/Chrome/物质/颜色                                   11
+    scenenode/style/表面/颜色/颜色空间                                 8
+    scenenode/面/颜色                                                  7
+    scenenode/style/图层/物质/颜色/红                                  5
+    scenenode/style/图层/物质/颜色/绿                                  5
+    scenenode/style/图层/物质/颜色/蓝                                  5
+    scenenode/style/面/颜色/色彩空间                                   1
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/Face/Color/Blue                                  910
+    scenenode/style/Face/Color/Red                                   905
+    scenenode/style/Face/Color/Green                                 873
+    scenenode/style/面/颜色/红                                       281
+    scenenode/style/面/颜色/蓝                                       279
+    scenenode/style/面/颜色/绿                                       278
+
+■ 渐变 —— 文字填充渐变（表面/Face 下的渐变组）
+  节点存在 232 / 1241   有值 232 / 1241   可控 232 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/表面/渐变/RGB/RGB1/位置                          524
+    scenenode/style/表面/渐变/RGB/RGB1/中间                          524
+    scenenode/style/表面/渐变/RGB/RGB1/插值                          524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/红色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色                     524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/位置                          524
+    scenenode/style/表面/渐变/RGB/RGB2/中间                          524
+    scenenode/style/表面/渐变/RGB/RGB2/插值                          524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/红色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/绿色                     524
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/蓝色                     524
+    scenenode/style/表面/渐变/不透明度/不透明度1/位置                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/中间                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/插值                524
+    scenenode/style/表面/渐变/不透明度/不透明度1/不透明度            524
+    scenenode/style/表面/渐变/RGB/RGB1/颜色/色彩空间                 515
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/色彩空间                 515
+    scenenode/style/Face/Gradient/RGB/RGB1/Location                  200
+    scenenode/style/Face/Gradient/RGB/RGB1/Middle                    200
+    scenenode/style/Face/Gradient/RGB/RGB1/Interpolation             200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Red                 200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Green               200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Blue                200
+    scenenode/style/Face/Gradient/RGB/RGB1/Color/Color Space         200
+    scenenode/style/Face/Gradient/RGB/RGB2/Location                  200
+    scenenode/style/Face/Gradient/RGB/RGB2/Middle                    200
+    scenenode/style/Face/Gradient/RGB/RGB2/Interpolation             200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Red                 200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Green               200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Blue                200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Color Space         200
+    scenenode/style/Face/Gradient/Opacity/Opacity1/Location          200
+    scenenode/style/Face/Gradient/Opacity/Opacity1/Middle            200
+    scenenode/style/Face/Gradient/Opacity/Opacity1/Interpolation     200
+    scenenode/style/Face/Gradient/Opacity/Opacity1/Opacity           200
+    scenenode/style/面/渐变/RGB/RGB1/Location                         79
+    scenenode/style/面/渐变/RGB/RGB1/中间                             79
+    scenenode/style/面/渐变/RGB/RGB1/插值                             79
+    scenenode/style/面/渐变/RGB/RGB1/颜色/红                          79
+    …… 另有 48 种写法（完整清单见 .json）
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/表面/渐变/RGB/RGB2/颜色/红色                     524
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Red                 200
+    scenenode/style/面/渐变/RGB/RGB2/颜色/红                          79
+
+■ 阴影 —— 投影 / 图层阴影
+  节点存在 904 / 1241   有值 904 / 1241   可控 234 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/Drop Shadow/Texture/Image                       1943
+    scenenode/style/Drop Shadow/Source Media                        1936
+    scenenode/Properties/Drop Shadow                                1606
+    scenenode/style/Drop Shadow/Texture/Wrap Mode                   1399
+    scenenode/属性/阴影                                             1185
+    scenenode/Properties/Shadows                                    1174
+    scenenode/style/投影/纹理/图像                                   878
+    scenenode/style/投影/纹理/融合模式                               864
+    scenenode/style/Drop Shadow/Blur/X                               835
+    scenenode/style/Drop Shadow/Blur/Y                               835
+    scenenode/style/Drop Shadow/Distance                             835
+    scenenode/style/投影/源媒体                                      805
+    scenenode/style/投影/渐变/RGB/RGB1/位置                          522
+    scenenode/style/投影/渐变/RGB/RGB1/中间                          522
+    scenenode/style/投影/渐变/RGB/RGB1/插值                          522
+    scenenode/style/投影/渐变/RGB/RGB1/颜色/红色                     522
+    scenenode/style/投影/渐变/RGB/RGB1/颜色/绿色                     522
+    scenenode/style/投影/渐变/RGB/RGB1/颜色/蓝色                     522
+    scenenode/style/投影/渐变/RGB/RGB2/位置                          522
+    scenenode/style/投影/渐变/RGB/RGB2/中间                          522
+    scenenode/style/投影/渐变/RGB/RGB2/插值                          522
+    scenenode/style/投影/渐变/RGB/RGB2/颜色/红色                     522
+    scenenode/style/投影/渐变/RGB/RGB2/颜色/绿色                     522
+    scenenode/style/投影/渐变/RGB/RGB2/颜色/蓝色                     522
+    scenenode/style/投影/渐变/不透明度/不透明度1/位置                522
+    scenenode/style/投影/渐变/不透明度/不透明度1/中间                522
+    scenenode/style/投影/渐变/不透明度/不透明度1/插值                522
+    scenenode/style/投影/渐变/不透明度/不透明度1/不透明度            522
+    scenenode/style/投影/渐变/RGB/RGB1/颜色/色彩空间                 514
+    scenenode/style/投影/渐变/RGB/RGB2/颜色/色彩空间                 514
+    scenenode/style/拖放阴影/纹理/图像                               396
+    scenenode/style/拖放阴影/纹理/环绕 模式                          396
+    scenenode/style/拖放阴影/源媒体                                  396
+    scenenode/Drop Shadow                                            392
+    scenenode/属性/拖放阴影                                          390
+    scenenode/属性/投影                                              309
+    scenenode/投影/颜色                                              218
+    scenenode/投影/模糊/X                                            170
+    scenenode/投影/模糊/Y                                            170
+    scenenode/投影                                                   154
+    …… 另有 28 种写法（完整清单见 .json）
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/Drop Shadow/Distance                             835
+    scenenode/style/拖放阴影/不透明度                                 42
+    scenenode/style/拖放阴影/距离                                     41
+    scenenode/style/投影/距离                                         20
+    scenenode/投影/不透明度                                           15
+    scenenode/style/投影/不透明度                                      7
+
+■ 描边 —— 文字外框/轮廓（不含 对象/形状/轮廓）
+  节点存在 904 / 1241   有值 904 / 1241   可控 162 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/style/Outline/Texture/Image                           1943
+    scenenode/style/Outline/Source Media                            1936
+    scenenode/style/Outline/Texture/Wrap Mode                       1399
+    scenenode/style/外框/纹理/图像                                   878
+    scenenode/style/外框/纹理/融合模式                               864
+    scenenode/style/外框/源媒体                                      805
+    scenenode/style/外框/渐变/RGB/RGB1/位置                          522
+    scenenode/style/外框/渐变/RGB/RGB1/中间                          522
+    scenenode/style/外框/渐变/RGB/RGB1/插值                          522
+    scenenode/style/外框/渐变/RGB/RGB1/颜色/红色                     522
+    scenenode/style/外框/渐变/RGB/RGB1/颜色/绿色                     522
+    scenenode/style/外框/渐变/RGB/RGB1/颜色/蓝色                     522
+    scenenode/style/外框/渐变/RGB/RGB2/位置                          522
+    scenenode/style/外框/渐变/RGB/RGB2/中间                          522
+    scenenode/style/外框/渐变/RGB/RGB2/插值                          522
+    scenenode/style/外框/渐变/RGB/RGB2/颜色/红色                     522
+    scenenode/style/外框/渐变/RGB/RGB2/颜色/绿色                     522
+    scenenode/style/外框/渐变/RGB/RGB2/颜色/蓝色                     522
+    scenenode/style/外框/渐变/不透明度/不透明度1/位置                522
+    scenenode/style/外框/渐变/不透明度/不透明度1/中间                522
+    scenenode/style/外框/渐变/不透明度/不透明度1/插值                522
+    scenenode/style/外框/渐变/不透明度/不透明度1/不透明度            522
+    scenenode/style/外框/渐变/RGB/RGB1/颜色/色彩空间                 514
+    scenenode/style/外框/渐变/RGB/RGB2/颜色/色彩空间                 514
+    scenenode/style/轮廓/纹理/图像                                   396
+    scenenode/style/轮廓/纹理/环绕 模式                              396
+    scenenode/style/轮廓/源媒体                                      396
+    scenenode/Outline                                                331
+    scenenode/style/轮廓/颜色/红                                     245
+    scenenode/外框/颜色                                              221
+    scenenode/style/轮廓/宽度                                        219
+    scenenode/style/轮廓/颜色/绿                                     184
+    scenenode/style/轮廓/颜色/蓝                                     182
+    scenenode/外框/模糊/X                                            175
+    scenenode/外框/模糊/Y                                            175
+    scenenode/style/Outline/Color/Red                                140
+    scenenode/外框                                                   124
+    scenenode/style/Outline/Color/Green                               91
+    scenenode/style/Outline/Color/Blue                                91
+    scenenode/style/Outline/Width                                     91
+    …… 另有 42 种写法（完整清单见 .json）
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/style/轮廓/宽度                                        219
+    scenenode/style/Outline/Width                                     91
+    scenenode/style/外框/宽度                                         11
+
+■ 行距 —— 段落行间距
+  节点存在 242 / 1241   有值 242 / 1241   可控 242 / 1241
+  路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
+    scenenode/paragraphStyle/Line Spacing                            677
+    scenenode/Object/Paragraphs/Paragraph/Line Spacing               677
+    scenenode/paragraphStyle/行间距                                  171
+    scenenode/对象/段落/段落/行间距                                  171
+    scenenode/paragraphStyle/线条间距                                 19
+    scenenode/对象/段落/段落/线条间距                                 19
+  其中能当控件用的写法（判据见总表下方「可控」）：
+    scenenode/paragraphStyle/Line Spacing                            677
+    scenenode/Object/Paragraphs/Paragraph/Line Spacing               677
+    scenenode/paragraphStyle/行间距                                  171
+    scenenode/对象/段落/段落/行间距                                  171
+    scenenode/paragraphStyle/线条间距                                 19
+    scenenode/对象/段落/段落/线条间距                                 19
+
+■ 行高 —— 行高（本属性若 0 命中即为无数据来源）
+  节点存在 0 / 1241   有值 0 / 1241   可控 0 / 1241
+  路径写法：无（全库 0 个模板出现过）
+
+【颜色来源细分】做取色器前必须知道颜色到底存在哪个节点
+--------------------------------------------------------------------------
+  物质/颜色（2D 基本物质里的 RGB）                 29 个模板
+  表面/面 颜色（2D 表面颜色 RGB）                 629 个模板
+  渐变首色标 RGB1（渐变模板只能取首色标当颜色）   232 个模板
+  注：三类会重叠（同一模板既有 物质/颜色 又有渐变的情况存在），不能相加当总数；
+      颜色总命中仍是上面总表的 631 个模板。
+
+【结论】
+--------------------------------------------------------------------------
+口径：只看「可控」（有真实数值/颜色可读可写），不看「节点存在」。
+
+A. 可以直接做 UI（可控率 ≥50%，多数模板都取得到值）：
+  · 字体   可控  904/1241 =  72.8%（文字模板内 100.0%），主写法 scenenode/style/Font
+  · 大小   可控  885/1241 =  71.3%（文字模板内  97.9%），主写法 scenenode/style/Size
+  · 对齐   可控  693/1241 =  55.8%（文字模板内  76.7%），主写法 scenenode/paragraphStyle/Alignment
+  · 颜色   可控  631/1241 =  50.8%（文字模板内  69.8%），主写法 scenenode/style/Face/Color/Red
+
+B. 有数据来源但覆盖不全（5%~50%）：能做，但大多数模板要显示空态/禁用，
+   不能给默认 0 值控件冒充可用：
+  · 行距   可控  242/1241 =  19.5%（文字模板内  26.8%），主写法 scenenode/paragraphStyle/Line Spacing
+  · 阴影   可控  234/1241 =  18.9%（文字模板内  25.9%），主写法 scenenode/style/Drop Shadow/Distance
+  · 渐变   可控  232/1241 =  18.7%（文字模板内  25.7%），主写法 scenenode/style/表面/渐变/RGB/RGB2/颜色/红色
+  · 字距   可控  182/1241 =  14.7%（文字模板内  20.1%），主写法 scenenode/style/间距/字距
+  · 描边   可控  162/1241 =  13.1%（文字模板内  17.9%），主写法 scenenode/style/轮廓/宽度
+
+C. 没有数据来源、做了也是空控件（本轮一律不做）：
+  · 行高   全库 0 个模板有这个参数
+
+──────────────────────────────────────────────────────────────────────────
+只读声明：全程只读 .moti，未写回、未落中间文件；未 push、未重建 dmg。

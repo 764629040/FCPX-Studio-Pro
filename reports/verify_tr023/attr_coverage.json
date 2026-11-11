@@ -1,0 +1,1529 @@
+{
+  "meta": {
+    "generated_at": "2026-11-11 12:19:28",
+    "root": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized",
+    "elapsed_s": 19.3,
+    "script": "tools/tr023/attr_coverage.py",
+    "read_only": true
+  },
+  "denominator": {
+    "total_moti": 1247,
+    "xml_ok": 1241,
+    "xml_fail": 6,
+    "fail_files": [
+      "条01.moti",
+      "点 03.moti",
+      "点 07.moti",
+      "点文本 03.moti",
+      "菜单条修复.moti",
+      "菜单条自定义.moti"
+    ],
+    "fail_matches_tr022": true,
+    "scope": "Titles.localized 递归（rglob '*.moti'）",
+    "denominator_used": 1241
+  },
+  "text_scope": {
+    "templates_with_text_object": 904,
+    "text_objects": 2860,
+    "definition": "含叶子 <parameter name='文本'|'Text'> 的 <scenenode>"
+  },
+  "color_families": {
+    "物质/颜色（2D 基本物质里的 RGB）": 29,
+    "表面/面 颜色（2D 表面颜色 RGB）": 629,
+    "渐变首色标 RGB1（渐变模板只能取首色标当颜色）": 232
+  },
+  "attributes": {
+    "字体": {
+      "desc": "字体名（<font> 文本）",
+      "hit_templates_node": 904,
+      "hit_rate_node_pct": 72.8,
+      "hit_templates_with_value": 904,
+      "hit_rate_value_pct": 72.8,
+      "hit_templates_controllable": 904,
+      "hit_rate_controllable_pct": 72.8,
+      "hit_rate_among_text_pct": 100.0,
+      "spellings": [
+        {
+          "path": "scenenode/style/Font",
+          "occurrences": 1941
+        },
+        {
+          "path": "scenenode/style/字体",
+          "occurrences": 1274
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/Font",
+          "occurrences": 1941
+        },
+        {
+          "path": "scenenode/style/字体",
+          "occurrences": 1274
+        }
+      ]
+    },
+    "大小": {
+      "desc": "字号（数值）",
+      "hit_templates_node": 885,
+      "hit_rate_node_pct": 71.3,
+      "hit_templates_with_value": 885,
+      "hit_rate_value_pct": 71.3,
+      "hit_templates_controllable": 885,
+      "hit_rate_controllable_pct": 71.3,
+      "hit_rate_among_text_pct": 97.9,
+      "spellings": [
+        {
+          "path": "scenenode/style/Size",
+          "occurrences": 1937
+        },
+        {
+          "path": "scenenode/style/大小",
+          "occurrences": 1226
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/Size",
+          "occurrences": 1937
+        },
+        {
+          "path": "scenenode/style/大小",
+          "occurrences": 1226
+        }
+      ]
+    },
+    "字距": {
+      "desc": "字距（tracking，数值）",
+      "hit_templates_node": 182,
+      "hit_rate_node_pct": 14.7,
+      "hit_templates_with_value": 182,
+      "hit_rate_value_pct": 14.7,
+      "hit_templates_controllable": 182,
+      "hit_rate_controllable_pct": 14.7,
+      "hit_rate_among_text_pct": 20.1,
+      "spellings": [
+        {
+          "path": "scenenode/style/间距/字距",
+          "occurrences": 679
+        },
+        {
+          "path": "scenenode/style/Spacing/Tracking",
+          "occurrences": 80
+        },
+        {
+          "path": "scenenode/Format/Tracking",
+          "occurrences": 32
+        },
+        {
+          "path": "scenenode/格式/字距",
+          "occurrences": 29
+        },
+        {
+          "path": "scenenode/style/字距",
+          "occurrences": 8
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/间距/字距",
+          "occurrences": 679
+        },
+        {
+          "path": "scenenode/style/Spacing/Tracking",
+          "occurrences": 80
+        },
+        {
+          "path": "scenenode/Format/Tracking",
+          "occurrences": 32
+        },
+        {
+          "path": "scenenode/格式/字距",
+          "occurrences": 29
+        },
+        {
+          "path": "scenenode/style/字距",
+          "occurrences": 8
+        }
+      ]
+    },
+    "对齐": {
+      "desc": "段落水平对齐（数值枚举）",
+      "hit_templates_node": 693,
+      "hit_rate_node_pct": 55.8,
+      "hit_templates_with_value": 693,
+      "hit_rate_value_pct": 55.8,
+      "hit_templates_controllable": 693,
+      "hit_rate_controllable_pct": 55.8,
+      "hit_rate_among_text_pct": 76.7,
+      "spellings": [
+        {
+          "path": "scenenode/paragraphStyle/Alignment",
+          "occurrences": 1690
+        },
+        {
+          "path": "scenenode/Object/Paragraphs/Paragraph/Alignment",
+          "occurrences": 1460
+        },
+        {
+          "path": "scenenode/对象/段落/段落/对齐",
+          "occurrences": 1167
+        },
+        {
+          "path": "scenenode/paragraphStyle/对齐",
+          "occurrences": 1161
+        },
+        {
+          "path": "scenenode/对齐",
+          "occurrences": 61
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/paragraphStyle/Alignment",
+          "occurrences": 1690
+        },
+        {
+          "path": "scenenode/Object/Paragraphs/Paragraph/Alignment",
+          "occurrences": 1460
+        },
+        {
+          "path": "scenenode/对象/段落/段落/对齐",
+          "occurrences": 1167
+        },
+        {
+          "path": "scenenode/paragraphStyle/对齐",
+          "occurrences": 1161
+        },
+        {
+          "path": "scenenode/对齐",
+          "occurrences": 61
+        }
+      ]
+    },
+    "颜色": {
+      "desc": "文字填充颜色（物质/表面 下的 红绿蓝）",
+      "hit_templates_node": 822,
+      "hit_rate_node_pct": 66.2,
+      "hit_templates_with_value": 631,
+      "hit_rate_value_pct": 50.8,
+      "hit_templates_controllable": 631,
+      "hit_rate_controllable_pct": 50.8,
+      "hit_rate_among_text_pct": 69.8,
+      "spellings": [
+        {
+          "path": "scenenode/Object/Basic/Substance/Color",
+          "occurrences": 1065
+        },
+        {
+          "path": "scenenode/style/Face/Color/Blue",
+          "occurrences": 910
+        },
+        {
+          "path": "scenenode/style/Face/Color/Red",
+          "occurrences": 905
+        },
+        {
+          "path": "scenenode/style/Face/Color/Green",
+          "occurrences": 873
+        },
+        {
+          "path": "scenenode/对象/基本/物质/颜色",
+          "occurrences": 768
+        },
+        {
+          "path": "scenenode/对象/基础/物质/颜色",
+          "occurrences": 395
+        },
+        {
+          "path": "scenenode/基本/物质/颜色",
+          "occurrences": 322
+        },
+        {
+          "path": "scenenode/style/面/颜色/红",
+          "occurrences": 281
+        },
+        {
+          "path": "scenenode/style/面/颜色/蓝",
+          "occurrences": 279
+        },
+        {
+          "path": "scenenode/style/面/颜色/绿",
+          "occurrences": 278
+        },
+        {
+          "path": "scenenode/表面/颜色",
+          "occurrences": 224
+        },
+        {
+          "path": "scenenode/style/表面/颜色/红色",
+          "occurrences": 208
+        },
+        {
+          "path": "scenenode/Basic/Substance/Color",
+          "occurrences": 202
+        },
+        {
+          "path": "scenenode/style/表面/颜色/绿色",
+          "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/表面/颜色/蓝色",
+          "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/红色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/绿色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/蓝色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/Basic/物质/颜色",
+          "occurrences": 48
+        },
+        {
+          "path": "scenenode/对象/Basic/物质/颜色",
+          "occurrences": 26
+        },
+        {
+          "path": "scenenode/基础/物质/颜色",
+          "occurrences": 25
+        },
+        {
+          "path": "scenenode/Chrome/物质/颜色",
+          "occurrences": 24
+        },
+        {
+          "path": "scenenode/对象/Chrome/物质/颜色",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/表面/颜色/颜色空间",
+          "occurrences": 8
+        },
+        {
+          "path": "scenenode/面/颜色",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/红",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/绿",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/蓝",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/颜色/色彩空间",
+          "occurrences": 1
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/Face/Color/Blue",
+          "occurrences": 910
+        },
+        {
+          "path": "scenenode/style/Face/Color/Red",
+          "occurrences": 905
+        },
+        {
+          "path": "scenenode/style/Face/Color/Green",
+          "occurrences": 873
+        },
+        {
+          "path": "scenenode/style/面/颜色/红",
+          "occurrences": 281
+        },
+        {
+          "path": "scenenode/style/面/颜色/蓝",
+          "occurrences": 279
+        },
+        {
+          "path": "scenenode/style/面/颜色/绿",
+          "occurrences": 278
+        },
+        {
+          "path": "scenenode/style/表面/颜色/红色",
+          "occurrences": 208
+        },
+        {
+          "path": "scenenode/style/表面/颜色/绿色",
+          "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/表面/颜色/蓝色",
+          "occurrences": 143
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/红色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/绿色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/style/层/物质/颜色/蓝色",
+          "occurrences": 51
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/红",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/绿",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/图层/物质/颜色/蓝",
+          "occurrences": 5
+        }
+      ]
+    },
+    "渐变": {
+      "desc": "文字填充渐变（表面/Face 下的渐变组）",
+      "hit_templates_node": 232,
+      "hit_rate_node_pct": 18.7,
+      "hit_templates_with_value": 232,
+      "hit_rate_value_pct": 18.7,
+      "hit_templates_controllable": 232,
+      "hit_rate_controllable_pct": 18.7,
+      "hit_rate_among_text_pct": 25.7,
+      "spellings": [
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/蓝色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/绿色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/蓝色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/位置",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/中间",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/插值",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/不透明度/不透明度1/不透明度",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 515
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 515
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Blue",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB1/Color/Color Space",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Green",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Blue",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Color Space",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Location",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Middle",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Interpolation",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/Opacity/Opacity1/Opacity",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/Location",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/中间",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/插值",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 1/不透明度",
+          "occurrences": 79
+        },
+        {
+          "path": "scenenode/style/面/渐变/角度",
+          "occurrences": 26
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/Location",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/中间",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/插值",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/红",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/绿",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/蓝",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/色彩空间",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/颜色空间",
+          "occurrences": 9
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/颜色空间",
+          "occurrences": 9
+        },
+        {
+          "path": "scenenode/style/面/渐变/类型",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/Location",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/中间",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/插值",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/红",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/绿",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/蓝",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB4/颜色/色彩空间",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/Location",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/中间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/插值",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/不透明度/不透明度 2/不透明度",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/Location",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/中间",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/插值",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/红",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/绿",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/蓝",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB5/颜色/色彩空间",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB1/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB3/颜色/Gamma",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB1/颜色/灰度系数",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/灰度系数",
+          "occurrences": 1
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/表面/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 524
+        },
+        {
+          "path": "scenenode/style/Face/Gradient/RGB/RGB2/Color/Red",
+          "occurrences": 200
+        },
+        {
+          "path": "scenenode/style/面/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 79
+        }
+      ]
+    },
+    "阴影": {
+      "desc": "投影 / 图层阴影",
+      "hit_templates_node": 904,
+      "hit_rate_node_pct": 72.8,
+      "hit_templates_with_value": 904,
+      "hit_rate_value_pct": 72.8,
+      "hit_templates_controllable": 234,
+      "hit_rate_controllable_pct": 18.9,
+      "hit_rate_among_text_pct": 25.9,
+      "spellings": [
+        {
+          "path": "scenenode/style/Drop Shadow/Texture/Image",
+          "occurrences": 1943
+        },
+        {
+          "path": "scenenode/style/Drop Shadow/Source Media",
+          "occurrences": 1936
+        },
+        {
+          "path": "scenenode/Properties/Drop Shadow",
+          "occurrences": 1606
+        },
+        {
+          "path": "scenenode/style/Drop Shadow/Texture/Wrap Mode",
+          "occurrences": 1399
+        },
+        {
+          "path": "scenenode/属性/阴影",
+          "occurrences": 1185
+        },
+        {
+          "path": "scenenode/Properties/Shadows",
+          "occurrences": 1174
+        },
+        {
+          "path": "scenenode/style/投影/纹理/图像",
+          "occurrences": 878
+        },
+        {
+          "path": "scenenode/style/投影/纹理/融合模式",
+          "occurrences": 864
+        },
+        {
+          "path": "scenenode/style/Drop Shadow/Blur/X",
+          "occurrences": 835
+        },
+        {
+          "path": "scenenode/style/Drop Shadow/Blur/Y",
+          "occurrences": 835
+        },
+        {
+          "path": "scenenode/style/Drop Shadow/Distance",
+          "occurrences": 835
+        },
+        {
+          "path": "scenenode/style/投影/源媒体",
+          "occurrences": 805
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/颜色/红色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/颜色/绿色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/颜色/蓝色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/颜色/绿色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/颜色/蓝色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/不透明度/不透明度1/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/不透明度/不透明度1/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/不透明度/不透明度1/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/不透明度/不透明度1/不透明度",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 514
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 514
+        },
+        {
+          "path": "scenenode/style/拖放阴影/纹理/图像",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/style/拖放阴影/纹理/环绕 模式",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/style/拖放阴影/源媒体",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/Drop Shadow",
+          "occurrences": 392
+        },
+        {
+          "path": "scenenode/属性/拖放阴影",
+          "occurrences": 390
+        },
+        {
+          "path": "scenenode/属性/投影",
+          "occurrences": 309
+        },
+        {
+          "path": "scenenode/投影/颜色",
+          "occurrences": 218
+        },
+        {
+          "path": "scenenode/投影/模糊/X",
+          "occurrences": 170
+        },
+        {
+          "path": "scenenode/投影/模糊/Y",
+          "occurrences": 170
+        },
+        {
+          "path": "scenenode/投影",
+          "occurrences": 154
+        },
+        {
+          "path": "scenenode/style/拖放阴影/不透明度",
+          "occurrences": 42
+        },
+        {
+          "path": "scenenode/style/拖放阴影/距离",
+          "occurrences": 41
+        },
+        {
+          "path": "scenenode/style/拖放阴影/颜色/红",
+          "occurrences": 34
+        },
+        {
+          "path": "scenenode/style/拖放阴影/颜色/绿",
+          "occurrences": 34
+        },
+        {
+          "path": "scenenode/style/拖放阴影/颜色/蓝",
+          "occurrences": 32
+        },
+        {
+          "path": "scenenode/style/拖放阴影/模糊/X",
+          "occurrences": 22
+        },
+        {
+          "path": "scenenode/style/拖放阴影/模糊/Y",
+          "occurrences": 22
+        },
+        {
+          "path": "scenenode/style/拖放阴影/角度",
+          "occurrences": 21
+        },
+        {
+          "path": "scenenode/style/投影/距离",
+          "occurrences": 20
+        },
+        {
+          "path": "scenenode/拖放阴影",
+          "occurrences": 18
+        },
+        {
+          "path": "scenenode/投影/不透明度",
+          "occurrences": 15
+        },
+        {
+          "path": "scenenode/style/拖放阴影/缩放/X",
+          "occurrences": 14
+        },
+        {
+          "path": "scenenode/style/拖放阴影/缩放/Y",
+          "occurrences": 14
+        },
+        {
+          "path": "scenenode/style/投影/填充以",
+          "occurrences": 12
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB1/颜色/颜色空间",
+          "occurrences": 8
+        },
+        {
+          "path": "scenenode/style/投影/渐变/RGB/RGB2/颜色/颜色空间",
+          "occurrences": 8
+        },
+        {
+          "path": "scenenode/style/投影/不透明度",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/拖放阴影/颜色",
+          "occurrences": 6
+        },
+        {
+          "path": "scenenode/style/投影/角度",
+          "occurrences": 5
+        },
+        {
+          "path": "scenenode/style/投影/模糊/X",
+          "occurrences": 4
+        },
+        {
+          "path": "scenenode/style/投影/模糊/Y",
+          "occurrences": 4
+        },
+        {
+          "path": "scenenode/style/投影/缩放/X",
+          "occurrences": 3
+        },
+        {
+          "path": "scenenode/style/投影/缩放/Y",
+          "occurrences": 3
+        },
+        {
+          "path": "scenenode/style/拖放阴影/填充宽度",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/投影/颜色/红色",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/投影/颜色/绿色",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/投影/颜色/蓝色",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/投影/固定源",
+          "occurrences": 1
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/Drop Shadow/Distance",
+          "occurrences": 835
+        },
+        {
+          "path": "scenenode/style/拖放阴影/不透明度",
+          "occurrences": 42
+        },
+        {
+          "path": "scenenode/style/拖放阴影/距离",
+          "occurrences": 41
+        },
+        {
+          "path": "scenenode/style/投影/距离",
+          "occurrences": 20
+        },
+        {
+          "path": "scenenode/投影/不透明度",
+          "occurrences": 15
+        },
+        {
+          "path": "scenenode/style/投影/不透明度",
+          "occurrences": 7
+        }
+      ]
+    },
+    "描边": {
+      "desc": "文字外框/轮廓（不含 对象/形状/轮廓）",
+      "hit_templates_node": 904,
+      "hit_rate_node_pct": 72.8,
+      "hit_templates_with_value": 904,
+      "hit_rate_value_pct": 72.8,
+      "hit_templates_controllable": 162,
+      "hit_rate_controllable_pct": 13.1,
+      "hit_rate_among_text_pct": 17.9,
+      "spellings": [
+        {
+          "path": "scenenode/style/Outline/Texture/Image",
+          "occurrences": 1943
+        },
+        {
+          "path": "scenenode/style/Outline/Source Media",
+          "occurrences": 1936
+        },
+        {
+          "path": "scenenode/style/Outline/Texture/Wrap Mode",
+          "occurrences": 1399
+        },
+        {
+          "path": "scenenode/style/外框/纹理/图像",
+          "occurrences": 878
+        },
+        {
+          "path": "scenenode/style/外框/纹理/融合模式",
+          "occurrences": 864
+        },
+        {
+          "path": "scenenode/style/外框/源媒体",
+          "occurrences": 805
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/颜色/红色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/颜色/绿色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/颜色/蓝色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/颜色/红色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/颜色/绿色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/颜色/蓝色",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/不透明度/不透明度1/位置",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/不透明度/不透明度1/中间",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/不透明度/不透明度1/插值",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/不透明度/不透明度1/不透明度",
+          "occurrences": 522
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 514
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 514
+        },
+        {
+          "path": "scenenode/style/轮廓/纹理/图像",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/style/轮廓/纹理/环绕 模式",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/style/轮廓/源媒体",
+          "occurrences": 396
+        },
+        {
+          "path": "scenenode/Outline",
+          "occurrences": 331
+        },
+        {
+          "path": "scenenode/style/轮廓/颜色/红",
+          "occurrences": 245
+        },
+        {
+          "path": "scenenode/外框/颜色",
+          "occurrences": 221
+        },
+        {
+          "path": "scenenode/style/轮廓/宽度",
+          "occurrences": 219
+        },
+        {
+          "path": "scenenode/style/轮廓/颜色/绿",
+          "occurrences": 184
+        },
+        {
+          "path": "scenenode/style/轮廓/颜色/蓝",
+          "occurrences": 182
+        },
+        {
+          "path": "scenenode/外框/模糊/X",
+          "occurrences": 175
+        },
+        {
+          "path": "scenenode/外框/模糊/Y",
+          "occurrences": 175
+        },
+        {
+          "path": "scenenode/style/Outline/Color/Red",
+          "occurrences": 140
+        },
+        {
+          "path": "scenenode/外框",
+          "occurrences": 124
+        },
+        {
+          "path": "scenenode/style/Outline/Color/Green",
+          "occurrences": 91
+        },
+        {
+          "path": "scenenode/style/Outline/Color/Blue",
+          "occurrences": 91
+        },
+        {
+          "path": "scenenode/style/Outline/Width",
+          "occurrences": 91
+        },
+        {
+          "path": "scenenode/Outline/Opacity",
+          "occurrences": 43
+        },
+        {
+          "path": "scenenode/style/轮廓/模糊/X",
+          "occurrences": 24
+        },
+        {
+          "path": "scenenode/style/轮廓/模糊/Y",
+          "occurrences": 24
+        },
+        {
+          "path": "scenenode/外框/不透明度",
+          "occurrences": 23
+        },
+        {
+          "path": "scenenode/style/外框/颜色/红色",
+          "occurrences": 22
+        },
+        {
+          "path": "scenenode/轮廓",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/外框/宽度",
+          "occurrences": 11
+        },
+        {
+          "path": "scenenode/style/外框/颜色/绿色",
+          "occurrences": 10
+        },
+        {
+          "path": "scenenode/style/外框/颜色/蓝色",
+          "occurrences": 10
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB1/颜色/颜色空间",
+          "occurrences": 8
+        },
+        {
+          "path": "scenenode/style/外框/渐变/RGB/RGB2/颜色/颜色空间",
+          "occurrences": 8
+        },
+        {
+          "path": "scenenode/style/轮廓/不透明度",
+          "occurrences": 7
+        },
+        {
+          "path": "scenenode/轮廓/颜色",
+          "occurrences": 6
+        },
+        {
+          "path": "scenenode/style/轮廓/图层顺序",
+          "occurrences": 3
+        },
+        {
+          "path": "scenenode/style/轮廓/填充宽度",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/Location",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/中间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/插值",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/颜色/红",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/颜色/绿",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/颜色/蓝",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB1/颜色/色彩空间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/Location",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/中间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/插值",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/颜色/红",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/颜色/绿",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/颜色/蓝",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/RGB/RGB2/颜色/色彩空间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/不透明度/不透明度 1/Location",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/不透明度/不透明度 1/中间",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/不透明度/不透明度 1/插值",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/不透明度/不透明度 1/不透明度",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/四角/右上/X",
+          "occurrences": 2
+        },
+        {
+          "path": "scenenode/style/轮廓/渐变/角度",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/轮廓/纹理/偏移/X",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/轮廓/四角/左下/X",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/轮廓/四角/右下/X",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/轮廓/四角/左上/X",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/轮廓/模糊/X",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/轮廓/模糊/Y",
+          "occurrences": 1
+        },
+        {
+          "path": "scenenode/style/Outline/Layer Order",
+          "occurrences": 1
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/style/轮廓/宽度",
+          "occurrences": 219
+        },
+        {
+          "path": "scenenode/style/Outline/Width",
+          "occurrences": 91
+        },
+        {
+          "path": "scenenode/style/外框/宽度",
+          "occurrences": 11
+        }
+      ]
+    },
+    "行距": {
+      "desc": "段落行间距",
+      "hit_templates_node": 242,
+      "hit_rate_node_pct": 19.5,
+      "hit_templates_with_value": 242,
+      "hit_rate_value_pct": 19.5,
+      "hit_templates_controllable": 242,
+      "hit_rate_controllable_pct": 19.5,
+      "hit_rate_among_text_pct": 26.8,
+      "spellings": [
+        {
+          "path": "scenenode/paragraphStyle/Line Spacing",
+          "occurrences": 677
+        },
+        {
+          "path": "scenenode/Object/Paragraphs/Paragraph/Line Spacing",
+          "occurrences": 677
+        },
+        {
+          "path": "scenenode/paragraphStyle/行间距",
+          "occurrences": 171
+        },
+        {
+          "path": "scenenode/对象/段落/段落/行间距",
+          "occurrences": 171
+        },
+        {
+          "path": "scenenode/paragraphStyle/线条间距",
+          "occurrences": 19
+        },
+        {
+          "path": "scenenode/对象/段落/段落/线条间距",
+          "occurrences": 19
+        }
+      ],
+      "controllable_spellings": [
+        {
+          "path": "scenenode/paragraphStyle/Line Spacing",
+          "occurrences": 677
+        },
+        {
+          "path": "scenenode/Object/Paragraphs/Paragraph/Line Spacing",
+          "occurrences": 677
+        },
+        {
+          "path": "scenenode/paragraphStyle/行间距",
+          "occurrences": 171
+        },
+        {
+          "path": "scenenode/对象/段落/段落/行间距",
+          "occurrences": 171
+        },
+        {
+          "path": "scenenode/paragraphStyle/线条间距",
+          "occurrences": 19
+        },
+        {
+          "path": "scenenode/对象/段落/段落/线条间距",
+          "occurrences": 19
+        }
+      ]
+    },
+    "行高": {
+      "desc": "行高（本属性若 0 命中即为无数据来源）",
+      "hit_templates_node": 0,
+      "hit_rate_node_pct": 0.0,
+      "hit_templates_with_value": 0,
+      "hit_rate_value_pct": 0.0,
+      "hit_templates_controllable": 0,
+      "hit_rate_controllable_pct": 0.0,
+      "hit_rate_among_text_pct": 0.0,
+      "spellings": [],
+      "controllable_spellings": []
+    }
+  },
+  "verdict": {
+    "ui_ready": [
+      "字体",
+      "大小",
+      "对齐",
+      "颜色"
+    ],
+    "ui_partial": [
+      "字距",
+      "渐变",
+      "阴影",
+      "描边",
+      "行距"
+    ],
+    "no_data": [
+      "行高"
+    ]
+  }
+}
