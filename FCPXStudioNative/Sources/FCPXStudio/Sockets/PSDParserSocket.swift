@@ -369,6 +369,13 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
             let lineSpacing = item["line_spacing"] as? Double ?? (fontSize * 1.2)
             // TR-023-B：文字填充色（桥接给的 HEX）。空串 = 没取到，检查器走禁用空态。
             let textColor = item["text_color"] as? String ?? ""
+            // TR-024：位图换色目标色与模式。桥接不产出这两个字段，缺省 = 不换色 / 明暗上色。
+            let colorOverride = item["color_override"] as? String ?? ""
+            let recolorMode: Int = {
+                if let n = item["recolor_mode"] as? NSNumber { return n.intValue }
+                if let i = item["recolor_mode"] as? Int { return i }
+                return RecolorMode.defaultRawValue
+            }()
 
             // UI-G049: 关键字段缺失检测与告警
             var layerDegraded = false
@@ -417,7 +424,8 @@ public final class PSDParserSocket: PSDParserSocketProtocol {
                 missingChars: missingChars, fontStatus: fontStatus,
                 hasConfirmedMissingGlyphs: hasConfirmedMissingGlyphs, hasGlyphRisk: hasGlyphRisk,
                 alignment: alignment, lineSpacing: lineSpacing,
-                isLocked: isLocked, textColor: textColor
+                isLocked: isLocked, textColor: textColor,
+                colorOverride: colorOverride, recolorMode: recolorMode
             )
             result.append(model)
         }

@@ -26,6 +26,12 @@ public final class LayerModel: NSObject {
     /// TR-023-B：文字填充色 HEX（"#RRGGBB"）。空串 = 该层没有取到颜色，
     /// 检查器据此显示禁用态 + 空态文案，禁止用默认色冒充可用数据。
     public var textColor: String
+    /// TR-024：位图换色目标色 HEX（"#RRGGBB"）。空串 = 不换色，走原图像素。
+    /// 只对像素层（isBitmapLayer）有意义；文字层用 textColor。
+    public var colorOverride: String
+    /// TR-024：位图换色模式，取值见 RecolorMode（0 自动 / 1 直接替换 / 2 明暗上色 / 3 反相 / 4 色相旋转）。
+    /// 默认 2 = 明暗上色，保亮度梯度最稳。
+    public var recolorMode: Int
     /// R33 / A-68：PSD 图层包围盒 (left, top, right, bottom)，位图层按它定位/缩放。
     /// 文本层也带上，便于画布做选中框与拾取的一致性处理。
     public var psdBBox: [Double]
@@ -77,7 +83,8 @@ public final class LayerModel: NSObject {
                 missingChars: [String] = [], fontStatus: String = "",
                 hasConfirmedMissingGlyphs: Bool = false, hasGlyphRisk: Bool = false,
                 alignment: String = "center", lineSpacing: Double = 0.0,
-                isLocked: Bool = false, textColor: String = "") {
+                isLocked: Bool = false, textColor: String = "",
+                colorOverride: String = "", recolorMode: Int = RecolorMode.defaultRawValue) {
         self.id = id
         self.name = name
         self.kind = kind
@@ -107,6 +114,8 @@ public final class LayerModel: NSObject {
         self.alignment = alignment
         self.lineSpacing = lineSpacing
         self.textColor = textColor
+        self.colorOverride = colorOverride
+        self.recolorMode = recolorMode
         super.init()
     }
 
@@ -141,7 +150,9 @@ public final class LayerModel: NSObject {
             alignment: alignment,
             lineSpacing: lineSpacing,
             isLocked: isLocked,
-            textColor: textColor
+            textColor: textColor,
+            colorOverride: colorOverride,
+            recolorMode: recolorMode
         )
         copy.publishText = self.publishText
         copy.publishFont = self.publishFont
@@ -183,6 +194,8 @@ public final class LayerModel: NSObject {
         self.alignment = other.alignment
         self.lineSpacing = other.lineSpacing
         self.textColor = other.textColor
+        self.colorOverride = other.colorOverride
+        self.recolorMode = other.recolorMode
         self.publishText = other.publishText
         self.publishFont = other.publishFont
         self.publishSize = other.publishSize

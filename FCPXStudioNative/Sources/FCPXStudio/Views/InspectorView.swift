@@ -64,6 +64,15 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     public private(set) var fontNameLabel: NSTextField!
     public private(set) var fontReplaceButton: NSButton!
 
+    // MARK: - TR-024 位图换色分组插口（目标色 / 模式 / 多色提示）
+    // 只在像素层（isBitmapLayer）出现；文字层完全不显示，各管各的。
+    public private(set) var bitmapRecolorGroup: NSStackView!
+    public private(set) var bitmapRecolorTitleLabel: NSTextField!
+    public private(set) var recolorColorWell: NSColorWell!
+    public private(set) var recolorHexField: NSTextField!
+    public private(set) var recolorModePopup: NSPopUpButton!
+    public private(set) var recolorHintLabel: NSTextField!
+
     public var layers: [LayerModel] = [] {
         didSet {
             layerTableView?.reloadData()
@@ -75,6 +84,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             if layers.isEmpty {
                 currentSelectedLayer = nil
                 refreshTextStyleControls()
+                refreshBitmapRecolorControls()
             } else if !stillPresent {
                 currentSelectedLayer = nil
                 selectLayer(at: 0)
@@ -524,6 +534,99 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         fontRow.trailingAnchor.constraint(equalTo: styleGroup.trailingAnchor).isActive = true
         styleTitle.leadingAnchor.constraint(equalTo: styleGroup.leadingAnchor).isActive = true
 
+        // ── 2.6 位图换色（TR-024）──────────────────────────────────────────
+        // 只服务像素层（kind == fallback_png）。文字层不显示这一组，别抢「文字样式」的活。
+        // 结构与「文字样式」一致：同一套 mainStack 垂直分组 + TypeScale 标题 + 36pt 标签。
+        let recolorStack = NSStackView()
+        recolorStack.orientation = .vertical
+        recolorStack.alignment = .leading
+        recolorStack.spacing = 6
+        recolorStack.translatesAutoresizingMaskIntoConstraints = false
+        recolorStack.isHidden = true
+        bitmapRecolorGroup = recolorStack
+
+        let recolorTitle = NSTextField(labelWithString: "位图换色")
+        recolorTitle.font = TypeScale.bodyBold
+        recolorTitle.textColor = .white
+        recolorTitle.translatesAutoresizingMaskIntoConstraints = false
+        recolorTitle.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        recolorTitle.setContentCompressionResistancePriority(.required, for: .vertical)
+        recolorTitle.setContentHuggingPriority(.required, for: .vertical)
+        bitmapRecolorTitleLabel = recolorTitle
+        recolorStack.addArrangedSubview(recolorTitle)
+
+        // 目标色（NSColorWell 自带取色器/吸管 + HEX 输入）
+        let recolorColorRow = NSStackView()
+        recolorColorRow.orientation = .horizontal
+        recolorColorRow.spacing = 6
+        let recolorColorLabel = NSTextField(labelWithString: "颜色:")
+        recolorColorLabel.font = .systemFont(ofSize: 11)
+        recolorColorLabel.textColor = minorLabelColor
+        recolorColorLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        recolorColorRow.addArrangedSubview(recolorColorLabel)
+
+        recolorColorWell = NSColorWell()
+        recolorColorWell.target = self
+        recolorColorWell.action = #selector(onRecolorColorWellChanged)
+        recolorColorWell.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        recolorColorWell.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        // 换色只动 RGB：系统调色板（含取色吸管）不出现透明度滑杆 —— alpha 是形状，不属于换色
+        NSColorPanel.shared.showsAlpha = false
+        recolorColorRow.addArrangedSubview(recolorColorWell)
+
+        recolorHexField = NSTextField(string: "未设置")
+        recolorHexField.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+        recolorHexField.widthAnchor.constraint(equalToConstant: 84).isActive = true
+        recolorHexField.target = self
+        recolorHexField.action = #selector(onRecolorHexFieldCommitted)
+        recolorColorRow.addArrangedSubview(recolorHexField)
+        recolorStack.addArrangedSubview(recolorColorRow)
+
+        // 换色模式：自动 / 直接替换 / 明暗上色 / 反相 / 色相旋转
+        let recolorModeRow = NSStackView()
+        recolorModeRow.orientation = .horizontal
+        recolorModeRow.spacing = 6
+        let recolorModeLabel = NSTextField(labelWithString: "模式:")
+        recolorModeLabel.font = .systemFont(ofSize: 11)
+        recolorModeLabel.textColor = minorLabelColor
+        recolorModeLabel.widthAnchor.constraint(equalToConstant: 36).isActive = true
+        recolorModeRow.addArrangedSubview(recolorModeLabel)
+
+        recolorModePopup = NSPopUpButton(frame: .zero, pullsDown: false)
+        recolorModePopup.controlSize = .small
+        recolorModePopup.font = .systemFont(ofSize: 11)
+        recolorModePopup.target = self
+        recolorModePopup.action = #selector(onRecolorModeChanged)
+        for mode in RecolorMode.allCases {
+            let menuItem = recolorModePopup.menu?.addItem(withTitle: mode.title, action: nil, keyEquivalent: "")
+            menuItem?.tag = mode.rawValue
+        }
+        recolorModePopup.widthAnchor.constraint(equalToConstant: 132).isActive = true
+        recolorModeRow.addArrangedSubview(recolorModePopup)
+        recolorStack.addArrangedSubview(recolorModeRow)
+
+        // 提示行：多色原图 / 空态 / 自动模式的落点，文字一律说人话
+        recolorHintLabel = NSTextField(labelWithString: " ")
+        recolorHintLabel.font = .systemFont(ofSize: 10)
+        recolorHintLabel.textColor = NSColor(calibratedWhite: 0.72, alpha: 1.0)
+        recolorHintLabel.lineBreakMode = .byTruncatingTail
+        recolorHintLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        recolorHintLabel.setContentHuggingPriority(.required, for: .vertical)
+        recolorHintLabel.translatesAutoresizingMaskIntoConstraints = false
+        recolorHintLabel.heightAnchor.constraint(equalToConstant: 14).isActive = true
+        recolorStack.addArrangedSubview(recolorHintLabel)
+
+        mainStack.addArrangedSubview(recolorStack)
+        recolorStack.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor).isActive = true
+        recolorStack.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
+        recolorColorRow.leadingAnchor.constraint(equalTo: recolorStack.leadingAnchor).isActive = true
+        recolorColorRow.trailingAnchor.constraint(equalTo: recolorStack.trailingAnchor).isActive = true
+        recolorModeRow.leadingAnchor.constraint(equalTo: recolorStack.leadingAnchor).isActive = true
+        recolorModeRow.trailingAnchor.constraint(equalTo: recolorStack.trailingAnchor).isActive = true
+        recolorHintLabel.leadingAnchor.constraint(equalTo: recolorStack.leadingAnchor).isActive = true
+        recolorHintLabel.trailingAnchor.constraint(equalTo: recolorStack.trailingAnchor).isActive = true
+        recolorTitle.leadingAnchor.constraint(equalTo: recolorStack.leadingAnchor).isActive = true
+
         // 旋转 Rotation 控制
         let rotStack = NSStackView()
         rotStack.orientation = .horizontal
@@ -908,6 +1011,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         }
         fontNameLabel?.stringValue = layer.fontName.isEmpty ? "未取到" : layer.fontName
         applyTextStyleEnabledState()
+        // TR-024：文字样式只服务文字层。像素层的字号/对齐/颜色本就是空的（全「未取到」），
+        // 两组各管各的、互不占位 —— 否则像素层选中时上下两组一起挤，行会叠在一起。
+        textStyleGroup?.isHidden = layer.isBitmapLayer
     }
 
     /// 启用/禁用只跟「是否可编辑」和「该属性有没有真值」两件事有关。
@@ -946,6 +1052,134 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         colorWell?.toolTip = colorTip
         colorHexField?.toolTip = colorTip
         fontReplaceButton?.toolTip = hasFont ? nil : "该图层没有字体名数据"
+    }
+
+    // MARK: - TR-024 位图换色：动作
+    /// 「能不能改」沿用文字样式那一处判据：只读预览态 / 图层锁定态一律不许改。
+    private var canEditRecolor: Bool {
+        guard let layer = currentSelectedLayer else { return false }
+        return !motiReadOnlyMode && !layer.isLocked && hasRecolorSource
+    }
+
+    /// 换色前提：真像素层 + 贴图文件确实在盘上。
+    private var hasRecolorSource: Bool {
+        guard let layer = currentSelectedLayer, layer.isBitmapLayer,
+              let p = layer.fallbackPngPath, !p.isEmpty else { return false }
+        return FileManager.default.fileExists(atPath: p)
+    }
+
+    @objc private func onRecolorColorWellChanged() {
+        // 换色只动 RGB：alpha 是形状，系统调色板里根本不该出现透明度滑杆。
+        NSColorPanel.shared.showsAlpha = false
+        guard let layer = currentSelectedLayer, canEditRecolor else {
+            refreshBitmapRecolorControls()
+            return
+        }
+        let hex = Self.hexString(from: recolorColorWell.color)
+        layer.colorOverride = hex
+        recolorHexField.stringValue = hex
+        refreshBitmapRecolorControls()
+        onLayerModified?(layer)
+    }
+
+    @objc private func onRecolorHexFieldCommitted() {
+        guard let layer = currentSelectedLayer, canEditRecolor else {
+            refreshBitmapRecolorControls()
+            return
+        }
+        guard let color = Self.color(fromHex: recolorHexField.stringValue) else {
+            refreshBitmapRecolorControls()   // 非法输入回退真值，不写脏值
+            return
+        }
+        let hex = Self.hexString(from: color)
+        layer.colorOverride = hex
+        recolorColorWell.color = color
+        recolorHexField.stringValue = hex
+        refreshBitmapRecolorControls()
+        onLayerModified?(layer)
+    }
+
+    @objc private func onRecolorModeChanged() {
+        guard let layer = currentSelectedLayer, canEditRecolor,
+              let tag = recolorModePopup.selectedItem?.tag else {
+            refreshBitmapRecolorControls()
+            return
+        }
+        layer.recolorMode = tag
+        refreshBitmapRecolorControls()
+        onLayerModified?(layer)
+    }
+
+    // MARK: - TR-024 位图换色：状态刷新
+
+    /// 换色控件只在像素层出现；文字层整组隐藏（不抢「文字样式」的活）。
+    public func refreshBitmapRecolorControls() {
+        guard bitmapRecolorGroup != nil else { return }
+        guard let layer = currentSelectedLayer, layer.isBitmapLayer else {
+            bitmapRecolorGroup.isHidden = true
+            recolorHintLabel?.stringValue = ""
+            return
+        }
+        bitmapRecolorGroup.isHidden = false
+        bitmapRecolorTitleLabel?.stringValue = motiReadOnlyMode ? "位图换色（只读）" : "位图换色"
+
+        let hasSource = hasRecolorSource
+        if let color = Self.color(fromHex: layer.colorOverride) {
+            recolorColorWell?.color = color
+            recolorHexField?.stringValue = Self.hexString(from: color)
+        } else {
+            recolorColorWell?.color = Self.emptyColorWellPlaceholder
+            recolorHexField?.stringValue = hasSource ? "未设置" : "无贴图"
+        }
+
+        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        recolorModePopup?.selectItem(withTag: mode.rawValue)
+        if recolorModePopup?.selectedItem == nil {
+            recolorModePopup?.selectItem(withTag: RecolorMode.defaultRawValue)
+        }
+
+        let hint = recolorHintText(for: layer)
+        recolorHintLabel?.stringValue = hint.text
+        recolorHintLabel?.textColor = hint.isWarning
+            ? NSColor(calibratedRed: 0.95, green: 0.65, blue: 0.2, alpha: 1.0)
+            : NSColor(calibratedWhite: 0.72, alpha: 1.0)
+
+        let editable = canEditRecolor
+        recolorColorWell?.isEnabled = editable
+        recolorHexField?.isEnabled = editable
+        recolorModePopup?.isEnabled = editable
+
+        var tip: String? = nil
+        if !hasSource {
+            tip = "该图层没有可用的贴图文件，换色不可用"
+        } else if motiReadOnlyMode {
+            tip = "只读，不可编辑"
+        } else if layer.isLocked {
+            tip = "图层已锁定（⌘L 解锁后可换色）"
+        }
+        recolorColorWell?.toolTip = tip
+        recolorHexField?.toolTip = tip
+        recolorModePopup?.toolTip = tip
+    }
+
+    /// 提示行文案。多色判断走 PngRecolor 的 CIAreaAverage/AreaMaximum 面积采样，不遍历像素。
+    public func recolorHintText(for layer: LayerModel) -> (text: String, isWarning: Bool) {
+        guard layer.isBitmapLayer else { return ("", false) }
+        guard let p = layer.fallbackPngPath, !p.isEmpty, FileManager.default.fileExists(atPath: p) else {
+            return ("该图层没有可用的贴图文件，换色不可用", true)
+        }
+        let stats = PngRecolor.stats(forFileAt: p)
+        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        guard Self.color(fromHex: layer.colorOverride) != nil else {
+            return ("未设置换色，当前显示原图像素", false)
+        }
+        if let s = stats, s.isMultiColor {
+            return ("原图含多色，换色后变单色", true)
+        }
+        if mode == .auto, let s = stats {
+            return (s.isAchromatic ? "自动：原图无彩 → 直接替换" : "自动：原图有彩 → 明暗上色", false)
+        }
+        return ("当前模式：\(mode.title)", false)
     }
 
     static func formatFontSize(_ value: Double) -> String {
@@ -996,6 +1230,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         publishScaleCheck?.isEnabled = !isLocked
         // TR-023-B：文字样式四项跟锁定态 / 只读态走同一处判据
         applyTextStyleEnabledState()
+        // TR-024：位图换色同判据
+        refreshBitmapRecolorControls()
     }
 
     public func toggleCurrentLayerLock() {
@@ -1057,6 +1293,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
         // TR-023-B：切图层时先把文字样式四项刷成该层的真值 / 空态
         refreshTextStyleControls()
+        // TR-024：位图换色组按图层类型显隐 + 刷真值
+        refreshBitmapRecolorControls()
         updateControlStates(isLocked: layer.isLocked)
     }
 
@@ -1219,6 +1457,7 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         textStyleGroup?.isHidden = false
         textStyleTitleLabel?.stringValue = motiReadOnlyMode ? "文字样式（只读）" : "文字样式"
         refreshTextStyleControls()
+        refreshBitmapRecolorControls()
 
         // TR-022-7：只读态整列移除「发布」（含表头），避免出现可勾选外观；
         // 退出只读态再加回。用对象身份判断，避免重复增删。

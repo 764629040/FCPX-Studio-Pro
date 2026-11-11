@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 public struct TemplateBuildResult {
@@ -43,9 +44,20 @@ public final class MotionBuilderSocket: MotionBuilderSocketProtocol {
     public init() {}
 
     public func buildTemplateResult(psdPath: String, outputDir: String, templateName: String, layers: [LayerModel], timeout: TimeInterval = 180.0) -> TemplateBuildResult {
+        // TR-024：位图换色的导出落地点。
+        // 画布与导出走同一条 PngRecolor 逻辑：这里把换色后的像素写成临时 PNG，
+        // 再把「临时路径 + kind」塞进 payload；core/cli_bridge.py 会读 fallback_png_path，
+        // core/motion_builder.py 会把它拷进 Media/，所以 save 与 batch export 两处自动一致。
+        let recolorWorkDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FCPXStudioRecolor", isDirectory: true)
+        try? FileManager.default.createDirectory(at: recolorWorkDir, withIntermediateDirectories: true)
+
         var layersList: [[String: Any]] = []
-        for l in layers {
-            let item: [String: Any] = [
+        // 本次调用生成的换色临时 PNG：Python 侧读完就拷进 Media/，子进程结束后即可删除
+        var recolorOutputs: [URL] = []
+        defer { for u in recolorOutputs { try? FileManager.default.removeItem(at: u) } }
+        for (offset, l) in layers.enumerated() {
+            var item: [String: Any] = [
                 "index": l.id,
                 "name": l.name,
                 "text": l.text,
@@ -71,6 +83,11 @@ public final class MotionBuilderSocket: MotionBuilderSocketProtocol {
                     "alignment": true
                 ]
             ]
+            if let recolored = Self.recoloredPng(for: l, offset: offset, workDir: recolorWorkDir) {
+                recolorOutputs.append(recolored)
+                item["fallback_png_path"] = recolored.path
+                item["kind"] = l.kind
+            }
             layersList.append(item)
         }
 
@@ -177,5 +194,35 @@ public final class MotionBuilderSocket: MotionBuilderSocketProtocol {
 
     public func buildTemplate(psdPath: String, outputDir: String, templateName: String, layers: [LayerModel]) -> Bool {
         return buildTemplateResult(psdPath: psdPath, outputDir: outputDir, templateName: templateName, layers: layers, timeout: 180.0).success
+    }
+
+    // MARK: - TR-024 位图换色 → 导出临时 PNG
+
+    /// 为单个位图层生成换色后的临时 PNG。
+    /// 任何一环不满足（不是位图层 / 没有目标色 / 没有贴图 / 写盘失败）都返回 nil，
+    /// 该层 payload 完全保持改动前的样子，旧行为零变化。
+    static func recoloredPng(for layer: LayerModel, offset: Int, workDir: URL) -> URL? {
+        guard layer.isBitmapLayer,
+              let src = layer.fallbackPngPath, !src.isEmpty,
+              let color = recolorColor(fromHex: layer.colorOverride),
+              FileManager.default.fileExists(atPath: src),
+              let cg = PngRecolor.loadCGImage(path: src) else { return nil }
+
+        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        let stem = ((src as NSString).lastPathComponent as NSString).deletingPathExtension
+        let outURL = workDir.appendingPathComponent("\(offset)_\(stem)_tr024.png")
+        guard PngRecolor.writePNG(cg, mode: mode, color: color, to: outURL) else { return nil }
+        return outURL
+    }
+
+    /// "#RRGGBB" → NSColor（sRGB）。空串 / 非法返回 nil。
+    static func recolorColor(fromHex hex: String) -> NSColor? {
+        let raw = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let body = raw.hasPrefix("#") ? String(raw.dropFirst()) : raw
+        guard body.count == 6, let value = UInt32(body, radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255.0,
+                       green: CGFloat((value >> 8) & 0xFF) / 255.0,
+                       blue: CGFloat(value & 0xFF) / 255.0,
+                       alpha: 1.0)
     }
 }

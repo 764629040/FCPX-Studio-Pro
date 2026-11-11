@@ -454,13 +454,53 @@ public final class InfiniteCanvasView: NSView {
     }
 
     /// R33 / A-68：从缓存/磁盘取位图。缓存 key 用绝对路径。
+    /// TR-024：位图层带 colorOverride 时按「路径 + 模式 + 颜色」取换色结果，
+    /// 否则 key 退化成纯路径，行为和改动前完全一致。
     private func image(for layer: LayerModel) -> NSImage? {
         guard let path = layer.fallbackPngPath, !path.isEmpty else { return nil }
-        let key = path as NSString
+        let recolorKey = Self.recolorCacheKey(for: layer)
+        let key = (recolorKey.isEmpty ? path : "\(path)|\(recolorKey)") as NSString
         if let cached = imageCache.object(forKey: key) { return cached }
-        guard let img = NSImage(contentsOfFile: path) else { return nil }
+
+        let base = NSImage(contentsOfFile: path)
+        var img = base
+        if !recolorKey.isEmpty, let base = base, let target = Self.recolorColor(for: layer) {
+            var proposed = CGRect(origin: .zero, size: base.size)
+            if let cg = base.cgImage(forProposedRect: &proposed, context: nil, hints: nil),
+               let recolored = PngRecolor.recolor(cg, mode: Self.recolorMode(for: layer), color: target) {
+                img = NSImage(cgImage: recolored, size: base.size)
+            }
+        }
+        guard let img = img else { return nil }
         imageCache.setObject(img, forKey: key, cost: Int(img.size.width * img.size.height * 4))
         return img
+    }
+
+    /// TR-024：换色缓存键片段（""=不换色）。换模式或换颜色都必须换 key，否则画布不刷新 / 串色。
+    static func recolorCacheKey(for layer: LayerModel) -> String {
+        guard layer.isBitmapLayer, let color = recolorColor(for: layer) else { return "" }
+        return "\(recolorMode(for: layer).rawValue)#\(InfiniteCanvasView.hexString(from: color))"
+    }
+
+    static func recolorMode(for layer: LayerModel) -> RecolorMode {
+        RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+    }
+
+    /// 空串 / 非法 HEX → nil，该层继续用原图像素，绝不拿默认色冒充「已换色」。
+    static func recolorColor(for layer: LayerModel) -> NSColor? {
+        let raw = layer.colorOverride.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard raw.count == 7, raw.hasPrefix("#"),
+              let value = UInt32(raw.dropFirst(), radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255.0,
+                       green: CGFloat((value >> 8) & 0xFF) / 255.0,
+                       blue: CGFloat(value & 0xFF) / 255.0,
+                       alpha: 1.0)
+    }
+
+    static func hexString(from color: NSColor) -> String {
+        let c = color.usingColorSpace(.sRGB) ?? color
+        func ch(_ v: CGFloat) -> Int { Int((max(0, min(1, v)) * 255).rounded()) }
+        return String(format: "#%02X%02X%02X", ch(c.redComponent), ch(c.greenComponent), ch(c.blueComponent))
     }
 
     /// 底板预览：按 PSD bbox 直接落在画板坐标（bbox 原点=画布左上角）。
