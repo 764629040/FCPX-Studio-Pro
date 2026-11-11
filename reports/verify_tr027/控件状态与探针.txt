@@ -1,0 +1,78 @@
+TR-027 控件状态与探针（四条硬断言 + 逐控件像素比对）
+============================================================
+取证工具：复用 tools/tr026/tr026_evidence.swift（本单 0 行改动），
+用当前 HEAD 的同批 43 个 .swift 重编译：
+  FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+  swiftc -O -j 8 ${=FILES} tools/tr026/tr026_evidence.swift \
+    -o /tmp/tr026_evidence_bin_tr027
+  compile_exit=0 / run_exit=0
+全量日志：取证日志_四条硬断言.txt
+
+── 一、问题单验收 2：只读态拖动 ───────────────────────────────────
+  只读态 motiReadOnlyMode=true（layer.isLocked=false）
+  posXField / posYField / rotationField / scaleField /
+  rotationSlider / scaleSlider 六控件 isEnabled 全 false
+  投 mouseDown + 3 个 dragged + mouseUp：
+    layer.posX before=123.4  after=123.4   ← 相等，PASS
+    posXField.isEnabled=false（DraggableNumberField.mouseDown 的
+                              guard isEnabled 自然兜住，不进 8s tracking loop）
+  发布四复选框 / textEditor.isEditable / toggleOrientationButton
+  在只读态全部 true（按 TR-025 原样，零顺带改动）→ PASS
+
+── 二、问题单验收 3：可编辑态回归 ─────────────────────────────────
+  锁定态（⌘L 等价 toggleCurrentLayerLock()）六几何全 false、
+  六其它项全 false；解锁后全部 true → PASS
+  回归 B 拖动逐帧（在 mouseUp 之前采样，证明实时改模型）：
+    步 1 delta=9.0  → layer.posX=9.0   stringValue=9.0   进编辑态=false
+    步 2 delta=28.0 → layer.posX=37.0  stringValue=37.0  进编辑态=false
+    步 3 delta=210.0→ layer.posX=247.0 stringValue=247.0 进编辑态=false
+  首个回调 delta=9.0（3pt 死区按原行为）
+  松手前 247.0 / 松手后 247.0（相等=不补刷新）
+  拖动期间进 field editor = false（全程）
+  松手后键入 77.7 + 回车 → layer.posX=77.7
+  → 可编辑态回归断言 4 PASS（没把对的改坏）
+
+── 三、逐控件像素比对（本单新增，把「灰/亮」从主观视觉变数字）──
+  取证可视化：/tmp/tr027_visual.swift（临时文件，不进仓库、不进 commit）
+  同批 43 个 .swift + swiftc -O 编译成 /tmp/tr027_visual_bin。
+  构造 MainWindowController 真窗口，令 layer.isLocked=false、
+  motiReadOnlyMode=true，然后【仅在取证进程运行时】把
+  applyMotiReadOnlyText() 按 TR-019-R 隐藏的属性区 isHidden 置回
+  false（13 个 arrangedSubviews）、表格高度约束 320→180（4 条），
+  让 X/Y / 旋转 / 缩放 / 发布 / 横竖排按钮可见。
+  产品源码、R2.app、dmg 一律 0 改动；不改任何功能行为，只改可见性。
+
+  同窗口拍两张真实 AppKit 像素：
+    visual_readonly_六灰四亮.png（只读态）
+    visual_editable_对照.png    （退出只读态，同一窗口）
+  控件精确矩形由 AppKit convert(_:to:nil) 导出（控件精确矩形.txt，11 项），
+  Python/PIL 逐矩形逐像素比对（逐控件像素比对.txt）：
+
+  控件                差异像素/总数    占比     灰度均值(只读/可编辑)
+  posXField               589/7680    7.67%    43.8 / 51.2
+  posYField               361/7680    4.70%    42.6 / 47.2
+  rotationField           377/3328   11.33%    46.2 / 57.3
+  rotationSlider         2498/14592  17.12%    90.9 / 96.6
+  scaleField              588/3328   17.67%    48.7 / 65.8
+  scaleSlider            1554/14592  10.65%    90.6 / 94.1
+  ────────────────────────────────────────────────────────────
+  publishTextCheck          0/6368    0.00%   117.3 / 117.3
+  publishPosCheck           0/6368    0.00%   121.0 / 121.0
+  publishRotCheck           0/6368    0.00%   115.6 / 115.6
+  publishScaleCheck         0/6368    0.00%   109.2 / 109.2
+  toggleOrientationButton   0/31872   0.00%    94.8 / 94.8
+
+  六几何控件：6/6 灰度均值下降且均有像素变化 → disabled 视觉生效
+  其它五项控件：5/5 逐像素 0 差异 → 零顺带改动
+  逐控件像素断言 → PASS
+
+── 四、口径披露（重要，别误读）────────────────────────────────────
+  真机 --preview-moti 只读态下，applyMotiReadOnlyText() 按 TR-019-R
+  既有设计把从 motionPropsTag(9901) 起的属性区整块隐藏，只留
+  「文字样式（只读）」；这是 TR-025 就有的行为，本单明确不许改右栏布局。
+  因此「X/Y 灰 + 发布亮」的同框截图在真机只读态物理上拍不出来
+  （隐藏比 disabled 更强，本来就拖不动）。
+   shots/01、02 是装好 R2.app 的真机只读态整窗 + 右栏局部（如实拍）；
+   shots/03、04 是同批源码取证窗口恢复可见后的「六灰四亮」真实像素；
+   不合成、不 PS，来源逐张标注。隐藏态反而是更强的不可编辑证据。
+   shots/08、09 是 v1.5 dmg 挂载点起的真机只读态图，与 01 逐字节相同。

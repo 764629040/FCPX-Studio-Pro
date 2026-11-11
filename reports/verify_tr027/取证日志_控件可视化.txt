@@ -1,0 +1,24 @@
+[TR-027-VIS] motiReadOnlyMode=true  layer.isLocked=false
+[TR-027-VIS] 隐藏后 posXField.isHidden=false  publishTextCheck.isHidden=false
+[TR-027-VIS] 从 tag 9901 起共 14 个 arrangedSubviews，恢复可见 13 个
+[TR-027-VIS] 表格高度约束 320→180 调整数=4
+[TR-027-VIS] 只读态·恢复可见 六几何: posXField=false posYField=false rotationField=false scaleField=false rotationSlider=false scaleSlider=false
+[TR-027-VIS] 只读态·恢复可见 其它六项: publishTextCheck=true publishPosCheck=true publishRotCheck=true publishScaleCheck=true toggleOrientationButton=true textEditor.isEditable=true
+[TR-027-VIS] 只读态·恢复可见 断言: 六几何全灰=true 其它六项全亮=true
+[TR-027-VIS] frames.txt 写出 11 个控件精确矩形
+[TR-027-VIS]   FRAME posXField 2150 1348 2310 1396
+[TR-027-VIS]   FRAME posYField 2365 1348 2525 1396
+[TR-027-VIS]   FRAME rotationField 2668 1244 2772 1276
+[TR-027-VIS]   FRAME rotationSlider 2196 1244 2652 1276
+[TR-027-VIS]   FRAME scaleField 2668 1296 2772 1328
+[TR-027-VIS]   FRAME scaleSlider 2196 1296 2652 1328
+[TR-027-VIS]   FRAME publishTextCheck 2108 1464 2307 1496
+[TR-027-VIS]   FRAME publishPosCheck 2339 1464 2538 1496
+[TR-027-VIS]   FRAME publishRotCheck 2108 1516 2307 1548
+[TR-027-VIS]   FRAME publishScaleCheck 2339 1516 2538 1548
+[TR-027-VIS]   FRAME toggleOrientationButton 2108 810 2772 858
+[TR-027-VIS] 只读态 posXField.isHidden=false  publishTextCheck.isHidden=false
+[TR-027-VIS] windowNumber=5091
+[TR-027-VIS] 截图 /tmp/tr027_shots/visual_readonly_六灰四亮.png
+[TR-027-VIS] 截图 /tmp/tr027_shots/visual_editable_对照.png
+[TR-027-VIS] visual_meta.txt 写入完成

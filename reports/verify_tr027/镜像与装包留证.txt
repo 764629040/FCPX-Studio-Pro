@@ -1,0 +1,83 @@
+TR-027 v1.5 镜像验收（用现有 tools/s4_rebuild_dmg.sh，未新写打包脚本）
+======================================================================
+
+── A-1 脚本与 dry-run ──────────────────────────────────────────────
+  bash tools/s4_rebuild_dmg.sh --version v1.5 --dry-run → exit 0
+    输出目录（内盘）/ 源包 95644 KiB / pgrep 无 R2.app /
+    /tmp 可用 11959396 KiB ≥ 需 293688 KiB / 幂等闸门全过
+  bash tools/s4_rebuild_dmg.sh --version v1.5 → build_exit=0
+    流程：/tmp stage → UDZO → 挂载 cmp + strict 验签 → detach → 并列 cp 内盘
+    脚本自身输出「内容校验通过（二进制逐字节一致 + strict 验签 exit 0）」
+  唯一脚本增量：stage 的「内容」段补 TR-026（见下 A-4）；
+  --dry-run 打印段、其余流程、参数、--replace 禁用状态一字未动。
+  原始输出：镜像重建输出.txt
+
+── A-2 成品（唯一交付数字，不是 /tmp 中间产物）────────────────────
+  ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.5.dmg
+  46290844 B = 44.15 MiB    Nov 12 00:22:04 2026
+  红线 55M = 57671680 B → PASS
+  相对 v1.4 46290500 B  +344 B（说明文本变长）
+  相对 v1.3 47855074 B  -1564230 B
+
+── A-3 旧镜像保全（未覆盖任一字节）────────────────────────────────
+  v1.3  47855074 B / Nov 11 10:35:57
+        sha256 = 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb
+  v1.4  46290500 B / Nov 11 23:18:37
+        sha256 = 18d122ebfc7ee140f9cc7a3ad974fb61494130694af5b77b8ab31735db36b6bd
+  封包前后两组完整 sha 逐值相同；三份 .dmg 并列在 DIST 目录。
+
+── A-4 挂载根内容 ─────────────────────────────────────────────────
+  FCPX Studio Pro R2.app/     Applications -> /Applications（软链）
+  安装说明.txt（718 B，stage 唯一来源）
+  安装说明「内容」段逐字：
+    内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 / TR-026 —— 含真反相（不吃目标色）、
+          「⇄ 对比色」按钮、X/Y 数值框左右拖动；
+          TR-026：只读 .moti 预览态禁用 X/Y 数值框与旋转/缩放滑块，
+          发布项与横竖排按钮按原样保留。
+  校验段 sha16 = 65096864e66ed4b0（与包内一致）
+  文件数：根目录 4 项（. / .. / Applications / R2.app / 安装说明.txt）
+
+── A-5 dmg 内二进制 == 包内（完整 64 位，非「差不多新」）────────
+  dmg 内：3973920 B / Nov 12 00:21:33
+    sha256 = 65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+  包内  ：3973920 B / Nov 12 00:06:31
+    sha256 = 65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+  cmp → BYTE_IDENTICAL=YES
+  dmg 内 App codesign --verify --strict --deep → exit 0
+
+── A-6 hdiutil verify ─────────────────────────────────────────────
+  hdiutil verify ... → "checksum ... is VALID" / verify_exit=0
+  已验证CRC32 $4D65FB05；全文 hdiutil_verify.txt
+
+── A-7 挂载后真机启动（两次，均从 dmg 挂载点）────────────────────
+  ① 默认态 PID 93344 / CGWindowNumber 5100：
+     --open /tmp/tr0241_black_text.psd
+     screencapture -l 5100 → shots/06、07
+     右栏局部逐字读到「位图换色」/「⇄ 对比色」（未设色→灰掉，
+     A3 禁用态）/「明暗上色」/ 旋转 0.0° / 缩放 100% / X:0.0 Y:0.0 /
+     四个「发布…」复选框。
+     与 reports/verify_tr025/shots/tr025_装包后_默认态.png
+     cmp → BYTE_IDENTICAL_VS_TR025=YES（383532 B）
+  ② 只读 .moti 态 PID 93600 / CGWindowNumber 5109：
+     --preview-moti build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+     stdout: layers=8 canvas=1080x1920（真机只读stdout.txt）
+     screencapture -l 5109 → shots/08、09
+     与装好 R2.app 起的只读态图（shots/01，PID 90499 / window 5065）
+     cmp → BYTE_IDENTICAL_DMG_VS_BUNDLE=YES（395855 B，两次独立进程）
+
+── A-8 交付前挂载一次、卸载一次 ───────────────────────────────────
+  脚本第 3 步自身 attach→校验→detach；本单验收又 attach 一次
+  → 真机截图两张 → 退出实例 → hdiutil detach "disk8" ejected. exit 0
+  终检 hdiutil info：v1.5 出现 0 次、tr027_v15_mnt 出现 0 次
+  终检 mount：无 FCPX_Studio_Pro / tr027_v15 / s4_dmg 相关条目
+  FCPXStudio 与 Final Cut Pro 均无进程
+  偏差披露：/tmp/tr027_v14_mnt、/tmp/tr027_v15_mnt 两个空目录
+    rmdir 被沙盒 Operation not permitted 拦下（与 TR-026 同一现象），
+    目录内已空、无挂载内容；s4_dmg_mnt.U9kaOm 已 rmdir 成功。
+
+── A-9 中间产物只在 /tmp ──────────────────────────────────────────
+  release 构建 /tmp/fcpx_wd、stage /tmp/s4_dmg_stage.*、
+  临时 dmg /tmp/s4_dmg_out/、挂载点 /tmp/s4_dmg_mnt.* 与
+  /tmp/tr027_v15_mnt、取证二进制与截图全在 /tmp。
+  外置卷 df：707Mi 可用 / 100%，本单只新增 reports/verify_tr027/
+  约 2.6 MiB 文本与截图；未在外置卷写任何 stage / 临时 dmg。

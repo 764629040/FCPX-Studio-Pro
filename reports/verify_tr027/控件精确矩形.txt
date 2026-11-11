@@ -1,0 +1,11 @@
+posXField 2150 1348 2310 1396
+posYField 2365 1348 2525 1396
+rotationField 2668 1244 2772 1276
+rotationSlider 2196 1244 2652 1276
+scaleField 2668 1296 2772 1328
+scaleSlider 2196 1296 2652 1328
+publishTextCheck 2108 1464 2307 1496
+publishPosCheck 2339 1464 2538 1496
+publishRotCheck 2108 1516 2307 1548
+publishScaleCheck 2339 1516 2538 1548
+toggleOrientationButton 2108 810 2772 858

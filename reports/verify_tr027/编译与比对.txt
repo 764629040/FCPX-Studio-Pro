@@ -1,0 +1,45 @@
+TR-027 编译与比对（61 项 harness / 六份历史逐字节 / 源码零改动）
+================================================================
+
+── 1. release 编译（用户指定命令，一字未改）────────────────────────
+  cd FCPXStudioNative
+  rm -rf /tmp/fcpx_wd
+  swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+  build_exit=0
+  Build complete! (45.64s)
+  唯一警告：AudioManager.swift:165 'duration' was deprecated in macOS 13.0
+  （既有警告，非错误；未改代码绕过）
+  原始日志：编译与比对_原始日志.txt
+
+── 2. 源码零改动自证 ──────────────────────────────────────────────
+  本单 git diff（产品代码 .swift）：0 文件
+  aaad195..HEAD -- FCPXStudioNative/Sources/FCPXStudio：
+    20 11  InspectorView.swift  ← 全部来自 TR-026（commit 88c2880），
+                                   TR-027 一行未加
+  明确未动：harness、DraggableNumberField、PngRecolor、LayerModel、
+    InfiniteCanvasView、MotionBuilderSocket、MainWindowController、
+    s4_rebuild_dmg.sh 除「内容」段外的流程/参数/--replace 禁用状态
+  唯一脚本增量：tools/s4_rebuild_dmg.sh 的 stage「内容」段补 TR-026
+    （2 行删 / 4 行增，dry-run 打印段与其余流程一字未动）
+
+── 3. harness 重编译重跑 ──────────────────────────────────────────
+  FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" \
+            ! -name "main.swift" | sort)      # 43 个
+  swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift \
+    -o /tmp/tr019r_harness_tr027
+  compile_exit=0 / run_exit=0
+  行数 = 69
+  PASS = 61   FAIL = 0
+  TR-019-R VERDICT: PASS
+  ❌ 计数 = 0
+  全量输出：tr019r_harness_重跑.txt
+
+── 4. diff -q vs 六份历史（要求无一差异）──────────────────────────
+  OK   reports/verify_tr023b/tr019r_harness_重跑.txt    逐字节相同
+  OK   reports/verify_tr024/tr019r_harness_重跑.txt      逐字节相同
+  OK   reports/verify_tr024_1/tr019r_harness_重跑.txt    逐字节相同
+  OK   reports/verify_tr024_2/tr019r_harness_重跑.txt    逐字节相同
+  OK   reports/verify_tr025/tr019r_harness_重跑.txt      逐字节相同
+  OK   reports/verify_tr026/tr019r_harness_重跑.txt      逐字节相同
+  六份历史日志完整 sha256 前 16 位全为 6787e31d50961fb5，
+  与本单输出同值 → 61 项没挂、没改、没补。

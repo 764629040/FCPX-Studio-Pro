@@ -1,0 +1,84 @@
+TR-027 装包留证（未签名 + 重签后两组 B / mtime / 完整 sha256）
+================================================================
+项目根：/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+时间：2026-11-12 00:06:29 ~ 00:06:31
+纪律：cp 进 R2.app 后「立刻」把未签名构件落盘，再 ad-hoc 重签。
+      arm64 签名会改写 __LINKEDIT，顺序反了留证就废。
+
+── 0. 装包前现场（备份供字节旁证）────────────────────────────────
+  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+  3974096 B   Nov 11 22:38:39 2026
+  sha256 = b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+  codesign --verify --strict --deep → exit 0
+  备份至 /tmp/fcpx_old_bundle_binary_tr027（完整 sha 同上）
+  该份即 TR-025 包 / v1.4 dmg 内的二进制。
+
+── 1. 编译（本单不改任何功能代码）─────────────────────────────────
+  命令：cd FCPXStudioNative && rm -rf /tmp/fcpx_wd &&
+        swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+  build_exit=0；Build complete! (45.64s)，仅 1 条既有 DeprecatedDeclaration 警告
+  产物：/tmp/fcpx_wd/release/FCPXStudio
+  3978904 B   Nov 12 00:04:25 2026
+  sha256 = b360e45ae2c700c1d3d2a8bfef406d2f1dc4c724b1724ecdc1336a09416c6950
+
+── 2. cp 装包 → 立刻落盘未签名构件（签名前，立即）────────────────
+  命令：cp /tmp/fcpx_wd/release/FCPXStudio \
+           "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  此刻包内 = 未签名构建产物。落盘原文（本文件初版，未签名先于重签）：
+
+  B=3978904
+  mtime=Nov 12 00:06:29 2026
+  sha256=b360e45ae2c700c1d3d2a8bfef406d2f1dc4c724b1724ecdc1336a09416c6950
+
+  同值旁证：shasum 与 /tmp/fcpx_wd/release/FCPXStudio 完全相同，
+            cmp 包内 vs 构建产物 → BYTE_IDENTICAL_PRE=YES
+
+── 3. ad-hoc 重签 ─────────────────────────────────────────────────
+  codesign --force --deep --sign - "FCPX Studio Pro R2.app"
+  输出 "replacing existing signature"，sign_exit=0
+
+── 4. 严格验签 ───────────────────────────────────────────────────
+  codesign --verify --strict --deep "FCPX Studio Pro R2.app"
+  verify_exit=0（零输出）
+
+── 5. 重签后最终交付卷（本单唯一交付数字）────────────────────────
+  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+  B=3973920
+  mtime=Nov 12 00:06:31 2026
+  sha256=65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+  sha16 = 65096864e66ed4b0
+
+  体积 3978904 → 3973920（-4984 B）为 ad-hoc 重签改写 __LINKEDIT /
+  嵌入签名 blob 所致，代码区无第二个变量；未签名 sha 已在第 2 段钉死。
+
+── 6. 新旧差异只来自 TR-026-B（字节旁证）─────────────────────────
+  · 完整 sha 不同：b6efcdddb2824b50… → 65096864e66ed4b0…（≠，PASS）
+  · git diff --numstat aaad195..HEAD -- FCPXStudioNative/Sources/FCPXStudio
+      → 20 11  InspectorView.swift（唯一改动的 .swift；43 个 .swift 中 42 个逐字节未动）
+  · git merge-base --is-ancestor 88c2880 HEAD → IS_ANCESTOR_OF_HEAD=YES
+      （88c2880 是 TR-026 代码 commit，已在 HEAD）
+  · 差异逐行全是 TR-026-B：三个调用点改传 layer.isLocked || motiReadOnlyMode、
+      函数体引入 lockedOnly = currentSelectedLayer?.isLocked ?? false 隔离
+      发布复选框 / textEditor / 横竖排按钮；其余为注释。
+  · nm -gU 符号集合：旧包 5468 / 新包 5468；仅旧有 0、仅新有 0
+      → 没有新增函数 / 新控件类型，差异只在既存函数体内，
+        对上「20 行新增 11 行删除、不新增功能」。
+  · 字符串常量（⇄ 对比色 / 反相长文案 / DraggableNumberField /
+      onComplementColorClicked / 位图换色 / 文字样式 / resizeLeftRight）
+      新旧两边计数完全相同 → 反相算法、对比色、提示文案、拖动类一行未动。
+  · 诚实披露：Swift release 非确定性布局，__TEXT 段逐字节差异 60.70%，
+      不能拿「差异小」当证据；硬证据是「源码 1 文件 20+/11- +
+      符号集合零增删 + 字符串常量零变化 + 行为断言全 PASS + sha 确实不同」。
+  · 与 v1.4 dmg 内二进制比对：v1.4 = b6efcdddb2824b50…（TR-025）
+      cmp → 不同，PASS（v1.5 确实换了字节，不是换汤不换药）。
+
+── 7. 包内改动面 ─────────────────────────────────────────────────
+  仅 2 条：Contents/MacOS/FCPXStudio 与 Contents/_CodeSignature/CodeResources
+  （find -newermt "2026-11-12 00:04" 实测）。
+
+── 8. 三态合一 ───────────────────────────────────────────────────
+  v1.5 dmg 内二进制
+  3973920 B   Nov 12 00:21:33 2026
+  sha256 = 65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+  与包内完整 64 位相等，cmp → BYTE_IDENTICAL=YES。
+  dmg 内 App codesign --verify --strict --deep → exit 0。

@@ -1,0 +1,161 @@
+TR-027 验收记录 —— TR-026-B 装进包 + 重封 v1.5（源码 / 包 / 镜像三态合一）
+========================================================================
+日期：2026-11-12 00:02 ~ 00:2x
+HEAD（开工）：ff91630 / ahead 62 / git status --porcelain 0 行 / 未 push
+范围：只做三件事 —— ① 重新编译 release ② 装包 + ad-hoc 重签 ③ 封 v1.5.dmg
+
+── 一、前置现场核对（问题单给定值，逐项复算一致）──────────────────
+  git log -1 → ff91630；ahead=62；工作区干净
+  R2.app/Contents/MacOS/FCPXStudio = 3974096 B / Nov 11 22:38:39 /
+    b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+  codesign --verify --strict --deep → exit 0
+  v1.3 = 47855074 B / 10:35:57 / 0fdf3359…
+  v1.4 = 46290500 B / 23:18:37 / 18d122eb…
+  外置卷 707Mi 可用 / 100%；FCPXStudio 与 Final Cut Pro 均无进程；
+  hdiutil info / mount 无残留；六份历史 harness 日志 sha16 全为
+  6787e31d50961fb5、69 行，逐份存在。
+  源码已含 TR-026-B：三个调用点 959 / 1409 / 1466 传
+  layer.isLocked || motiReadOnlyMode，函数体 lockedOnly 只喂非几何控件
+  （commit 88c2880，IS_ANCESTOR_OF_HEAD=YES）。
+
+── 二、交付卷（只报这一组数，不是 /tmp 产物）──────────────────────
+  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+    3973920 B   Nov 12 00:06:31 2026
+    sha256 = 65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+    sha16  = 65096864e66ed4b0
+  ~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.5.dmg
+    46290844 B = 44.15 MiB   Nov 12 00:22:04 2026
+
+── 三、三件事逐项验收 ─────────────────────────────────────────────
+
+  【1 编译】swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+    build_exit=0 / Build complete! (45.64s) / 仅 1 条既有弃用警告
+    产物 3978904 B / 00:04:25 / b360e45ae2c700c1d3…（编译与比对.txt）
+    编译报错 0；未改任何功能代码绕过。
+
+  【2 装包 + 重签】顺序钉死（装包留证.txt）
+    cp → 立刻落盘未签名 B/mtime/完整 sha256：
+      3978904 B / Nov 12 00:06:29 /
+      b360e45ae2c700c1d3d2a8bfef406d2f1dc4c724b1724ecdc1336a09416c6950
+      cmp 与构建产物 BYTE_IDENTICAL_PRE=YES
+    → codesign --force --deep --sign -（sign_exit=0）
+    → codesign --verify --strict --deep（verify_exit=0，零输出）
+    → 最终 3973920 B / Nov 12 00:06:31 /
+      65096864e66ed4b0fcfbbae6cb0ed9129629683e8a44473a86b2abc50fb7d68a
+    包内改动面仅 MacOS/FCPXStudio + _CodeSignature/CodeResources 两条。
+
+  【3 v1.5 dmg】tools/s4_rebuild_dmg.sh --version v1.5
+    --dry-run 先过闸门 → 正式 build_exit=0
+    唯一脚本增量：stage「内容」段补 TR-026（2 行删 / 4 行增）；
+    其余流程、参数、--replace 禁用状态一字未动，未新写打包脚本。
+    46290844 B ≤ 55M；hdiutil verify VALID / exit 0；
+    dmg 内二进制完整 sha256 与包内 64 位全等、cmp BYTE_IDENTICAL=YES；
+    dmg 内 App codesign --verify --strict --deep exit 0；
+    挂载根 = app + /Applications 软链 + 安装说明.txt（含 TR-026 内容段）；
+    挂载一次、卸载一次，detach exit 0，hdiutil info / mount 零残留。
+
+── 四、问题单「你必须自证」五条 ──────────────────────────────────
+
+  验收 1 真机取证（整窗 + 右栏局部各一张，实际交付 9 张）
+    从装好的 R2.app 用 --preview-moti 打开只读 .moti：
+      PID 90499 / CGWindowNumber 5065 / screencapture -l 5065
+      stdout: layers=8 canvas=1080x1920（真机只读态stdout.txt）
+      shots/01 整窗（395855 B / 2414×1562）、shots/02 右栏局部
+      逐字读到「只读，不可编辑」/「幅面规格 1080x1920」/
+      8 层 Text 01~08（🔒 全锁）/「文字样式（只读）」/「只读预览 · 共 8 层」
+    从 v1.5 dmg 挂载点同样 --preview-moti：
+      PID 93600 / window 5109 → shots/08、09
+      与 shots/01 cmp → BYTE_IDENTICAL_DMG_VS_BUNDLE=YES
+    从 v1.5 dmg 挂载点默认态：
+      PID 93344 / window 5100 → shots/06、07
+      右栏逐字读到「位图换色」/「⇄ 对比色」（灰掉=未设色 A3 禁用态）/
+      「明暗上色」/ 旋转 0.0° / 缩放 100% / X:0.0 Y:0.0 / 四个发布复选框
+      与 TR-025 装包后默认态图 cmp BYTE_IDENTICAL=YES
+
+    ★ 口径披露（不掩盖）：真机只读态按 TR-019-R 既有设计
+      （applyMotiReadOnlyText()，TR-025 就有、本单明确不许改布局）
+      把 motionPropsTag(9901) 起的属性区整块隐藏，只留「文字样式（只读）」，
+      所以「X/Y 与旋转/缩放灰 + 发布复选框/横竖排亮」的同框截图在
+      真机只读态物理上拍不出来 —— 隐藏比 disabled 更强，本来就拖不动。
+      为自证「零顺带改动」，另用同批 43 个 .swift + swiftc -O 编译的
+      取证窗口，仅在运行时把被隐藏的属性区 isHidden 置回 false，
+      拍 shots/03（只读态六灰四亮整窗）、shots/04（右栏局部）、
+      shots/05（可编辑态对照）。产品源码 / R2.app / dmg 一律 0 改动；
+      不合成、不 PS，来源逐张标注，不冒充装机截图。
+
+  验收 2 只读态拖动：123.4 → 123.4（PASS）
+    mouseDown + 3 dragged + mouseUp，posXField.isEnabled=false，
+    guard isEnabled 自然兜住。详见控件状态与探针.txt。
+
+  验收 3 可编辑态回归（PASS）
+    9.0 → 37.0 → 247.0 三步（逐帧在 mouseUp 之前采样）；
+    首个 delta 9.0；松手前后均 247.0；全程 currentEditor()==nil；
+    回车 77.7。3pt 死区与 8s 兜底一行未动。
+
+  验收 4 harness：PASS = 61 FAIL = 0 / 69 行 / ❌ 0
+    diff -q 与 verify_tr023b / tr024 / tr024_1 / tr024_2 / tr025 / tr026
+    六份 tr019r_harness_重跑.txt 逐字节相同，无一差异。
+
+  验收 5 字节旁证（PASS）
+    新包 sha 65096864… ≠ 旧包 b6efcddd…；
+    v1.4 dmg 内仍是 b6efcddd…（TR-025），cmp 不同 → v1.5 非换汤不换药；
+    源码 aaad195..HEAD 只有 InspectorView.swift 20+/11-，全部来自
+    TR-026（88c2880 已在 HEAD）；43 个 .swift 中 42 个逐字节未动；
+    nm -gU 符号集合 5468/5468、零增删；字符串常量新旧计数完全相同。
+    诚实披露：__TEXT 段逐字节差异 60.70% 是 Swift release 布局非确定性，
+    不拿「差异小」充证据；硬证据是源码 1 文件 + 符号零增删 +
+    行为断言全 PASS + sha 确实不同。
+
+── 五、退回条件逐条自查 ───────────────────────────────────────────
+  ① 报 /tmp 产物 / 包内没换 → 否：只报包内 3973920 B 与
+     v1.5.dmg 46290844 B；cp 后未签名 sha 先落盘、重签后完整 sha 记录在案；
+     dmg 内与包内 cmp 逐字节相同；真机图由包内与 dmg 两份进程各起一次。
+  ② 只读态六控件没灰 / 发布复选框被顺带灰 → 否：六控件 isEnabled
+     全 false、拖动 posX 不变；发布四复选框 + textEditor + 横竖排按钮
+     在只读态按 TR-025 原样全 true，逐控件像素 0/0 差异。
+  ③ harness 不是六份逐字节相同 → 否：六份 diff -q 全 OK。
+  ④ dmg 内 sha 不全等 / verify 不过 / detach 有残留 → 否：完整 64 位
+     相等 + cmp + verify VALID + detach exit 0 + hdiutil info/mount 零残留。
+  ⑤ 覆盖 v1.3/v1.4 / 体积 >55M / 中间产物落外置卷 → 否：两份旧 dmg
+     完整 sha 前后相同；44.15 MiB ≤ 55M；中间产物全 /tmp。
+  ⑥ 自动退出 / 自动重启 FCPX → 否：Final Cut Pro 全程无进程，
+     pgrep -x "Final Cut Pro" 前置/封包/挂载/终检四次均空。
+     本单只对【自己为取证而起的 FCPXStudio 实例】做退出：
+       90499（--preview-moti 验收）、93344（dmg 默认态）、
+       93600（dmg 只读态），方式均为 AppKit NSRunningApplication
+       terminate() / forceTerminate() 正常退出，不是 kill -TERM、
+       不是自动重启；与 TR-026 里 kill -TERM 76753 的性质不同，
+       记录里逐条写清。后台任务 gIX0xF / Y8QorK / or0gno 的
+       exit 143 均为这些 SIGTERM 的预期结果。
+  ⑦ 为了跑通改功能代码 → 否：产品 .swift 本单 0 行改动，
+     唯一脚本增量是 stage 说明文件「内容」段补 TR-026。
+
+── 六、纪律 ───────────────────────────────────────────────────────
+  两个 commit：tr027（仅 tools/s4_rebuild_dmg.sh 内容段增量）/
+              tr027-ev（reports/verify_tr027/ + 台账，0 个 .swift）
+  台账 docs/待办清单_20261110.md 追加 M.3.5，append-only、0 删除
+  未 push；工作区最终干净；未重建 v1.3 / v1.4 任何字节
+  未启动 FCPX；未覆盖 v1.3 / v1.4；未新写打包脚本
+
+── 七、偏差披露（不掩盖）──────────────────────────────────────────
+  1. 真机只读态属性区被 TR-019-R 既有逻辑整块隐藏，
+     「六灰四亮」的同框截图改由同批源码取证窗口（运行时恢复可见）
+     提供，已在第四节验收 1 与控件状态与探针.txt 逐条标注来源。
+  2. /tmp/tr027_v14_mnt、/tmp/tr027_v15_mnt 两个空挂载点目录
+     rmdir 被沙盒 Operation not permitted 拦下，目录内已空、
+     detach 已完成、hdiutil info / mount 均无残留。
+  3. Swift release 非确定性布局导致 __TEXT 段 60.70% 字节不同，
+     已改用源码 diff / 符号集合 / 行为断言三段自证，不用「差异小」糊弄。
+
+验收数字（详见 reports/verify_tr027/）：包内 3973920 B / 00:06:31 /
+65096864e66ed4b0…；v1.5 dmg 46290844 B / 44.15 MiB / 00:22:04；
+hdiutil verify VALID；harness PASS=61 FAIL=0 / 69 行 / 六份逐字节相同；
+只读拖动 123.4→123.4；回归 9→37→247 / 77.7；逐控件像素
+六几何 6/6 有变化、其它五项 5/5 零差异。
+
+交付：~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.5.dmg、
+reports/verify_tr027/（本记录、装包留证、镜像与装包留证、
+控件状态与探针、编译与比对、hdiutil_verify.txt、镜像重建输出、
+两份取证日志、逐控件像素比对、控件精确矩形、真机只读态stdout、
+编译与比对_原始日志、tr019r_harness_重跑.txt、shots/ 9 张）、
+tools/s4_rebuild_dmg.sh 内容段增量、docs/待办清单_20261110.md M.3.5。
