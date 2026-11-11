@@ -1,10 +1,18 @@
 {
   "meta": {
-    "generated_at": "2026-11-11 12:54:09",
+    "generated_at": "2026-11-11 14:05:23",
     "root": "/Users/mrhuang/Movies/Motion Templates.localized/Titles.localized",
-    "elapsed_s": 22.6,
+    "elapsed_s": 20.4,
     "script": "tools/tr023/attr_coverage.py",
     "read_only": true
+  },
+  "self_check": {
+    "method": "color_union_templates() 独立二次全库扫描，与主流程集合逐元素比对",
+    "zh": 404,
+    "zh_match": true,
+    "en": 418,
+    "en_match": true,
+    "pass": true
   },
   "denominator": {
     "total_moti": 1247,
@@ -95,14 +103,14 @@
       "hit_rate_pct": 18.2
     },
     "面/颜色": {
-      "templates": 165,
+      "templates": 163,
       "templates_with_value": 163,
-      "hit_rate_pct": 13.3
+      "hit_rate_pct": 13.1
     },
     "表面/颜色": {
-      "templates": 106,
+      "templates": 92,
       "templates_with_value": 92,
-      "hit_rate_pct": 8.5
+      "hit_rate_pct": 7.4
     },
     "渐变（面/表面/Face/顶层 合并）": {
       "templates": 265,
@@ -120,9 +128,9 @@
       "hit_rate_pct": 19.7
     },
     "基本|Basic/物质|Substance/颜色|Color": {
-      "templates": 138,
+      "templates": 0,
       "templates_with_value": 0,
-      "hit_rate_pct": 11.1
+      "hit_rate_pct": 0.0
     },
     "Face/Color": {
       "templates": 374,
@@ -140,6 +148,118 @@
   "color_zh_union": 404,
   "color_en_union": 418,
   "color_zh_en_intersection": 0,
+  "color_zh_definition": {
+    "predicate": "p == prefix 或 p.startswith(prefix + '/')（段前缀，不是裸字符串前缀）",
+    "sources": [
+      {
+        "name": "面/颜色",
+        "prefix": "scenenode/面/颜色",
+        "templates": 163,
+        "marginal": 163,
+        "cumulative": 163
+      },
+      {
+        "name": "表面/颜色",
+        "prefix": "scenenode/表面/颜色",
+        "templates": 92,
+        "marginal": 92,
+        "cumulative": 255
+      },
+      {
+        "name": "对象/基础/物质/颜色",
+        "prefix": "scenenode/对象/基础/物质/颜色",
+        "templates": 226,
+        "marginal": 63,
+        "cumulative": 318
+      },
+      {
+        "name": "对象/基本/物质/颜色",
+        "prefix": "scenenode/对象/基本/物质/颜色",
+        "templates": 147,
+        "marginal": 86,
+        "cumulative": 404
+      },
+      {
+        "name": "基本/物质/颜色",
+        "prefix": "scenenode/基本/物质/颜色",
+        "templates": 0,
+        "marginal": 0,
+        "cumulative": 404
+      },
+      {
+        "name": "图层/物质/颜色",
+        "prefix": "scenenode/图层/物质/颜色",
+        "templates": 3,
+        "marginal": 0,
+        "cumulative": 404
+      },
+      {
+        "name": "层/物质/颜色",
+        "prefix": "scenenode/层/物质/颜色",
+        "templates": 26,
+        "marginal": 0,
+        "cumulative": 404
+      },
+      {
+        "name": "面/渐变",
+        "prefix": "scenenode/面/渐变",
+        "templates": 62,
+        "marginal": 0,
+        "cumulative": 404
+      },
+      {
+        "name": "表面/渐变",
+        "prefix": "scenenode/表面/渐变",
+        "templates": 70,
+        "marginal": 0,
+        "cumulative": 404
+      },
+      {
+        "name": "顶层 渐变",
+        "prefix": "scenenode/渐变",
+        "templates": 44,
+        "marginal": 0,
+        "cumulative": 404
+      }
+    ],
+    "formula": "|∪ T(s)|，s 依次取上面 sources 的 prefix",
+    "union": 404,
+    "saturates_at": 4
+  },
+  "color_en_definition": {
+    "predicate": "p == prefix 或 p.startswith(prefix + '/')",
+    "sources": [
+      {
+        "name": "Face/Color",
+        "prefix": "scenenode/Face/Color",
+        "templates": 374,
+        "marginal": 374,
+        "cumulative": 374
+      },
+      {
+        "name": "Face/Gradient",
+        "prefix": "scenenode/Face/Gradient",
+        "templates": 100,
+        "marginal": 0,
+        "cumulative": 374
+      },
+      {
+        "name": "Object/Basic/Substance/Color",
+        "prefix": "scenenode/Object/Basic/Substance/Color",
+        "templates": 244,
+        "marginal": 44,
+        "cumulative": 418
+      },
+      {
+        "name": "Basic/Substance/Color",
+        "prefix": "scenenode/Basic/Substance/Color",
+        "templates": 0,
+        "marginal": 0,
+        "cumulative": 418
+      }
+    ],
+    "union": 418
+  },
   "color_zh_templates": [
     "-2026年4月项目/婚礼模板/婚礼模板.moti",
     "03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti",
@@ -950,15 +1070,6 @@
       ]
     },
     {
-      "path": "scenenode/基本/物质/颜色",
-      "templates": 64,
-      "occurrences": 322,
-      "samples": [
-        "MS标题字幕S5/1/1.moti",
-        "MS标题字幕S5/10/10.moti"
-      ]
-    },
-    {
       "path": "scenenode/面/渐变/RGB/RGB1/Location",
       "templates": 62,
       "occurrences": 79,
@@ -1157,15 +1268,6 @@
       ]
     },
     {
-      "path": "scenenode/Basic/Substance/Color",
-      "templates": 50,
-      "occurrences": 202,
-      "samples": [
-        "_大鱼汉化极简标注/描述 01/描述 01.moti",
-        "_大鱼汉化极简标注/数字 01/数字 01.moti"
-      ]
-    },
-    {
       "path": "scenenode/渐变/RGB/RGB1/Location",
       "templates": 44,
       "occurrences": 56,
@@ -1265,15 +1367,6 @@
       ]
     },
     {
-      "path": "scenenode/表面/颜色",
-      "templates": 38,
-      "occurrences": 224,
-      "samples": [
-        "MS标题字幕S5/1/1.moti",
-        "MS标题字幕S5/10/10.moti"
-      ]
-    },
-    {
       "path": "scenenode/层/物质/颜色/红色",
       "templates": 26,
       "occurrences": 51,
@@ -1307,15 +1400,6 @@
       "samples": [
         "易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti",
         "易安装 - 26个文字标题实用动画预设/易安装 02/文字标题 02.moti"
-      ]
-    },
-    {
-      "path": "scenenode/Basic/物质/颜色",
-      "templates": 24,
-      "occurrences": 48,
-      "samples": [
-        "易安装 - 26个文字标题实用动画预设/易安装 03/文字标题 03.moti",
-        "易安装 - 26个文字标题实用动画预设/易安装 04/文字标题 04.moti"
       ]
     },
     {
@@ -1544,15 +1628,6 @@
       ]
     },
     {
-      "path": "scenenode/面/颜色",
-      "templates": 5,
-      "occurrences": 7,
-      "samples": [
-        "03综艺动漫/尹住宿/点文本/点文本 01/点文本 01.moti",
-        "03综艺动漫/自由文本() 2/双文本/双文本.moti"
-      ]
-    },
-    {
       "path": "scenenode/面/渐变/类型",
       "templates": 4,
       "occurrences": 7,
@@ -1730,16 +1805,93 @@
     }
   ],
   "shadow": {
-    "rule": "文字对象内存在 <parameter> 路径 scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)，且该参数带数值（value 或 <curve>@value）",
+    "rule": "文字对象内存在 <parameter> 路径 scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)，且该参数带数值（value 或 <curve>@value）；三者取并集。行为实例带名字进路径（behavior:名字/…），行为内部的同名参数不算文字对象自己的样式",
     "by_param": {
       "距离": 218,
-      "不透明度": 50,
+      "不透明度": 41,
       "模糊": 167
     },
-    "union": 234,
-    "cn_only_dist": 14,
-    "dist_nonzero": 86,
-    "samples": [
+    "union": 226,
+    "legacy_union_without_behavior": 234,
+    "behavior_noise_templates": 8,
+    "only_param": {
+      "距离": 18,
+      "不透明度": 8,
+      "模糊": 0
+    },
+    "paths": [
+      {
+        "param": "距离",
+        "path": "scenenode/Drop Shadow/Distance",
+        "templates": 167,
+        "samples": [
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-144.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-192.moti"
+        ]
+      },
+      {
+        "param": "距离",
+        "path": "scenenode/拖放阴影/距离",
+        "templates": 37,
+        "samples": [
+          "03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti",
+          "03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti",
+          "03综艺动漫/会议广场/条/条 03/条 03.moti"
+        ]
+      },
+      {
+        "param": "距离",
+        "path": "scenenode/投影/距离",
+        "templates": 14,
+        "samples": [
+          "MS标题字幕S5/16/16.moti",
+          "MS标题字幕S5/21/21.moti",
+          "MS标题字幕S5/34/34.moti"
+        ]
+      },
+      {
+        "param": "不透明度",
+        "path": "scenenode/拖放阴影/不透明度",
+        "templates": 34,
+        "samples": [
+          "03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti",
+          "03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti",
+          "03综艺动漫/会议广场/条/条 03/条 03.moti"
+        ]
+      },
+      {
+        "param": "不透明度",
+        "path": "scenenode/投影/不透明度",
+        "templates": 7,
+        "samples": [
+          "光视婚礼摄影工作室/光视婚礼摄影工作室/PRODUCED BY TIMERIVER/PRODUCED BY TIMERIVER.moti",
+          "光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室承接项目/光视婚礼摄影工作室承接项目.moti",
+          "易安装 - 26个文字标题实用动画预设/易安装 17/文字标题 17.moti"
+        ]
+      },
+      {
+        "param": "模糊",
+        "path": "scenenode/Drop Shadow/Blur/X",
+        "templates": 167,
+        "samples": [
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-144.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-192.moti"
+        ]
+      },
+      {
+        "param": "模糊",
+        "path": "scenenode/Drop Shadow/Blur/Y",
+        "templates": 167,
+        "samples": [
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-144.moti",
+          "motionVFX Freebies/.mExt-Placeholders/Placeholder-192.moti"
+        ]
+      }
+    ],
+    "templates": [
       "03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti",
       "03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti",
       "03综艺动漫/会议广场/条/条 03/条 03.moti",
@@ -1749,8 +1901,8 @@
       "03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti",
       "03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti",
       "03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti",
-      "03综艺动漫/名称条/名称条01/名称条01.moti",
       "03综艺动漫/名称条 1/名称条 05/名称条 05.moti",
+      "03综艺动漫/名称条/名称条01/名称条01.moti",
       "03综艺动漫/工具套件/标注/标注.moti",
       "03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti",
       "03综艺动漫/日期/点组/点天使/点天使.moti",
@@ -1759,8 +1911,216 @@
       "03综艺动漫/某人标题/某人扩音器/某人扩音器.moti",
       "03综艺动漫/某人标题/某人简单清除/某人简单清除.moti",
       "03综艺动漫/某人标题/点/某人点 02/某人点 02.moti",
-      "03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti"
-    ]
+      "03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti",
+      "03综艺动漫/汽车 1/子文本/子文本 02/子文本 02.moti",
+      "03综艺动漫/汽车 1/扩音器/扩音器01/扩音器01.moti",
+      "03综艺动漫/汽车 1/条/名称/名称.moti",
+      "03综艺动漫/汽车 1/点文本/点文本 01/点文本 01.moti",
+      "03综艺动漫/汽车 1/点文本/点文本 02/点文本 02.moti",
+      "03综艺动漫/点文本/点文本 01/点文本 01.moti",
+      "03综艺动漫/点文本/点文本 08/点文本 08.moti",
+      "03综艺动漫/美味家伙/美味家伙 01/美味家伙 01.moti",
+      "03综艺动漫/美味家伙/美味家伙 02/美味家伙 02.moti",
+      "03综艺动漫/美味家伙/美味家伙 03/美味家伙 03.moti",
+      "03综艺动漫/美味家伙/美味家伙 07/美味家伙 07.moti",
+      "03综艺动漫/美味家伙/美味家伙 09/美味家伙 09.moti",
+      "03综艺动漫/美味家伙/美味家伙 10/美味家伙 10.moti",
+      "03综艺动漫/自由文本() 2/双文本/双文本.moti",
+      "03综艺动漫/自由文本() 2/文本/文本.moti",
+      "03综艺动漫/超人/点文本/点文本 08/点文本 08.moti",
+      "03综艺动漫/餐馆/子文本/子文本 01/子文本 01.moti",
+      "03综艺动漫/餐馆/子文本/子文本 02/子文本 02.moti",
+      "03综艺动漫/餐馆/扩音器/扩音器01/扩音器01.moti",
+      "03综艺动漫/餐馆/播放标题/大条/大条.moti",
+      "03综艺动漫/餐馆/播放标题/心形/心形.moti",
+      "03综艺动漫/餐馆/播放标题/恐慌文本/恐慌文本.moti",
+      "03综艺动漫/餐馆/播放标题/扩音器/扩音器.moti",
+      "03综艺动漫/餐馆/播放标题/点/点.moti",
+      "03综艺动漫/餐馆/点文本/点文本 02/点文本 02.moti",
+      "MS标题字幕S5/16/16.moti",
+      "MS标题字幕S5/21/21.moti",
+      "MS标题字幕S5/34/34.moti",
+      "MS标题字幕S5/40/40.moti",
+      "MS标题字幕S5/42/42.moti",
+      "MS标题字幕S5/43/43.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-144.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-192.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-240.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-280.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-300.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-34.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-38.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-39.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-48.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-51.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-52.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-55.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-57.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-58.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-59.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-60.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-72.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-76.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder-97.moti",
+      "motionVFX Freebies/.mExt-Placeholders/Placeholder.moti",
+      "motionVFX Freebies/Adjustment Layer DZZ5/Adjustment Layer DZZ5.moti",
+      "motionVFX Freebies/Anamorphic Effect 9VMK/Anamorphic Effect 9VMK.moti",
+      "motionVFX Freebies/Background 33JZ/Background 33JZ.moti",
+      "motionVFX Freebies/Barrel Roll 3VSR/Barrel Roll 3VSR.moti",
+      "motionVFX Freebies/Bounce LN74/Bounce LN74.moti",
+      "motionVFX Freebies/Bounce X In KM66/Bounce X In KM66.moti",
+      "motionVFX Freebies/Bounce X Out JK4K/Bounce X Out JK4K.moti",
+      "motionVFX Freebies/Bounce Y In G7L8/Bounce Y In G7L8.moti",
+      "motionVFX Freebies/Bounce Y Out 0VVM/Bounce Y Out 0VVM.moti",
+      "motionVFX Freebies/Camera Shake 1YWR/Camera Shake 1YWR.moti",
+      "motionVFX Freebies/Caption G7G8/Caption G7G8.moti",
+      "motionVFX Freebies/Condense 9VVK/Condense 9VVK.moti",
+      "motionVFX Freebies/Condense X 8NNM/Condense X 8NNM.moti",
+      "motionVFX Freebies/Condense Y 766Z/Condense Y 766Z.moti",
+      "motionVFX Freebies/Crawl X In 6MM7/Crawl X In 6MM7.moti",
+      "motionVFX Freebies/Crawl X Out 5GGM/Crawl X Out 5GGM.moti",
+      "motionVFX Freebies/Crawl Y In 4KKV/Crawl Y In 4KKV.moti",
+      "motionVFX Freebies/Crawl Y Out 333Z/Crawl Y Out 333Z.moti",
+      "motionVFX Freebies/Custom Camera Movement M4NK/Custom Camera Movement M4NK.moti",
+      "motionVFX Freebies/Dart X In 2KK5/Dart X In 2KK5.moti",
+      "motionVFX Freebies/Dart X Out 1YYR/Dart X Out 1YYR.moti",
+      "motionVFX Freebies/Dart Y In Z883/Dart Y In Z883.moti",
+      "motionVFX Freebies/Dart Y Out Y002/Dart Y Out Y002.moti",
+      "motionVFX Freebies/Details 4XCX/Details 4XCX.moti",
+      "motionVFX Freebies/Dimension Vortex 8NPM/Dimension Vortex 8NPM.moti",
+      "motionVFX Freebies/Drop In XZZW/Drop In XZZW.moti",
+      "motionVFX Freebies/Drop Out W88L/Drop Out W88L.moti",
+      "motionVFX Freebies/Dynamic Motion Blur W8XL/Dynamic Motion Blur W8XL.moti",
+      "motionVFX Freebies/Effect 4KZV/Effect 4KZV.moti",
+      "motionVFX Freebies/Effect 5GLM/Effect 5GLM.moti",
+      "motionVFX Freebies/Effect 6MR7/Effect 6MR7.moti",
+      "motionVFX Freebies/Effect 76NZ/Effect 76NZ.moti",
+      "motionVFX Freebies/Effect 8NXM/Effect 8NXM.moti",
+      "motionVFX Freebies/Effect 9VXK/Effect 9VXK.moti",
+      "motionVFX Freebies/Enlarge In V005/Enlarge In V005.moti",
+      "motionVFX Freebies/Enlarge Out RQQJ/Enlarge Out RQQJ.moti",
+      "motionVFX Freebies/Enlarge X Hard In QZZ7/Enlarge X Hard In QZZ7.moti",
+      "motionVFX Freebies/Enlarge X Hard Out P11V/Enlarge X Hard Out P11V.moti",
+      "motionVFX Freebies/Enlarge X Soft In NQQW/Enlarge X Soft In NQQW.moti",
+      "motionVFX Freebies/Enlarge X Soft Out M44K/Enlarge X Soft Out M44K.moti",
+      "motionVFX Freebies/Enlarge Y Hard In LNN4/Enlarge Y Hard In LNN4.moti",
+      "motionVFX Freebies/Enlarge Y Hard Out KMM6/Enlarge Y Hard Out KMM6.moti",
+      "motionVFX Freebies/Enlarge Y Soft In JKKK/Enlarge Y Soft In JKKK.moti",
+      "motionVFX Freebies/Enlarge Y Soft Out G778/Enlarge Y Soft Out G778.moti",
+      "motionVFX Freebies/Extreme Motion Blur V045/Extreme Motion Blur V045.moti",
+      "motionVFX Freebies/Film Dirt JGFR/Film Dirt JGFR.moti",
+      "motionVFX Freebies/Film Dirt TT3A/Film Dirt TT3A.moti",
+      "motionVFX Freebies/Film Strip CDEK/Film Strip CDEK.moti",
+      "motionVFX Freebies/Film Strip Slideshow TZX2/Film Strip Slideshow TZX2.moti",
+      "motionVFX Freebies/Glass Shreds 76MZ/Glass Shreds 76MZ.moti",
+      "motionVFX Freebies/Glow And Flare 6MP7/Glow And Flare 6MP7.moti",
+      "motionVFX Freebies/Grow Hard In LNM1/Grow Hard In LNM1.moti",
+      "motionVFX Freebies/Grow Hard Out KML7/Grow Hard Out KML7.moti",
+      "motionVFX Freebies/Grow Soft In JKPJ/Grow Soft In JKPJ.moti",
+      "motionVFX Freebies/Grow Soft Out G78V/Grow Soft Out G78V.moti",
+      "motionVFX Freebies/Halftone LJ9G/Halftone LJ9G.moti",
+      "motionVFX Freebies/Header IV9M/Header IV9M.moti",
+      "motionVFX Freebies/Horizon Bending 5GZM/Horizon Bending 5GZM.moti",
+      "motionVFX Freebies/Horizon Multiplication 4KPV/Horizon Multiplication 4KPV.moti",
+      "motionVFX Freebies/Inflate X In 0VY7/Inflate X In 0VY7.moti",
+      "motionVFX Freebies/Inflate X Out 9VPR/Inflate X Out 9VPR.moti",
+      "motionVFX Freebies/Inflate Y In 8NLZ/Inflate Y In 8NLZ.moti",
+      "motionVFX Freebies/Inflate Y Out 76KJ/Inflate Y Out 76KJ.moti",
+      "motionVFX Freebies/Jelly In 6MJ5/Jelly In 6MJ5.moti",
+      "motionVFX Freebies/Jelly Out 5GNY/Jelly Out 5GNY.moti",
+      "motionVFX Freebies/Jump 4KMN/Jump 4KMN.moti",
+      "motionVFX Freebies/Light And Shadow 331Z/Light And Shadow 331Z.moti",
+      "motionVFX Freebies/Light Leaks QN4M/Light Leaks QN4M.moti",
+      "motionVFX Freebies/Linear Move X In 33L4/Linear Move X In 33L4.moti",
+      "motionVFX Freebies/Linear Move X Out 2KWN/Linear Move X Out 2KWN.moti",
+      "motionVFX Freebies/Linear Move Y In 1Y6N/Linear Move Y In 1Y6N.moti",
+      "motionVFX Freebies/Linear Move Y Out Z8V5/Linear Move Y Out Z8V5.moti",
+      "motionVFX Freebies/Lower In Y06X/Lower In Y06X.moti",
+      "motionVFX Freebies/Lower Out XZ1J/Lower Out XZ1J.moti",
+      "motionVFX Freebies/Lower3rd AZJ7/Lower3rd AZJ7.moti",
+      "motionVFX Freebies/Lower3rd JKVK/Lower3rd JKVK.moti",
+      "motionVFX Freebies/Lower3rd KMQ6/Lower3rd KMQ6.moti",
+      "motionVFX Freebies/Magical Aura Z803/Magical Aura Z803.moti",
+      "motionVFX Freebies/Mandala Shield Y012/Mandala Shield Y012.moti",
+      "motionVFX Freebies/Old Footage PN9V/Old Footage PN9V.moti",
+      "motionVFX Freebies/Oscillate Rotation W8Y7/Oscillate Rotation W8Y7.moti",
+      "motionVFX Freebies/Ping-Pong X In V0YW/Ping-Pong X In V0YW.moti",
+      "motionVFX Freebies/Ping-Pong X Out RQW4/Ping-Pong X Out RQW4.moti",
+      "motionVFX Freebies/Ping-Pong Y In QZ34/Ping-Pong Y In QZ34.moti",
+      "motionVFX Freebies/Ping-Pong Y Out P14R/Ping-Pong Y Out P14R.moti",
+      "motionVFX Freebies/Placeholder.moti",
+      "motionVFX Freebies/Portal Effect XZ7W/Portal Effect XZ7W.moti",
+      "motionVFX Freebies/Predefined Dynamic Motion Blur RQ1J/Predefined Dynamic Motion Blur RQ1J.moti",
+      "motionVFX Freebies/Predefined Extreme Motion Blur QZ47/Predefined Extreme Motion Blur QZ47.moti",
+      "motionVFX Freebies/Predefined Regular Motion Blur P13V/Predefined Regular Motion Blur P13V.moti",
+      "motionVFX Freebies/Predefined Subtle Motion Blur NQPW/Predefined Subtle Motion Blur NQPW.moti",
+      "motionVFX Freebies/Pulsate Scale NQ6Q/Pulsate Scale NQ6Q.moti",
+      "motionVFX Freebies/Pulsate Scale X M466/Pulsate Scale X M466.moti",
+      "motionVFX Freebies/Pulsate Scale Y DL11/Pulsate Scale Y DL11.moti",
+      "motionVFX Freebies/Quantize Scale Hard In EKY7/Quantize Scale Hard In EKY7.moti",
+      "motionVFX Freebies/Quantize Scale Hard Out BJWJ/Quantize Scale Hard Out BJWJ.moti",
+      "motionVFX Freebies/Quantize Scale Soft In EGMV/Quantize Scale Soft In EGMV.moti",
+      "motionVFX Freebies/Quantize Scale Soft Out E0M7/Quantize Scale Soft Out E0M7.moti",
+      "motionVFX Freebies/Random Rotate D99R/Random Rotate D99R.moti",
+      "motionVFX Freebies/Reality Distortion 2K35/Reality Distortion 2K35.moti",
+      "motionVFX Freebies/Regular Motion Blur M4PK/Regular Motion Blur M4PK.moti",
+      "motionVFX Freebies/Rock E87Z/Rock E87Z.moti",
+      "motionVFX Freebies/Rotate Stretch In B75J/Rotate Stretch In B75J.moti",
+      "motionVFX Freebies/Rotate Stretch Out D635/Rotate Stretch Out D635.moti",
+      "motionVFX Freebies/Scale Bounce In E51Y/Scale Bounce In E51Y.moti",
+      "motionVFX Freebies/Scale Bounce Out B4YN/Scale Bounce Out B4YN.moti",
+      "motionVFX Freebies/Scale Bounce X In D3W4/Scale Bounce X In D3W4.moti",
+      "motionVFX Freebies/Scale Bounce X Out E2RN/Scale Bounce X Out E2RN.moti",
+      "motionVFX Freebies/Scale Bounce Y In B1PN/Scale Bounce Y In B1PN.moti",
+      "motionVFX Freebies/Scale Bounce Y Out DZ65/Scale Bounce Y Out DZ65.moti",
+      "motionVFX Freebies/Slide X In EY4X/Slide X In EY4X.moti",
+      "motionVFX Freebies/Slide X Out BX2J/Slide X Out BX2J.moti",
+      "motionVFX Freebies/Slide Y In DWZ7/Slide Y In DWZ7.moti",
+      "motionVFX Freebies/Slide Y Out EVXW/Slide Y Out EVXW.moti",
+      "motionVFX Freebies/Spin X Hard In BRL4/Spin X Hard In BRL4.moti",
+      "motionVFX Freebies/Spin X Hard Out DQJ4/Spin X Hard Out DQJ4.moti",
+      "motionVFX Freebies/Spin X Soft In EP9R/Spin X Soft In EP9R.moti",
+      "motionVFX Freebies/Spin X Soft Out EN5Q/Spin X Soft Out EN5Q.moti",
+      "motionVFX Freebies/Spin Z Hard In BM36/Spin Z Hard In BM36.moti",
+      "motionVFX Freebies/Spin Z Hard Out DL81/Spin Z Hard Out DL81.moti",
+      "motionVFX Freebies/Spin Z Soft In EK77/Spin Z Soft In EK77.moti",
+      "motionVFX Freebies/Spin Z Soft Out BJ6J/Spin Z Soft Out BJ6J.moti",
+      "motionVFX Freebies/Subtle Motion Blur LN44/Subtle Motion Blur LN44.moti",
+      "motionVFX Freebies/Tape Recorder 27Z8/Tape Recorder 27Z8.moti",
+      "motionVFX Freebies/Title 0V6M/Title 0V6M.moti",
+      "motionVFX Freebies/Title 0VGM/Title 0VGM.moti",
+      "motionVFX Freebies/Title G7R8/Title G7R8.moti",
+      "motionVFX Freebies/Unstick In EG3V/Unstick In EG3V.moti",
+      "motionVFX Freebies/Unstick Out E027/Unstick Out E027.moti",
+      "motionVFX Freebies/Unstick X In D9KR/Unstick X In D9KR.moti",
+      "motionVFX Freebies/Unstick X Out E8JZ/Unstick X Out E8JZ.moti",
+      "motionVFX Freebies/Unstick Y In B7GJ/Unstick Y In B7GJ.moti",
+      "motionVFX Freebies/Unstick Y Out D685/Unstick Y Out D685.moti",
+      "motionVFX Freebies/VCR Tape NG95/VCR Tape NG95.moti",
+      "motionVFX Freebies/VCR Viewfinder QAL2/VCR Viewfinder QAL2.moti",
+      "motionVFX Freebies/Vertical On Horizontal Display KMG6/Vertical On Horizontal Display KMG6.moti",
+      "motionVFX Freebies/Vertigo From P1NV/Vertigo From P1NV.moti",
+      "motionVFX Freebies/Vertigo Through NQLW/Vertigo Through NQLW.moti",
+      "motionVFX Freebies/Vertigo Through Reverse M4KK/Vertigo Through Reverse M4KK.moti",
+      "motionVFX Freebies/Vertigo To LNJ4/Vertigo To LNJ4.moti",
+      "motionVFX Freebies/Vintage Grain 8DHC/Vintage Grain 8DHC.moti",
+      "motionVFX Freebies/Wind Up E57Y/Wind Up E57Y.moti",
+      "motionVFX Freebies/Wobble Roll X In B46N/Wobble Roll X In B46N.moti",
+      "motionVFX Freebies/Wobble Roll X Out D354/Wobble Roll X Out D354.moti",
+      "motionVFX Freebies/Wobble Roll Z In E24N/Wobble Roll Z In E24N.moti",
+      "motionVFX Freebies/Wobble Roll Z Out B13N/Wobble Roll Z Out B13N.moti",
+      "光视婚礼摄影工作室/光视婚礼摄影工作室/PRODUCED BY TIMERIVER/PRODUCED BY TIMERIVER.moti",
+      "光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室.moti",
+      "光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室承接项目/光视婚礼摄影工作室承接项目.moti",
+      "易安装 - 26个文字标题实用动画预设/易安装 17/文字标题 17.moti",
+      "易安装 - 26个文字标题实用动画预设/易安装 18/文字标题 18.moti",
+      "易安装 - 26个文字标题实用动画预设/易安装 19/文字标题 19.moti",
+      "易安装 - 26个文字标题实用动画预设/易安装 20/文字标题 20.moti",
+      "易安装 - 标题字幕高级真实阴影效果/易安装-高级阴影标题/易安装 - 高级阴影标题.moti"
+    ],
+    "cn_only_dist": 14,
+    "dist_nonzero": 86
   },
   "attributes": {
     "字体": {
@@ -1825,13 +2185,13 @@
     },
     "字距": {
       "desc": "字距（tracking，数值）",
-      "hit_templates_node": 182,
-      "hit_rate_node_pct": 14.7,
-      "hit_templates_with_value": 182,
-      "hit_rate_value_pct": 14.7,
-      "hit_templates_controllable": 182,
-      "hit_rate_controllable_pct": 14.7,
-      "hit_rate_among_text_pct": 20.1,
+      "hit_templates_node": 173,
+      "hit_rate_node_pct": 13.9,
+      "hit_templates_with_value": 173,
+      "hit_rate_value_pct": 13.9,
+      "hit_templates_controllable": 173,
+      "hit_rate_controllable_pct": 13.9,
+      "hit_rate_among_text_pct": 19.1,
       "spellings": [
         {
           "path": "scenenode/style/间距/字距",
@@ -1840,14 +2200,6 @@
         {
           "path": "scenenode/style/Spacing/Tracking",
           "occurrences": 80
-        },
-        {
-          "path": "scenenode/Format/Tracking",
-          "occurrences": 32
-        },
-        {
-          "path": "scenenode/格式/字距",
-          "occurrences": 29
         },
         {
           "path": "scenenode/style/字距",
@@ -1862,14 +2214,6 @@
         {
           "path": "scenenode/style/Spacing/Tracking",
           "occurrences": 80
-        },
-        {
-          "path": "scenenode/Format/Tracking",
-          "occurrences": 32
-        },
-        {
-          "path": "scenenode/格式/字距",
-          "occurrences": 29
         },
         {
           "path": "scenenode/style/字距",
@@ -1879,13 +2223,13 @@
     },
     "对齐": {
       "desc": "段落水平对齐（数值枚举）",
-      "hit_templates_node": 693,
-      "hit_rate_node_pct": 55.8,
-      "hit_templates_with_value": 693,
-      "hit_rate_value_pct": 55.8,
-      "hit_templates_controllable": 693,
-      "hit_rate_controllable_pct": 55.8,
-      "hit_rate_among_text_pct": 76.7,
+      "hit_templates_node": 681,
+      "hit_rate_node_pct": 54.9,
+      "hit_templates_with_value": 681,
+      "hit_rate_value_pct": 54.9,
+      "hit_templates_controllable": 681,
+      "hit_rate_controllable_pct": 54.9,
+      "hit_rate_among_text_pct": 75.3,
       "spellings": [
         {
           "path": "scenenode/paragraphStyle/Alignment",
@@ -1902,10 +2246,6 @@
         {
           "path": "scenenode/paragraphStyle/对齐",
           "occurrences": 1161
-        },
-        {
-          "path": "scenenode/对齐",
-          "occurrences": 61
         }
       ],
       "controllable_spellings": [
@@ -1924,10 +2264,6 @@
         {
           "path": "scenenode/paragraphStyle/对齐",
           "occurrences": 1161
-        },
-        {
-          "path": "scenenode/对齐",
-          "occurrences": 61
         }
       ]
     },
@@ -2038,10 +2374,6 @@
           "occurrences": 395
         },
         {
-          "path": "scenenode/基本/物质/颜色",
-          "occurrences": 322
-        },
-        {
           "path": "scenenode/style/面/颜色/红",
           "occurrences": 281
         },
@@ -2054,16 +2386,8 @@
           "occurrences": 278
         },
         {
-          "path": "scenenode/表面/颜色",
-          "occurrences": 224
-        },
-        {
           "path": "scenenode/style/表面/颜色/红色",
           "occurrences": 208
-        },
-        {
-          "path": "scenenode/Basic/Substance/Color",
-          "occurrences": 202
         },
         {
           "path": "scenenode/style/Face/Gradient/RGB/RGB1/Location",
@@ -2278,10 +2602,6 @@
           "occurrences": 51
         },
         {
-          "path": "scenenode/Basic/物质/颜色",
-          "occurrences": 48
-        },
-        {
           "path": "scenenode/style/面/渐变/角度",
           "occurrences": 26
         },
@@ -2359,10 +2679,6 @@
         },
         {
           "path": "scenenode/渐变/RGB/RGB2/颜色/色彩空间",
-          "occurrences": 7
-        },
-        {
-          "path": "scenenode/面/颜色",
           "occurrences": 7
         },
         {
@@ -3129,9 +3445,9 @@
       "hit_rate_node_pct": 72.8,
       "hit_templates_with_value": 904,
       "hit_rate_value_pct": 72.8,
-      "hit_templates_controllable": 234,
-      "hit_rate_controllable_pct": 18.9,
-      "hit_rate_among_text_pct": 25.9,
+      "hit_templates_controllable": 226,
+      "hit_rate_controllable_pct": 18.2,
+      "hit_rate_among_text_pct": 25.0,
       "spellings": [
         {
           "path": "scenenode/style/Drop Shadow/Texture/Image",
@@ -3266,32 +3582,12 @@
           "occurrences": 396
         },
         {
-          "path": "scenenode/Drop Shadow",
-          "occurrences": 392
-        },
-        {
           "path": "scenenode/属性/拖放阴影",
           "occurrences": 390
         },
         {
           "path": "scenenode/属性/投影",
           "occurrences": 309
-        },
-        {
-          "path": "scenenode/投影/颜色",
-          "occurrences": 218
-        },
-        {
-          "path": "scenenode/投影/模糊/X",
-          "occurrences": 170
-        },
-        {
-          "path": "scenenode/投影/模糊/Y",
-          "occurrences": 170
-        },
-        {
-          "path": "scenenode/投影",
-          "occurrences": 154
         },
         {
           "path": "scenenode/style/拖放阴影/不透明度",
@@ -3330,14 +3626,6 @@
           "occurrences": 20
         },
         {
-          "path": "scenenode/拖放阴影",
-          "occurrences": 18
-        },
-        {
-          "path": "scenenode/投影/不透明度",
-          "occurrences": 15
-        },
-        {
           "path": "scenenode/style/拖放阴影/缩放/X",
           "occurrences": 14
         },
@@ -3360,10 +3648,6 @@
         {
           "path": "scenenode/style/投影/不透明度",
           "occurrences": 7
-        },
-        {
-          "path": "scenenode/拖放阴影/颜色",
-          "occurrences": 6
         },
         {
           "path": "scenenode/style/投影/角度",
@@ -3422,10 +3706,6 @@
         {
           "path": "scenenode/style/投影/距离",
           "occurrences": 20
-        },
-        {
-          "path": "scenenode/投影/不透明度",
-          "occurrences": 15
         },
         {
           "path": "scenenode/style/投影/不透明度",
@@ -3552,16 +3832,8 @@
           "occurrences": 396
         },
         {
-          "path": "scenenode/Outline",
-          "occurrences": 331
-        },
-        {
           "path": "scenenode/style/轮廓/颜色/红",
           "occurrences": 245
-        },
-        {
-          "path": "scenenode/外框/颜色",
-          "occurrences": 221
         },
         {
           "path": "scenenode/style/轮廓/宽度",
@@ -3576,20 +3848,8 @@
           "occurrences": 182
         },
         {
-          "path": "scenenode/外框/模糊/X",
-          "occurrences": 175
-        },
-        {
-          "path": "scenenode/外框/模糊/Y",
-          "occurrences": 175
-        },
-        {
           "path": "scenenode/style/Outline/Color/Red",
           "occurrences": 140
-        },
-        {
-          "path": "scenenode/外框",
-          "occurrences": 124
         },
         {
           "path": "scenenode/style/Outline/Color/Green",
@@ -3604,10 +3864,6 @@
           "occurrences": 91
         },
         {
-          "path": "scenenode/Outline/Opacity",
-          "occurrences": 43
-        },
-        {
           "path": "scenenode/style/轮廓/模糊/X",
           "occurrences": 24
         },
@@ -3616,16 +3872,8 @@
           "occurrences": 24
         },
         {
-          "path": "scenenode/外框/不透明度",
-          "occurrences": 23
-        },
-        {
           "path": "scenenode/style/外框/颜色/红色",
           "occurrences": 22
-        },
-        {
-          "path": "scenenode/轮廓",
-          "occurrences": 11
         },
         {
           "path": "scenenode/style/外框/宽度",
@@ -3650,10 +3898,6 @@
         {
           "path": "scenenode/style/轮廓/不透明度",
           "occurrences": 7
-        },
-        {
-          "path": "scenenode/轮廓/颜色",
-          "occurrences": 6
         },
         {
           "path": "scenenode/style/轮廓/图层顺序",
@@ -3757,14 +4001,6 @@
         },
         {
           "path": "scenenode/style/轮廓/四角/左上/X",
-          "occurrences": 1
-        },
-        {
-          "path": "scenenode/轮廓/模糊/X",
-          "occurrences": 1
-        },
-        {
-          "path": "scenenode/轮廓/模糊/Y",
           "occurrences": 1
         },
         {

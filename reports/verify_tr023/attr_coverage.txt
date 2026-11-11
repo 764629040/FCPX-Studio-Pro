@@ -2,20 +2,23 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 ==========================================================================
 
 【口径】
-  生成时间      2026-11-11 12:54:09
+  生成时间      2026-11-11 14:05:23
   统计范围      /Users/mrhuang/Movies/Motion Templates.localized/Titles.localized 递归（rglob "*.moti"）
   总数          1247 个 .moti
   XML 解析成功  1241
   XML 解析失败  6（条01.moti、点 03.moti、点 07.moti、点文本 03.moti、菜单条修复.moti、菜单条自定义.moti）
   失败清单与 TR-022-3 一致：是
   分母          一律用 1241（可解析模板数），不用 1247
+  路径口径      <behavior> 以 behavior:名字 进路径：行为实例内部的同名参数
+                （如 Blur Out 行为自己的 投影/不透明度）不算文字对象自己的样式
   含文字对象模板 904 / 1241 = 72.8%
   文字对象总数  2860 个 <scenenode>
-  耗时          22.6 s（单次墙钟，不取平均）
+  耗时          20.4 s（单次墙钟，不取平均）
+  自检(--check) PASS（中文颜色并集独立二次扫描 404，英文 418）
 
   一行复现：
     cd "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro" && \
-      python3 tools/tr023/attr_coverage.py
+      python3 tools/tr023/attr_coverage.py --check
 
 【命中率总表】分母 1241（可解析模板）；文字模板内率分母 904
 ------------------------------------------------------------------------------
@@ -23,11 +26,11 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 ------------------------------------------------------------------------------
 字体         904     904    72.8%     904    72.8%    100.0%
 大小         885     885    71.3%     885    71.3%     97.9%
-字距         182     182    14.7%     182    14.7%     20.1%
-对齐         693     693    55.8%     693    55.8%     76.7%
+字距         173     173    13.9%     173    13.9%     19.1%
+对齐         681     681    54.9%     681    54.9%     75.3%
 颜色         822     723    58.3%     723    58.3%     80.0%
 渐变         265     265    21.4%     237    19.1%     26.2%
-阴影         904     904    72.8%     234    18.9%     25.9%
+阴影         904     904    72.8%     226    18.2%     25.0%
 描边         904     904    72.8%     162    13.1%     17.9%
 行距         242     242    19.5%     242    19.5%     26.8%
 行高           0       0     0.0%       0     0.0%      0.0%
@@ -42,6 +45,14 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     所以下面「路径写法」的出现次数会大于模板数，不是重复统计错误。
   · 颜色：节点存在 822 个模板，其中 723 个真的带红绿蓝数值，差额 99 个是
     容器空壳（例如只有 面/颜色 节点、下面没有 RGB）。逐源明细见「颜色源优先级表」。
+
+【口径变更：A1 → A1b（补 <behavior>）】只列受影响的属性
+------------------------------------------------------------------------------
+  属性       A1 可控  A1b 可控      差  原因
+  字距           182       173      -9  行为实例内部的同名参数被排除
+  对齐           693       681     -12  行为实例内部的同名参数被排除
+  阴影           234       226      -8  行为实例内部的同名参数被排除
+  其余属性不受影响（这些属性在行为里没有同名参数，数一遍是同一批模板）。
 
 【逐属性路径写法】同类但命名不同的写法分开列
 --------------------------------------------------------------------------
@@ -65,37 +76,31 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/大小                                            1226
 
 ■ 字距 —— 字距（tracking，数值）
-  节点存在 182 / 1241   有值 182 / 1241   可控 182 / 1241
+  节点存在 173 / 1241   有值 173 / 1241   可控 173 / 1241
   路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
     scenenode/style/间距/字距                                        679
     scenenode/style/Spacing/Tracking                                  80
-    scenenode/Format/Tracking                                         32
-    scenenode/格式/字距                                               29
     scenenode/style/字距                                               8
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/间距/字距                                        679
     scenenode/style/Spacing/Tracking                                  80
-    scenenode/Format/Tracking                                         32
-    scenenode/格式/字距                                               29
     scenenode/style/字距                                               8
   名字相近但**不计入**的写法（语义不同，别混）：
     scenenode/style/Spacing/Kerning                                   57
     scenenode/style/间距/字距微调                                     24
 
 ■ 对齐 —— 段落水平对齐（数值枚举）
-  节点存在 693 / 1241   有值 693 / 1241   可控 693 / 1241
+  节点存在 681 / 1241   有值 681 / 1241   可控 681 / 1241
   路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
     scenenode/paragraphStyle/Alignment                              1690
     scenenode/Object/Paragraphs/Paragraph/Alignment                 1460
     scenenode/对象/段落/段落/对齐                                   1167
     scenenode/paragraphStyle/对齐                                   1161
-    scenenode/对齐                                                    61
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/paragraphStyle/Alignment                              1690
     scenenode/Object/Paragraphs/Paragraph/Alignment                 1460
     scenenode/对象/段落/段落/对齐                                   1167
     scenenode/paragraphStyle/对齐                                   1161
-    scenenode/对齐                                                    61
   名字相近但**不计入**的写法（语义不同，别混）：
     scenenode/Object/Path Options/Align to Path                     1606
     scenenode/对象/路径选项/对齐到路径                               819
@@ -130,13 +135,10 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/表面/渐变/RGB/RGB1/颜色/色彩空间                 515
     scenenode/style/表面/渐变/RGB/RGB2/颜色/色彩空间                 515
     scenenode/对象/基础/物质/颜色                                    395
-    scenenode/基本/物质/颜色                                         322
     scenenode/style/面/颜色/红                                       281
     scenenode/style/面/颜色/蓝                                       279
     scenenode/style/面/颜色/绿                                       278
-    scenenode/表面/颜色                                              224
     scenenode/style/表面/颜色/红色                                   208
-    scenenode/Basic/Substance/Color                                  202
     scenenode/style/Face/Gradient/RGB/RGB1/Location                  200
     scenenode/style/Face/Gradient/RGB/RGB1/Middle                    200
     scenenode/style/Face/Gradient/RGB/RGB1/Interpolation             200
@@ -146,7 +148,10 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/Face/Gradient/RGB/RGB1/Color/Color Space         200
     scenenode/style/Face/Gradient/RGB/RGB2/Location                  200
     scenenode/style/Face/Gradient/RGB/RGB2/Middle                    200
-    …… 另有 93 种写法（完整清单见 .json）
+    scenenode/style/Face/Gradient/RGB/RGB2/Interpolation             200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Red                 200
+    scenenode/style/Face/Gradient/RGB/RGB2/Color/Green               200
+    …… 另有 88 种写法（完整清单见 .json）
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/Face/Color/Blue                                  910
     scenenode/style/Face/Color/Red                                   905
@@ -206,7 +211,7 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/渐变/RGB/RGB2/颜色/红                                    7
 
 ■ 阴影 —— 投影 / 图层阴影
-  节点存在 904 / 1241   有值 904 / 1241   可控 234 / 1241
+  节点存在 904 / 1241   有值 904 / 1241   可控 226 / 1241
   路径写法（按出现次数降序；同一个文字对象里出现两次算两次）：
     scenenode/style/Drop Shadow/Texture/Image                       1943
     scenenode/style/Drop Shadow/Source Media                        1936
@@ -241,20 +246,19 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/拖放阴影/纹理/图像                               396
     scenenode/style/拖放阴影/纹理/环绕 模式                          396
     scenenode/style/拖放阴影/源媒体                                  396
-    scenenode/Drop Shadow                                            392
     scenenode/属性/拖放阴影                                          390
     scenenode/属性/投影                                              309
-    scenenode/投影/颜色                                              218
-    scenenode/投影/模糊/X                                            170
-    scenenode/投影/模糊/Y                                            170
-    scenenode/投影                                                   154
-    …… 另有 28 种写法（完整清单见 .json）
+    scenenode/style/拖放阴影/不透明度                                 42
+    scenenode/style/拖放阴影/距离                                     41
+    scenenode/style/拖放阴影/颜色/红                                  34
+    scenenode/style/拖放阴影/颜色/绿                                  34
+    scenenode/style/拖放阴影/颜色/蓝                                  32
+    …… 另有 20 种写法（完整清单见 .json）
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/Drop Shadow/Distance                             835
     scenenode/style/拖放阴影/不透明度                                 42
     scenenode/style/拖放阴影/距离                                     41
     scenenode/style/投影/距离                                         20
-    scenenode/投影/不透明度                                           15
     scenenode/style/投影/不透明度                                      7
 
 ■ 描边 —— 文字外框/轮廓（不含 对象/形状/轮廓）
@@ -287,20 +291,20 @@ TR-023 阶段 1｜全库字幕文字属性命中率
     scenenode/style/轮廓/纹理/图像                                   396
     scenenode/style/轮廓/纹理/环绕 模式                              396
     scenenode/style/轮廓/源媒体                                      396
-    scenenode/Outline                                                331
     scenenode/style/轮廓/颜色/红                                     245
-    scenenode/外框/颜色                                              221
     scenenode/style/轮廓/宽度                                        219
     scenenode/style/轮廓/颜色/绿                                     184
     scenenode/style/轮廓/颜色/蓝                                     182
-    scenenode/外框/模糊/X                                            175
-    scenenode/外框/模糊/Y                                            175
     scenenode/style/Outline/Color/Red                                140
-    scenenode/外框                                                   124
     scenenode/style/Outline/Color/Green                               91
     scenenode/style/Outline/Color/Blue                                91
     scenenode/style/Outline/Width                                     91
-    …… 另有 42 种写法（完整清单见 .json）
+    scenenode/style/轮廓/模糊/X                                       24
+    scenenode/style/轮廓/模糊/Y                                       24
+    scenenode/style/外框/颜色/红色                                    22
+    scenenode/style/外框/宽度                                         11
+    scenenode/style/外框/颜色/绿色                                    10
+    …… 另有 31 种写法（完整清单见 .json）
   其中能当控件用的写法（判据见总表下方「可控」）：
     scenenode/style/轮廓/宽度                                        219
     scenenode/style/Outline/Width                                     91
@@ -332,38 +336,84 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 序  源（真实路径前缀）                        模板数    有值   有值率  一条样例模板
 ------------------------------------------------------------------------------------------------
 1   对象/基础/物质/颜色                          226       0     0.0%  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti  ← 空壳，取不到 RGB
-2   面/颜色                                      165     163    13.1%  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
-3   表面/颜色                                    106      92     7.4%  MS标题字幕S5/1/1.moti
+2   面/颜色                                      163     163    13.1%  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
+3   表面/颜色                                     92      92     7.4%  MS标题字幕S5/1/1.moti
 4   渐变（面/表面/Face/顶层 合并）               265     265    21.4%  -2026年4月项目/婚礼模板/婚礼模板.moti
 5   对象/基本/物质/颜色                          147       0     0.0%  -2026年4月项目/婚礼模板/婚礼模板.moti  ← 空壳，取不到 RGB
 6   Object/Basic|基础|基本/Substance|物质/Color|颜色     244       0     0.0%  -PVFX便签字幕/10 字母/10 字母.moti  ← 空壳，取不到 RGB
-7   基本|Basic/物质|Substance/颜色|Color         138       0     0.0%  MS标题字幕S5/1/1.moti  ← 空壳，取不到 RGB
+7   基本|Basic/物质|Substance/颜色|Color           0       0     0.0%    ← 空壳，取不到 RGB
 8   Face/Color                                   374     374    30.1%  -PVFX便签字幕/10 字母/10 字母.moti
 9   图层|层/物质|Substance/颜色|Color             29      29     2.3%  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
 ------------------------------------------------------------------------------------------------
 并集  上面 9 个源全算（= 总表的「颜色」行）        822     723    58.3%
 
   中英分开看（同一模板可能两边都有，交集 0）：
-    中文写法并集 404 个模板 / 英文写法并集 418 个模板 / 总并集 822
-    你报中文并集 405，我数 404，差 1；404 个模板的清单在 .json 的
-    color_zh_templates 里，直接 diff 就能定位是哪一份。
+    中文并集 404 / 英文并集 418 / 合计 822
 
-  口径说明（TR-023-A1 修正）：
-    · 每个源数的是「该路径前缀在该模板的某个文字对象里出现过」的模板数，
+【中文颜色并集 · 可执行定义】先定义，再给数；这个数只由下面的源列表决定
+------------------------------------------------------------------------------------------------
+  中文颜色并集 = |∪ T(s)|，S 按下列顺序累加：
+    T(s) = {模板 f | 存在归一化路径 p : p == s 或 p.startswith(s + "/")}
+       1  面/颜色                           scenenode/面/颜色
+       2  表面/颜色                          scenenode/表面/颜色
+       3  对象/基础/物质/颜色                    scenenode/对象/基础/物质/颜色
+       4  对象/基本/物质/颜色                    scenenode/对象/基本/物质/颜色
+       5  基本/物质/颜色                       scenenode/基本/物质/颜色
+       6  图层/物质/颜色                       scenenode/图层/物质/颜色
+       7  层/物质/颜色                        scenenode/层/物质/颜色
+       8  面/渐变                           scenenode/面/渐变
+       9  表面/渐变                          scenenode/表面/渐变
+      10  顶层 渐变                          scenenode/渐变
+    一条命令复算（只依赖本脚本，不读任何中间文件）：
+      python3 -c "import sys,pathlib; sys.path.insert(0,'tools/tr023'); import attr_coverage as m; print(len(set().union(*m.zh_color_union_templates(pathlib.Path.home()/'Movies/Motion Templates.localized/Titles.localized').values())))"
+
+  逐源累加（并集与顺序无关；这张表只为了让数可查，不是加法求和）：
+  序  源                        该源模板  边际新增  累计并集
+  1   面/颜色                        163      +163       163
+  2   表面/颜色                       92       +92       255
+  3   对象/基础/物质/颜色            226       +63       318
+  4   对象/基本/物质/颜色            147       +86       404
+  5   基本/物质/颜色                   0        +0       404
+  6   图层/物质/颜色                   3        +0       404
+  7   层/物质/颜色                    26        +0       404
+  8   面/渐变                         62        +0       404
+  9   表面/渐变                       70        +0       404
+  10  顶层 渐变                       44        +0       404
+
+  读法：累加到第 4 条（对象/基本/物质/颜色）就到 404，其后 6 条源边际新增全为 0 —— 并集已饱和。
+  所以「中文颜色并集 = 404 个模板」是：上表 10 条前缀各自的模板集合并起来的大小，
+  换一条前缀就换一个数，不换就是这一个数。404 个模板的相对路径全量列在
+  .json 的 color_zh_templates（同一次扫描产出，可直接 diff）。
+  QC 的 405 与这里的 404 差 1：这 1 个模板不在上表任何一条前缀里，
+  即 QC 口径多了一条源（或某条前缀写得更宽）。对 diff 即可定位，不用再猜口径。
+
+【英文颜色并集 · 同一套定义】换一份源列表，算法不变
+------------------------------------------------------------------------------------------------
+  1   Face/Color                           374      +374       374
+  2   Face/Gradient                        100        +0       374
+  3   Object/Basic/Substance/Color         244       +44       418
+  4   Basic/Substance/Color                  0        +0       418
+  英文并集 = 418；与中文交集 0（交集为 0 才说明两套命名没有互相覆盖）。
+
+  口径说明：
+    · 每个源数的是「该路径段前缀在该模板的某个文字对象里出现过」的模板数，
       容器节点本身也算（面/颜色 没有子节点时也是一条参数路径），
-      所以是 226 / 165 / 106，而不是只数红绿蓝叶子得到的 163 / 92。
+      所以 面/颜色 163、表面/颜色 92，而不是只数红绿蓝叶子得到的更小的数。
     · 「有值」= 该路径自身带 value，或其下红绿蓝叶子带 value。
     · 226 个 对象/基础/物质/颜色 的「有值」是 0：这批节点全是
       <parameter name="颜色"><foldFlags>15</foldFlags></parameter> 空壳，
-      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance、基本/物质 一样是 0。
+      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance 一样是 0。
       结论：物质/颜色 这一族不能当取色源，能取到 RGB 的只有 面 / 表面 / Face / 渐变，
       外加 29 个 图层|层/物质/颜色（图层级物质色，见第 9 行）。
-    · 上一版「物质/颜色 仅 29」的 29 其实是 图层/物质/颜色（29 个模板，真带 RGB），
-      不是 对象/基础/物质/颜色（226 个模板，0 个带 RGB）—— 两族被我混成了一个正则。
-    · 上一版 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；
-      631 = 629 + 2 个只靠 图层/物质/颜色 才有值的模板。
-      629 这个数本身不假，但把它标成「表面/面 颜色 629」是错标：
-      它是三个族的并集，其中「表面/颜色」只占 92/106。
+    · 基本/物质/颜色 本版 0 个模板；A1 里这条源是 138 个。
+      补了 behavior 之后看得很清楚 —— 它们全部长在行为实例里
+      （Blur Out / Fade Characters Center In / Blur In … 各行为自己的 基本/物质/颜色），
+      不是文字对象的填充色，按理不该进取色源。并集仍是 404，因为这些模板另有真填充色。
+    · A1 的「物质/颜色 仅 29」的 29 其实是 图层/层/物质/颜色（真带 RGB），
+      不是 对象/基础/物质/颜色（226 个模板，0 个带 RGB）—— 两族当时被并成了一个正则。
+    · A1 的 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；
+      该数本身不假，但把它标成「表面/面 颜色 629」是错标：
+      它是三个族的并集，其中「表面/颜色」只占 92/92。
     · 描边色 轮廓|Outline / 颜色|Color 归「描边」，不计入主色。
     · 投影 / 光晕 的渐变（投影/渐变、光晕/渐变）不是填充色，已排除在主色之外。
 
@@ -419,7 +469,6 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   scenenode/表面/渐变/不透明度/不透明度1/中间                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
   scenenode/表面/渐变/不透明度/不透明度1/位置                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
   scenenode/表面/渐变/不透明度/不透明度1/插值                   70    524  -2026年4月项目/婚礼模板/婚礼模板.moti
-  scenenode/基本/物质/颜色                                      64    322  MS标题字幕S5/1/1.moti
   scenenode/面/渐变/RGB/RGB1/Location                           62     79  03综艺动漫/6sense/条/条 04/条 04.moti
   scenenode/面/渐变/RGB/RGB1/中间                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
   scenenode/面/渐变/RGB/RGB1/插值                               62     79  03综艺动漫/6sense/条/条 04/条 04.moti
@@ -442,7 +491,6 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   scenenode/表面/渐变/RGB/RGB2/颜色/色彩空间                    61    515  -2026年4月项目/婚礼模板/婚礼模板.moti
   scenenode/表面/颜色/绿色                                      57    143  MS标题字幕S5/1/1.moti
   scenenode/表面/颜色/蓝色                                      57    143  MS标题字幕S5/1/1.moti
-  scenenode/Basic/Substance/Color                               50    202  _大鱼汉化极简标注/描述 01/描述 01.moti
   scenenode/渐变/RGB/RGB1/Location                              44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
   scenenode/渐变/RGB/RGB1/中间                                  44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
   scenenode/渐变/RGB/RGB1/插值                                  44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
@@ -454,12 +502,10 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   scenenode/渐变/不透明度/不透明度 1/不透明度                   44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
   scenenode/渐变/不透明度/不透明度 1/中间                       44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
   scenenode/渐变/不透明度/不透明度 1/插值                       44     56  03综艺动漫/6sense/子文本/子文本 01/子文本 01.moti
-  scenenode/表面/颜色                                           38    224  MS标题字幕S5/1/1.moti
   scenenode/层/物质/颜色/红色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
   scenenode/层/物质/颜色/绿色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
   scenenode/层/物质/颜色/蓝色                                   26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
   scenenode/层/物质/颜色类型                                    26     51  易安装 - 26个文字标题实用动画预设/易安装 01/文字标题 01.moti
-  scenenode/Basic/物质/颜色                                     24     48  易安装 - 26个文字标题实用动画预设/易安装 03/文字标题 03.moti
   scenenode/面/渐变/角度                                        20     26  03综艺动漫/6sense/条/条 04/条 04.moti
   scenenode/面/渐变/RGB/RGB3/Location                           11     11  03综艺动漫/6sense/条/条 04/条 04.moti
   scenenode/面/渐变/RGB/RGB3/中间                               11     11  03综艺动漫/6sense/条/条 04/条 04.moti
@@ -485,7 +531,6 @@ TR-023 阶段 1｜全库字幕文字属性命中率
   scenenode/面/渐变/RGB/RGB4/颜色/绿                             5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
   scenenode/面/渐变/RGB/RGB4/颜色/色彩空间                       5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
   scenenode/面/渐变/RGB/RGB4/颜色/蓝                             5      5  03综艺动漫/不要T战斗/点文本/点 01/点 01.moti
-  scenenode/面/颜色                                              5      7  03综艺动漫/尹住宿/点文本/点文本 01/点文本 01.moti
   scenenode/面/渐变/类型                                         4      7  03综艺动漫/不要T战斗/点文本/点 02/点 02.moti
   scenenode/图层/物质/颜色/红                                    3      5  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
   scenenode/图层/物质/颜色/绿                                    3      5  03综艺动漫/6sense/点文本/点文本 02/点文本 02.moti
@@ -512,40 +557,258 @@ TR-023 阶段 1｜全库字幕文字属性命中率
 
 【阴影「可控」判定规则原文 + 命中清单】
 ------------------------------------------------------------------------------------------------
-  规则（脚本里逐字对应 SHADOW_CTL）：
+  规则（脚本里逐字对应 SHADOW_CTL；路径已把行为实例写成 behavior:名字）：
     文字对象内存在参数路径
       scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance)
       scenenode/(投影|拖放阴影|Drop Shadow)/(不透明度|Opacity)
       scenenode/(投影|拖放阴影|Drop Shadow)/(模糊|Blur|Blur/X|Blur/Y)
     且该参数带数值（value 或 <curve>@value）。三者取并集。
 
-  各参数命中：距离 218 / 不透明度 50 / 模糊 167 → 并集 234
-  更严口径对照：只数中文 投影/距离 = 14；距离数值 ≠ 0 = 86
-  说明：并集从 218 抬到 234 的是「模糊」这一项；只要求「有距离」就是 218。
-        你数到 51，我这几个口径都不是 51（中文 投影/距离 14、距离≠0 86、距离 218）。
-        51 若是「距离≠0 且中文拼写」或别的组合，把命中清单一给，我照你的口径对齐。
+  为什么补 behavior：<behavior> 里也有叫 投影/拖放阴影 的参数
+    （例如 Blur Out 行为自己的投影/不透明度），它们是行为参数，
+    不是文字对象的投影样式。上一版没把行为名写进路径，多算了 8 个模板，
+    所以旧口径 234 偏高：并集应为 226。
 
-  并集口径命中的模板，前 20 个：
-    03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti
-    03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti
-    03综艺动漫/会议广场/条/条 03/条 03.moti
-    03综艺动漫/会议广场/点文本/点文本 06/点文本 06.moti
-    03综艺动漫/会议广场/点文本/点文本 07/点文本 07.moti
-    03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti
-    03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti
-    03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti
-    03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti
-    03综艺动漫/名称条/名称条01/名称条01.moti
-    03综艺动漫/名称条 1/名称条 05/名称条 05.moti
-    03综艺动漫/工具套件/标注/标注.moti
-    03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti
-    03综艺动漫/日期/点组/点天使/点天使.moti
-    03综艺动漫/某人标题/名称/某人名称 01/某人名称 01.moti
-    03综艺动漫/某人标题/某人心形/某人心形.moti
-    03综艺动漫/某人标题/某人扩音器/某人扩音器.moti
-    03综艺动漫/某人标题/某人简单清除/某人简单清除.moti
-    03综艺动漫/某人标题/点/某人点 02/某人点 02.moti
-    03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti
+  三项与并集：距离 218 / 不透明度 41 / 模糊 167 → 并集 226
+  构成：仅距离 18 / 仅不透明度 8 / 仅模糊 0 / 距离∩模糊 167
+  更严口径对照：只数中文 投影/距离 = 14；距离数值 ≠ 0 = 86
+
+  逐路径命中（每条给模板数 + 样例，模板全量见 .json 的 shadow.paths）：
+    距离      scenenode/Drop Shadow/Distance                   167  motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti
+    距离      scenenode/拖放阴影/距离                           37  03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti
+    距离      scenenode/投影/距离                               14  MS标题字幕S5/16/16.moti
+    不透明度  scenenode/拖放阴影/不透明度                       34  03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti
+    不透明度  scenenode/投影/不透明度                            7  光视婚礼摄影工作室/光视婚礼摄影工作室/PRODUCED BY TIMERIVER/PRODUCED BY TIMERIVER.moti
+    模糊      scenenode/Drop Shadow/Blur/X                     167  motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti
+    模糊      scenenode/Drop Shadow/Blur/Y                     167  motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti
+
+  并集口径命中的 226 个模板，全量清单（相对路径｜命中项）：
+      1  03综艺动漫/不要T战斗/语音气泡/语音气泡 01/语音气泡 01.moti  [距离/不透明度]
+      2  03综艺动漫/会议广场/子文本/子文本 01/子文本 01.moti  [距离/不透明度]
+      3  03综艺动漫/会议广场/条/条 03/条 03.moti  [距离/不透明度]
+      4  03综艺动漫/会议广场/点文本/点文本 06/点文本 06.moti  [距离]
+      5  03综艺动漫/会议广场/点文本/点文本 07/点文本 07.moti  [距离]
+      6  03综艺动漫/会议广场/点文本/点文本 08/点文本 08.moti  [距离/不透明度]
+      7  03综艺动漫/会议广场/点文本/点文本 09/点文本 09.moti  [距离/不透明度]
+      8  03综艺动漫/会议广场/点文本/点文本 10/点文本 10.moti  [距离/不透明度]
+      9  03综艺动漫/会议广场/点文本/点文本 11/点文本 11.moti  [距离/不透明度]
+     10  03综艺动漫/名称条 1/名称条 05/名称条 05.moti  [不透明度]
+     11  03综艺动漫/名称条/名称条01/名称条01.moti  [距离]
+     12  03综艺动漫/工具套件/标注/标注.moti  [距离/不透明度]
+     13  03综艺动漫/房子丈夫 2/点文本 07/点文本 07.moti  [距离/不透明度]
+     14  03综艺动漫/日期/点组/点天使/点天使.moti  [距离/不透明度]
+     15  03综艺动漫/某人标题/名称/某人名称 01/某人名称 01.moti  [距离]
+     16  03综艺动漫/某人标题/某人心形/某人心形.moti  [距离]
+     17  03综艺动漫/某人标题/某人扩音器/某人扩音器.moti  [距离]
+     18  03综艺动漫/某人标题/某人简单清除/某人简单清除.moti  [距离]
+     19  03综艺动漫/某人标题/点/某人点 02/某人点 02.moti  [距离/不透明度]
+     20  03综艺动漫/某人标题/语音气泡/某人语音气泡 01/某人语音气泡 01.moti  [距离/不透明度]
+     21  03综艺动漫/汽车 1/子文本/子文本 02/子文本 02.moti  [不透明度]
+     22  03综艺动漫/汽车 1/扩音器/扩音器01/扩音器01.moti  [不透明度]
+     23  03综艺动漫/汽车 1/条/名称/名称.moti  [距离/不透明度]
+     24  03综艺动漫/汽车 1/点文本/点文本 01/点文本 01.moti  [距离/不透明度]
+     25  03综艺动漫/汽车 1/点文本/点文本 02/点文本 02.moti  [距离/不透明度]
+     26  03综艺动漫/点文本/点文本 01/点文本 01.moti  [距离/不透明度]
+     27  03综艺动漫/点文本/点文本 08/点文本 08.moti  [距离]
+     28  03综艺动漫/美味家伙/美味家伙 01/美味家伙 01.moti  [距离/不透明度]
+     29  03综艺动漫/美味家伙/美味家伙 02/美味家伙 02.moti  [不透明度]
+     30  03综艺动漫/美味家伙/美味家伙 03/美味家伙 03.moti  [距离/不透明度]
+     31  03综艺动漫/美味家伙/美味家伙 07/美味家伙 07.moti  [距离]
+     32  03综艺动漫/美味家伙/美味家伙 09/美味家伙 09.moti  [不透明度]
+     33  03综艺动漫/美味家伙/美味家伙 10/美味家伙 10.moti  [不透明度]
+     34  03综艺动漫/自由文本() 2/双文本/双文本.moti  [距离]
+     35  03综艺动漫/自由文本() 2/文本/文本.moti  [距离/不透明度]
+     36  03综艺动漫/超人/点文本/点文本 08/点文本 08.moti  [距离]
+     37  03综艺动漫/餐馆/子文本/子文本 01/子文本 01.moti  [距离/不透明度]
+     38  03综艺动漫/餐馆/子文本/子文本 02/子文本 02.moti  [不透明度]
+     39  03综艺动漫/餐馆/扩音器/扩音器01/扩音器01.moti  [不透明度]
+     40  03综艺动漫/餐馆/播放标题/大条/大条.moti  [距离/不透明度]
+     41  03综艺动漫/餐馆/播放标题/心形/心形.moti  [距离/不透明度]
+     42  03综艺动漫/餐馆/播放标题/恐慌文本/恐慌文本.moti  [距离/不透明度]
+     43  03综艺动漫/餐馆/播放标题/扩音器/扩音器.moti  [距离/不透明度]
+     44  03综艺动漫/餐馆/播放标题/点/点.moti  [距离/不透明度]
+     45  03综艺动漫/餐馆/点文本/点文本 02/点文本 02.moti  [距离/不透明度]
+     46  MS标题字幕S5/16/16.moti  [距离]
+     47  MS标题字幕S5/21/21.moti  [距离]
+     48  MS标题字幕S5/34/34.moti  [距离]
+     49  MS标题字幕S5/40/40.moti  [距离]
+     50  MS标题字幕S5/42/42.moti  [距离]
+     51  MS标题字幕S5/43/43.moti  [距离]
+     52  motionVFX Freebies/.mExt-Placeholders/Placeholder-100.moti  [距离/模糊]
+     53  motionVFX Freebies/.mExt-Placeholders/Placeholder-144.moti  [距离/模糊]
+     54  motionVFX Freebies/.mExt-Placeholders/Placeholder-192.moti  [距离/模糊]
+     55  motionVFX Freebies/.mExt-Placeholders/Placeholder-240.moti  [距离/模糊]
+     56  motionVFX Freebies/.mExt-Placeholders/Placeholder-280.moti  [距离/模糊]
+     57  motionVFX Freebies/.mExt-Placeholders/Placeholder-300.moti  [距离/模糊]
+     58  motionVFX Freebies/.mExt-Placeholders/Placeholder-34.moti  [距离/模糊]
+     59  motionVFX Freebies/.mExt-Placeholders/Placeholder-38.moti  [距离/模糊]
+     60  motionVFX Freebies/.mExt-Placeholders/Placeholder-39.moti  [距离/模糊]
+     61  motionVFX Freebies/.mExt-Placeholders/Placeholder-48.moti  [距离/模糊]
+     62  motionVFX Freebies/.mExt-Placeholders/Placeholder-51.moti  [距离/模糊]
+     63  motionVFX Freebies/.mExt-Placeholders/Placeholder-52.moti  [距离/模糊]
+     64  motionVFX Freebies/.mExt-Placeholders/Placeholder-55.moti  [距离/模糊]
+     65  motionVFX Freebies/.mExt-Placeholders/Placeholder-57.moti  [距离/模糊]
+     66  motionVFX Freebies/.mExt-Placeholders/Placeholder-58.moti  [距离/模糊]
+     67  motionVFX Freebies/.mExt-Placeholders/Placeholder-59.moti  [距离/模糊]
+     68  motionVFX Freebies/.mExt-Placeholders/Placeholder-60.moti  [距离/模糊]
+     69  motionVFX Freebies/.mExt-Placeholders/Placeholder-72.moti  [距离/模糊]
+     70  motionVFX Freebies/.mExt-Placeholders/Placeholder-76.moti  [距离/模糊]
+     71  motionVFX Freebies/.mExt-Placeholders/Placeholder-97.moti  [距离/模糊]
+     72  motionVFX Freebies/.mExt-Placeholders/Placeholder.moti  [距离/模糊]
+     73  motionVFX Freebies/Adjustment Layer DZZ5/Adjustment Layer DZZ5.moti  [距离/模糊]
+     74  motionVFX Freebies/Anamorphic Effect 9VMK/Anamorphic Effect 9VMK.moti  [距离/模糊]
+     75  motionVFX Freebies/Background 33JZ/Background 33JZ.moti  [距离/模糊]
+     76  motionVFX Freebies/Barrel Roll 3VSR/Barrel Roll 3VSR.moti  [距离/模糊]
+     77  motionVFX Freebies/Bounce LN74/Bounce LN74.moti  [距离/模糊]
+     78  motionVFX Freebies/Bounce X In KM66/Bounce X In KM66.moti  [距离/模糊]
+     79  motionVFX Freebies/Bounce X Out JK4K/Bounce X Out JK4K.moti  [距离/模糊]
+     80  motionVFX Freebies/Bounce Y In G7L8/Bounce Y In G7L8.moti  [距离/模糊]
+     81  motionVFX Freebies/Bounce Y Out 0VVM/Bounce Y Out 0VVM.moti  [距离/模糊]
+     82  motionVFX Freebies/Camera Shake 1YWR/Camera Shake 1YWR.moti  [距离/模糊]
+     83  motionVFX Freebies/Caption G7G8/Caption G7G8.moti  [距离/模糊]
+     84  motionVFX Freebies/Condense 9VVK/Condense 9VVK.moti  [距离/模糊]
+     85  motionVFX Freebies/Condense X 8NNM/Condense X 8NNM.moti  [距离/模糊]
+     86  motionVFX Freebies/Condense Y 766Z/Condense Y 766Z.moti  [距离/模糊]
+     87  motionVFX Freebies/Crawl X In 6MM7/Crawl X In 6MM7.moti  [距离/模糊]
+     88  motionVFX Freebies/Crawl X Out 5GGM/Crawl X Out 5GGM.moti  [距离/模糊]
+     89  motionVFX Freebies/Crawl Y In 4KKV/Crawl Y In 4KKV.moti  [距离/模糊]
+     90  motionVFX Freebies/Crawl Y Out 333Z/Crawl Y Out 333Z.moti  [距离/模糊]
+     91  motionVFX Freebies/Custom Camera Movement M4NK/Custom Camera Movement M4NK.moti  [距离/模糊]
+     92  motionVFX Freebies/Dart X In 2KK5/Dart X In 2KK5.moti  [距离/模糊]
+     93  motionVFX Freebies/Dart X Out 1YYR/Dart X Out 1YYR.moti  [距离/模糊]
+     94  motionVFX Freebies/Dart Y In Z883/Dart Y In Z883.moti  [距离/模糊]
+     95  motionVFX Freebies/Dart Y Out Y002/Dart Y Out Y002.moti  [距离/模糊]
+     96  motionVFX Freebies/Details 4XCX/Details 4XCX.moti  [距离/模糊]
+     97  motionVFX Freebies/Dimension Vortex 8NPM/Dimension Vortex 8NPM.moti  [距离/模糊]
+     98  motionVFX Freebies/Drop In XZZW/Drop In XZZW.moti  [距离/模糊]
+     99  motionVFX Freebies/Drop Out W88L/Drop Out W88L.moti  [距离/模糊]
+    100  motionVFX Freebies/Dynamic Motion Blur W8XL/Dynamic Motion Blur W8XL.moti  [距离/模糊]
+    101  motionVFX Freebies/Effect 4KZV/Effect 4KZV.moti  [距离/模糊]
+    102  motionVFX Freebies/Effect 5GLM/Effect 5GLM.moti  [距离/模糊]
+    103  motionVFX Freebies/Effect 6MR7/Effect 6MR7.moti  [距离/模糊]
+    104  motionVFX Freebies/Effect 76NZ/Effect 76NZ.moti  [距离/模糊]
+    105  motionVFX Freebies/Effect 8NXM/Effect 8NXM.moti  [距离/模糊]
+    106  motionVFX Freebies/Effect 9VXK/Effect 9VXK.moti  [距离/模糊]
+    107  motionVFX Freebies/Enlarge In V005/Enlarge In V005.moti  [距离/模糊]
+    108  motionVFX Freebies/Enlarge Out RQQJ/Enlarge Out RQQJ.moti  [距离/模糊]
+    109  motionVFX Freebies/Enlarge X Hard In QZZ7/Enlarge X Hard In QZZ7.moti  [距离/模糊]
+    110  motionVFX Freebies/Enlarge X Hard Out P11V/Enlarge X Hard Out P11V.moti  [距离/模糊]
+    111  motionVFX Freebies/Enlarge X Soft In NQQW/Enlarge X Soft In NQQW.moti  [距离/模糊]
+    112  motionVFX Freebies/Enlarge X Soft Out M44K/Enlarge X Soft Out M44K.moti  [距离/模糊]
+    113  motionVFX Freebies/Enlarge Y Hard In LNN4/Enlarge Y Hard In LNN4.moti  [距离/模糊]
+    114  motionVFX Freebies/Enlarge Y Hard Out KMM6/Enlarge Y Hard Out KMM6.moti  [距离/模糊]
+    115  motionVFX Freebies/Enlarge Y Soft In JKKK/Enlarge Y Soft In JKKK.moti  [距离/模糊]
+    116  motionVFX Freebies/Enlarge Y Soft Out G778/Enlarge Y Soft Out G778.moti  [距离/模糊]
+    117  motionVFX Freebies/Extreme Motion Blur V045/Extreme Motion Blur V045.moti  [距离/模糊]
+    118  motionVFX Freebies/Film Dirt JGFR/Film Dirt JGFR.moti  [距离/模糊]
+    119  motionVFX Freebies/Film Dirt TT3A/Film Dirt TT3A.moti  [距离/模糊]
+    120  motionVFX Freebies/Film Strip CDEK/Film Strip CDEK.moti  [距离/模糊]
+    121  motionVFX Freebies/Film Strip Slideshow TZX2/Film Strip Slideshow TZX2.moti  [距离/模糊]
+    122  motionVFX Freebies/Glass Shreds 76MZ/Glass Shreds 76MZ.moti  [距离/模糊]
+    123  motionVFX Freebies/Glow And Flare 6MP7/Glow And Flare 6MP7.moti  [距离/模糊]
+    124  motionVFX Freebies/Grow Hard In LNM1/Grow Hard In LNM1.moti  [距离/模糊]
+    125  motionVFX Freebies/Grow Hard Out KML7/Grow Hard Out KML7.moti  [距离/模糊]
+    126  motionVFX Freebies/Grow Soft In JKPJ/Grow Soft In JKPJ.moti  [距离/模糊]
+    127  motionVFX Freebies/Grow Soft Out G78V/Grow Soft Out G78V.moti  [距离/模糊]
+    128  motionVFX Freebies/Halftone LJ9G/Halftone LJ9G.moti  [距离/模糊]
+    129  motionVFX Freebies/Header IV9M/Header IV9M.moti  [距离/模糊]
+    130  motionVFX Freebies/Horizon Bending 5GZM/Horizon Bending 5GZM.moti  [距离/模糊]
+    131  motionVFX Freebies/Horizon Multiplication 4KPV/Horizon Multiplication 4KPV.moti  [距离/模糊]
+    132  motionVFX Freebies/Inflate X In 0VY7/Inflate X In 0VY7.moti  [距离/模糊]
+    133  motionVFX Freebies/Inflate X Out 9VPR/Inflate X Out 9VPR.moti  [距离/模糊]
+    134  motionVFX Freebies/Inflate Y In 8NLZ/Inflate Y In 8NLZ.moti  [距离/模糊]
+    135  motionVFX Freebies/Inflate Y Out 76KJ/Inflate Y Out 76KJ.moti  [距离/模糊]
+    136  motionVFX Freebies/Jelly In 6MJ5/Jelly In 6MJ5.moti  [距离/模糊]
+    137  motionVFX Freebies/Jelly Out 5GNY/Jelly Out 5GNY.moti  [距离/模糊]
+    138  motionVFX Freebies/Jump 4KMN/Jump 4KMN.moti  [距离/模糊]
+    139  motionVFX Freebies/Light And Shadow 331Z/Light And Shadow 331Z.moti  [距离/模糊]
+    140  motionVFX Freebies/Light Leaks QN4M/Light Leaks QN4M.moti  [距离/模糊]
+    141  motionVFX Freebies/Linear Move X In 33L4/Linear Move X In 33L4.moti  [距离/模糊]
+    142  motionVFX Freebies/Linear Move X Out 2KWN/Linear Move X Out 2KWN.moti  [距离/模糊]
+    143  motionVFX Freebies/Linear Move Y In 1Y6N/Linear Move Y In 1Y6N.moti  [距离/模糊]
+    144  motionVFX Freebies/Linear Move Y Out Z8V5/Linear Move Y Out Z8V5.moti  [距离/模糊]
+    145  motionVFX Freebies/Lower In Y06X/Lower In Y06X.moti  [距离/模糊]
+    146  motionVFX Freebies/Lower Out XZ1J/Lower Out XZ1J.moti  [距离/模糊]
+    147  motionVFX Freebies/Lower3rd AZJ7/Lower3rd AZJ7.moti  [距离/模糊]
+    148  motionVFX Freebies/Lower3rd JKVK/Lower3rd JKVK.moti  [距离/模糊]
+    149  motionVFX Freebies/Lower3rd KMQ6/Lower3rd KMQ6.moti  [距离/模糊]
+    150  motionVFX Freebies/Magical Aura Z803/Magical Aura Z803.moti  [距离/模糊]
+    151  motionVFX Freebies/Mandala Shield Y012/Mandala Shield Y012.moti  [距离/模糊]
+    152  motionVFX Freebies/Old Footage PN9V/Old Footage PN9V.moti  [距离/模糊]
+    153  motionVFX Freebies/Oscillate Rotation W8Y7/Oscillate Rotation W8Y7.moti  [距离/模糊]
+    154  motionVFX Freebies/Ping-Pong X In V0YW/Ping-Pong X In V0YW.moti  [距离/模糊]
+    155  motionVFX Freebies/Ping-Pong X Out RQW4/Ping-Pong X Out RQW4.moti  [距离/模糊]
+    156  motionVFX Freebies/Ping-Pong Y In QZ34/Ping-Pong Y In QZ34.moti  [距离/模糊]
+    157  motionVFX Freebies/Ping-Pong Y Out P14R/Ping-Pong Y Out P14R.moti  [距离/模糊]
+    158  motionVFX Freebies/Placeholder.moti  [距离/模糊]
+    159  motionVFX Freebies/Portal Effect XZ7W/Portal Effect XZ7W.moti  [距离/模糊]
+    160  motionVFX Freebies/Predefined Dynamic Motion Blur RQ1J/Predefined Dynamic Motion Blur RQ1J.moti  [距离/模糊]
+    161  motionVFX Freebies/Predefined Extreme Motion Blur QZ47/Predefined Extreme Motion Blur QZ47.moti  [距离/模糊]
+    162  motionVFX Freebies/Predefined Regular Motion Blur P13V/Predefined Regular Motion Blur P13V.moti  [距离/模糊]
+    163  motionVFX Freebies/Predefined Subtle Motion Blur NQPW/Predefined Subtle Motion Blur NQPW.moti  [距离/模糊]
+    164  motionVFX Freebies/Pulsate Scale NQ6Q/Pulsate Scale NQ6Q.moti  [距离/模糊]
+    165  motionVFX Freebies/Pulsate Scale X M466/Pulsate Scale X M466.moti  [距离/模糊]
+    166  motionVFX Freebies/Pulsate Scale Y DL11/Pulsate Scale Y DL11.moti  [距离/模糊]
+    167  motionVFX Freebies/Quantize Scale Hard In EKY7/Quantize Scale Hard In EKY7.moti  [距离/模糊]
+    168  motionVFX Freebies/Quantize Scale Hard Out BJWJ/Quantize Scale Hard Out BJWJ.moti  [距离/模糊]
+    169  motionVFX Freebies/Quantize Scale Soft In EGMV/Quantize Scale Soft In EGMV.moti  [距离/模糊]
+    170  motionVFX Freebies/Quantize Scale Soft Out E0M7/Quantize Scale Soft Out E0M7.moti  [距离/模糊]
+    171  motionVFX Freebies/Random Rotate D99R/Random Rotate D99R.moti  [距离/模糊]
+    172  motionVFX Freebies/Reality Distortion 2K35/Reality Distortion 2K35.moti  [距离/模糊]
+    173  motionVFX Freebies/Regular Motion Blur M4PK/Regular Motion Blur M4PK.moti  [距离/模糊]
+    174  motionVFX Freebies/Rock E87Z/Rock E87Z.moti  [距离/模糊]
+    175  motionVFX Freebies/Rotate Stretch In B75J/Rotate Stretch In B75J.moti  [距离/模糊]
+    176  motionVFX Freebies/Rotate Stretch Out D635/Rotate Stretch Out D635.moti  [距离/模糊]
+    177  motionVFX Freebies/Scale Bounce In E51Y/Scale Bounce In E51Y.moti  [距离/模糊]
+    178  motionVFX Freebies/Scale Bounce Out B4YN/Scale Bounce Out B4YN.moti  [距离/模糊]
+    179  motionVFX Freebies/Scale Bounce X In D3W4/Scale Bounce X In D3W4.moti  [距离/模糊]
+    180  motionVFX Freebies/Scale Bounce X Out E2RN/Scale Bounce X Out E2RN.moti  [距离/模糊]
+    181  motionVFX Freebies/Scale Bounce Y In B1PN/Scale Bounce Y In B1PN.moti  [距离/模糊]
+    182  motionVFX Freebies/Scale Bounce Y Out DZ65/Scale Bounce Y Out DZ65.moti  [距离/模糊]
+    183  motionVFX Freebies/Slide X In EY4X/Slide X In EY4X.moti  [距离/模糊]
+    184  motionVFX Freebies/Slide X Out BX2J/Slide X Out BX2J.moti  [距离/模糊]
+    185  motionVFX Freebies/Slide Y In DWZ7/Slide Y In DWZ7.moti  [距离/模糊]
+    186  motionVFX Freebies/Slide Y Out EVXW/Slide Y Out EVXW.moti  [距离/模糊]
+    187  motionVFX Freebies/Spin X Hard In BRL4/Spin X Hard In BRL4.moti  [距离/模糊]
+    188  motionVFX Freebies/Spin X Hard Out DQJ4/Spin X Hard Out DQJ4.moti  [距离/模糊]
+    189  motionVFX Freebies/Spin X Soft In EP9R/Spin X Soft In EP9R.moti  [距离/模糊]
+    190  motionVFX Freebies/Spin X Soft Out EN5Q/Spin X Soft Out EN5Q.moti  [距离/模糊]
+    191  motionVFX Freebies/Spin Z Hard In BM36/Spin Z Hard In BM36.moti  [距离/模糊]
+    192  motionVFX Freebies/Spin Z Hard Out DL81/Spin Z Hard Out DL81.moti  [距离/模糊]
+    193  motionVFX Freebies/Spin Z Soft In EK77/Spin Z Soft In EK77.moti  [距离/模糊]
+    194  motionVFX Freebies/Spin Z Soft Out BJ6J/Spin Z Soft Out BJ6J.moti  [距离/模糊]
+    195  motionVFX Freebies/Subtle Motion Blur LN44/Subtle Motion Blur LN44.moti  [距离/模糊]
+    196  motionVFX Freebies/Tape Recorder 27Z8/Tape Recorder 27Z8.moti  [距离/模糊]
+    197  motionVFX Freebies/Title 0V6M/Title 0V6M.moti  [距离/模糊]
+    198  motionVFX Freebies/Title 0VGM/Title 0VGM.moti  [距离/模糊]
+    199  motionVFX Freebies/Title G7R8/Title G7R8.moti  [距离/模糊]
+    200  motionVFX Freebies/Unstick In EG3V/Unstick In EG3V.moti  [距离/模糊]
+    201  motionVFX Freebies/Unstick Out E027/Unstick Out E027.moti  [距离/模糊]
+    202  motionVFX Freebies/Unstick X In D9KR/Unstick X In D9KR.moti  [距离/模糊]
+    203  motionVFX Freebies/Unstick X Out E8JZ/Unstick X Out E8JZ.moti  [距离/模糊]
+    204  motionVFX Freebies/Unstick Y In B7GJ/Unstick Y In B7GJ.moti  [距离/模糊]
+    205  motionVFX Freebies/Unstick Y Out D685/Unstick Y Out D685.moti  [距离/模糊]
+    206  motionVFX Freebies/VCR Tape NG95/VCR Tape NG95.moti  [距离/模糊]
+    207  motionVFX Freebies/VCR Viewfinder QAL2/VCR Viewfinder QAL2.moti  [距离/模糊]
+    208  motionVFX Freebies/Vertical On Horizontal Display KMG6/Vertical On Horizontal Display KMG6.moti  [距离/模糊]
+    209  motionVFX Freebies/Vertigo From P1NV/Vertigo From P1NV.moti  [距离/模糊]
+    210  motionVFX Freebies/Vertigo Through NQLW/Vertigo Through NQLW.moti  [距离/模糊]
+    211  motionVFX Freebies/Vertigo Through Reverse M4KK/Vertigo Through Reverse M4KK.moti  [距离/模糊]
+    212  motionVFX Freebies/Vertigo To LNJ4/Vertigo To LNJ4.moti  [距离/模糊]
+    213  motionVFX Freebies/Vintage Grain 8DHC/Vintage Grain 8DHC.moti  [距离/模糊]
+    214  motionVFX Freebies/Wind Up E57Y/Wind Up E57Y.moti  [距离/模糊]
+    215  motionVFX Freebies/Wobble Roll X In B46N/Wobble Roll X In B46N.moti  [距离/模糊]
+    216  motionVFX Freebies/Wobble Roll X Out D354/Wobble Roll X Out D354.moti  [距离/模糊]
+    217  motionVFX Freebies/Wobble Roll Z In E24N/Wobble Roll Z In E24N.moti  [距离/模糊]
+    218  motionVFX Freebies/Wobble Roll Z Out B13N/Wobble Roll Z Out B13N.moti  [距离/模糊]
+    219  光视婚礼摄影工作室/光视婚礼摄影工作室/PRODUCED BY TIMERIVER/PRODUCED BY TIMERIVER.moti  [距离/不透明度]
+    220  光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室.moti  [距离]
+    221  光视婚礼摄影工作室/光视婚礼摄影工作室/光视婚礼摄影工作室承接项目/光视婚礼摄影工作室承接项目.moti  [距离/不透明度]
+    222  易安装 - 26个文字标题实用动画预设/易安装 17/文字标题 17.moti  [距离/不透明度]
+    223  易安装 - 26个文字标题实用动画预设/易安装 18/文字标题 18.moti  [距离/不透明度]
+    224  易安装 - 26个文字标题实用动画预设/易安装 19/文字标题 19.moti  [距离/不透明度]
+    225  易安装 - 26个文字标题实用动画预设/易安装 20/文字标题 20.moti  [距离/不透明度]
+    226  易安装 - 标题字幕高级真实阴影效果/易安装-高级阴影标题/易安装 - 高级阴影标题.moti  [距离/不透明度]
 
 【文字对象口径】一句话规则 + 三档数字 + 边界样本
 ------------------------------------------------------------------------------------------------
@@ -571,14 +834,14 @@ A. 可以直接做 UI（可控率 ≥50%，多数模板都取得到值）：
   · 字体   可控  904/1241 =  72.8%（文字模板内 100.0%），主写法 scenenode/style/Font
   · 大小   可控  885/1241 =  71.3%（文字模板内  97.9%），主写法 scenenode/style/Size
   · 颜色   可控  723/1241 =  58.3%（文字模板内  80.0%），主写法 scenenode/style/Face/Color/Red
-  · 对齐   可控  693/1241 =  55.8%（文字模板内  76.7%），主写法 scenenode/paragraphStyle/Alignment
+  · 对齐   可控  681/1241 =  54.9%（文字模板内  75.3%），主写法 scenenode/paragraphStyle/Alignment
 
 B. 有数据来源但覆盖不全（5%~50%）：能做，但大多数模板要显示空态/禁用，
    不能给默认 0 值控件冒充可用：
   · 行距   可控  242/1241 =  19.5%（文字模板内  26.8%），主写法 scenenode/paragraphStyle/Line Spacing
   · 渐变   可控  237/1241 =  19.1%（文字模板内  26.2%），主写法 scenenode/style/表面/渐变/RGB/RGB2/颜色/红色
-  · 阴影   可控  234/1241 =  18.9%（文字模板内  25.9%），主写法 scenenode/style/Drop Shadow/Distance
-  · 字距   可控  182/1241 =  14.7%（文字模板内  20.1%），主写法 scenenode/style/间距/字距
+  · 阴影   可控  226/1241 =  18.2%（文字模板内  25.0%），主写法 scenenode/style/Drop Shadow/Distance
+  · 字距   可控  173/1241 =  13.9%（文字模板内  19.1%），主写法 scenenode/style/间距/字距
   · 描边   可控  162/1241 =  13.1%（文字模板内  17.9%），主写法 scenenode/style/轮廓/宽度
 
 C. 没有数据来源、做了也是空控件（本轮一律不做）：

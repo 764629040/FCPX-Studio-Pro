@@ -86,6 +86,10 @@ TR022_FAIL_FILES = [
     "条01.moti",
 ]
 
+# A1 版（commit 1cf8400）attr_coverage.json 里的可控数，用于本版给 A1→A1b 的差值交代。
+# 只当历史基线用，不参与统计；对不上就说明这一版确实改了统计口径。
+A1_BASELINE_CONTROLLABLE = {"字距": 182, "对齐": 693, "阴影": 234}
+
 TEXT_LEAF_NAMES = ("文本", "Text")
 
 
@@ -102,7 +106,22 @@ def iter_params(el):
 
 # 路径里保留这些容器标签名，让输出能逐字回 XML 对照
 # （只保留有语义的几层，<curve>/<flags>/<foldFlags> 这类噪声不进路径）
-PATH_TAGS = ("style", "paragraphStyle", "scenenode", "layer", "group")
+# TR-023-A1b：补上 <behavior>。行为实例内部也有同名参数（例如 Blur Out 行为自己的
+# 投影/不透明度），不区分就会把它们算到文字对象自己的样式上 —— 阴影 234 就是这么来的。
+PATH_TAGS = ("style", "paragraphStyle", "scenenode", "layer", "group", "behavior")
+
+
+def container_segment(el):
+    """容器标签在路径里写成什么段。
+
+    普通容器用标签名（style / layer / group …），行为实例额外带 @name，
+    写成 behavior:名字。这样 normalize() 只去掉裸的 behavior，
+    「谁的行为」这一层留在路径里，同名参数不会互相冒充。
+    """
+    if el.tag == "behavior":
+        name = (el.get("name") or "").strip()
+        return "behavior:" + name if name else "behavior"
+    return el.tag
 
 
 def walk_leaves(el, path, out):
@@ -116,7 +135,7 @@ def walk_leaves(el, path, out):
             else:
                 out.append((cpath, child))
         elif child.tag in PATH_TAGS:
-            walk_leaves(child, path + (child.tag,), out)
+            walk_leaves(child, path + (container_segment(child),), out)
         else:
             walk_leaves(child, path, out)
 
@@ -248,6 +267,41 @@ def text_objects_in_file(root):
         for path, el in items:
             index.setdefault(path, el)
         yield sn, items, index
+
+
+def color_union_templates(root, sources):
+    """颜色并集的独立实现（不读主流程任何中间变量，自己重新扫一遍库）。
+
+    定义：T(s) = {模板 f | f 的某个文字对象里存在归一化路径 p，
+                  p == 前缀(s) 或 p.startswith(前缀(s) + "/")}
+         并集   = ∪_{s ∈ sources} T(s)
+
+    用途有两个：报告里打印这个数，以及 --check 时用它复核主流程的同一个数。
+    两遍必须一致，不一致说明统计口径依赖了偶然状态。
+    """
+    src_tpl = {name: set() for name, _pref in sources}
+    for f in sorted(Path(root).rglob("*.moti")):
+        try:
+            doc = ET.parse(str(f)).getroot()
+        except Exception:
+            continue
+        for sn in find_text_scenenodes(doc):
+            for path, _el in text_object_paths(sn):
+                norm = normalize(path)
+                for name, pref in sources:
+                    if prefix_hit(norm, pref):
+                        src_tpl[name].add(str(f))
+    return src_tpl
+
+
+def zh_color_union_templates(root):
+    """中文颜色并集（源列表 = ZH_COLOR_UNION_SOURCES）。"""
+    return color_union_templates(root, ZH_COLOR_UNION_SOURCES)
+
+
+def en_color_union_templates(root):
+    """英文颜色并集（源列表 = EN_COLOR_UNION_SOURCES）。"""
+    return color_union_templates(root, EN_COLOR_UNION_SOURCES)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -414,19 +468,58 @@ SHADOW_CN_DIST = re.compile(r"^scenenode/投影/距离$")
 
 COLOR_RGB_LEAF = ("红", "绿", "蓝", "红色", "绿色", "蓝色", "Red", "Green", "Blue")
 
-# 中文 / 英文拼写各自的并集（用于报告里「中文并集 / 英文并集 / 交集」一行）
-COLOR_ZH = re.compile(
-    r"^scenenode/(?:"
-    r"对象/(?:基础|基本)/物质/颜色"
-    r"|面/颜色|表面/颜色|基本/物质/颜色|面/渐变|表面/渐变|渐变"
-    r"|(?:图层|层)/物质/颜色"
-    r")")
-COLOR_EN = re.compile(
-    r"^scenenode/(?:"
-    r"Face/Color|Face/Gradient"
-    r"|Object/(?:Basic|基础|基本)/(?:Substance|物质)/(?:Color|颜色)"
-    r"|(?:Basic|Substance)/(?:Color|颜色)"
-    r")")
+# ── 「中文颜色并集 / 英文颜色并集」的可执行定义（TR-023-A1b）─────────────────
+# 上一版给的是一个正则的匹配结果，没有说明「并集」到底是哪几个源的并，
+# 于是同一个词能被数成 404 / 405 两个数。这里改成唯一一种写法：
+#
+#   定义：设 S = 下列有序源列表。对每个源 s=(名称, 路径前缀)，
+#         T(s) = { 模板文件 f | f 的某个文字对象里存在归一化路径 p，
+#                  满足 p == 前缀(s) 或 p.startswith(前缀(s) + "/") }
+#         （段前缀，不是裸字符串前缀：面/颜色 不会吃掉 面/颜色X）
+#         则 中文颜色并集 = |∪_{s∈S} T(s)|，按 S 的顺序累加，报告里逐步给出累计值。
+#
+# 唯一的自由度是「S 里放哪些源」，所以 S 逐条写死在下面并打印出来；
+# 换掉任何一条，数字就换，可复查、可 diff。
+ZH_COLOR_UNION_SOURCES = [
+    ("面/颜色", "scenenode/面/颜色"),
+    ("表面/颜色", "scenenode/表面/颜色"),
+    ("对象/基础/物质/颜色", "scenenode/对象/基础/物质/颜色"),
+    ("对象/基本/物质/颜色", "scenenode/对象/基本/物质/颜色"),
+    ("基本/物质/颜色", "scenenode/基本/物质/颜色"),
+    ("图层/物质/颜色", "scenenode/图层/物质/颜色"),
+    ("层/物质/颜色", "scenenode/层/物质/颜色"),
+    ("面/渐变", "scenenode/面/渐变"),
+    ("表面/渐变", "scenenode/表面/渐变"),
+    ("顶层 渐变", "scenenode/渐变"),
+]
+
+EN_COLOR_UNION_SOURCES = [
+    ("Face/Color", "scenenode/Face/Color"),
+    ("Face/Gradient", "scenenode/Face/Gradient"),
+    ("Object/Basic/Substance/Color", "scenenode/Object/Basic/Substance/Color"),
+    ("Basic/Substance/Color", "scenenode/Basic/Substance/Color"),
+]
+
+
+def prefix_hit(norm, prefix):
+    """段前缀命中：等于前缀，或以 前缀 + "/" 开头。"""
+    return norm == prefix or norm.startswith(prefix + "/")
+
+
+def union_definition_text(sources, title):
+    """把定义渲染成可执行文字：源列表 + 一条能直接跑出这个数的命令。"""
+    lines = [title + " = |∪ T(s)|，S 按下列顺序累加："]
+    lines.append("  T(s) = {模板 f | 存在归一化路径 p : p == s 或 p.startswith(s + \"/\")}")
+    for i, (name, pref) in enumerate(sources, 1):
+        lines.append("    %2d  %-30s %s" % (i, name, pref))
+    lines.append("  一条命令复算（只依赖本脚本，不读任何中间文件）：")
+    fn = ("zh_color_union_templates" if sources is ZH_COLOR_UNION_SOURCES
+          else "en_color_union_templates")
+    lines.append("    python3 -c \"import sys,pathlib; sys.path.insert(0,'tools/tr023');"
+                 " import attr_coverage as m; print(len(set().union(*"
+                 "m.%s(pathlib.Path.home()/'Movies/Motion Templates.localized/"
+                 "Titles.localized').values())))\"" % fn)
+    return lines
 
 # 单值判据分派
 def leaf_has_value(kind, el):
@@ -502,6 +595,8 @@ def main():
     ap.add_argument("--root", default=str(DEFAULT_ROOT))
     ap.add_argument("--outdir", default="reports/verify_tr023")
     ap.add_argument("--dump-names", action="store_true")
+    ap.add_argument("--check", action="store_true",
+                    help="再用 color_union_templates() 独立扫一遍，复核中英颜色并集与主流程一致")
     args = ap.parse_args()
 
     root = Path(os.path.expanduser(args.root))
@@ -536,11 +631,15 @@ def main():
     color_path_occ = Counter()     # 路径 → 出现次数
     color_path_samples = {}        # 路径 → [样例模板相对路径]
     color_excl_tpl = {name: set() for name, _rx in COLOR_EXCLUDED}
-    # 阴影：三个可调参数分别命中
+    # 中文 / 英文颜色并集：按写死的源列表逐源记模板集合（定义见 ZH_COLOR_UNION_SOURCES）
+    zh_src_tpl = {name: set() for name, _p in ZH_COLOR_UNION_SOURCES}
+    en_src_tpl = {name: set() for name, _p in EN_COLOR_UNION_SOURCES}
+    # 阴影：三个可调参数分别命中，另记每条路径的模板集合（报告要逐条清单）
     shadow_ctl_tpl = {k: set() for k in SHADOW_CTL}
+    shadow_ctl_path_tpl = {k: {} for k in SHADOW_CTL}   # 参数 → 路径 → 模板集合
+    shadow_legacy_extra = set()    # 行为名不进路径时会多算进来的模板（算「旧口径」用）
     shadow_cn_dist_tpl = set()
     shadow_dist_nonzero_tpl = set()
-    shadow_samples = []            # 234 口径命中的模板前 20
     all_paths_seen = set()
 
     for i, f in enumerate(files):
@@ -584,6 +683,13 @@ def main():
 
                 norm = normalize(path)
                 leaf = norm.rsplit("/", 1)[-1]
+                # 中文 / 英文颜色并集：逐源段前缀命中（唯一定义，见文件头常量）
+                for src_name, src_pref in ZH_COLOR_UNION_SOURCES:
+                    if prefix_hit(norm, src_pref):
+                        zh_src_tpl[src_name].add(f)
+                for src_name, src_pref in EN_COLOR_UNION_SOURCES:
+                    if prefix_hit(norm, src_pref):
+                        en_src_tpl[src_name].add(f)
                 # 颜色：逐源 + 逐路径（TR-023-A1：不再用一个并集正则冒充单一来源）
                 for src_name, src_rx in COLOR_SOURCES:
                     if src_rx.match(norm):
@@ -600,12 +706,18 @@ def main():
                     if ex_rx.match(norm):
                         color_excl_tpl[ex_name].add(f)
                         break
-                # 阴影：三个可调参数分别记，报告里给规则原文
+                # 阴影：三个可调参数分别记，报告里给规则原文 + 逐路径 + 全量清单
                 for ctl_name, ctl_rx in SHADOW_CTL.items():
                     if ctl_rx.match(norm) and numeric_value(el) is not None:
                         shadow_ctl_tpl[ctl_name].add(f)
-                        if len(shadow_samples) < 20 and rel not in shadow_samples:
-                            shadow_samples.append(rel)
+                        shadow_ctl_path_tpl[ctl_name].setdefault(norm, set()).add(f)
+                # 旧口径（行为名不进路径）会多算的那些：只为在报告里给旧→新一个交代
+                if "/behavior:" in path:
+                    legacy = "/".join(s for s in path.split("/") if not s.startswith("behavior:"))
+                    for ctl_rx in SHADOW_CTL.values():
+                        if ctl_rx.match(legacy) and numeric_value(el) is not None:
+                            shadow_legacy_extra.add(f)
+                            break
                 if SHADOW_CN_DIST.match(norm) and numeric_value(el) is not None:
                     shadow_cn_dist_tpl.add(f)
                 if leaf in ("距离", "Distance") and numeric_value(el):
@@ -644,14 +756,49 @@ def main():
         else:
             ui_partial.append(attr)
 
-    # 中文 / 英文拼写的并集（同一模板可能两边都有，交集不为 0）
+    # 中文 / 英文拼写的并集：严格按写死的源列表做集合并（定义见文件头常量），
+    # 不是「某个正则匹配到什么」—— 同一个源列表跑两遍必须得到同一个数。
     zh_set = set()
     en_set = set()
-    for p, tpl in color_path_tpl.items():
-        if COLOR_ZH.match(p):
-            zh_set |= tpl
-        if COLOR_EN.match(p):
-            en_set |= tpl
+    zh_running = []
+    en_running = []
+    for src_name, _pref in ZH_COLOR_UNION_SOURCES:
+        before = len(zh_set)
+        zh_set |= zh_src_tpl[src_name]
+        zh_running.append((src_name, len(zh_src_tpl[src_name]), len(zh_set) - before, len(zh_set)))
+    for src_name, _pref in EN_COLOR_UNION_SOURCES:
+        before = len(en_set)
+        en_set |= en_src_tpl[src_name]
+        en_running.append((src_name, len(en_src_tpl[src_name]), len(en_set) - before, len(en_set)))
+
+    # 阴影派生量：并集 / 旧口径并集 / 三项互不重叠部分 / 命中清单标签
+    shadow_union_tpl = set().union(*shadow_ctl_tpl.values()) if shadow_ctl_tpl else set()
+    shadow_legacy_union = shadow_union_tpl | shadow_legacy_extra
+    shadow_only = {
+        k: v - set().union(*[s for kk, s in shadow_ctl_tpl.items() if kk != k])
+        for k, v in shadow_ctl_tpl.items()
+    }
+    shadow_rel_tags = {}
+    for k, tpls in shadow_ctl_tpl.items():
+        for p in tpls:
+            shadow_rel_tags.setdefault(str(p).replace(str(root) + "/", ""), set()).add(k)
+
+    # --check：拿同一份源列表、另起一次全库扫描，复核并集数字（--check 才跑，多花 ~20s）
+    self_check = None
+    if args.check:
+        zh_ind = set().union(*color_union_templates(root, ZH_COLOR_UNION_SOURCES).values())
+        en_ind = set().union(*color_union_templates(root, EN_COLOR_UNION_SOURCES).values())
+        zh_rel = {str(x) for x in zh_set}
+        en_rel = {str(x) for x in en_set}
+        self_check = {
+            "method": "color_union_templates() 独立二次全库扫描，与主流程集合逐元素比对",
+            "zh": len(zh_ind), "zh_match": zh_ind == zh_rel,
+            "en": len(en_ind), "en_match": en_ind == en_rel,
+            "pass": zh_ind == zh_rel and en_ind == en_rel,
+        }
+        if not self_check["pass"]:
+            print("SELF-CHECK FAILED: zh %d vs %d, en %d vs %d"
+                  % (len(zh_ind), len(zh_rel), len(en_ind), len(en_rel)), file=sys.stderr)
 
     report = {
         "meta": {
@@ -661,6 +808,7 @@ def main():
             "script": "tools/tr023/attr_coverage.py",
             "read_only": True,
         },
+        "self_check": self_check,
         "denominator": {
             "total_moti": total,
             "xml_ok": ok_count,
@@ -695,11 +843,41 @@ def main():
             }
             for name, _rx in COLOR_SOURCES
         },
-        "color_sources_union": len(hit_tpl["颜色"]),
-        "color_union_with_value": len(val_tpl["颜色"]),
+        "color_sources_union": len(hit_tpl["颜色"]),        "color_union_with_value": len(val_tpl["颜色"]),
         "color_zh_union": len(zh_set),
         "color_en_union": len(en_set),
         "color_zh_en_intersection": len(zh_set & en_set),
+        "color_zh_definition": {
+            "predicate": "p == prefix 或 p.startswith(prefix + '/')（段前缀，不是裸字符串前缀）",
+            "sources": [
+                {
+                    "name": n,
+                    "prefix": pref,
+                    "templates": len(zh_src_tpl[n]),
+                    "marginal": marg,
+                    "cumulative": cum,
+                }
+                for (n, pref), (n2, _t, marg, cum) in zip(ZH_COLOR_UNION_SOURCES, zh_running)
+            ],
+            "formula": "|∪ T(s)|，s 依次取上面 sources 的 prefix",
+            "union": len(zh_set),
+            "saturates_at": sum(1 for _n, _t, marg, _c in zh_running
+                                if marg > 0),
+        },
+        "color_en_definition": {
+            "predicate": "p == prefix 或 p.startswith(prefix + '/')",
+            "sources": [
+                {
+                    "name": n,
+                    "prefix": pref,
+                    "templates": len(en_src_tpl[n]),
+                    "marginal": marg,
+                    "cumulative": cum,
+                }
+                for (n, pref), (n2, _t, marg, cum) in zip(EN_COLOR_UNION_SOURCES, en_running)
+            ],
+            "union": len(en_set),
+        },
         # 中文并集的模板清单：QC 报 405、我数 404，差 1 时用这份清单直接 diff
         "color_zh_templates": sorted(str(x).replace(str(root) + "/", "") for x in zh_set),
         "color_excluded": {name: len(s) for name, s in color_excl_tpl.items()},
@@ -714,13 +892,30 @@ def main():
         ],
         "shadow": {
             "rule": ("文字对象内存在 <parameter> 路径 "
-                     "scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)，"
-                     "且该参数带数值（value 或 <curve>@value）"),
+                     "scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance|不透明度|Opacity|模糊|Blur)"
+                     "，且该参数带数值（value 或 <curve>@value）；三者取并集。"
+                     "行为实例带名字进路径（behavior:名字/…），"
+                     "行为内部的同名参数不算文字对象自己的样式"),
             "by_param": {k: len(v) for k, v in shadow_ctl_tpl.items()},
-            "union": len(set().union(*shadow_ctl_tpl.values())) if shadow_ctl_tpl else 0,
+            "union": len(shadow_union_tpl),
+            "legacy_union_without_behavior": len(shadow_legacy_union),
+            "behavior_noise_templates": len(shadow_legacy_union - shadow_union_tpl),
+            "only_param": {k: len(v) for k, v in shadow_only.items()},
+            "paths": [
+                {
+                    "param": k,
+                    "path": p,
+                    "templates": len(tpls),
+                    "samples": sorted(str(x).replace(str(root) + "/", "") for x in tpls)[:3],
+                }
+                for k in SHADOW_CTL
+                for p, tpls in sorted(shadow_ctl_path_tpl[k].items(),
+                                      key=lambda kv: (-len(kv[1]), kv[0]))
+            ],
+            "templates": sorted(
+                str(x).replace(str(root) + "/", "") for x in shadow_union_tpl),
             "cn_only_dist": len(shadow_cn_dist_tpl),
             "dist_nonzero": len(shadow_dist_nonzero_tpl),
-            "samples": shadow_samples,
         },
         "attributes": {},
         "verdict": {"ui_ready": ui_ready, "ui_partial": ui_partial, "no_data": no_data},
@@ -767,14 +962,22 @@ def main():
     A("  XML 解析失败  %d（%s）" % (len(fail_files), "、".join(fail_norm)))
     A("  失败清单与 TR-022-3 一致：%s" % ("是" if fail_match else "否（口径变了，必须查）"))
     A("  分母          一律用 %d（可解析模板数），不用 %d" % (denom, total))
+    A("  路径口径      <behavior> 以 behavior:名字 进路径：行为实例内部的同名参数")
+    A("                （如 Blur Out 行为自己的 投影/不透明度）不算文字对象自己的样式")
     A("  含文字对象模板 %d / %d = %.1f%%"
       % (n_text_templates, denom, pct(n_text_templates, denom)))
     A("  文字对象总数  %d 个 <scenenode>" % n_text_objects)
     A("  耗时          %.1f s（单次墙钟，不取平均）" % elapsed)
+    if self_check is not None:
+        A("  自检(--check) %s（中文颜色并集独立二次扫描 %d，英文 %d）"
+          % ("PASS" if self_check["pass"] else "FAIL",
+             self_check["zh"], self_check["en"]))
+    else:
+        A("  自检(--check) 未跑（加 --check 会另起一次全库扫描复核颜色并集）")
     A("")
     A("  一行复现：")
     A("    cd \"/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro\" && \\")
-    A("      python3 tools/tr023/attr_coverage.py")
+    A("      python3 tools/tr023/attr_coverage.py --check")
     A("")
 
     A("【命中率总表】分母 %d（可解析模板）；文字模板内率分母 %d" % (denom, n_text_templates))
@@ -807,6 +1010,24 @@ def main():
          report["attributes"]["颜色"]["hit_templates_node"]
          - report["attributes"]["颜色"]["hit_templates_with_value"]))
     A("    容器空壳（例如只有 面/颜色 节点、下面没有 RGB）。逐源明细见「颜色源优先级表」。")
+    A("")
+    A("【口径变更：A1 → A1b（补 <behavior>）】只列受影响的属性")
+    A("-" * 78)
+    diff_rows = []
+    for attr, old in A1_BASELINE_CONTROLLABLE.items():
+        new = report["attributes"][attr]["hit_templates_controllable"]
+        if new != old:
+            diff_rows.append((attr, old, new, new - old))
+    if diff_rows:
+        A("  " + pad("属性", 8) + pad("A1 可控", 10, "right")
+          + pad("A1b 可控", 10, "right") + pad("差", 8, "right") + "  原因")
+        for attr, old, new, d in diff_rows:
+            A("  " + pad(attr, 8) + pad("%d" % old, 10, "right")
+              + pad("%d" % new, 10, "right") + pad("%+d" % d, 8, "right")
+              + "  行为实例内部的同名参数被排除")
+        A("  其余属性不受影响（这些属性在行为里没有同名参数，数一遍是同一批模板）。")
+    else:
+        A("  无变化：A1 与 A1b 的可控数逐项相同。")
     A("")
 
     A("【逐属性路径写法】同类但命名不同的写法分开列")
@@ -861,28 +1082,67 @@ def main():
       + pad("%.1f%%" % pct(len(val_tpl["颜色"]), denom), 9, "right"))
     A("")
     A("  中英分开看（同一模板可能两边都有，交集 %d）：" % len(zh_set & en_set))
-    A("    中文写法并集 %d 个模板 / 英文写法并集 %d 个模板 / 总并集 %d"
+    A("    中文并集 %d / 英文并集 %d / 合计 %d"
       % (len(zh_set), len(en_set), len(zh_set | en_set)))
-    A("    你报中文并集 405，我数 %d，差 %d；%d 个模板的清单在 .json 的"
-      % (len(zh_set), abs(405 - len(zh_set)), len(zh_set)))
-    A("    color_zh_templates 里，直接 diff 就能定位是哪一份。")
     A("")
-    A("  口径说明（TR-023-A1 修正）：")
-    A("    · 每个源数的是「该路径前缀在该模板的某个文字对象里出现过」的模板数，")
+    A("【中文颜色并集 · 可执行定义】先定义，再给数；这个数只由下面的源列表决定")
+    A("-" * 96)
+    for line in union_definition_text(ZH_COLOR_UNION_SOURCES, "中文颜色并集"):
+        A("  " + line)
+    A("")
+    A("  逐源累加（并集与顺序无关；这张表只为了让数可查，不是加法求和）：")
+    A("  " + pad("序", 4) + pad("源", 24) + pad("该源模板", 10, "right")
+      + pad("边际新增", 10, "right") + pad("累计并集", 10, "right"))
+    for idx, (n, t, marg, cum) in enumerate(zh_running, 1):
+        A("  " + pad(str(idx), 4) + pad(n, 24) + pad("%d" % t, 10, "right")
+          + pad("+%d" % marg, 10, "right") + pad("%d" % cum, 10, "right"))
+    sat = [i for i, (_n, _t, marg, _c) in enumerate(zh_running, 1) if marg > 0][-1]
+    A("")
+    A("  读法：累加到第 %d 条（%s）就到 %d，其后 %d 条源边际新增全为 0 —— 并集已饱和。"
+      % (sat, zh_running[sat - 1][0], len(zh_set), len(zh_running) - sat))
+    A("  所以「中文颜色并集 = %d 个模板」是：上表 %d 条前缀各自的模板集合并起来的大小，"
+      % (len(zh_set), len(zh_running)))
+    A("  换一条前缀就换一个数，不换就是这一个数。%d 个模板的相对路径全量列在"
+      % len(zh_set))
+    A("  .json 的 color_zh_templates（同一次扫描产出，可直接 diff）。")
+    if len(zh_set) != 405:
+        A("  QC 的 405 与这里的 %d 差 %d：这 %d 个模板不在上表任何一条前缀里，"
+          % (len(zh_set), abs(405 - len(zh_set)), abs(405 - len(zh_set))))
+        A("  即 QC 口径多了一条源（或某条前缀写得更宽）。对 diff 即可定位，不用再猜口径。")
+    A("")
+    A("【英文颜色并集 · 同一套定义】换一份源列表，算法不变")
+    A("-" * 96)
+    for idx, (n, t, marg, cum) in enumerate(en_running, 1):
+        A("  " + pad(str(idx), 4) + pad(n, 30) + pad("%d" % t, 10, "right")
+          + pad("+%d" % marg, 10, "right") + pad("%d" % cum, 10, "right"))
+    A("  英文并集 = %d；与中文交集 %d（交集为 0 才说明两套命名没有互相覆盖）。"
+      % (len(en_set), len(zh_set & en_set)))
+    A("")
+    A("  口径说明：")
+    A("    · 每个源数的是「该路径段前缀在该模板的某个文字对象里出现过」的模板数，")
     A("      容器节点本身也算（面/颜色 没有子节点时也是一条参数路径），")
-    A("      所以是 226 / 165 / 106，而不是只数红绿蓝叶子得到的 163 / 92。")
+    A("      所以 面/颜色 %d、表面/颜色 %d，而不是只数红绿蓝叶子得到的更小的数。"
+      % (len(zh_src_tpl["面/颜色"]), len(zh_src_tpl["表面/颜色"])))
     A("    · 「有值」= 该路径自身带 value，或其下红绿蓝叶子带 value。")
-    A("    · 226 个 对象/基础/物质/颜色 的「有值」是 0：这批节点全是")
+    A("    · %d 个 对象/基础/物质/颜色 的「有值」是 0：这批节点全是"
+      % len(color_src_tpl["对象/基础/物质/颜色"]))
     A("      <parameter name=\"颜色\"><foldFlags>15</foldFlags></parameter> 空壳，")
-    A("      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance、基本/物质 一样是 0。")
+    A("      下面没有 红/绿/蓝。同族 对象/基本、Object/Basic/Substance 一样是 0。")
     A("      结论：物质/颜色 这一族不能当取色源，能取到 RGB 的只有 面 / 表面 / Face / 渐变，")
-    A("      外加 29 个 图层|层/物质/颜色（图层级物质色，见第 9 行）。")
-    A("    · 上一版「物质/颜色 仅 29」的 29 其实是 图层/物质/颜色（29 个模板，真带 RGB），")
-    A("      不是 对象/基础/物质/颜色（226 个模板，0 个带 RGB）—— 两族被我混成了一个正则。")
-    A("    · 上一版 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；")
-    A("      631 = 629 + 2 个只靠 图层/物质/颜色 才有值的模板。")
-    A("      629 这个数本身不假，但把它标成「表面/面 颜色 629」是错标：")
-    A("      它是三个族的并集，其中「表面/颜色」只占 92/106。")
+    A("      外加 %d 个 图层|层/物质/颜色（图层级物质色，见第 9 行）。"
+      % len(color_src_tpl["图层|层/物质|Substance/颜色|Color"]))
+    A("    · 基本/物质/颜色 本版 %d 个模板；A1 里这条源是 138 个。"
+      % len(zh_src_tpl["基本/物质/颜色"]))
+    A("      补了 behavior 之后看得很清楚 —— 它们全部长在行为实例里")
+    A("      （Blur Out / Fade Characters Center In / Blur In … 各行为自己的 基本/物质/颜色），")
+    A("      不是文字对象的填充色，按理不该进取色源。并集仍是 %d，因为这些模板另有真填充色。"
+      % len(zh_set))
+    A("    · A1 的「物质/颜色 仅 29」的 29 其实是 图层/层/物质/颜色（真带 RGB），")
+    A("      不是 对象/基础/物质/颜色（%d 个模板，0 个带 RGB）—— 两族当时被并成了一个正则。"
+      % len(color_src_tpl["对象/基础/物质/颜色"]))
+    A("    · A1 的 629 = 面 163 + 表面 92 + Face 374（三者互不重叠，都是带值的纯色填充）；")
+    A("      该数本身不假，但把它标成「表面/面 颜色 629」是错标：")
+    A("      它是三个族的并集，其中「表面/颜色」只占 92/%d。" % len(zh_src_tpl["表面/颜色"]))
     A("    · 描边色 轮廓|Outline / 颜色|Color 归「描边」，不计入主色。")
     A("    · 投影 / 光晕 的渐变（投影/渐变、光晕/渐变）不是填充色，已排除在主色之外。")
     A("")
@@ -915,27 +1175,43 @@ def main():
 
     A("【阴影「可控」判定规则原文 + 命中清单】")
     A("-" * 96)
-    A("  规则（脚本里逐字对应 SHADOW_CTL）：")
+    A("  规则（脚本里逐字对应 SHADOW_CTL；路径已把行为实例写成 behavior:名字）：")
     A("    文字对象内存在参数路径")
     A("      scenenode/(投影|拖放阴影|Drop Shadow)/(距离|Distance)")
     A("      scenenode/(投影|拖放阴影|Drop Shadow)/(不透明度|Opacity)")
     A("      scenenode/(投影|拖放阴影|Drop Shadow)/(模糊|Blur|Blur/X|Blur/Y)")
     A("    且该参数带数值（value 或 <curve>@value）。三者取并集。")
     A("")
-    A("  各参数命中：距离 %d / 不透明度 %d / 模糊 %d → 并集 %d"
+    A("  为什么补 behavior：<behavior> 里也有叫 投影/拖放阴影 的参数")
+    A("    （例如 Blur Out 行为自己的投影/不透明度），它们是行为参数，")
+    A("    不是文字对象的投影样式。上一版没把行为名写进路径，多算了 %d 个模板，"
+      % len(shadow_legacy_union - shadow_union_tpl))
+    A("    所以旧口径 %d 偏高：并集应为 %d。"
+      % (len(shadow_legacy_union), report["shadow"]["union"]))
+    A("")
+    A("  三项与并集：距离 %d / 不透明度 %d / 模糊 %d → 并集 %d"
       % (len(shadow_ctl_tpl["距离"]), len(shadow_ctl_tpl["不透明度"]),
          len(shadow_ctl_tpl["模糊"]), report["shadow"]["union"]))
+    A("  构成：仅距离 %d / 仅不透明度 %d / 仅模糊 %d / 距离∩模糊 %d"
+      % (len(shadow_only["距离"]), len(shadow_only["不透明度"]),
+         len(shadow_only["模糊"]), len(shadow_ctl_tpl["距离"] & shadow_ctl_tpl["模糊"])))
     A("  更严口径对照：只数中文 投影/距离 = %d；距离数值 ≠ 0 = %d"
       % (len(shadow_cn_dist_tpl), len(shadow_dist_nonzero_tpl)))
-    A("  说明：并集从 218 抬到 234 的是「模糊」这一项；只要求「有距离」就是 218。")
-    A("        你数到 51，我这几个口径都不是 51（中文 投影/距离 %d、距离≠0 %d、距离 %d）。"
-      % (len(shadow_cn_dist_tpl), len(shadow_dist_nonzero_tpl),
-         len(shadow_ctl_tpl["距离"])))
-    A("        51 若是「距离≠0 且中文拼写」或别的组合，把命中清单一给，我照你的口径对齐。")
     A("")
-    A("  并集口径命中的模板，前 20 个：")
-    for s in shadow_samples:
-        A("    " + s)
+    A("  逐路径命中（每条给模板数 + 样例，模板全量见 .json 的 shadow.paths）：")
+    for ctl_name in SHADOW_CTL:
+        rows = sorted(shadow_ctl_path_tpl[ctl_name].items(), key=lambda kv: (-len(kv[1]), kv[0]))
+        for p, tpls in rows:
+            sample = sorted(str(x).replace(str(root) + "/", "") for x in tpls)[0]
+            A("    " + pad(ctl_name, 10) + pad(p, 46) + pad("%d" % len(tpls), 6, "right")
+              + "  " + sample)
+    A("")
+    A("  并集口径命中的 %d 个模板，全量清单（相对路径｜命中项）："
+      % report["shadow"]["union"])
+    for idx, rel in enumerate(sorted(
+            str(x).replace(str(root) + "/", "") for x in shadow_union_tpl), 1):
+        tags = "/".join(k for k in SHADOW_CTL if k in shadow_rel_tags.get(rel, ()))
+        A("    %3d  %s  [%s]" % (idx, rel, tags))
     A("")
 
     A("【文字对象口径】一句话规则 + 三档数字 + 边界样本")
