@@ -1,0 +1,69 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-025 编译与比对              2026-11-11 22:31 ~ 22:45
+项目根 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+═══════════════════════════════════════════════════════════════════════════
+
+一、最终 release 构建（装包用的就是这一份）
+───────────────────────────────────────────────────────────────────────────
+$ cd FCPXStudioNative
+$ rm -rf /tmp/tr025_build
+$ swift build -c release --disable-sandbox --scratch-path /tmp/tr025_build
+
+  [4/5] Linking FCPXStudio
+  Build complete! (29.92s)
+
+  /tmp/tr025_build/release/FCPXStudio
+    3979080 B  Nov 11 22:31:25 2026
+    sha256 f2573884186303c673cf61c50816180ce69ac04e854bbc3619827007eb60823f
+
+  说明：--disable-sandbox 是本机沙盒叠加 SwiftPM manifest 沙盒所需
+  （否则 sandbox-exec: sandbox_apply: Operation not permitted），与代码无关。
+  本份构建包含 DraggableNumberField 的 8s nextEvent 超时兜底；
+  之前 22:15 那一份（同体积、sha c52eb8bb…）是加超时之前编译的旧产物，已弃用，
+  不进任何交付、不用于装包。
+
+二、tr019r harness 原样重跑
+───────────────────────────────────────────────────────────────────────────
+$ cd 项目根
+$ FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+$ swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness_tr025
+$ /tmp/tr019r_harness_tr025 > /tmp/tr025_harness.txt 2>&1
+
+  compile_exit=0   run_exit=0   行数=69   ❌ 计数=0
+  唯一告警：AudioManager.swift:165 AVURLAsset.duration 弃用（历史遗留，未动）
+  末三行原文：
+    ✅ 解析器含递归展开 collectLayers
+    PASS = 61   FAIL = 0
+    TR-019-R VERDICT: PASS
+
+  diff -q 对照（均无输出 = 逐字节相同）：
+    reports/verify_tr024_1/tr019r_harness_重跑.txt   → VS_TR024_1 逐字节相同
+    reports/verify_tr024/tr019r_harness_重跑.txt     → VS_TR024_BASELINE 逐字节相同
+    reports/verify_tr024_2/tr019r_harness_重跑.txt   → VS_TR024_2 逐字节相同
+  全文见 tr019r_harness_重跑.txt。
+
+三、取证工具编译与运行
+───────────────────────────────────────────────────────────────────────────
+  tools/tr025/tr025_evidence.swift  +  tools/tr025/compare_means.py
+  编译：swiftc -O -j 8 ${=FILES} tools/tr025/tr025_evidence.swift -o /tmp/tr025_evidence_bin
+  compile_exit=0；运行 run_exit=0，末行「[TR-025] 全部取证完成」。
+  取证工具 stdout 全文见 取证工具stdout.txt；结构化日志见 取证运行日志.txt。
+
+  compare_means.py 运行 exit=0，末行
+    「全部断言 PASS（差 ≤ 0.1 / alpha 差 0 / 红·青绿·纯青 三档色相正确）」
+  输出 means.txt / means.json。
+
+四、代码改动面（本单只改了这些）
+───────────────────────────────────────────────────────────────────────────
+  M  FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift
+  ?? tools/tr025/tr025_evidence.swift
+  ?? tools/tr025/compare_means.py
+
+  未改（退回条件 5 自查）：
+    PngRecolor.swift           0 行（反相仍单条 CIFilter.colorInvert，不吃目标色）
+    InfiniteCanvasView.swift   0 行
+    MotionBuilderSocket.swift  0 行
+    LayerModel.swift           0 行
+    MainWindowController.swift 0 行（RIGHT_W = 360 未动）
+    rotationField / scaleField 仍是原生 NSTextField（取证 B6 断言 true/true）
+    没有新增 RecolorMode，没有动 auto 解析、默认模式、另外三个模式的算法。

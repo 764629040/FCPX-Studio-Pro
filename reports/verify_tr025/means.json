@@ -1,0 +1,134 @@
+[
+  {
+    "mode": "直接替换·#F92125",
+    "key": "01_before",
+    "shot": "/tmp/tr025_shots/01_before.png",
+    "media": "/tmp/tr025_export/01_before/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      248.96,
+      33.0,
+      37.0
+    ],
+    "screen_n": 176433,
+    "screen_modal": [
+      249,
+      33,
+      37
+    ],
+    "export_mean": [
+      249.0,
+      33.0,
+      37.0
+    ],
+    "export_n": 128779,
+    "export_modal": [
+      249,
+      33,
+      37
+    ],
+    "delta": [
+      -0.04,
+      0.0,
+      0.0
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000,
+    "expected_color": "red",
+    "screen_color_ok": true,
+    "export_color_ok": true
+  },
+  {
+    "mode": "对比色·#06DEDA",
+    "key": "02_complement",
+    "shot": "/tmp/tr025_shots/02_complement.png",
+    "media": "/tmp/tr025_export/02_complement/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      6.0,
+      221.96,
+      217.97
+    ],
+    "screen_n": 176585,
+    "screen_modal": [
+      6,
+      222,
+      218
+    ],
+    "export_mean": [
+      6.0,
+      222.0,
+      218.0
+    ],
+    "export_n": 128779,
+    "export_modal": [
+      6,
+      222,
+      218
+    ],
+    "delta": [
+      0.0,
+      -0.04,
+      -0.03
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000,
+    "expected_color": "teal",
+    "screen_color_ok": true,
+    "export_color_ok": true
+  },
+  {
+    "mode": "红墨·反相",
+    "key": "03_red_invert",
+    "shot": "/tmp/tr025_shots/03_red_invert.png",
+    "media": "/tmp/tr025_export/03_red_invert/Media/0_red_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      0.0,
+      254.96,
+      254.96
+    ],
+    "screen_n": 176429,
+    "screen_modal": [
+      0,
+      255,
+      255
+    ],
+    "export_mean": [
+      0.0,
+      255.0,
+      255.0
+    ],
+    "export_n": 128779,
+    "export_modal": [
+      0,
+      255,
+      255
+    ],
+    "delta": [
+      0.0,
+      -0.04,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000,
+    "expected_color": "cyan",
+    "screen_color_ok": true,
+    "export_color_ok": true
+  }
+]

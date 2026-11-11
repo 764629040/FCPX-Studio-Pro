@@ -1,0 +1,224 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-025：⇄ 对比色按钮 + X/Y 拖动 + 反相文案 + 彩墨反相补漏 —— 验收记录
+2026-11-11 22:4x  |  项目根 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+分支 main  |  前置 HEAD 4c81688（ahead 58）  |  未 push
+═══════════════════════════════════════════════════════════════════════════
+
+【一句话结论】
+A 加了「⇄ 对比色」按钮（58pt，颜色行不换行，右栏 360 不变），点击按整数
+255-RGB 取补色并走 HEX 原有入口；B 把 X/Y 数值框改成可左右拖动（3pt 死区、
+1pt=1px、Shift×10、Option×0.1、逐帧实时跟手、不进编辑态、松手后仍可键入）；
+C 两处反相提示统一成新文案；D 用透明底纯红墨 1200×600 源图证明红→青补色。
+反相算法、其它三个模式、新增模式、旋转/缩放一律没动。装包并入本单，
+cp 后先落盘未签名哈希再重签，codesign --verify --strict --deep exit 0。
+三张功能断言截图缩放全 100%，取证工具对缩放不一致硬断言 exit 6。
+
+【前置核对】
+  HEAD 4c81688（TR-024-2 证据提交），ahead 58，工作区仅
+    M InspectorView.swift / ?? tools/tr025/ —— 无上一轮遗留脏改动。
+  装包前包内二进制 3962144 B / 21:01:31 / c3918c1556384b0f，
+  codesign --verify --strict --deep exit 0，无 App 进程。
+  口径锁定：反相保持「不吃目标色」，本单不改反相算法、不新增模式。
+
+───────────────────────────────────────────────────────────────────────────
+一、A.「⇄ 对比色」按钮
+───────────────────────────────────────────────────────────────────────────
+  A1 位置/宽度（取证 assertA1 实测）
+    按钮宽 58.0pt（≤60）；颜色行 frame=(0.0, 40.0, 332.0, 20.0)，
+    行高 20.0 < 40（不换行），4 个 arranged subview x 递增、midY 一致：
+      [0] NSTextField  (-2.0, 3.0, 40.0, 14.0)   标签
+      [1] NSColorWell  (42.0, 0.0, 40.0, 20.0)   色块
+      [2] NSTextField  (88.0, 0.0, 84.0, 20.0)   HEX
+      [3] NSButton     (178.0, 0.0, 58.0, 20.0)  ⇄ 对比色
+    右栏总宽 RIGHT_W = 360.0（MainWindowController.swift 未改）。
+    → A1 PASS：按钮在 HEX 右侧、≤60pt、同一行不换行、右栏总宽不变。
+
+  A2 补色算法（取证 assertA2，真实 performClick 触发 target/action 全链路）
+    点击前 HEX #F92125 = (249, 33, 37)
+    点击后 HEX #06DEDA = (  6, 222, 218) = (255-249, 255-33, 255-37)
+    逐通道 255-RGB 硬断言；不是 CIHueAdjust / 不是色相旋转凑出来的。
+    三处同步：recolorHexField.stringValue = #06DEDA、
+              recolorColorWell.color = #06DEDA、
+              layer.colorOverride = #06DEDA。
+    实现只做「写 recolorHexField.stringValue → 调 onRecolorHexFieldCommitted()」，
+    复用原有 model 写入 + onLayerModified 重绘入口，没有新增渲染路径。
+    → A2 PASS。
+
+  A3 禁用态（取证 assertA3）
+    反相下按钮 isEnabled=false；未设色 + 直接替换 isEnabled=false；
+    设色 + 直接替换 isEnabled=true（切回其它模式立刻恢复）。
+    同时色块/HEX 在反相下仍灰掉（TR-024-2 行为未动），
+    装包后默认态截图里按钮即「未设色→灰掉」的现场。
+    → A3 PASS。
+
+  A4 同会话真机截图（evidence_shots/01_before.png → 02_complement.png）
+    01 目标 #F92125，画布「换色 025」通体红；
+    02 点按钮后 #06DEDA，文字通体青绿；两张都 100%、同一窗口、只点了一次按钮。
+    像素众数：红 (249,33,37) → 青绿 (6,222,218)，屏幕与导出双向坐实。
+    → A4 PASS。
+
+───────────────────────────────────────────────────────────────────────────
+二、B. X/Y 数值框鼠标拖动
+───────────────────────────────────────────────────────────────────────────
+  实现：新增 final class DraggableNumberField: NSTextField，
+  posXField / posYField 换成该子类（声明仍是 NSTextField!），
+  rotationField / scaleField 保持原生 NSTextField。
+
+  B1 死区与点击编辑
+    mouseDown 自跑 NSWindow.nextEvent(matching: [.leftMouseDragged,.leftMouseUp],
+    until: +8s, inMode: .eventTracking, dequeue: true) 循环；拖动期间不调
+    super.mouseDown → 不产生 field editor / 无蓝色选中。
+    按下不动 → selectText(self)，currentEditor() != nil = true（原点击编辑保留）。
+    +2pt 事件未触发回调；首个回调 delta=9.0（12-3 死区，阈值 3pt）。
+    拖动三步期间「进编辑态=false」×3。→ PASS
+
+  B2 步长（纯函数 dragValue(current:delta:flags:) 逐档断言）
+    1pt=1px → 1.0；10pt=10px → 10.0；Shift×10 → 10.0；
+    Option×0.1（10pt→1.0）→ 1.0；1 位小数 → 15.3；Option 3pt → 0.3。
+    → PASS（全部期望==实际）
+
+  B3 实时跟手（不是松手才刷新）
+    onDragStep 每帧写 field.stringValue 并调 onPosFieldChanged()（复用原入口，
+    写 model + onLayerModified 重绘画布），onDragNeedsDisplay 调
+    window?.displayIfNeeded()。确定性 NSEvent 序列探针在 mouseUp **之前**
+    逐帧采样 layer.posX：
+      delta 9.0  → posX 9.0   stringValue 9.0
+      delta 28.0 → posX 37.0  stringValue 37.0
+      delta 210.0→ posX 247.0 stringValue 247.0
+    松手前 247.0 == 松手后 247.0（相等 = 没有补一次刷新）。→ PASS
+
+  B4 悬停光标：resetCursorRects() 用 addCursorRect(bounds, cursor: .resizeLeftRight)；
+    拖动越过阈值 push(.resizeLeftRight)，松手 pop。
+    字节级旁证：resizeLeftRight 字符串旧包 0 → 新包 1。
+
+  B5 拖出控件外 / 松手后键入
+    最后一步覆盖 +250pt（远超控件边界），仍逐帧跟手；
+    松手后键入 77.7 + 回车 → layer.posX = 77.7。→ PASS
+
+  B6 只改 X/Y：posX/posY 是可拖动子类 true/true；
+    rotation/scale 仍是原生 true/true；MainWindowController 里
+    onLayerModified = { canvasView.needsDisplay = true } 未改。→ PASS
+
+───────────────────────────────────────────────────────────────────────────
+三、C. 反相文案（两处，缺一即退回）
+───────────────────────────────────────────────────────────────────────────
+  新文案逐字：
+    反相：反原图墨色，不用目标色（黑↔白；原图是彩墨时出补色）
+  两处都改：
+    ① InspectorView.swift colorTip（原 1164）：colorWell/hexField/对比色按钮的 toolTip
+    ② InspectorView.swift recolorHintText(for:)（原 1180）：提示行
+  共用 static let InspectorView.invertHintText 唯一常量，杜绝只改一处；
+  源码里该字面量出现 3 次（常量定义 + 两处注释）。
+  取证 assertC1 实测两处返回值、两个 toolTip 全部等于新文案 → PASS。
+  反相下不显示「原图含多色，换色后变单色」（TR-024-2 行为未动）。
+
+───────────────────────────────────────────────────────────────────────────
+四、D1. 彩墨反相出补色（上轮遗留未验项）
+───────────────────────────────────────────────────────────────────────────
+  源图：源图_红墨_透明底_1200x600.png，纯红文字 (255,0,0) + 透明底，
+        由取证工具 makeTextPNG 生成；黑墨对照组 源图_黑墨_透明底_1200x600.png。
+  走真反相（单条 CIFilter.colorInvert，RGB 取反、alpha 原样、不读目标色）。
+  真实导出：MotionBuilderSocket.buildTemplateResult 落盘
+    evidence_export/03_red_invert_Media.png，success=true。
+
+  屏幕 vs 导出 逐通道均值（0–255，见 means.txt / means.json）
+    模式               屏幕均值                 导出均值              差值(屏-导)
+    直接替换·#F92125  (248.96, 33.0, 37.0)   (249.0, 33.0, 37.0)  (-0.04, 0, 0)
+    对比色·#06DEDA    (  6.0, 221.96, 217.97) (  6.0, 222.0, 218.0) (0, -0.04, -0.03)
+    红墨·反相         (  0.0, 254.96, 254.96) (  0.0, 255.0, 255.0) (0, -0.04, -0.04)
+    逐通道 |差| ≤ 0.04 ≤ 0.1 ✔（三组全过）
+
+  墨色众数（厚笔画像素）
+    直接替换   屏 (249,33,37)   导 (249,33,37)   期望 red   PASS/PASS
+    对比色     屏 (6,222,218)   导 (6,222,218)   期望 teal  PASS/PASS
+    红墨·反相  屏 (0,255,255)   导 (0,255,255)   期望 cyan  PASS/PASS
+    → 红墨 (255,0,0) 反相得纯青 (0,255,255) = 补色，屏幕/导出双向坐实。
+
+  形状（alpha）保持：三组 alpha 差异像素全部 0 / 720000 ✔
+  「全部断言 PASS（差 ≤ 0.1 / alpha 差 0 / 红·青绿·纯青 三档色相正确）」
+
+───────────────────────────────────────────────────────────────────────────
+五、E. 纪律与证据
+───────────────────────────────────────────────────────────────────────────
+  E1 装包并入本单（详见 装包留证.txt）
+    备份旧包内二进制 → cp 最终 release 产物 → **立刻**落盘未签名 stat+sha256
+    （3979080 B / f2573884…，cmp BYTE_IDENTICAL=YES）→ 再重签 → 严格复验。
+    sign_exit=0；codesign --verify --strict --deep exit 0（无输出）。
+    包内 22:37 之后只有 MacOS/FCPXStudio 与 _CodeSignature/CodeResources 两条被改。
+    装包后真机窗口：PID 76753 / CGWindowNumber 4974 /
+    screencapture -l 4974 -o -x → shots/tr025_装包后_默认态.png（383532 B），
+    图里能读到「位图换色」「⇄ 对比色」按钮（A3 禁用态）、缩放 100%。
+    ★ 本单只报一个体积数（stat 原文，不是 /tmp 产物）：
+      FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+      3974096 B  Nov 11 22:38:39 2026
+      sha256 前 16 位 b6efcdddb2824b50
+
+    ★ 证据来源如实披露（不重演 TR-024-1 的交付不实）：
+      evidence_shots/ 三张是 /tmp/tr025_evidence_bin 的 MainWindowController()
+      真窗口 + screencapture -l 抓的真实窗口像素，与最终 release 同 commit、
+      同批 43 个 .swift、同 swiftc -O 编译，入口换成取证 main；
+      **不是**从 App bundle 进程抓的，不冒充装机截图。
+      装包落地由 shots/ 那张装机真机截图 + 装包留证.txt 的 cmp/未签名哈希/
+      重签复验 + G 节字节级旁证（DraggableNumberField 0→31、
+      onComplementColorClicked 0→3、新反相文案 0→1，对照组 1/1）共同证明。
+      两者不互相冒充。
+
+  E2 两个 commit：tr025（代码，InspectorView.swift + tools/tr025/ 两个工具）
+    + tr025-ev（证据 reports/verify_tr025/** + 台账 M.3.3）；
+    没有第三个改代码的 commit。
+
+  E3 台账 M.3.3 追加式，0 删除；未 push、未重建 dmg、未启动 FCPX、
+    未自动退出/重启任何 App（本轮为取证新起 1 个本项目 App 实例 PID 76753，
+    按纪律未自动退出，仍在运行；用户既有 App 全程未触碰）。
+
+  E4 三张功能断言截图缩放全 100%，写进本记录与 缩放与控件状态.txt；
+    取证工具 Set(scaleSeen).count != 1 → exit(6)，运行日志「三张截图缩放一致: 100%」，
+    未触发。装包后那张装机图缩放也是 100%。
+
+───────────────────────────────────────────────────────────────────────────
+六、harness 原样重跑
+───────────────────────────────────────────────────────────────────────────
+  69 行 / ❌ 0 / PASS = 61   FAIL = 0 / TR-019-R VERDICT: PASS
+  与 reports/verify_tr024_1/、reports/verify_tr024/、reports/verify_tr024_2/
+  三份历史日志 diff -q 逐字节相同。详见 编译与比对.txt。
+
+───────────────────────────────────────────────────────────────────────────
+七、退回条件自查（逐条）
+───────────────────────────────────────────────────────────────────────────
+  1 点对比色文字保持原色 / 补色不是 255-RGB / 用色相旋转
+      → 否：#F92125→#06DEDA 逐通道 255 减法，文字实测红→青绿，屏幕导出双向。
+  2 反相提示只改一处
+      → 否：colorTip 与 recolorHintText 两处共用同一常量，取证四点全等新文案。
+  3 X/Y 拖动进编辑态 / 拖后不能键入
+      → 否：拖动三步 currentEditor()==nil；松手后 77.7+回车 → posX=77.7。
+  4 拖动不实时 / 只在 mouseUp 刷新
+      → 否：mouseUp 之前逐帧写 model，松手前后 posX 均 247.0。
+  5 改了旋转/缩放 / 改了反相算法 / 新增模式
+      → 否：rotation/scale 仍原生；PngRecolor.swift 0 行（单条 CIColorInvert 未动）；
+        RecolorMode 仍 5 项，auto 解析、默认模式、另外三个模式全未动。
+  6 报的卷是 /tmp 产物 / 截图缩放不一致或未写入
+      → 否：只报包内二进制 3974096 B / 22:38:39（stat 原文）；
+        三张断言图缩放全 100% 并写进记录，取证工具 exit 6 硬断言。
+
+───────────────────────────────────────────────────────────────────────────
+八、交付清单
+───────────────────────────────────────────────────────────────────────────
+  reports/verify_tr025/
+    验收记录.txt、装包留证.txt、编译与比对.txt、缩放与控件状态.txt、
+    取证运行日志.txt、取证工具stdout.txt、means.txt、means.json、
+    tr019r_harness_重跑.txt、
+    shots/tr025_装包后_默认态.png（1 张，装机真机），
+    evidence_shots/01_before.png、02_complement.png、03_red_invert.png（3 张），
+    evidence_export/ 三份真实 Media PNG，
+    源图_黑墨_透明底_1200x600.png、源图_红墨_透明底_1200x600.png
+  tools/tr025/tr025_evidence.swift、tools/tr025/compare_means.py
+  docs/待办清单_20261110.md M.3.3
+
+  偏差披露两处（不掩盖）：
+    ① 装包后反相态截图尝试 3 次 CGEvent 切模式未生效，装包后只交付 1 张默认态；
+       反相态由证据三张 + 字节旁证 + 源码断言承担（详见 装包留证 H 节）。
+    ② 短字符串「⇄ 对比色」在 Mach-O 里被 Swift small-string 立即数编码，
+       UTF-8/UTF-16 字节搜索两边都 0 命中；按钮现场证据走装机截图 + 源码，
+       不拿 0 命中冒充（详见 装包留证 G 节）。
+
+  未 push、未重建 dmg、未启动 FCPX、未自动退出/重启任何 App。

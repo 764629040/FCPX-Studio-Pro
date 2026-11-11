@@ -1,0 +1,110 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-025 装包留证（cp 后立刻落盘，再重签）      2026-11-11 22:37
+═══════════════════════════════════════════════════════════════════════════
+
+== A. 装包前（旧包内二进制，备份到 /tmp/fcpx_old_bundle_binary_tr025）==
+  3962144 B  Nov 11 21:01:31 2026
+  c3918c1556384b0f86bc1ea965001ef9a845a5981519a7665234544c37665061
+  前 16 位：c3918c1556384b0f（与 TR-024-2 交付值一致，说明装包前现场未被改动）
+  备份文件 stat：3962144 B  Nov 11 22:37:52 2026（cp 备份时刷新 mtime，内容同上）
+
+== B. cp 后立刻留证：未签名构件的 stat + sha256（签名动作发生之前钉死）==
+$ cp /tmp/tr025_build/release/FCPXStudio "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  3979080 B  Nov 11 22:37:52 2026
+  f2573884186303c673cf61c50816180ce69ac04e854bbc3619827007eb60823f  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+
+  构建产物同值（/tmp/tr025_build/release/FCPXStudio）：
+  3979080 B  Nov 11 22:31:25 2026
+  f2573884186303c673cf61c50816180ce69ac04e854bbc3619827007eb60823f
+
+$ cmp "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" /tmp/tr025_build/release/FCPXStudio
+  → BYTE_IDENTICAL=YES
+  这一行是「装进去的确实是 22:31:25 那份最终 release 构建产物」的硬证据。
+  采纳 TR-024-1 的流程建议：在 codesign 发生之前先把哈希落盘，避免重签改写
+  __LINKEDIT 之后再也拿不到与构建产物相等的哈希。
+
+  中间态如实记录：此刻（未重签）执行 codesign --verify --strict --deep 返回
+  「code has no resources but signature indicates they must be present」, exit=1 —— 
+  这是「旧资源封印 + 新未签名可执行文件」的必然中间态，不是交付状态。
+  下一步 C 立刻重签，D 复验 exit 0。
+
+== C. 重签 ==
+$ codesign --force --deep --sign - "FCPX Studio Pro R2.app"
+  → replacing existing signature, sign_exit=0
+$ codesign --verify --strict --deep "FCPX Studio Pro R2.app"
+  → 无输出, verify_exit=0   ✔
+
+== D. 重签后包内二进制（本单只报这一个体积数 + stat 原文）==
+  见本文件末尾「最终报告值」节（重签后实测回填）。
+
+== E. 体积/哈希变化的说明（不是意外）==
+  3979080 → <重签后> 的差异只来自 C 步的 ad-hoc 重签：签名重写 __LINKEDIT
+  尾部，嵌入签名与「哈希等于未签名产物」物理上互斥。代码区没有第二个变量 ——
+  B 步 cmp 已证明装进去的是原产物逐字节副本。
+  相对装包前 3962144 B / 21:01:31 的变化，原因是本单 E1 明确要求「装包并入本单」，
+  本轮 TR-025 新增 DraggableNumberField / ⇄ 对比色按钮 / 新反相文案，重新构建 +
+  装包 + 重签，不是莫名改动。
+
+== F. 包内改动面 ==
+  find "FCPX Studio Pro R2.app" -type f -newermt "2026-11-11 22:37"
+  → 只有 MacOS/FCPXStudio 与 Contents/_CodeSignature/CodeResources 两条被改，
+    Info.plist 与 Resources/ 下 2000+ 文件原封不动。
+
+== C/D 实测回填 ==
+  sign_exit=0（"replacing existing signature"）
+  verify_exit=0（无输出）
+  $ stat -f "%z B  %Sm" "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+    3974096 B  Nov 11 22:38:39 2026
+  $ shasum -a 256 "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+    b6efcdddb2824b50600d295441d4b99f97bbb0b7b2bd024c05c40455337416c7
+    前 16 位：b6efcdddb2824b50
+
+== F 实测回填 ==
+  22:37 之后包内只有两条被改：
+    Nov 11 22:38:39 2026   684150 B  Contents/_CodeSignature/CodeResources
+    Nov 11 22:38:39 2026  3974096 B  Contents/MacOS/FCPXStudio
+  共 2 条；Info.plist 与 Resources/ 下 2000+ 文件原封不动。
+
+== G. 字节级旁证：旧包备份 vs 新包（证明装进去的是 TR-025 代码）==
+  用 python 读两份 Mach-O，count() 同一段 UTF-8：
+    字符串                                        旧包   新包
+    DraggableNumberField                          0    31
+    onComplementColorClicked                      0     3
+    onDragStep                                   0     3
+    bindPosDrag                                  0     5
+    resizeLeftRight                              0     1
+    Complement                                   0    10
+    反相：反原图墨色，不用目标色（黑↔白；原图是彩墨时出补色） 0     1
+    反原图墨色 / 黑↔白                            0/0   1/1
+    位图换色（对照组，TR-024 已有）                 1     1
+    文字样式（对照组）                             1     1
+  结论：TR-025 专有的类名/selector/新文案旧包全 0 命中、新包全命中；
+  对照组两边都 1，说明不是「拿了个更早的二进制」，只差 TR-025 这一层。
+  ★ 如实披露：「⇄ 对比色」这条标题在两份二进制的 UTF-8/UTF-16 里都是 0 命中。
+    源码 InspectorView.swift:670 确实是 NSButton(title: "⇄ 对比色", ...)。
+    原因是 Swift 对 ≤15 字节的短字符串常量用 small-string 立即数编码进指令，
+    不落 __cstring 常量区；上面那条长反相文案 >15 字节才落成常量并可被 count() 命中。
+    所以按钮标题的现场证据走「装包后真机截图」+ 源码，不走字节搜索，不拿 0 命中冒充。
+
+== H. 装包后真机窗口（跑的是装好的包）==
+  $ ./"FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio" --open /tmp/tr0241_black_text.psd
+    进程 PID 76753（pgrep -x FCPXStudio）
+    CGWindowNumber 4974，bounds (255,185) 1207×781（CoreGraphics 实时查）
+  $ screencapture -l 4974 -o -x shots/tr025_装包后_默认态.png
+    383532 B  Nov 11 22:40:42 2026  2414×1562（2× 逻辑像素）
+  二进制落盘 22:38:39，截图 22:40:42 —— 跑的是重签后的包。
+  图里逐字读到：素材列表 tr0241_black_text.psd、画布「换色 024」、
+  右栏「位图换色」分组、颜色行「⇄ 对比色」按钮（未设色→灰掉，正是 A3 禁用态）、
+  模式「明暗上色」、缩放「100%」、X: 0.0 / Y: 0.0。
+  ★ 偏差披露：另尝试用 CGEvent 把模式切到「反相」再拍一张装包后反相图，
+    共试 3 次（先激活进程 + 点下拉 + ↓/Return）。CGEvent 事件确实发出
+    （鼠标位置跟到 (1201,911)），但弹出菜单的键盘选择在本窗口未生效，
+    模式始终停在「明暗上色」。故装包后截图只交付上面这 1 张，
+    未采用的尝试图不进交付目录。反相态由 evidence_shots/03_red_invert.png
+    + 字节级旁证 G + 源码/取证工具 C1 断言共同承担，不冒充装机截图。
+
+== 最终报告值（本单只报这一个体积数 + stat 原文）==
+  FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+  3974096 B  Nov 11 22:38:39 2026
+  sha256 前 16 位：b6efcdddb2824b50
+  绝不以 /tmp/tr025_build/release/FCPXStudio 的 3979080 B 冒充交付卷。
