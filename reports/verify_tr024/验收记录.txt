@@ -1,0 +1,187 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-024：PNG 像素文字换色（保形状、改颜色）—— 验收记录
+2026-11-11 16:1x  |  worktree /tmp/wt_tr024  |  分支 tr024  |  基线 8dd4d63
+═══════════════════════════════════════════════════════════════════════════
+
+【一句话结论】
+像素层（kind == "fallback_png"）在画布与导出两条路上都按同一条 Core Image 滤镜链换色：
+alpha（形状）逐像素不变，RGB（颜色）按模式重算。四种模式各有真机截图，
+导出 PNG 与屏幕像素逐通道差值 ≤ 0.1（0–255 刻度）。
+
+───────────────────────────────────────────────────────────────────────────
+一、交付物
+───────────────────────────────────────────────────────────────────────────
+产品代码（新增 1 个文件 + 改 5 个文件）：
+  A  FCPXStudioNative/Sources/FCPXStudio/Models/PngRecolor.swift        （新）
+  M  FCPXStudioNative/Sources/FCPXStudio/Models/LayerModel.swift        +colorOverride +recolorMode
+  M  FCPXStudioNative/Sources/FCPXStudio/Views/InfiniteCanvasView.swift  image(for:) 换色 + 三元缓存键
+  M  FCPXStudioNative/Sources/FCPXStudio/Views/InspectorView.swift       「位图换色」分组
+  M  FCPXStudioNative/Sources/FCPXStudio/Sockets/MotionBuilderSocket.swift 导出前重写 fallback_png_path
+  M  FCPXStudioNative/Sources/FCPXStudio/Sockets/PSDParserSocket.swift  读 color_override / recolor_mode（缺省空串 / 2）
+
+未改 Python：core/cli_bridge.py 本来就 `d.get("fallback_png_path")`，
+core/motion_builder.py:882 有值就 `shutil.copy2` 进 Media/ —— Swift 侧只要把临时 PNG 路径塞进 payload 就通。
+
+取证工具：
+  tools/tr024/recolor_evidence.swift    真机窗口截图 + 真实导出（screencapture -l）
+  tools/tr024/compare_means.py          屏幕/导出均值对比 + 并排对照图 + alpha 形状比对
+
+体积（只报一个数）：
+  $ stat -f "%z B  %Sm" /tmp/fcpx_wd_tr024/release/FCPXStudio
+  3965032 B  Nov 11 16:13:52 2026
+
+───────────────────────────────────────────────────────────────────────────
+二、验收 #1：四张真机截图（同一张黑字 PNG，四种模式）
+───────────────────────────────────────────────────────────────────────────
+源图：/tmp/tr024_src/black_text.png（1200×600，透明底 + 纯黑字「换色 024」，与 PSD 文字层拆分产物同构）
+抓图：screencapture -l <windowNumber> -o -x（真实窗口像素，640/1400×900@2x → 2800×1800 PNG）
+窗口：MainWindowController 真窗口，canvasView 里放一个 kind=fallback_png 的 LayerModel，
+      检查器挂同一条数据，截图里能同时看到画布结果和「位图换色」组的真值。
+
+  /tmp/wt_tr024/reports/verify_tr024/shots/tr024_1_直接替换.png
+  /tmp/wt_tr024/reports/verify_tr024/shots/tr024_2_明暗上色.png
+  /tmp/wt_tr024/reports/verify_tr024/shots/tr024_3_反相.png
+  /tmp/wt_tr024/reports/verify_tr024/shots/tr024_4_色相旋转.png
+  /tmp/wt_tr024/reports/verify_tr024/shots/tr024_0_四模式并排对照.png   （2×2 对照图，面板全部裁自上面四张）
+
+补充取证（非验收项，用来堵「direct 与 luminance 看不出差别」这个洞）：
+  .../shots/tr024_5_多色原图提示.png        红/绿/蓝三块高饱和原图 → 换色后同色，提示行「原图含多色，换色后变单色」
+  .../shots/tr024_6_梯度墨_直接替换.png      黑→灰渐变墨 + direct
+  .../shots/tr024_7_梯度墨_明暗上色.png      黑→灰渐变墨 + luminance
+
+  说明：纯黑墨在 direct / luminance 下必然收敛到同一个值 —— RGB 里没有梯度可用，
+        黑字的全部信息都在 alpha 上。所以 01_direct.png 与 06_direct_gradient.png
+        逐字节相同（md5 9e9e386fc53754bfc0ff57ffb90fe713），这不是 bug，是 direct 的定义。
+        梯度墨那一组给出可数的差别（导出 PNG 墨色标准差）：
+          direct     std (0.00,  0.00,  0.00)   ← 拍平
+          luminance  std (4.87, 24.80, 30.28)   ← 梯度保住
+        屏幕侧同向：direct 左/中/右三段 (40.6,205.0,250.1)/(40.6,205.4,250.6)/(40.6,205.0,250.2)；
+        luminance 三段 (37.9,191.6,233.8) → (32.9,166.0,202.6) → (27.2,137.8,168.1)。
+
+───────────────────────────────────────────────────────────────────────────
+三、滤镜链（四种模式，证明没有像素循环）
+───────────────────────────────────────────────────────────────────────────
+公共前处理：CIImage(cgImage:) → 目标色 NSColor 统一转 sRGB 分量。
+
+  direct    直接替换
+            CIImage(color: 目标色, alpha=1).cropped(原图 extent)
+            → CIBlendWithAlphaMask(inputImage=常量色, backgroundImage=全透明, maskImage=原图)
+            out.rgb = 目标色 ; out.a = 原图 alpha
+            为什么不用 CIColorMonochrome(intensity 1.0)：它的语义是 out = color × luma，
+            纯黑墨 luma=0 → 换完还是黑的。实测反例（同一张黑字源图、同一个目标色）：
+              CIColorMonochrome(1.0) 不透明像素均值 R=0.0 G=0.0 B=0.0   ← 完全无效
+              direct（本条链）       不透明像素均值 R=41.0 G=209.0 B=255.0 = #29D1FF
+
+  luminance 明暗上色（默认）
+            CIColorControls(saturation=0)                     ← 取亮度
+            → CIColorMatrix(out = target − (target − dark) · luma, dark = target × 0.35,
+                            aVector=(0,0,0,1), bias 的 alpha 分量 0)  ← alpha 原样穿透
+            暗墨（luma≈0）落到目标色亮部 → 黑字换色后就是目标色本身；原图越亮越暗。
+
+  invert    反相
+            CIColorInvert                                       ← 明暗映射整体掉头
+            → CIColorControls(saturation=0)
+            → CIColorMatrix(同 luminance 的公式)
+            墨芯落到目标色的暗端（#29D1FF → 14,73,89），和 direct 一眼能分开。
+
+  hueRotate 色相旋转
+            CIImage(color: 目标色) + CIBlendWithAlphaMask（同 direct）
+            → CIHueAdjust(angle = +30°)
+            无彩源图上 CIHueAdjust 单独用是恒等变换（黑字换了等于没换），
+            所以先按目标色建立色相基准再转 30°，屏幕上才有可比的差异。
+
+  多色判断（提示行 + auto 分流，全部 Core Image 面积滤镜，1×1 结果）：
+            CIAreaAverage × 10（3×3 宫格 + 全图）、CIAreaMaximum、CIAreaMinimum
+            → 每条结果渲染成 1×1 RGBA8（4 字节）后读饱和度/色相，
+              色相跨度 ≥ 25° 且饱和 ≥ 0.15 判「含多色」；全图最大饱和 < 0.10 判「无彩」。
+            auto：无彩 → direct；有彩 → luminance。
+
+  零像素循环自证：
+            PngRecolor.swift 里只有三处循环：3×3 宫格（9 次）、极值滤镜名（2 次）、
+            宫格染色相两两比较（样本 ≤ 12 个）。没有 stride / withUnsafeBytes / 逐像素访问，
+            唯一的像素级读取是上面那几个 1×1 的 4 字节结果。
+
+───────────────────────────────────────────────────────────────────────────
+四、验收 #2：导出图与屏幕同色
+───────────────────────────────────────────────────────────────────────────
+导出路径：真调 MotionBuilderSocket.shared.buildTemplateResult(psdPath:outputDir:templateName:layers:)
+          → payload 里 "fallback_png_path" = <临时换色 PNG>、"kind" = l.kind
+          → core/cli_bridge.py 读进 PSLayerInfo.fallback_png_path
+          → core/motion_builder.py:882 拷进 Media/
+          产物：/tmp/tr024_export/<模式>/Media/0_black_text_tr024.png（1200×600 RGBA）
+          四种模式各导出一次，全部 success=true。
+
+屏幕侧取值方法（脚本 tools/tr024/compare_means.py，可复现）：
+  1. 截图里自动定位画板：截图经显示器色彩配置转换，画芯 #121418 落盘是 (23,26,32)，
+     所以不写死颜色，而是取出现频次最高的 8 种颜色里「在自身 bbox 内填充率最高」的那块矩形；
+  2. 画板内取得墨色：出现次数最多的非背景色 = 墨色本体（这样 12% 白虚线安全框、
+     蓝色十字准星这些「比暗墨还远离背景」的图元不会被误当墨色）；
+  3. 取墨色 ±6 的邻域求均值 —— 邻域即无抗锯齿的厚笔画像素，边缘不被拖进均值。
+导出侧同口径：alpha≥250 的像素 → 墨色众数 → 众数 ±6 邻域求均值。
+
+  模式        屏幕均值 R,G,B            导出均值 R,G,B            逐通道差值(屏−导)
+  直接替换    (  41.0,  209.0,  255.0)  (  41.0,  209.0,  255.0)  (-0.0, -0.0, -0.0)
+  明暗上色    (  41.0,  209.0,  255.0)  (  41.0,  209.0,  255.0)  (-0.0, -0.0, -0.0)
+  反相        (  14.0,   73.0,   88.9)  (  14.0,   73.0,   89.0)  (+0.0, -0.1, -0.1)
+  色相旋转    (  98.0,  186.0,  255.0)  (  98.0,  186.0,  255.0)  (-0.0, -0.0, -0.0)
+
+  墨色众数（排除抗锯齿）：屏幕与导出四种模式全部逐值相同
+    直接替换 (41,209,255) / 明暗上色 (41,209,255) / 反相 (14,73,89) / 色相旋转 (98,186,255)
+
+  形状（alpha）保持：源 PNG alpha 与导出 PNG alpha 差异像素
+    直接替换 0 / 720000   明暗上色 0 / 720000   反相 0 / 720000   色相旋转 0 / 720000
+
+  原始数值：reports/verify_tr024/means.txt、means.json
+
+───────────────────────────────────────────────────────────────────────────
+五、验收 #3：harness 原样照抄重跑
+───────────────────────────────────────────────────────────────────────────
+命令（一字未改）：
+  FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+  swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness_tr024
+  /tmp/tr019r_harness_tr024
+
+输出末尾（原文，全文见 reports/verify_tr024/tr019r_harness_重跑.txt，69 行）：
+  PASS = 61   FAIL = 0
+  TR-019-R VERDICT: PASS
+
+基线（8dd4d63，改动前同命令）：PASS = 61   FAIL = 0 / TR-019-R VERDICT: PASS —— 逐条一致，无回归。
+
+───────────────────────────────────────────────────────────────────────────
+六、界面落地（要求 #4 逐条对账）
+───────────────────────────────────────────────────────────────────────────
+· 分组「位图换色」照「文字样式」的写法复制：同一套 mainStack 垂直分组 + TypeScale.bodyBold 标题 +
+  36pt 标签 + NSColorWell/HEX 输入，没有另起设计系统。
+· 仅当 layer.isBitmapLayer 可见；文字层整组隐藏。同时把「文字样式」在像素层上隐藏：
+  像素层的字号/对齐/颜色本来就是空的（全「未取到」），两组互斥、互不占位，
+  否则同一栏里两组一起挤，行会叠在一起（这是本轮踩到并修掉的布局问题）。
+· 色块 NSColorWell（自带系统取色器/吸管）+ HEX 输入；NSColorPanel.shared.showsAlpha = false，
+  只改 RGB 不改 alpha。取色 → 转 sRGB → 存 HEX → 立刻 onLayerModified → canvasView.needsDisplay。
+· 模式下拉：自动 / 直接替换 / 明暗上色 / 反相 / 色相旋转（tag = RecolorMode.rawValue）。
+· 多色提示：CIAreaAverage 面积采样判定，命中即在控件下方显示橙色「原图含多色，换色后变单色」
+  （真机证据 tr024_5_多色原图提示.png）；auto 模式还会显示「自动：原图无彩 → 直接替换 / 有彩 → 明暗上色」。
+· 空态：无贴图 → HEX 显示「无贴图」+ 控件禁用 + toolTip「该图层没有可用的贴图文件，换色不可用」；
+  未设色 → HEX 显示「未设置」，色块用灰底占位（不拿默认色冒充已换色）。
+· 只读 / 锁定：复用同一处判据 editable = !motiReadOnlyMode && !layer.isLocked，只读态标题变「位图换色（只读）」。
+
+───────────────────────────────────────────────────────────────────────────
+七、模型与导出接线
+───────────────────────────────────────────────────────────────────────────
+· LayerModel 新增 colorOverride: String（""=不换色）、recolorMode: Int（默认 2 = 明暗上色）。
+  init / copyModel() / sync(from:) 三处都串上；PSDParserSocket 从桥接 dict 读
+  color_override / recolor_mode（缺省空串 / 2）；MotiDocumentParser 的只读预览层全为文字层，走默认值。
+· 画布缓存键 = 绝对路径 + "|" + rawValue + "#RRGGBB"；无 colorOverride 时键退化成纯路径，旧行为零变化。
+  recolorMode 默认取 2（enum 里 luminance 的序号），与下拉第 3 项一致。
+· 导出在 MotionBuilderSocket.buildTemplateResult 内部一处改动，saveCurrentTemplate 与
+  batchExportAllTemplates 两个入口自动同时生效。换色临时 PNG 写在
+  $TMPDIR/FCPXStudioRecolor/<序号>_<原名>_tr024.png，子进程结束后删除（Python 已拷进 Media/）。
+
+───────────────────────────────────────────────────────────────────────────
+八、边界（明确没做的）
+───────────────────────────────────────────────────────────────────────────
+· 没做渐变 100% 还原、没写回 .moti、没做导出多套色图、没做 OCR 重排文字；
+· 没改 core/*.py（导出链路本来就通，按要求不动 Python）；
+· 未 push、未重建 dmg、未启动 FCPX、未自动退出/重启任何 App；
+· 编译只用 `swift build -c release --build-path /tmp/fcpx_wd_tr024 --disable-sandbox`；
+· 没碰主工作区 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro（只读读取，未写入）。
+═══════════════════════════════════════════════════════════════════════════

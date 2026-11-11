@@ -1,0 +1,25 @@
+[TR-024] 黑字源图: /tmp/tr024_src/black_text.png
+[TR-024] 窗口 windowNumber=4638 zoom=0.59
+[TR-024] 截图 01_direct mode=直接替换 -> OK /tmp/tr024_shots/01_direct.png
+[TR-024] 截图 02_luminance mode=明暗上色 -> OK /tmp/tr024_shots/02_luminance.png
+[TR-024] 截图 03_invert mode=反相 -> OK /tmp/tr024_shots/03_invert.png
+[TR-024] 截图 04_hueRotate mode=色相旋转 -> OK /tmp/tr024_shots/04_hueRotate.png
+[TR-024] 截图 05_multicolor_hint -> OK /tmp/tr024_shots/05_multicolor_hint.png
+[TR-024] 提示行文案: 原图含多色，换色后变单色
+[TR-024] 导出 01_direct success=true err=-
+[TR-024] 导出 01_direct Media = ["0_black_text_tr024.png"]
+[TR-024] 导出 02_luminance success=true err=-
+[TR-024] 导出 02_luminance Media = ["0_black_text_tr024.png"]
+[TR-024] 导出 03_invert success=true err=-
+[TR-024] 导出 03_invert Media = ["0_black_text_tr024.png"]
+[TR-024] 导出 04_hueRotate success=true err=-
+[TR-024] 导出 04_hueRotate Media = ["0_black_text_tr024.png"]
+[TR-024] 截图 06_direct_gradient mode=直接替换 -> OK /tmp/tr024_shots/06_direct_gradient.png
+[TR-024] 导出 06_direct_gradient success=true err=-
+[TR-024] 截图 07_luminance_gradient mode=明暗上色 -> OK /tmp/tr024_shots/07_luminance_gradient.png
+[TR-024] 导出 07_luminance_gradient success=true err=-
+[TR-024] 模式 直接替换 → RecolorMode.rawValue=1
+[TR-024] 模式 明暗上色 → RecolorMode.rawValue=2
+[TR-024] 模式 反相 → RecolorMode.rawValue=3
+[TR-024] 模式 色相旋转 → RecolorMode.rawValue=4
+[TR-024] DONE

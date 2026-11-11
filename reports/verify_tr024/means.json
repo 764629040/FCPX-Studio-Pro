@@ -1,0 +1,170 @@
+[
+  {
+    "mode": "直接替换",
+    "key": "01_direct",
+    "shot": "/tmp/tr024_shots/01_direct.png",
+    "media": "/tmp/tr024_export/01_direct/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      41.0,
+      208.97,
+      254.96
+    ],
+    "screen_n": 175535,
+    "screen_modal": [
+      41,
+      209,
+      255
+    ],
+    "screen_maxdelta": 223,
+    "export_mean": [
+      41.0,
+      209.0,
+      255.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      41,
+      209,
+      255
+    ],
+    "delta": [
+      -0.0,
+      -0.03,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  },
+  {
+    "mode": "明暗上色",
+    "key": "02_luminance",
+    "shot": "/tmp/tr024_shots/02_luminance.png",
+    "media": "/tmp/tr024_export/02_luminance/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      41.0,
+      208.97,
+      254.96
+    ],
+    "screen_n": 175535,
+    "screen_modal": [
+      41,
+      209,
+      255
+    ],
+    "screen_maxdelta": 223,
+    "export_mean": [
+      41.0,
+      209.0,
+      255.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      41,
+      209,
+      255
+    ],
+    "delta": [
+      -0.0,
+      -0.03,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  },
+  {
+    "mode": "反相",
+    "key": "03_invert",
+    "shot": "/tmp/tr024_shots/03_invert.png",
+    "media": "/tmp/tr024_export/03_invert/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      14.01,
+      72.95,
+      88.94
+    ],
+    "screen_n": 178003,
+    "screen_modal": [
+      14,
+      73,
+      89
+    ],
+    "screen_maxdelta": 78,
+    "export_mean": [
+      14.0,
+      73.0,
+      89.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      14,
+      73,
+      89
+    ],
+    "delta": [
+      0.01,
+      -0.05,
+      -0.06
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  },
+  {
+    "mode": "色相旋转",
+    "key": "04_hueRotate",
+    "shot": "/tmp/tr024_shots/04_hueRotate.png",
+    "media": "/tmp/tr024_export/04_hueRotate/Media/0_black_text_tr024.png",
+    "artboard_box": [
+      561,
+      596,
+      1979,
+      1304
+    ],
+    "screen_mean": [
+      97.99,
+      185.97,
+      254.96
+    ],
+    "screen_n": 175535,
+    "screen_modal": [
+      98,
+      186,
+      255
+    ],
+    "screen_maxdelta": 223,
+    "export_mean": [
+      98.0,
+      186.0,
+      255.0
+    ],
+    "export_n": 127952,
+    "export_modal": [
+      98,
+      186,
+      255
+    ],
+    "delta": [
+      -0.01,
+      -0.03,
+      -0.04
+    ],
+    "alpha_diff_pixels": 0,
+    "src_pixels": 720000
+  }
+]
