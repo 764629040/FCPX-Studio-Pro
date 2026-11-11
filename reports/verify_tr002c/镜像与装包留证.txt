@@ -1,0 +1,104 @@
+TR-002-C｜镜像与装包留证（三态合一，任务书 §6.8）
+==========================================================
+最终交付口径只认最后一次构建；中间迭代如实披露，不拿中间产物冒充交付。
+
+----------------------------------------------------------
+一、装包（release 构建 → cp → 落盘未签名 sha → 重签 → 严格验签）
+----------------------------------------------------------
+构建命令（cwd = FCPXStudioNative，历史同款）：
+  rm -rf /tmp/fcpx_wd
+  swift build -c release --build-path /tmp/fcpx_wd --disable-sandbox
+  BUILD_EXIT=0 / Build complete! (49.72s)，仅既有 AudioManager.swift:165 弃用警告。
+  产物 /tmp/fcpx_wd/release/FCPXStudio = 4186856 B
+
+cp 到 FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio 后**立刻**落盘未签名 sha：
+  UNSIGNED_BUNDLE_SHA = 0062e923e0fdb0e62b3e0bcf8e49c35a2bb6363b35356ce622cce59e94e48f37
+  UNSIGNED_SIZE       = 4186856 B
+
+重签：
+  codesign --force --deep --sign - "FCPX Studio Pro R2.app"
+  → replacing existing signature / SIGN_EXIT=0
+  codesign --verify --deep --strict --verbose=2
+  → valid on disk / satisfies its Designated Requirement / VERIFY_EXIT=0（零 stderr）
+
+最终交付卷内二进制：
+  FINAL_BUNDLE_SHA = 302b8b46276983fa39b4a5f11c9ca1471fd4272d08010eb2657bd62f418a5d5f
+  FINAL_SIZE       = 4180496 B（重签改写 __LINKEDIT，属正常）
+任务书 §0 给的是 TR-027 的 3973920 B / 65096864e66ed4b0…；本单新增功能代码，
+体积与 sha 变化是预期，不拿旧值冒充，也不假装「零改动」。
+
+迭代披露：本单续跑阶段修了两个真机暴露的 UI 缺陷
+（① 编辑态「保存回 .moti」按钮被固定 820pt documentView 顶出首屏；
+ ② layout 触发的 textDidChange 把空串写回 LayerModel.text），
+期间共 3 次 release 构建。中间两次的签名态 sha 分别为
+99de4c3e55b822af…、dbd887beb9f00094…，**均未作为交付**；
+所有真机截图 / 只读态回归 / harness 均在最终 302b8b46… 这一版上重跑。
+
+----------------------------------------------------------
+二、v1.6 dmg（最后一步，任务书 §6.8）
+----------------------------------------------------------
+脚本：现有 tools/s4_rebuild_dmg.sh（本单唯一增量是 §9.1 的文案修正，未新写打包脚本）
+前置：--dry-run --version v1.6 → DRYRUN_EXIT=0，闸门全过
+      （pgrep R2.app 未运行 / 输出目录内盘 / /tmp 11725172 KiB ≥ 需 294088 KiB /
+       v1.6 目标不存在，幂等保护通过）
+正式：bash tools/s4_rebuild_dmg.sh --version v1.6 → BUILD_EXIT=0
+      --replace 未用；--force 未用；未覆盖任何旧镜像。
+
+成品：~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.6.dmg
+  SIZE = 48124361 B（≈45.89 MiB）
+  SHA256 = 62ec40536cff1319534710545d6d43342ce607536ebcb5aa9c556eb34b367e68
+
+独立挂载核验（不靠脚本自报）：
+  hdiutil verify → checksum ... is VALID / VERIFY_EXIT=0
+  挂载根 3 项：Applications（软链）、FCPX Studio Pro R2.app、安装说明.txt
+  包内 vs dmg 内二进制完整 64 位全等：
+    BUNDLE_SHA = 302b8b46276983fa39b4a5f11c9ca1471fd4272d08010eb2657bd62f418a5d5f
+    DMG_SHA    = 302b8b46276983fa39b4a5f11c9ca1471fd4272d08010eb2657bd62f418a5d5f
+    BUNDLE_DMG_BINARY = BYTE_IDENTICAL
+  App 文件数：源包 2006 / dmg 内 2006 → 一致
+  dmg 内 App：codesign --verify --deep --strict → valid on disk /
+              satisfies its Designated Requirement / SIGN_VERIFY_EXIT=0
+  hdiutil detach → "disk8" ejected. / DETACH_EXIT=0
+
+三份旧镜像完整 sha，封包前后逐值相同（本单未动）：
+  v1.3  0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb  47855074 B
+  v1.4  18d122ebfc7ee140f9cc7a3ad974fb61494130694af5b77b8ab31735db36b6bd  46290500 B
+  v1.5  c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499  46290844 B
+
+----------------------------------------------------------
+三、§9 两件 TR-027 观察项落地
+----------------------------------------------------------
+9.1 安装说明措辞修正（tools/s4_rebuild_dmg.sh）：
+  改前两行：
+    "TR-026：只读 .moti 预览态禁用 X/Y 数值框与旋转/缩放滑块，"
+    "发布项与横竖排按钮按原样保留。"
+  改后一行：
+    "TR-026：只读态隐藏属性区；几何控件同时置为不可用。"
+  已在 v1.6 挂载出的 安装说明.txt 中逐字核到该行（见本文件末的原文抄录）。
+  安装说明里的 sha16 302b8b46276983fa 与最终包内二进制一致。
+
+  挂载出的 安装说明.txt 全文（原文）：
+    FCPX Studio Pro v1.6 安装说明
+    安装：把「FCPX Studio Pro R2.app」拖到本窗口的 Applications 快捷方式即可。
+    内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 / TR-026 —— 含真反相（不吃目标色）、
+          「⇄ 对比色」按钮、X/Y 数值框左右拖动；
+          TR-026：只读态隐藏属性区；几何控件同时置为不可用。
+    校验（挂载后执行）：
+      shasum -a 256 "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+      sha256 前 16 位应为 302b8b46276983fa
+    本镜像由 tools/s4_rebuild_dmg.sh --version v1.6 生成；
+    stage 与临时 dmg 均只在 /tmp，成品并列发布，未覆盖旧版本镜像。
+
+9.2 v1.5 完整 sha 补登记（reports/verify_tr027/镜像与装包留证.txt）：
+  append-only，字节 5607 → 5738（+131），0 删除，原文一字未动。
+  追加行：
+    TR-002-C 补登记（append-only）：v1.5.dmg 完整 sha256 = c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499
+
+----------------------------------------------------------
+四、纪律
+----------------------------------------------------------
+FCPX 全程 0 进程（未启动 / 未重启 / 未退出）。本单只为取证起停自己编译的
+FCPXStudio 实例，后台任务的 exit 143 均为我方 kill -TERM 的预期结果。
+所有 stage / 临时 dmg / 挂载点 / 取证二进制都在 /tmp；外置卷只新增
+reports/verify_tr002c/ 文本与截图。
+未 push、未覆盖 v1.3/v1.4/v1.5、未用 --replace。

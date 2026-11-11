@@ -1,0 +1,123 @@
+TR-002-C｜写回留证（真机，最终交付包）
+==========================================================
+执行侧：WorkBuddy        日期：2026-11-12
+原始模板：build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti（全程只读，未改一字）
+写回目标：/tmp/tr002c/真机写回.moti（原始模板的副本，写前逐字节相同）
+入口：--edit-moti <path>（任务书 §4 二选一，选命令行入口，报告中可复现）
+
+----------------------------------------------------------
+一、三组 sha256（任务书 §6.1）
+----------------------------------------------------------
+写前 sha256 = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+写后 sha256 = e9bb70e111fd5876e35f21a435bf5588f7ed8602ff791d34fecc521eef6fa189
+备份 sha256 = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+备份 == 写前（cmp -s） = TRUE
+BACKUP_EQ_BEFORE=TRUE
+
+备份路径 = /Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/
+           真机写回.20261112022554.moti.bak
+备份不在模板目录 = TRUE（在 ~/Library/Application Support 下）
+备份落盘扩展名 = .bak（文件名含 moti 但扩展名不是 .moti，符合任务书 §5 命名 …moti.bak）
+备份先写完并 fsync，且 sha 等于写前值后才动原文件。
+
+----------------------------------------------------------
+二、真机 stdout（完整原文，另存 真机stdout_写回.txt）
+----------------------------------------------------------
+[TR-002C] edit_moti_open path=/tmp/tr002c/真机写回.moti layers=8 canvas=1080x1920 writable=true reason=可写
+[TR-002C] confirm_auto backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/真机写回.20261112022554.moti.bak changes=5
+[TR-002C] SAVE_OK before_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd after_sha=e9bb70e111fd5876e35f21a435bf5588f7ed8602ff791d34fecc521eef6fa189 backup_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/真机写回.20261112022554.moti.bak delta=28 changed_lines=[299, 995, 996, 1017, 1018, 1019, 1020] changes=5 readback=5 elapsed_ms=48.4
+[TR-002C] L0 X expect=-200.5 actual=-200.5 OK
+[TR-002C] L0 Y expect=490.0 actual=490.0 OK
+[TR-002C] L0 text expect=领\n衔\n呈\n现·改 actual=领\n衔\n呈\n现·改 OK
+[TR-002C] L0 enabled expect=false actual=false OK
+[TR-002C] L0 locked expect=true actual=true OK
+
+确认只弹一次：confirm_auto 与 SAVE_OK 之间无第二次确认；
+正常用户路径走同一个 confirmAndSaveMotiEdits() + 同一个 performMotiSave()，
+弹窗文案三件事齐全：备份路径 / 将改 5 处 / 原文件会被覆盖。
+
+----------------------------------------------------------
+三、diff 与大小守恒（任务书 §6.2）
+----------------------------------------------------------
+before_bytes = 247979
+after_bytes  = 248007
+delta        = 28
+Σ(目标串长度差) = 28   （X 0 + Y 0 + 文本 +5 + ` enabled="0"` +12 + ` locked="1"` +11）
+sum_target_len_delta == actual_delta : True
+
+line_count        = 6609 / 6609（行数不变，文本节点 LF 数不变）
+实际逐行 diff     = [299, 995, 996, 1020]   count=4
+保守目标行        = [299, 995, 996, 1017, 1018, 1019, 1020]（SAVE_OK changed_lines）
+diff ⊆ 目标行     = TRUE
+非目标行差异      = 0
+
+口径说明（不掩盖）：changed_lines 由 targetLineNumbers(before:ops:) 生成，
+把每个 op 的**整段字节范围**展开成行号，是保守上界；
+文本 op 覆盖 `领\n衔\n呈\n现` 四行，但只有最后一行 `现` → `现·改` 真变了，
+所以实际逐行 diff 是它的子集（4 行）。任务书要求的是「diff 只命中目标行 +
+非目标行差异 0」，已满足；不拿 diff==target 冒充。
+
+----------------------------------------------------------
+四、字节不变量（写前 / 写后，逐项零变化）
+----------------------------------------------------------
+LF          6608 / 6608
+CR             0 / 0          （无 CRLF）
+BOM        False / False     （无 BOM）
+tab        50396 / 50396     （缩进零变化）
+DOCTYPE        1 / 1          （<!DOCTYPE ozxmlscene> 保留）
+default="    928 / 928       （@default 一字未动）
+comments       0 / 0
+xml_decl       1 / 1          （<?xml version="1.0" encoding="UTF-8"?> 保留）
+xmllint --noout --nonet exit 0
+写后重解析：layers=8 / canvas=1080x1920 / isValid=true
+
+----------------------------------------------------------
+五、五值读回（任务书 §6.3，MotiDocumentParser.parse 重解析）
+----------------------------------------------------------
+字段      样本原值            写回目标值        parse 读回值          结论
+L0 文本   领\n衔\n呈\n现      领\n衔\n呈\n现·改 领\n衔\n呈\n现·改   OK
+L0 X      -213.0             -200.5           -200.5                OK
+L0 Y      484.5              490.0            490.0                 OK
+L0 enabled 缺失(默认 true)    false            false                 OK
+L0 locked  缺失(默认 false)   true             true                  OK
+readback = 5 行，全 OK。
+
+----------------------------------------------------------
+六、独立解析器交叉验证（Python xml.etree，不依赖 Swift 产品代码）
+----------------------------------------------------------
+BEFORE: layers=8 enabled=None locked=None X='-213.0' Y='484.5' text='领\n衔\n呈\n现'  default_X='0'
+AFTER : layers=8 enabled='0'  locked='1'  X='-200.5' Y='490.0' text='领\n衔\n呈\n现·改' default_X='0'
+按祖先链 属性(1)/变换(100)/位置(101) → X(id=1)/Y(id=2) 定位，
+`default="0"` 保留、`enabled`/`locked` 单点插入在 layer 开标签 `>` 前。
+
+----------------------------------------------------------
+七、失败回填与空改动拒绝（故障注入，自证_apply_test.log）
+----------------------------------------------------------
+CASE2 注入「写后读回不一致」：
+  error=写后读回不一致，已回填：L0 FAULT expect=inject actual=inject MISMATCH
+  after_rollback_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+  restored=true  ← 原文件 sha256 回到写前值
+CASE3 空改动：
+  error=没有任何改动，不允许保存 / unchanged=true
+CASE4 编辑会话增量：models=8 changeCount=0 edits=0 → 改后 changeCount=4 edits=1
+
+----------------------------------------------------------
+八、真机三张截图（shots/，任务书 §6.5）
+----------------------------------------------------------
+02_编辑态_改前_整窗.png   405635 B  sha256 af1a0f6aa60481a6…   X=-213.0 Y=484.5 文本「领/衔/呈/现」
+03_编辑态_改后_整窗.png   400559 B  sha256 16fe2a4b134ab8e9…   X=-200.5 Y=490.0 文本「领/衔/呈/现·改」
+04_编辑态_重开读回_整窗.png 400559 B sha256 16fe2a4b134ab8e9…  关掉进程后重开，值同改后
+均为 2414×1562，screencapture -x -o -l <WID>（-o 去阴影，否则尺寸变 2638×1786）。
+03 与 04 逐字节相同：重开后 UI 状态（数值、文本、禁用按钮、图标）完全一致，
+是「读回同值」的强证据，不是复制粘贴——两次是不同进程 / 不同窗口号
+（改后 WID=5253，重开 WID=5263），重开 stdout 另存 真机stdout_重开.txt。
+
+----------------------------------------------------------
+九、明确不做（任务书 §2.2，写进报告，不许偷偷加）
+----------------------------------------------------------
+字号 / 对齐 / 颜色：XML 映射未实证，未写回，留 TR-002-C-2。
+旋转 / 缩放：解析器不读，写回无回读判据 → UI 置灰 + tooltip「本版不写回 .moti」，
+            截图 02/03/04 中滑块与数值框均为禁用态，不是假功能。
+图层结构 / 顺序 / ID / factory / 时间线 / 关键帧 / 滤镜 / 发布列：未动。
+XML 整树重写：无。全程只做 5 处单点字节替换（含 1 个合并插入点）。
+TR-019-R / TR-025 / TR-026 / TR-027 的功能代码与 harness：未改。

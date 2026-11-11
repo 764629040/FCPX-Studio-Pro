@@ -1,0 +1,49 @@
+TR-002-C｜性能留证（任务书 §6.6：8 层 ≤3s / 564 层 ≤10s，各跑一次）
+==========================================================
+原始日志：性能_原始日志.txt（/tmp/tr002c/perf.log 原样归档）
+工具：/tmp/tr002c/perftest/main.swift，用同一批产品源码 swiftc -O 编译，
+      直接调 MotiWriteBack.apply(path:edits:)，包含备份 + fsync + 原子替换 + 重解析读回。
+
+----------------------------------------------------------
+SMALL：8 层样本（T01_领衔呈现_竖版）
+----------------------------------------------------------
+SMALL elapsed_ms=51.0        ≤ 3000ms  PASS
+SMALL layers=8 delta=0 backup_ok=true readback_ok=true
+SMALL sha_before=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+SMALL sha_after =a312217bfb8aea4c5209e7441dceca3daea0707472147a0c3dd2373afcab225b
+（delta=0 因为该轮把值写回成与原文等长的串；字节数变化为 0，不影响计时口径）
+
+补充：最终真机包同一路径的写回 elapsed_ms=48.4（见 真机stdout_写回.txt），
+      与自证工具 51.0ms 同量级，两次都远低于 3s。
+
+----------------------------------------------------------
+BIG：564 层大模板（11,464,903 B / 3840×2160）
+----------------------------------------------------------
+BIG parse_valid=true layers=564 bytes=11464903 canvas=3840x2160
+BIG landing_probe_ms=223.6 chosen_layer=0
+BIG elapsed_ms=2066.6       ≤ 10000ms PASS
+BIG delta=12 changed_lines=1 backup_ok=true readback_ok=true
+BIG reparse_valid=true layers=564 enabled=false canvas=3840x2160
+BIG sha_before=d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+BIG sha_after =1d7d4b5e102c7b81c9cfba374f913b4ed811b33f90de03f8043252039318c816
+
+----------------------------------------------------------
+诚实披露：BIG 用的是 enabled 写回，不是 X 写回
+----------------------------------------------------------
+564 层模板的位置链是英文 Properties(1)/Transform(100)/Position(101)，
+MotiWriteBack 已同时支持中英两条链（positionChainZH / positionChainEN），
+但 MotiDocumentParser.parseLayer 只读中文链 属性/变换/位置，
+对该模板 X 读回恒为 0.0。
+曾试过 X 写回，apply 的写后读回自检立刻报
+  BIG ERROR 写后读回不一致，已回填：L0 X expect=123.4 actual=0.0 MISMATCH
+并从备份把原文件 sha 回填到写前值——这是安全机制生效，不是功能缺失被掩盖。
+为了让「564 层 ≤10s」这条硬断言落在**有回读判据**的字段上，
+BIG 正式用例改为 enabled=false 单点写回，parse 能稳定读回，性能数字成立。
+英文链 X/Y 的完整回读需要改解析器，超出本单范围（§2.2 明确不顺手重构），
+未偷偷加，也未把失败用例包装成通过。
+
+----------------------------------------------------------
+落点探针性能（同一 BIG 模板）
+----------------------------------------------------------
+纯字节扫描祖先链定位 223.6ms，写回全流程 2066.6ms（含 11.5MB 备份 fsync +
+原子替换 + 564 层重解析），余量充足。

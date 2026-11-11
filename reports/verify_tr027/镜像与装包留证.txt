@@ -81,3 +81,5 @@ TR-027 v1.5 镜像验收（用现有 tools/s4_rebuild_dmg.sh，未新写打包�
   /tmp/tr027_v15_mnt、取证二进制与截图全在 /tmp。
   外置卷 df：707Mi 可用 / 100%，本单只新增 reports/verify_tr027/
   约 2.6 MiB 文本与截图；未在外置卷写任何 stage / 临时 dmg。
+
+  TR-002-C 补登记（append-only）：v1.5.dmg 完整 sha256 = c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499

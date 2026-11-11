@@ -1,0 +1,7 @@
+SMALL elapsed_ms=51.0 layers=8 delta=0 backup_ok=true readback_ok=true
+SMALL sha_before=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd sha_after=a312217bfb8aea4c5209e7441dceca3daea0707472147a0c3dd2373afcab225b
+BIG parse_valid=true layers=564 bytes=11464903 canvas=3840x2160
+BIG landing_probe_ms=223.6 chosen_layer=0
+BIG elapsed_ms=2066.6 delta=12 changed_lines=1 backup_ok=true readback_ok=true
+BIG reparse_valid=true layers=564 enabled=false canvas=3840x2160
+BIG sha_before=d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497 sha_after=1d7d4b5e102c7b81c9cfba374f913b4ed811b33f90de03f8043252039318c816

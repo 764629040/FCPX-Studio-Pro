@@ -1,0 +1,61 @@
+TR-002-C｜只读态回归留证（任务书 §6.7 前半 / §7 退回条件）
+==========================================================
+基线：reports/verify_tr027/shots/08_v15dmg_只读态_整窗.png
+  sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  size   = 395855 B
+  像素   = 2414 × 1562
+
+最终交付包（本单最后一次改源码、重编译、重签之后）跑：
+  --preview-moti build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+  WID = 5273
+  screencapture -x -o -l 5273 /tmp/tr002c/shots/01_只读态回归_整窗.png
+  CAPTURE_EXIT = 0   SIZE = 395855   像素 2414 × 1562
+
+  BASE_SHA = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  NEW_SHA  = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  READONLY_REGRESSION = BYTE_IDENTICAL
+
+归档：shots/01_只读态回归_整窗.png（与基线逐字节相同）
+真机 stdout：真机stdout_只读态回归.txt
+  [TR-022] moti_preview layers=8 parse_ms=15.2 models_ms=0.0 table_fill_ms=4.9 canvas=1080x1920 file=T01_领衔呈现_竖版.moti
+  [TR-019] moti read-only preview: … layers=8 canvas=1080x1920
+
+----------------------------------------------------------
+为什么这次回归必须重跑
+----------------------------------------------------------
+本单续跑阶段发现编辑态「保存回 .moti」按钮被右栏固定 820pt documentView
+顶出首屏，且 layout 触发的 textDidChange 会把空串写回 LayerModel.text。
+修法：仅在编辑态收紧 spacing、收起两块 PSD 专用提示、把 documentView
+高度贴合 mainStack.fittingSize；文本桥加 firstResponder 闸门。
+这些都是**编辑态独有路径**，只读态一行不走，但为了不靠推理宣称零回归，
+改完后重新 swift build -c release → 装包 → 重签 → 重跑整窗截图，
+结果仍与 TR-027 08 逐字节相同。
+
+注意：screencapture 必须带 -o。不带 -o 会把窗口阴影算进去，
+得到 2638×1786 / 808448 B，与基线不等，属取证手法错误不是功能回归。
+
+----------------------------------------------------------
+harness 回归（任务书 §6.7 后半）
+----------------------------------------------------------
+最终源码按 harness 头注释的历史口径编译：
+  FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+  swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness
+  cwd = 项目根；COMPILE_EXIT=0（仅既有 AudioManager.swift:165 弃用警告）
+  /tmp/tr019r_harness → HARNESS_EXIT=0
+
+  PASS = 61   FAIL = 0
+  TR-019-R VERDICT: PASS
+  69 行 / sha16 = 6787e31d50961fb5
+  ❌ 行数 = 0
+
+七份历史日志逐字节比对（cmp -s，全部 BYTE_IDENTICAL）：
+  tr023b BYTE_IDENTICAL
+  tr024  BYTE_IDENTICAL
+  tr024_1 BYTE_IDENTICAL
+  tr024_2 BYTE_IDENTICAL
+  tr025  BYTE_IDENTICAL
+  tr026  BYTE_IDENTICAL
+  tr027  BYTE_IDENTICAL
+归档：reports/verify_tr002c/tr019r_harness_重跑.txt
+
+harness 本身与 tools/tr019r/tr019r_harness.swift 本单 0 行改动。

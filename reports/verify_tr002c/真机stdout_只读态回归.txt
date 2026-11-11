@@ -1,0 +1,2 @@
+[TR-022] moti_preview layers=8 parse_ms=15.2 models_ms=0.0 table_fill_ms=4.9 canvas=1080x1920 file=T01_领衔呈现_竖版.moti
+[TR-019] moti read-only preview: /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti layers=8 canvas=1080x1920

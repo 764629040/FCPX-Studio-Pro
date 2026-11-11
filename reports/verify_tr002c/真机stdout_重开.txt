@@ -1,0 +1,1 @@
+[TR-002C] edit_moti_open path=/tmp/tr002c/真机写回.moti layers=8 canvas=1080x1920 writable=true reason=可写
