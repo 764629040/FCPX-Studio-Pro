@@ -4,6 +4,88 @@ fileprivate final class FlippedClipView: NSView {
     override var isFlipped: Bool { true }
 }
 
+// MARK: - TR-025 B：可左右拖动的数值框（只服务 posXField / posYField）
+/// 旋转 / 缩放的数值框仍是原生 NSTextField，一行未动。
+/// 行为契约：
+///   · 按下不动 = 原「点击进入编辑」；左右位移 > 3pt 才进入拖动；
+///   · 拖动期间自己跑 tracking loop、不调用 super.mouseDown ⇒
+///     永不进入 field editor、不出现蓝色选中；
+///   · 拖出 bounds 仍跟手（tracking loop 在 window 上按 .leftMouseDragged 捕获）；
+///   · 松手不进编辑态；之后回车键入仍走原有 target/action。
+final class DraggableNumberField: NSTextField {
+    /// 拖动增量回调：(相对上一次事件的水平位移 pt, 当前修饰键)。
+    /// 由 InspectorView 换算数值 → 写 stringValue → onPosFieldChanged()（写模型 + 重绘）。
+    var onDragStep: ((CGFloat, NSEvent.ModifierFlags) -> Void)?
+    /// 每个 dragged 事件后强制刷窗口，保证画布实时跟手（不许「松手才刷新」）。
+    var onDragNeedsDisplay: (() -> Void)?
+
+    let dragThreshold: CGFloat = 3.0
+    private(set) var isDraggingValue = false
+
+    /// TR-025 B2：步长换算抽成纯函数，供取证工具逐档断言（1pt=1px / Shift×10 / Option×0.1 / 1 位小数）。
+    static func dragValue(current: Double, delta: CGFloat, flags: NSEvent.ModifierFlags) -> Double {
+        let factor: Double = flags.contains(.shift) ? 10.0
+                           : (flags.contains(.option) ? 0.1 : 1.0)
+        return ((current + Double(delta) * factor) * 10).rounded() / 10
+    }
+
+    /// B4：悬停光标换成左右缩放箭头。进入编辑态后由 field editor 自己的 I-beam 覆盖。
+    override func resetCursorRects() {
+        discardCursorRects()
+        addCursorRect(bounds, cursor: .resizeLeftRight)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        guard isEnabled, let win = window else {
+            super.mouseDown(with: event)
+            return
+        }
+        let startX = event.locationInWindow.x
+        var lastX = startX
+        var crossed = false
+        isDraggingValue = false
+
+        // 自己跟踪，不调 super.mouseDown：编辑态 / 蓝色选中在拖动期间根本不会出现。
+        // 有限超时兜底：连续 8 秒没有任何鼠标事件就退出 tracking（防事件丢失把 UI 永久卡死；
+        // 真实拖动时只要有事件就不断续期，用户完全无感）。
+        while true {
+            guard let ev = win.nextEvent(matching: [.leftMouseDragged, .leftMouseUp],
+                                         until: Date().addingTimeInterval(8),
+                                         inMode: .eventTracking,
+                                         dequeue: true) else { break }
+            if ev.type == .leftMouseDragged {
+                let x = ev.locationInWindow.x
+                if !crossed && abs(x - startX) > dragThreshold {
+                    crossed = true
+                    isDraggingValue = true
+                    // 死区（≤3pt）的位移不计入数值：从阈值点起算，保证「1 点 = 1 像素」精确。
+                    lastX = startX + (x > startX ? dragThreshold : -dragThreshold)
+                    NSCursor.resizeLeftRight.push()
+                }
+                if crossed {
+                    let delta = x - lastX
+                    if delta != 0 {
+                        onDragStep?(delta, ev.modifierFlags)  // B3 实时写模型 + 重绘
+                        onDragNeedsDisplay?()
+                    }
+                }
+                lastX = x
+            } else if ev.type == .leftMouseUp {
+                break
+            }
+        }
+
+        if isDraggingValue {
+            NSCursor.pop()
+            isDraggingValue = false
+            // 拖动结束：数值已逐帧落定，不进编辑态（B1）。
+        } else {
+            // 按下不动：保留原生「点击进入编辑」——selectText 会 makeFirstResponder 并选中文本。
+            selectText(self)
+        }
+    }
+}
+
 public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NSTableViewDelegate {
     // MARK: - @IBOutlet 插口绑定
     public var layerTableView: NSTableView!
@@ -70,6 +152,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
     public private(set) var bitmapRecolorTitleLabel: NSTextField!
     public private(set) var recolorColorWell: NSColorWell!
     public private(set) var recolorHexField: NSTextField!
+    /// TR-025 A：目标色「⇄ 对比色」按钮（逐通道 255 减法换补色，走 hex 同一入口）。
+    public private(set) var recolorComplementButton: NSButton!
     public private(set) var recolorModePopup: NSPopUpButton!
     public private(set) var recolorHintLabel: NSTextField!
 
@@ -580,6 +664,18 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         recolorHexField.target = self
         recolorHexField.action = #selector(onRecolorHexFieldCommitted)
         recolorColorRow.addArrangedSubview(recolorHexField)
+
+        // TR-025 A1：HEX 框右侧「⇄ 对比色」，固定 58pt（≤60），右栏总宽 RIGHT_W 不变、不换行。
+        // 全部子视图固定宽度 + required hugging，NSStackView 不会拉伸任何一项。
+        recolorComplementButton = NSButton(title: "⇄ 对比色", target: self,
+                                           action: #selector(onComplementColorClicked))
+        recolorComplementButton.bezelStyle = .rounded
+        recolorComplementButton.controlSize = .small
+        recolorComplementButton.font = .systemFont(ofSize: 10)
+        recolorComplementButton.widthAnchor.constraint(equalToConstant: 58).isActive = true
+        recolorComplementButton.setContentHuggingPriority(.required, for: .horizontal)
+        recolorComplementButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        recolorColorRow.addArrangedSubview(recolorComplementButton)
         recolorStack.addArrangedSubview(recolorColorRow)
 
         // 换色模式：自动 / 直接替换 / 明暗上色 / 反相 / 色相旋转
@@ -662,22 +758,28 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         scaleStack.trailingAnchor.constraint(equalTo: mainStack.trailingAnchor).isActive = true
 
         // 坐标微调 X / Y (FCPX-048: 挂载 target/action，支持输入框键入回车后实时生效)
+        // TR-025 B：只把这两个实例换成 DraggableNumberField（声明仍是 NSTextField!，
+        // 旋转 / 缩放的 NSTextField 一行未动）。拖动回调复用 onPosFieldChanged 写模型 + 重绘。
         let posStack = NSStackView()
         posStack.orientation = .horizontal
         posStack.spacing = 8
         posStack.addArrangedSubview(NSTextField(labelWithString: "X:"))
-        posXField = NSTextField(string: "0.0")
-        posXField.widthAnchor.constraint(equalToConstant: 80).isActive = true
-        posXField.target = self
-        posXField.action = #selector(onPosFieldChanged)
+        let dragX = DraggableNumberField(string: "0.0")
+        dragX.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        dragX.target = self
+        dragX.action = #selector(onPosFieldChanged)
+        posXField = dragX
         posStack.addArrangedSubview(posXField)
         posStack.addArrangedSubview(NSTextField(labelWithString: "Y:"))
-        posYField = NSTextField(string: "0.0")
-        posYField.widthAnchor.constraint(equalToConstant: 80).isActive = true
-        posYField.target = self
-        posYField.action = #selector(onPosFieldChanged)
+        let dragY = DraggableNumberField(string: "0.0")
+        dragY.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        dragY.target = self
+        dragY.action = #selector(onPosFieldChanged)
+        posYField = dragY
         posStack.addArrangedSubview(posYField)
         mainStack.addArrangedSubview(posStack)
+        bindPosDrag(dragX, field: posXField)
+        bindPosDrag(dragY, field: posYField)
 
         // 发布勾选组
         let pubBoxTitle = NSTextField(labelWithString: "发布到 FCPX 检查器项:")
@@ -869,6 +971,23 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             layer.posY = y
         }
         onLayerModified?(layer)
+    }
+
+    /// TR-025 B2/B3：把水平位移换算成数值增量，写回 stringValue 后调用现有的
+    /// onPosFieldChanged()（写 layer.posX/posY + onLayerModified 重绘）——不新开渲染路径。
+    ///   1pt = 1px；Shift ×10；Option ×0.1；沿用现有 1 位小数。
+    private func bindPosDrag(_ drag: DraggableNumberField, field: NSTextField) {
+        drag.onDragStep = { [weak self] delta, flags in
+            guard let self = self else { return }
+            let current = Double(field.stringValue) ?? 0
+            let next = DraggableNumberField.dragValue(current: current, delta: delta, flags: flags)
+            field.stringValue = String(format: "%.1f", next)
+            self.onPosFieldChanged()      // ← 唯一入口：写模型 + onLayerModified 重绘
+        }
+        drag.onDragNeedsDisplay = { [weak self] in
+            // 逐事件强制刷窗口，保证画布「实时跟手」，不是松手才刷新。
+            self?.window?.displayIfNeeded()
+        }
     }
 
     // MARK: - TR-023-B 文字样式：动作
@@ -1110,6 +1229,25 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         onLayerModified?(layer)
     }
 
+    /// TR-025 A2：「⇄ 对比色」= 当前色逐通道 255 减法（整数 HEX 运算，绝不用 CIHueAdjust 凑）。
+    /// 不新开渲染路径：只把补色写进 HEX 框，然后调用现有的 onRecolorHexFieldCommitted()，
+    /// 由它统一完成「写 colorOverride → 同步色块 → refresh → onLayerModified 重绘」。
+    @objc private func onComplementColorClicked() {
+        guard let layer = currentSelectedLayer, canEditRecolor else { return }
+        // 反相不吃目标色，按钮在反相下已禁用；这里再挡一道，避免程序化调用绕过。
+        let mode = RecolorMode(rawValue: layer.recolorMode) ?? .luminance
+        guard mode != .invert else { return }
+        var raw = recolorHexField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if raw.hasPrefix("#") { raw.removeFirst() }
+        guard raw.count == 6, let value = UInt32(raw, radix: 16) else { return }
+        let r = 255 - Int((value >> 16) & 0xFF)
+        let g = 255 - Int((value >> 8) & 0xFF)
+        let b = 255 - Int(value & 0xFF)
+        let complement = String(format: "#%02X%02X%02X", r, g, b)
+        recolorHexField.stringValue = complement
+        onRecolorHexFieldCommitted()      // ← 唯一入口，与手工改 HEX / 色块完全同一条路
+    }
+
     // MARK: - TR-024 位图换色：状态刷新
 
     /// 换色控件只在像素层出现；文字层整组隐藏（不抢「文字样式」的活）。
@@ -1124,7 +1262,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         bitmapRecolorTitleLabel?.stringValue = motiReadOnlyMode ? "位图换色（只读）" : "位图换色"
 
         let hasSource = hasRecolorSource
+        var hasColor = false
         if let color = Self.color(fromHex: layer.colorOverride) {
+            hasColor = true
             recolorColorWell?.color = color
             recolorHexField?.stringValue = Self.hexString(from: color)
         } else {
@@ -1150,6 +1290,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         let colorEditable = editable && mode != .invert
         recolorColorWell?.isEnabled = colorEditable
         recolorHexField?.isEnabled = colorEditable
+        // TR-025 A3：对比色按钮随色块一起灰掉（反相），且当前未设色时也禁用。
+        recolorComplementButton?.isEnabled = colorEditable && hasColor
         recolorModePopup?.isEnabled = editable
 
         var tip: String? = nil
@@ -1161,9 +1303,12 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
             tip = "图层已锁定（⌘L 解锁后可换色）"
         }
         recolorModePopup?.toolTip = tip
-        let colorTip = (mode == .invert && tip == nil) ? "反相不使用目标色，黑白互换" : tip
+        // TR-025 C1 之一（colorTip，反相提示文案）：反相：反原图墨色，不用目标色（黑↔白；原图是彩墨时出补色）
+        // 与 recolorHintText 共用 Self.invertHintText 常量，杜绝只改一处 / 两处漂移。
+        let colorTip = (mode == .invert && tip == nil) ? Self.invertHintText : tip
         recolorColorWell?.toolTip = colorTip
         recolorHexField?.toolTip = colorTip
+        recolorComplementButton?.toolTip = colorTip
     }
 
     /// 提示行文案。多色判断走 PngRecolor 的 CIAreaAverage/AreaMaximum 面积采样，不遍历像素。
@@ -1177,7 +1322,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         // TR-024-2：反相是纯像素取反 —— 不吃目标色，也不存在「多色被压成单色」这回事，
         // 所以这里必须早退，不能落到下面那条多色提示上。
         if mode == .invert {
-            return ("反相：不使用目标色，黑白互换", false)
+            // TR-025 C1 之二（recolorHintText，反相提示文案）：反相：反原图墨色，不用目标色（黑↔白；原图是彩墨时出补色）
+            // 与 colorTip 同一常量，改一处即两处同步；只改一处会被退回。
+            return (Self.invertHintText, false)
         }
         guard Self.color(fromHex: layer.colorOverride) != nil else {
             return ("未设置换色，当前显示原图像素", false)
@@ -1198,6 +1345,9 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
 
     /// 空态下 NSColorWell 的灰底：仅作占位，不代表任何取到的颜色。
     static let emptyColorWellPlaceholder = NSColor(calibratedWhite: 0.32, alpha: 1.0)
+
+    /// TR-025 C1：反相提示文案唯一来源，colorTip 与 recolorHintText 两处共用，杜绝只改一处。
+    static let invertHintText = "反相：反原图墨色，不用目标色（黑↔白；原图是彩墨时出补色）"
 
     /// "#RRGGBB" / "RRGGBB" → NSColor；非法返回 nil。
     static func color(fromHex hex: String) -> NSColor? {
