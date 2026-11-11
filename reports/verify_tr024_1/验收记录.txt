@@ -1,0 +1,185 @@
+═══════════════════════════════════════════════════════════════════════════
+TR-024-1：装包落地（不新增功能，只把已有的装进去）—— 验收记录
+2026-11-11 20:30  |  项目根 /Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro
+分支 main  |  基线 22f1dcd  |  未 push（main 领先 origin/main 55 个提交）
+═══════════════════════════════════════════════════════════════════════════
+
+【一句话结论】
+上一轮报的 3965032 B / 3966792 B 都是 /tmp 下构建产物的数字，运行包里那个二进制从头到尾没换过
+（还是 14:55 的旧包）。本轮把 16:44:51 的构建产物真装进了 FCPX Studio Pro R2.app 并重签，
+`codesign --verify --strict --deep` exit 0；两张真机截图是从包内那个二进制启动后截的。
+
+有一条必须说清：**重签会重写 Mach-O 尾部，包内二进制的 sha256 在物理上不可能再等于构建产物的 sha256。**
+要求 2 的「附 shasum 前 16 位证明与构建产物一致」按字面无法同时成立。第二节给出可复算的替代证明：
+包内 3961904 B 与构建产物 3966792 B 全文只有 **5 个字节** 不同，全部是签名尺寸字段；
+代码区 `[0, 3935920)` 去掉那 5 个字节后逐字节相同。
+
+───────────────────────────────────────────────────────────────────────────
+一、先认账：上一轮的交付不实（用户指出的三条，逐条核实）
+───────────────────────────────────────────────────────────────────────────
+
+| 项目 | 上一轮报告 / 我当时的说法 | 实测（本轮复核） | 判定 |
+|---|---|---|---|
+| M.3 台账里写的包内体积 | `3965032 B  Nov 11 16:13:52 2026` | 该数字来自 `/tmp/fcpx_wd_tr024/release/FCPXStudio`，不是包内二进制 | 错误 |
+| 验收记录里写的体积 | `3966792 B  Nov 11 16:44:51 2026` | 该数字来自 `/tmp/fcpx_wd/release/FCPXStudio`，不是包内二进制 | 错误 |
+| 包内二进制（真实） | 未报告 | `3897120 B  Nov 11 14:55:00 2026`，sha256 `74e264f5be4646f04d07ce47c5c92899c5a1c2660648a75987c1125b68c2e857` | 用户所述属实 |
+| 包内 15:00 后改动 | 未提 | `find -newermt "2026-11-11 15:00"` 无任何条目（签名为 14:55 那一版） | 用户所述属实 |
+
+结论：用户手上的 App 确实没有 TR-024 能力，上一轮那四张「真机截图」跑的是构建产物，不是装好的包。
+
+旁证（字节探针：同一段 UTF-8 文案在新旧二进制里的出现次数）
+
+| UTF-8 文案 | 装包后二进制 | 旧包二进制 | 说明 |
+|---|---|---|---|
+| `位图换色` | 1 | 0 | TR-024 检查器分组标题，只在 C-5 里新增 |
+| `明暗上色` | 1 | 0 | TR-024 模式名，`RecolorMode` 才有 |
+| `原图含多色，换色后变单色` | 1 | 0 | TR-024 C-6 多色提示行 |
+| `文字样式` | 1 | 1 | TR-023-B 已在旧包里（所以旧包不是更早的版本，只差 TR-024） |
+| `发布到 FCPX 检查器` | 1 | 1 | 同上，对照组 |
+
+（复算命令：`python3 -c "print(open(PATH,'rb').read().count('位图换色'.encode()))"`）
+
+───────────────────────────────────────────────────────────────────────────
+二、装包与重签（要求 1）+ 体积与哈希（要求 2）
+───────────────────────────────────────────────────────────────────────────
+
+【装包】
+  $ cp /tmp/fcpx_wd/release/FCPXStudio "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  旧二进制先备份到 /tmp/fcpx_old_bundle_binary（3897120 B，sha 74e264f5…，可回滚）
+
+  cp 完成后、签名之前的瞬时状态（这是「装进去的是不是那个产物」的关键证据）：
+    3966792 B  sha256 344b598155dd173f857923b4634047042a4dedc046d89aeaa3790feb59441914
+    与 /tmp/fcpx_wd/release/FCPXStudio 逐字节相同。
+
+【重签】
+  $ codesign --force --deep --sign - "FCPX Studio Pro R2.app"
+    FCPX Studio Pro R2.app: replacing existing signature      ← 退出码 0
+  $ codesign --verify --strict --deep "FCPX Studio Pro R2.app"
+    （无输出）                                                ← 退出码 0   ✔ 要求 1 达成
+
+  签名详情（codesign -dvvv）：
+    Identifier=com.studiopro.fcpxstudio
+    Format=app bundle with Mach-O thin (arm64)
+    CodeDirectory v=20400 size=7921 flags=0x2(adhoc) hashes=241+3 location=embedded
+    Hash type=sha256 size=32
+    Signature=adhoc
+    Sealed Resources version=2 rules=13 files=2007
+    CDHash=6d379c2d84e8caab84ea252101e919ed3c620c22
+
+【体积：只报一个数，只报运行包内二进制的 stat 原文】
+  $ stat -f "%z B  %Sm" "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  3961904 B  Nov 11 19:55:27 2026
+
+  $ shasum -a 256 "FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio"
+  dffdf8bde12233d692e7eee7046c3a24534db9b2cd0a25b1b8e5dba996e7bed9
+  → 前 16 位：dffdf8bde12233d6
+
+【为什么这个哈希不等于构建产物的 344b598155dd173f —— 如实披露】
+  重签必然重写二进制尾部（`__LINKEDIT` 里的签名 blob），任何「嵌入签名 + 哈希等于未签名产物」
+  的组合都不存在。差别全部可算：
+
+  | 项 | 包内（codesign 签） | 构建产物（链接器签） | 差 |
+  |---|---|---|---|
+  | 文件全长 | 3961904 B | 3966792 B | 4888 B |
+  | LC_CODE_SIGNATURE.dataoff | 3935920 | 3935920 | 0 ← 代码段长度完全没变 |
+  | LC_CODE_SIGNATURE.datasize | 25984 | 30872 | 4888 B |
+  | CodeDirectory flags | 0x2(adhoc) | 0x20002(adhoc,linker-signed) | —— |
+  | 哈希页数 | hashes=241+3（16 KB 页） | hashes=961+0（4 KB 页） | 页大小不同导致哈希条目数不同 |
+  | __LINKEDIT filesize | 小 4888 | 大 4888 | ← 就是上面那条的机械后果 |
+
+【可复算的替代证明：全文只差 5 个字节，且全部是签名尺寸字段】
+  解析两边 Mach-O（`ncmds=56`、`sizeofcmds=6272`、`LC_CODE_SIGNATURE` 都在 `[6288,6304)`，
+  `dataoff` 都是 3935920），逐字节 diff `[0, 6304)`：
+
+    [2993, 2994)  len=1  A=0x80   B=0xc0       ← LC_SEGMENT_64(__LINKEDIT).vmsize 第 1 字节
+    [3008, 3010)  len=2  A=0x7430 B=0x8748     ← LC_SEGMENT_64(__LINKEDIT).filesize 低 16 位
+    [6300, 6302)  len=2  A=0x6580 B=0x7898     ← LC_CODE_SIGNATURE.datasize 低 16 位
+
+  即：**5 个字节，3 个字段，全部是「签名 blob 有多大」这件事的三个副本**。除此之外两边完全一致：
+
+    sha256( A[6304 .. 3935920) ) = f0b22b7ad7faca79c348bbe844ba68c85bf1839b794ed2be35ac285132b56234
+    sha256( B[6304 .. 3935920) ) = f0b22b7ad7faca79c348bbe844ba68c85bf1839b794ed2be35ac285132b56234
+                                                             ↑ 3,929,616 字节，逐字节相同
+    A[0..6288) 差异仅上面 2 段共 3 字节（都在 __LINKEDIT 段命令里）
+    A/B 签名 blob 本身不同（25984 B vs 30872 B）—— 这是签名，不是代码。
+
+  一句话：装进包里的就是 16:44:51 那个产物的代码，一个字节都没改；被改的只有「签名有多大」这三个数字。
+
+【包内只有两个文件被动过，其余 2000+ 个资源原封不动】
+  Nov 11 19:55:27  3961904 B  Contents/MacOS/FCPXStudio
+  Nov 11 19:55:27   684150 B  Contents/_CodeSignature/CodeResources
+  （`find "FCPX Studio Pro R2.app" -newermt "2026-11-11 00:00"` 里 19:55 之后只有这两条，
+    Info.plist / Resources/ 下全部保持原样）
+
+───────────────────────────────────────────────────────────────────────────
+三、装包后的两张真机截图（要求 3）
+───────────────────────────────────────────────────────────────────────────
+
+包内二进制落盘时间 19:55:27，截图 20:25:26 —— 晚 30 分钟，跑的是装好的包。
+启动方式（相对路径直接跑包内二进制，不是 /tmp 产物）：
+  $ ./FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio --open /tmp/tr0241_black_text.psd
+进程溯源（截图当时抓的）：
+  52458  ./FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio --open /tmp/tr0241_black_text.psd
+抓图方式：screencapture -l <windowNumber> -o -x（真实窗口像素，1207×781 逻辑 → 2414×1562 @2x）
+
+  reports/verify_tr024_1/shots/tr0241_1_直接替换_装包后.png   382307 B  2414×1562
+  reports/verify_tr024_1/shots/tr0241_2_反相_装包后.png       367415 B  2414×1562
+
+  两张图里能同时读到的真值：
+    左栏素材条     tr0241_black_text.psd
+    图层表         black_text_024（唯一层）
+    幅面规格       1400×700
+    画布文字       「换色 024」
+    检查器分组     「位图换色」（旧包没有这个分组 —— 见第一节探针）
+    颜色控件       色块 + HEX #1BFF93
+    模式下拉       图 1 = 直接替换 ；图 2 = 反相
+    提示行         图 1「当前模式：直接替换」；图 2「当前模式：反相」
+    结果差异       图 1 文字通体亮绿 #1BFF93；图 2 反相后压暗（暗绿），肉眼可分辨两种模式不是同一张图
+
+  偏差说明（如实写）：
+    · 上一轮 TR-024 的目标色是 #29D1FF（青），本轮两张图是 #1BFF93（绿）。原因是这个 App 的 HEX
+      输入框在当前 macOS 上敲 `#29D1FF` 会稳定丢字符（反复得到 `#29DFF`），CGEvent 的
+      keyboardSetUnicodeString 与真实键码 18（`1`）都丢，已改用系统 Colors 面板色轮取色完成。
+      这不影响本轮要证的事（跑的是装好的包 + 两种模式真的不同），但颜色值与前一轮不一致，记在此处。
+    · 图 2「反相」的结果偏暗是滤镜定义使然：源图亮墨 → CIColorInvert 后变暗 → 目标色按亮度映射到暗部。
+
+───────────────────────────────────────────────────────────────────────────
+四、harness 原样重跑（要求 4）
+───────────────────────────────────────────────────────────────────────────
+
+编译（与 tools/tr019r/tr019r_harness.swift 文件头注释逐字相同，只是输出名不同）：
+  $ FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+  $ swiftc -O -j 8 ${=FILES} tools/tr019r/tr019r_harness.swift -o /tmp/tr019r_harness_tr0241
+  43 个源文件，编译通过（唯一告警是 AudioManager.swift:165 的 AVURLAsset.duration 弃用，历史遗留，本轮未动）
+运行 cwd = 项目根：
+  $ /tmp/tr019r_harness_tr0241
+  exit=0
+
+全文（69 行）见 reports/verify_tr024_1/tr019r_harness_重跑.txt，末三行原文：
+    ✅ 解析器含递归展开 collectLayers
+  PASS = 61   FAIL = 0
+  TR-019-R VERDICT: PASS
+
+与两份历史基线逐字节比对：
+  diff -q reports/verify_tr024_1/tr019r_harness_重跑.txt /tmp/tr0241_harness_now.txt      → 相同
+  diff -q reports/verify_tr024/tr019r_harness_重跑.txt   /tmp/tr0241_harness_now.txt      → 相同
+（即：本次重跑输出 = 上一轮重跑输出 = TR-024 基线输出，一个字符都没变）
+
+───────────────────────────────────────────────────────────────────────────
+五、纪律（要求 5 / 6）
+───────────────────────────────────────────────────────────────────────────
+
+  · 单个提交，前缀 tr024-1，内容 = 本验收记录 + shots/ 两张截图 + harness 日志 + 台账 M.3.1
+  · 产品代码 0 行改动（本轮不新增功能，只装包）——`git diff` 里没有任何 .swift
+  · 台账只追加 M.3.1（+ 用户顺带的两条 A/B），M / M.1A / M.1B / M.2 / M.2.1 / M.3 原文一个字不动
+  · 未 push（`git rev-parse origin/main` 仍是 89a54ca，main 领先 55）
+  · 未重建 dmg（Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.3.dmg 时间戳仍 11-11 10:35）
+  · 未启动 FCPX（Final Cut Pro 无进程；本轮启动的只是本项目自己的 FCPX Studio Pro R2 用于截图，
+    截完已 `pkill -f "MacOS/FCPXStudio"` 收掉，`pgrep` 现为空）
+  · 未自动退出/重启任何 App
+  · Motion 模板库只读，未写入
+
+── 附：本轮唯一被留着的疑点 ──────────────────────────────────────────────
+  包内二进制的 sha256 与构建产物不一致（dffdf8bd… vs 344b5981…），不是装错，是签名必然结果，
+  证明见第二节。若日后要求「哈希逐字节相等」，唯一办法是让 App 不带嵌入签名 ——
+  Apple Silicon 上不可行（未签名的 arm64 可执行文件会被内核直接拒绝执行）。
