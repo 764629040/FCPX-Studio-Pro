@@ -46,6 +46,12 @@ public final class MainWindowController: NSWindowController,
     public private(set) var motiReadOnlyMode: Bool = false
     public private(set) var currentMotiPath: String?
 
+    // MARK: – TR-002-C：.moti 编辑态（与只读预览互斥，只读代码路径一行未动）
+    public private(set) var motiEditMode: Bool = false
+    public private(set) var motiEditSession: MotiEditSession?
+    private var motiTextBridge: MotiTextEditBridge?
+    private var motiPlannedBackupPath: String?
+
     // MARK: – TR-020 PNG 智能拆图层（人工确认窗口需强持有）
     public private(set) var pngSplitConfirmWindow: PngSplitConfirmWindowController?
 
@@ -116,7 +122,13 @@ public final class MainWindowController: NSWindowController,
         // TR-019 阶段一：`--preview-moti <path>` 直接进只读预览。
         // 必须排在 --open 之前且阻止默认目录加载，否则 loadPsdDirectory 会
         // 触发 parseCurrentFile 把只读态顶掉。
-        if let idx = args.firstIndex(of: "--preview-moti"), idx + 1 < args.count {
+        // TR-002-C：`--edit-moti <path>` 进可编辑态；--preview-moti 分支一行未改。
+        if let idx = args.firstIndex(of: "--edit-moti"), idx + 1 < args.count {
+            let target = (args[idx + 1] as NSString).expandingTildeInPath
+            DispatchQueue.main.async { [weak self] in
+                self?.editMotiInDesigner(path: target)
+            }
+        } else if let idx = args.firstIndex(of: "--preview-moti"), idx + 1 < args.count {
             let target = (args[idx + 1] as NSString).expandingTildeInPath
             DispatchQueue.main.async { [weak self] in
                 self?.previewMotiInDesigner(path: target)
@@ -342,16 +354,25 @@ public final class MainWindowController: NSWindowController,
             self?.inspectorView.selectLayer(at: idx)
         }
         inspectorView.onLayerModified = { [weak self] _ in
-            self?.canvasView.needsDisplay = true
+            guard let self = self else { return }
+            self.canvasView.needsDisplay = true
+            // TR-002-C：文本 / X / Y / 可见 / 锁定 任意改动都刷新「有无改动」与保存按钮
+            if self.motiEditMode { self.refreshMotiEditState() }
         }
         inspectorView.onLayerVisibilityChanged = { [weak self] _ in
-            self?.canvasView.needsDisplay = true
+            guard let self = self else { return }
+            self.canvasView.needsDisplay = true
+            if self.motiEditMode { self.refreshMotiEditState() }
         }
         inspectorView.onAllVisibilityToggled = { [weak self] _ in
-            self?.canvasView.needsDisplay = true
+            guard let self = self else { return }
+            self.canvasView.needsDisplay = true
+            if self.motiEditMode { self.refreshMotiEditState() }
         }
         inspectorView.onLayerLockChanged = { [weak self] _ in
-            self?.canvasView.needsDisplay = true
+            guard let self = self else { return }
+            self.canvasView.needsDisplay = true
+            if self.motiEditMode { self.refreshMotiEditState() }
         }
         inspectorView.onHiddenLayersChanged = { [weak self] on in
             self?.setIncludeHiddenLayers(on)
@@ -360,17 +381,31 @@ public final class MainWindowController: NSWindowController,
         // （按钮已置灰，这里防菜单快捷键等旁路）
         inspectorView.onSaveTemplate = { [weak self] in
             guard let self = self else { return }
+            // TR-002-C：编辑态保存走 .moti 单点字节写回，绝不走 PSD 生成链
+            if self.motiEditMode { self.confirmAndSaveMotiEdits(); return }
             guard !self.motiReadOnlyMode else { self.showMotiReadOnlyAlert(); return }
             self.saveCurrentTemplate()
         }
         inspectorView.onBatchExport = { [weak self] in
             guard let self = self else { return }
+            guard !self.motiEditMode else {
+                self.showAlert(title: "编辑态", msg: "当前是 .moti 编辑态，本版不支持批量导出。")
+                return
+            }
             guard !self.motiReadOnlyMode else { self.showMotiReadOnlyAlert(); return }
             self.batchExportAllTemplates()
         }
         inspectorView.onFontsDropped = { [weak self] paths in
             self?.handleDroppedFonts(paths)
         }
+        // TR-002-C：切图层会走 selectLayer → updateControlStates，
+        // 异步补一次编辑态配置，保证旋转/缩放恒为置灰、发布列恒隐藏。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(motiEditSelectionDidChange(_:)),
+            name: NSTableView.selectionDidChangeNotification,
+            object: inspectorView.layerTableView
+        )
 
         parent.addSubview(engine1Container)
     }
@@ -511,6 +546,9 @@ public final class MainWindowController: NSWindowController,
 
     /// 退出只读态：恢复保存 / 导出按钮。任何 PSD 相关操作前调用。
     public func exitMotiReadOnlyMode() {
+        // TR-002-C：编辑态也是由 .moti 打开的，PSD 操作前必须一并退出，
+        // 否则 parseCurrentFile 会把编辑态数据顶掉。非编辑态时本行是 no-op。
+        exitMotiEditMode()
         guard motiReadOnlyMode else { return }
         motiReadOnlyMode = false
         currentMotiPath = nil
@@ -519,6 +557,200 @@ public final class MainWindowController: NSWindowController,
         inspectorView.motiReadOnlyMode = false
         inspectorView.saveButton?.isEnabled = true
         inspectorView.batchExportButton?.isEnabled = true
+    }
+
+    // MARK: – TR-002-C：.moti 编辑态（--edit-moti <path>）
+
+    /// 打开 .moti 进入可编辑态。只读预览 previewMotiInDesigner 一行未动。
+    public func editMotiInDesigner(path: String) {
+        guard let session = MotiEditSession(path: path) else {
+            showAlert(title: "编辑失败", msg: "该 .moti 无法解析或没有图层。\n\(path)")
+            return
+        }
+        let snapshot = session.baseline
+        motiEditSession = session
+        motiEditMode = true
+        motiReadOnlyMode = false
+        currentMotiPath = path
+        currentPsdPath = nil
+
+        // 自动化验收预置改动；正常用户交互路径完全不走这里。
+        applyAutomationPreset(to: session)
+
+        segmentedControl?.selectedSegment = 0
+        showEngine(index: 0)
+        canvasView.backgroundPreview = nil
+        canvasView.originalCompositePath = nil
+        canvasView.setResolution(width: CGFloat(snapshot.canvasWidth),
+                                 height: CGFloat(snapshot.canvasHeight))
+        canvasView.motiPreviewMode = true
+        canvasView.motiPreviewBadgeOverride = "编辑态 · 共 \(session.models.count) 层"
+        canvasView.layers = session.models
+
+        inspectorView.motiReadOnlyMode = false
+        inspectorView.layers = session.models
+        inspectorView.motiEditMode = true
+        inspectorView.motiEditWritable = session.writable.0
+        inspectorView.resolutionLabel?.stringValue = "📐 幅面规格 \(snapshot.canvasWidth)×\(snapshot.canvasHeight)"
+        inspectorView.resolutionLabel?.isHidden = false
+        inspectorView.diagnosticsSummaryLabel?.stringValue = "ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti"
+        inspectorView.diagnosticsBox?.stringValue = [
+            "备份目录：~/Library/Application Support/FCPXStudioPro/moti_backups/",
+            "保存会覆盖原文件；写后读回不一致会自动回填到写前状态。",
+            "字号 / 对齐 / 颜色 / 旋转 / 缩放 / 发布列本版不写回。"
+        ].joined(separator: "\n")
+        inspectorView.diagnosticsDetailBox?.isHidden = true
+        inspectorView.diagnosticsToggleButton?.title = "详情 (3)"
+
+        let bridge = MotiTextEditBridge()
+        bridge.onChange = { [weak self] text in
+            guard let self = self, self.motiEditMode,
+                  let layer = self.inspectorView.currentSelectedLayer else { return }
+            layer.text = text
+            self.inspectorView.onLayerModified?(layer)
+        }
+        motiTextBridge = bridge
+        inspectorView.textEditor?.delegate = bridge
+
+        refreshMotiEditState()
+        inspectorView.applyMotiEditMode()
+        canvasView.fitArtboard()
+
+        print("[TR-002C] edit_moti_open path=\(path) layers=\(session.models.count) "
+              + "canvas=\(snapshot.canvasWidth)x\(snapshot.canvasHeight) "
+              + "writable=\(session.writable.0) reason=\(session.writable.1)")
+        fflush(stdout)
+
+        // 无人值守取证：预置改动后自动走「同一次确认 + 同一次写回」；
+        // 正常用户路径完全不触发这里。
+        if ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-save") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+                self?.confirmAndSaveMotiEdits()
+            }
+        }
+    }
+
+    /// 仅供无人值守真机取证：按启动参数预置一层改动，用户界面不显示这些参数。
+    private func applyAutomationPreset(to session: MotiEditSession) {
+        let args = ProcessInfo.processInfo.arguments
+        func value(_ key: String) -> String? {
+            guard let i = args.firstIndex(of: key), i + 1 < args.count else { return nil }
+            return args[i + 1]
+        }
+        let idx = Int(value("--edit-moti-layer") ?? "0") ?? 0
+        guard idx >= 0, idx < session.models.count else { return }
+        let layer = session.models[idx]
+        if let t = value("--edit-moti-text") { layer.text = t }
+        if let x = value("--edit-moti-x"), let d = Double(x) { layer.posX = d }
+        if let y = value("--edit-moti-y"), let d = Double(y) { layer.posY = d }
+        if let e = value("--edit-moti-enabled") {
+            layer.visible = (e == "1" || e.lowercased() == "true")
+        }
+        if let l = value("--edit-moti-locked") {
+            layer.isLocked = (l == "1" || l.lowercased() == "true")
+        }
+    }
+
+    /// 任何改动后刷新「有无改动 / 可写性 / 保存按钮」并补一次编辑态控件配置。
+    private func refreshMotiEditState() {
+        guard motiEditMode, let session = motiEditSession else { return }
+        inspectorView.motiEditHasChanges = session.changeCount > 0
+        inspectorView.motiEditWritable = session.writable.0
+        inspectorView.applyMotiEditMode()
+    }
+
+    /// 切图层后 updateControlStates 会重置控件状态，异步补挂编辑态配置。
+    @objc private func motiEditSelectionDidChange(_ note: Notification) {
+        guard motiEditMode else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.inspectorView.applyMotiEditMode()
+        }
+    }
+
+    /// 保存前唯一一次确认：备份路径、将改几处、原文件会被覆盖。
+    private func confirmAndSaveMotiEdits() {
+        guard let session = motiEditSession else { return }
+        let edits = session.edits()
+        let count = session.changeCount
+        guard count > 0 else {
+            showAlert(title: "没有改动", msg: "当前与写前状态一致，不允许保存。")
+            return
+        }
+        let (writable, why) = session.writable
+        guard writable else {
+            showAlert(title: "目标不可写", msg: "已禁用保存：\(why)")
+            return
+        }
+        // 先算好备份路径并显示在弹窗里，写回时用同一个值，绝不弹窗一套、落盘另一套。
+        let backup = MotiWriteBack.backupPath(for: session.path)
+        motiPlannedBackupPath = backup
+        let msg = "备份路径：\(backup)\n将改 \(count) 处\n原文件会被覆盖：\(session.path)"
+
+        // 无人值守取证开关：跳过模态弹窗，但走完全相同的 performMotiSave。
+        if ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
+            print("[TR-002C] confirm_auto backup=\(backup) changes=\(count)")
+            fflush(stdout)
+            performMotiSave(edits: edits, backupPath: backup)
+            return
+        }
+        let alert = NSAlert()
+        alert.messageText = "确认保存回 .moti"
+        alert.informativeText = msg
+        alert.addButton(withTitle: "保存回 .moti")
+        alert.addButton(withTitle: "取消")
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            print("[TR-002C] confirm_cancelled")
+            fflush(stdout)
+            return
+        }
+        performMotiSave(edits: edits, backupPath: backup)
+    }
+
+    private func performMotiSave(edits: [MotiLayerEdit], backupPath: String) {
+        guard let session = motiEditSession else { return }
+        let t0 = Date()
+        do {
+            let outcome = try MotiWriteBack.apply(path: session.path, edits: edits,
+                                                  plannedBackupPath: backupPath)
+            let ms = Date().timeIntervalSince(t0) * 1000.0
+            session.refreshBaselineAfterSave()
+            inspectorView.motiEditHasChanges = false
+            inspectorView.applyMotiEditMode()
+            print("[TR-002C] SAVE_OK before_sha=\(outcome.beforeSHA) after_sha=\(outcome.afterSHA) "
+                  + "backup_sha=\(outcome.backupSHA) backup=\(outcome.backupPath) "
+                  + "delta=\(outcome.actualDelta) changed_lines=\(outcome.changedLines) "
+                  + "changes=\(outcome.changedCount) readback=\(outcome.readback.count) "
+                  + "elapsed_ms=\(String(format: "%.1f", ms))")
+            for row in outcome.readback { print("[TR-002C] \(row.description)") }
+            fflush(stdout)
+            // 无人值守取证不弹模态框，避免卡住截图；正常用户仍看到一次结果提示。
+            if !ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
+                showAlert(title: "已保存", msg: "已写回 \(outcome.changedCount) 处。\n备份：\(outcome.backupPath)")
+            }
+        } catch {
+            let now = (try? Data(contentsOf: URL(fileURLWithPath: session.path)))
+                .map { MotiWriteBack.sha256($0) } ?? ""
+            print("[TR-002C] SAVE_FAIL error=\(error.localizedDescription) current_sha=\(now)")
+            fflush(stdout)
+            if !ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
+                showAlert(title: "保存失败", msg: "\(error.localizedDescription)\n原文件当前 sha256：\(now)")
+            }
+            refreshMotiEditState()
+        }
+    }
+
+    /// 退出编辑态：清引用、复位按钮；发布列由 applyMotiReadOnlyText() 加回。
+    public func exitMotiEditMode() {
+        guard motiEditMode else { return }
+        motiEditMode = false
+        motiEditSession = nil
+        motiPlannedBackupPath = nil
+        motiTextBridge = nil
+        inspectorView.textEditor?.delegate = nil
+        inspectorView.leaveMotiEditMode()
+        inspectorView.motiReadOnlyMode = false
+        canvasView.motiPreviewBadgeOverride = nil
+        canvasView.motiPreviewMode = false
     }
 
     private func showMotiReadOnlyAlert() {

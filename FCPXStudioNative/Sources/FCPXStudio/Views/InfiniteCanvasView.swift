@@ -86,6 +86,12 @@ public final class InfiniteCanvasView: NSView {
         didSet { needsDisplay = true }
     }
 
+    /// TR-002-C：编辑态画布角标。nil = 沿用 TR-019-R 的「只读预览」原文，
+    /// 只读预览路径一行未改；编辑态由主控制器设为「编辑态 · 共 N 层」。
+    public var motiPreviewBadgeOverride: String? {
+        didSet { needsDisplay = true }
+    }
+
     public override var acceptsFirstResponder: Bool { true }
 
     /// 位图贴图缓存：避免每次 draw 都从磁盘解码大图（2848×1600 每帧重读会卡顿）
@@ -330,7 +336,8 @@ public final class InfiniteCanvasView: NSView {
             .font: NSFont.boldSystemFont(ofSize: 46),
             .foregroundColor: NSColor(calibratedWhite: 0.92, alpha: 1.0)
         ]
-        NSAttributedString(string: "只读预览 · 共 \(layers.count) 层", attributes: titleAttrs)
+        let badgeText = motiPreviewBadgeOverride ?? "只读预览 · 共 \(layers.count) 层"
+        NSAttributedString(string: badgeText, attributes: titleAttrs)
             .draw(at: CGPoint(x: artboardRect.minX + 36, y: artboardRect.maxY - 82))
 
         let centerStyle = NSMutableParagraphStyle()

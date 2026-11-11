@@ -120,6 +120,17 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         didSet { applyMotiReadOnlyText() }
     }
 
+    // MARK: - TR-002-C：.moti 编辑态（只读预览态代码一行未动）
+    /// 编辑态与只读态互斥：这里为 true 时 motiReadOnlyMode 必须为 false，
+    /// 属性区显示，仅有五类值可写回。具体控件配置在 InspectorView+MotiEdit.swift。
+    public var motiEditMode: Bool = false
+    /// 由主控制器按「相对写前快照的增量」刷新，决定保存按钮是否可用。
+    public var motiEditHasChanges: Bool = false
+    /// 只读卷 / 无写权限时置 false，保存按钮直接禁用。
+    public var motiEditWritable: Bool = true
+    /// 发布勾选组的标题 + 两行复选框（编辑态整块隐藏；.moti 没有发布概念）。
+    public var motiPublishGroupViews: [NSView] = []
+
     // TR-019-R：只读态把图层表拉高以一次显示 11 行，并隐藏不可编辑的属性区
     private weak var mainStackView: NSStackView?
     private var tableScrollHeight: NSLayoutConstraint?
@@ -806,6 +817,8 @@ public final class InspectorView: NSVisualEffectView, NSTableViewDataSource, NST
         pubRow2.addArrangedSubview(publishRotCheck)
         pubRow2.addArrangedSubview(publishScaleCheck)
         mainStack.addArrangedSubview(pubRow2)
+        // TR-002-C：编辑态整块隐藏发布勾选组，保留引用（只读态仍由 motionPropsTag 统一隐藏）
+        motiPublishGroupViews = [pubBoxTitle, pubRow1, pubRow2]
 
         // ── 3. 底部操作按钮（R49 高度标准化 28pt 与磨砂质感对齐） ──
         let saveBtn = NSButton(title: " 保存当前模板至 FCPX", target: self, action: #selector(onSaveCurrentTemplateAction))
