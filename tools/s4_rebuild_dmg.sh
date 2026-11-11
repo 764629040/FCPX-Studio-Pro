@@ -266,8 +266,10 @@ SRC_SHA16="$(shasum -a 256 "$APP_ABS/Contents/MacOS/FCPXStudio" | cut -c1-16)"
         "FCPX Studio Pro ${VERSION} 安装说明" \
         "" \
         "安装：把「${APP_BASE}」拖到本窗口的 Applications 快捷方式即可。" \
-        "内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 —— 含真反相（不吃目标色）、" \
-        "      「⇄ 对比色」按钮、X/Y 数值框左右拖动。" \
+        "内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 / TR-026 —— 含真反相（不吃目标色）、" \
+        "      「⇄ 对比色」按钮、X/Y 数值框左右拖动；" \
+        "      TR-026：只读 .moti 预览态禁用 X/Y 数值框与旋转/缩放滑块，" \
+        "      发布项与横竖排按钮按原样保留。" \
         "" \
         "校验（挂载后执行）：" \
         "  shasum -a 256 \"${APP_BASE}/Contents/MacOS/FCPXStudio\"" \
