@@ -1,0 +1,114 @@
+封 v1.7｜装包与封版留证
+================================================================================
+执行时间：2026-11-12 14:30–14:45
+起点：HEAD=1f6254a / ahead=76 / porcelain 空 / FCPX 进程 0
+入口纪律：发现 .git/index.lock 残留（0 字节），按 EXDEV 规程改名为
+          .git/index.lock.bak_20261112143037，未删除；收尾复查 .git/*.lock 为空。
+源码：本单 0 行改动（git diff --stat 为空，仅证据/台账入库）。
+
+--------------------------------------------------------------------------------
+1. 构建（交付口径，无 -D）
+--------------------------------------------------------------------------------
+命令：cd FCPXStudioNative && swift build -c release --build-path /tmp/fcpx_v17 --disable-sandbox
+结果：Build complete! (52.61s)
+产物：/tmp/fcpx_v17/release/FCPXStudio
+      sha256 = bf85d5ebf5839fe8ba2c5c575784f74b9c634c58a2be1424f54d85a3f893c56f
+      size   = 4205608 B
+      strings -a … | grep -c edit-moti-auto = 0（交付包口径：自动化开关不编译）
+
+--------------------------------------------------------------------------------
+2. 装包（覆盖 → 重签 → strict verify）
+--------------------------------------------------------------------------------
+装前：
+  App 文件数 = 2006
+  包内二进制 sha256 = 7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b
+  包内二进制 size   = 4179744 B
+  App 体积         = 95844 KiB
+覆盖后（未签名）：
+  sha256 = bf85d5ebf5839fe8ba2c5c575784f74b9c634c58a2be1424f54d85a3f893c56f（== 构建产物）
+  size   = 4205608 B
+重签：
+  codesign --force --deep --sign - "FCPX Studio Pro R2.app"  → exit 0
+  （输出一行 "replacing existing signature"，即替换旧签名，符合预期）
+装后：
+  App 文件数 = 2006（与装前一致，未增未减）
+  包内二进制 sha256 = b8a8d703b5799e06d929d27738b1daea09a44d3f1493131218152434d55f9362
+  包内二进制 size   = 4199312 B（签后含签名膨胀）
+  App 体积         = 95864 KiB
+strict verify：
+  codesign --verify --deep --strict --verbose=2 "FCPX Studio Pro R2.app" → exit 0
+    "FCPX Studio Pro R2.app: valid on disk"
+    "FCPX Studio Pro R2.app: satisfies its Designated Requirement"
+codesign -dv：
+  Identifier=com.studiopro.fcpxstudio / Format=app bundle with Mach-O thin (arm64)
+  CodeDirectory v=20400 flags=0x2(adhoc) / Signature=adhoc
+
+新旧二进制差异（记账）：
+  旧（v1.6 口径，签后） 7755783f… 4179744 B
+  新（v1.7 口径，签后） b8a8d703… 4199312 B
+  未签层面对照：旧轮未签 d145da96…（4185912 B）→ 新未签 bf85d5eb…（4205608 B）
+  差异来源：TR-002-D（4D-1/3/4）与 TR-002-D-1、D-1-r2 三批源码修复首次进入交付包。
+
+--------------------------------------------------------------------------------
+3. 镜像
+--------------------------------------------------------------------------------
+工具：tools/s4_rebuild_dmg.sh --version v1.7（未加 --force / --replace）
+过程：stage 与临时 dmg 全部在 /tmp；体积 45993862 B；挂载校验「二进制逐字节一致 + strict exit 0」
+产物：/Users/mrhuang/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.7.dmg
+      size   = 45993862 B
+      sha256 = a1a59e79c949a9565426a1b666403c8e32a04a2b3d33571bf0a626482e2ca36c
+      mtime  = 2026-11-12 14:33:39
+      cmp 与 /tmp/s4_dmg_out 同名产物：逐字节相同
+独立挂载复验（我方再挂一次，只读）：
+  根目录：Applications（软链）/ "FCPX Studio Pro R2.app" / 安装说明.txt
+  App 文件数 = 2006
+  包内二进制 sha256 = b8a8d703b5799e06d929d27738b1daea09a44d3f1493131218152434d55f9362
+  codesign --verify --deep --strict → exit 0
+  已 detach，无残留挂载
+
+四镜像 sha（执行前后）：
+  v1.3 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb 47855074 B 未动
+  v1.4 18d122ebfc7ee140f9cc7a3ad974fb61494130694af5b77b8ab31735db36b6bd 46290500 B 未动
+  v1.5 c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499 46290844 B 未动
+  v1.6 62ec40536cff1319534710545d6d43342ce607536ebcb5aa9c556eb34b367e68 48124361 B 未动
+  v1.7 a1a59e79c949a9565426a1b666403c8e32a04a2b3d33571bf0a626482e2ca36c 45993862 B 新增
+未覆盖、未删除任何旧镜像；项目根过期 v1.0.dmg 未被触碰（脚本 --replace 已禁用）。
+
+--------------------------------------------------------------------------------
+4. 真机三张图（全部用装好的 App 直接跑）
+--------------------------------------------------------------------------------
+可执行文件：/Volumes/…/FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio（sha b8a8d703…）
+
+01_564层_不可写态_整窗.png（--edit-moti 564 层副本）
+  摘要行逐字：ⓘ 编辑态：本模板无可写图层，仅支持只读预览（单行、无省略号）
+  黄横幅三行：首行「该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写」
+              + 「该图层仅支持只读预览：文本 / 可见 / 锁定 亦不可写回」
+  X/Y = 「—」；保存回 .moti 禁用；表格每行眼睛/锁灰
+02_8层全可写_XY真值_整窗.png（--edit-moti 8 层中文链样本）
+  摘要行逐字：ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti（n==总层，无后缀、无省略号）
+  X = -213.0 / Y = 484.5（白色可编辑真值，局部见 02b）
+  保存按钮逻辑照旧（无改动时禁用）
+03_只读态回归_整窗.png（--preview-moti 原件）
+  sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  size   = 395855 B
+  cmp 与 reports/verify_tr027/shots/08_v15dmg_只读态_整窗.png：逐字节相同
+
+--------------------------------------------------------------------------------
+5. 回归与卫生
+--------------------------------------------------------------------------------
+harness：swiftc -O -j 8（全部产品源码，排除 main.swift）+ tools/tr019r/tr019r_harness.swift
+  PASS = 61  FAIL = 0 / TR-019-R VERDICT: PASS / 69 行 / sha16 6787e31d50961fb5
+  与 8 份历史日志逐字节比对：tr023b / tr024 / tr024_1 / tr024_2 / tr025 / tr026 / tr027 / tr002c
+  → 8/8 BYTE_IDENTICAL
+原件：
+  样例 247979 B / Oct 28 20:14:13 / 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd（未动）
+  564 层 11464903 B / d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497（未动）
+FCPX：pgrep -x "Final Cut Pro" = 0（全程；未启动、未重启、未退出 FCPX）
+自起的 FCPXStudio 实例均以 kill -TERM 结束，无残留进程。
+
+--------------------------------------------------------------------------------
+6. 披露
+--------------------------------------------------------------------------------
+- Info.plist 的 CFBundleShortVersionString 仍为 1.0、CFBundleVersion 1（与 v1.3–v1.6 同一做法：
+  只替换可执行文件 + 重签，不改 Info.plist）。版本号只体现在 dmg 文件名与卷名 "FCPX Studio Pro v1.7"。
+- 本单未改任何源码；未动 4D-4 的 100pt 文本高度；未动镜像内旧版本；未动原件。
