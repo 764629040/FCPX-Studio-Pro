@@ -1,0 +1,37 @@
+P2c 框选拆分 · 12 张夹具全量回归（新 core：抽 _layer_full_rgba/_write_mask_png + 新增 split_layer_png_region）
+运行日期 2026-11-13  环境 macOS  /opt/homebrew/bin/python3
+==============================================================================
+A_gradient_text_object_decor     pass=44 fail=0 PASS maxdiff=0.0
+B_flat_product_title             pass=36 fail=0 PASS maxdiff=0.0
+C_vignette_badge                 pass=44 fail=0 PASS maxdiff=0.0
+D_card_portrait                  pass=32 fail=0 PASS maxdiff=0.0
+E_ui_screenshot                  pass=60 fail=0 PASS maxdiff=0.0
+F_low_contrast                   pass=28 fail=0 PASS maxdiff=0.0
+G_vertical_text                  pass=32 fail=0 PASS maxdiff=0.0
+H_two_objects                    pass=32 fail=0 PASS maxdiff=0.0
+I_no_text                        pass=32 fail=0 PASS maxdiff=0.0
+J_text_heavy                     pass=36 fail=0 PASS maxdiff=0.0
+K_transparent_poster             pass=30 fail=0 PASS maxdiff=0.0
+L_transparent_text_only          pass=26 fail=0 PASS maxdiff=0.0
+==============================================================================
+汇总: PASS=12 / FAIL=0 / 共 12 张
+通过项数 44/36/44/32/60/28/32/32/32/36/30/26，与 M.3.20 基线逐条一致
+
+框选 e2e（离屏真实 MainWindow + 模拟 QMouseEvent，走真实面板信号）
+  载入 A 夹具 8 层 -> 右键「框选拆分这层」-> 拖框球右半 -> 9 层
+  层名: BACKGROUND / OBJECT_01_主体 / OBJECT_01_主体_框拆1 / ELEMENT_01..04 / TEXT_01..02
+  整幅重合成 拆前 vs 拆后 maxdiff = 0
+  画布项 9 / 面板行 9 / 层标签同步
+  像素守恒: 拆出 118356 + 剩余 117733 = 236089 = 该层 PNG alpha>8 实际像素数
+
+边界用例
+  Esc 取消 -> 模式 False，场景无残留框
+  框太小（2px）-> 层数不变 8
+  背景层 -> 拒，提示「背景层不拆（拆开没有意义）」
+  框在空白处 -> 拒，提示「框里没有可拆的东西（空，或只有碎渣）」
+  正常框半块 -> 拆分成功
+
+顺带修掉（既有 bug，非本轮引入）
+  右栏贴图层用整幅 pixmap 却按 bbox 中心摆位 -> 每层整体平移(bbox中心-画布中心)；
+  A 夹具 SALE 大字与星星长期被挤出画板外，框选拆半块后才暴露。修后右栏完整。
+  坐标 y 符号写反 -> 框只套住球上半截；改为同向 img_y=sy+H/2 后框套住球右半全高。

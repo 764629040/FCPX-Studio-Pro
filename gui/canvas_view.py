@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
     QSpinBox, QPushButton, QGraphicsView, QGraphicsScene, 
     QGraphicsItem, QGraphicsRectItem, QSplitter, QFrame
 )
-from PyQt6.QtCore import Qt, QRectF, QPointF, pyqtSignal, QSettings
+from PyQt6.QtCore import Qt, QRectF, QPointF, QSizeF, pyqtSignal, QSettings
 from PyQt6 import sip
 from PyQt6.QtGui import QColor, QPen, QBrush, QFont, QPainter, QCursor, QPixmap, QIcon
 
@@ -72,11 +72,14 @@ class ConvertedLayerGraphicItem(QGraphicsRectItem):
     集成字体四态徽章、缺字标记、降级徽章与拖拽交互
     """
     def __init__(self, layer_info, on_moved_callback=None, on_badge_clicked=None,
-                 on_committed_callback=None):
+                 on_committed_callback=None, artboard_w=0, artboard_h=0):
         super().__init__()
         self.layer_info = layer_info
         self.on_moved_callback = on_moved_callback
         self.on_badge_clicked = on_badge_clicked
+        # 画板尺寸：用于识别"整幅画布尺寸的层 PNG"，那种图自带画布坐标
+        self.artboard_w = artboard_w
+        self.artboard_h = artboard_h
         # D-2：拖拽释放后把坐标写回 .moti 的回调
         self.on_committed_callback = on_committed_callback
         self.is_highlighted = False
@@ -259,6 +262,12 @@ class ConvertedLayerGraphicItem(QGraphicsRectItem):
             if self.pixmap and not self.pixmap.isNull():
                 w = self.pixmap.width()
                 h = self.pixmap.height()
+                # 边缘导出的层 PNG 都是整幅画布尺寸，本身已带位置（左上角就是画布左上角）。
+                # 若再按 bbox 中心摆放，整幅会被平移 (bbox中心 - 画布中心)：
+                # 单层看着只是轻微偏移，框选拆出的半块会被拉开成两半。
+                if (self.artboard_w and self.artboard_h
+                        and w == int(self.artboard_w) and h == int(self.artboard_h)):
+                    self.setPos(0.0, 0.0)
             elif info.psd_bbox:
                 l, t, r, b = info.psd_bbox
                 w = max(10, r - l)
@@ -588,6 +597,8 @@ class InfiniteCanvasView(QGraphicsView):
     layer_moved_signal = pyqtSignal(object)
     layer_committed_signal = pyqtSignal(object)  # D-2：拖拽落定写回 .moti 后通知
     badge_clicked_signal = pyqtSignal(object)
+    region_picked_signal = pyqtSignal(object)   # 框选完成：画布像素坐标 (x0,y0,x1,y1)
+    region_cancelled_signal = pyqtSignal()      # 框选放弃（Esc 或框太小）
 
     def __init__(self, title: str, is_original: bool = False, parent=None):
         super().__init__(parent)
@@ -620,6 +631,11 @@ class InfiniteCanvasView(QGraphicsView):
         self._is_panning = False
         self._pan_start_x = 0
         self._pan_start_y = 0
+
+        # 框选拆分：进入该模式后左键不再拖动图层，改为拖出矩形选区域
+        self._region_pick = False
+        self._region_origin: Optional[QPointF] = None
+        self._region_box: Optional[QGraphicsRectItem] = None
 
         # D-2/D-3：实时写回所需的运行时状态
         self._moti_path = None              # 当前编辑中的 .moti 文件路径
@@ -822,7 +838,9 @@ class InfiniteCanvasView(QGraphicsView):
                     info, 
                     on_moved_callback=self.layer_moved_signal.emit,
                     on_badge_clicked=self.badge_clicked_signal.emit,
-                    on_committed_callback=self._commit_layer_position
+                    on_committed_callback=self._commit_layer_position,
+                    artboard_w=self.artboard_w,
+                    artboard_h=self.artboard_h
                 )
             item._bound_view = self
             self.scene.addItem(item)
@@ -941,7 +959,83 @@ class InfiniteCanvasView(QGraphicsView):
                 self.zoom_sync_signal.emit(self.transform())
                 self.pan_sync_signal.emit(self.horizontalScrollBar().value(), self.verticalScrollBar().value())
 
+    # ── 框选拆分：拖出矩形只为取区域，不移动图层 ──
+    REGION_MIN_SIDE = 4.0  # scene 单位；小于这个当误触，直接放弃
+
+    def begin_region_pick(self):
+        """进入框选模式：左键拖动画矩形，右/中键与 Esc 之外的行为全部让路。"""
+        self._region_pick = True
+        self._region_origin = None
+        self._region_box = None
+        self.setCursor(QCursor(Qt.CursorShape.CrossCursor))
+        self.setFocus()
+        self.viewport().update()
+
+    def cancel_region_pick(self, notify: bool = True):
+        """退出框选模式并清理临时矩形。"""
+        if self._region_box is not None:
+            self.scene.removeItem(self._region_box)
+            self._region_box = None
+        self._region_origin = None
+        was_active = self._region_pick
+        self._region_pick = False
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.viewport().update()
+        if notify and was_active:
+            self.region_cancelled_signal.emit()
+
+    def _scene_rect_to_image(self, r: QRectF) -> Optional[Tuple[int, int, int, int]]:
+        """scene 坐标 → 画布像素坐标。
+
+        图元按 setPos(motion_x, -motion_y) 摆放，而 motion_y 是「层中心相对画布中心的偏移、
+        向下为正」，所以 scene 的 y 与图像 y 同向：img = scene + 画布半边。
+        """
+        if r is None:
+            return None
+        W, H = float(self.artboard_w), float(self.artboard_h)
+        x0 = r.left() + W / 2.0
+        x1 = r.right() + W / 2.0
+        y0 = r.top() + H / 2.0
+        y1 = r.bottom() + H / 2.0
+        rect = (int(round(x0)), int(round(y0)), int(round(x1)), int(round(y1)))
+        if rect[2] - rect[0] < 2 or rect[3] - rect[1] < 2:
+            return None
+        return rect
+
+    def keyPressEvent(self, event):
+        if self._region_pick and event.key() == Qt.Key.Key_Escape:
+            self.cancel_region_pick()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
     def mousePressEvent(self, event):
+        # 框选模式下：左键只画框，不走图层拖动；中键仍可平移，方便在大图上挪视野
+        if self._region_pick:
+            if event.button() == Qt.MouseButton.RightButton:
+                self.cancel_region_pick()
+                event.accept()
+                return
+            if event.button() == Qt.MouseButton.MiddleButton:
+                self._is_panning = True
+                self._pan_start_x = event.pos().x()
+                self._pan_start_y = event.pos().y()
+                self.setCursor(QCursor(Qt.CursorShape.ClosedHandCursor))
+                event.accept()
+                return
+            if event.button() == Qt.MouseButton.LeftButton:
+                self._region_origin = self.mapToScene(event.pos())
+                pen = QPen(QColor("#0A84FF"), 1.5, Qt.PenStyle.DashLine)
+                pen.setCosmetic(True)
+                box = self.scene.addRect(QRectF(self._region_origin, QSizeF(0, 0)), pen)
+                box.setZValue(1e9)
+                box.setBrush(QBrush(QColor(10, 132, 255, 40)))
+                self._region_box = box
+                event.accept()
+                return
+            event.accept()
+            return
+
         if event.button() == Qt.MouseButton.MiddleButton or (
             event.button() == Qt.MouseButton.LeftButton and event.modifiers() == Qt.KeyboardModifier.ShiftModifier
         ):
@@ -967,15 +1061,43 @@ class InfiniteCanvasView(QGraphicsView):
 
             event.accept()
             return
+
+        if self._region_pick:
+            if self._region_origin is not None and self._region_box is not None:
+                r = QRectF(self._region_origin, self.mapToScene(event.pos())).normalized()
+                self._region_box.setRect(r)
+            event.accept()
+            return
         # D-2：拖拽中实时计算对齐参考线 + 吸附
         if self._drag_item is not None and self._drag_item.scene() is not None:
             self._update_alignment_guides()
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if self._region_pick and event.button() == Qt.MouseButton.LeftButton:
+            rect_scene = self._region_box.rect() if self._region_box is not None else None
+            if self._region_box is not None:
+                self.scene.removeItem(self._region_box)
+                self._region_box = None
+            self._region_origin = None
+            self._region_pick = False
+            self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.viewport().update()
+            event.accept()
+
+            if rect_scene is not None and (rect_scene.width() >= self.REGION_MIN_SIDE
+                                           and rect_scene.height() >= self.REGION_MIN_SIDE):
+                img_rect = self._scene_rect_to_image(rect_scene)
+                if img_rect:
+                    self.region_picked_signal.emit(img_rect)
+                    return
+            self.region_cancelled_signal.emit()
+            return
+
         if self._is_panning:
             self._is_panning = False
-            self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.setCursor(QCursor(Qt.CursorShape.CrossCursor if self._region_pick
+                                   else Qt.CursorShape.ArrowCursor))
             event.accept()
             return
         # D-2：拖拽结束，清除参考线与拖拽源
@@ -1003,6 +1125,16 @@ class InfiniteCanvasView(QGraphicsView):
         painter.setPen(fg)
         painter.setFont(QFont("PingFang SC", 10, QFont.Weight.Bold))
         painter.drawText(tag_rect, Qt.AlignmentFlag.AlignCenter, self.view_title)
+
+        # 框选模式提示：告诉用户现在左键是画框、不是拖图层
+        if self._region_pick:
+            tip_rect = QRectF(190, 12, 268, 24)
+            painter.setPen(QPen(QColor("#FF9F0A"), 1))
+            painter.setBrush(QBrush(QColor("#3A2A10")))
+            painter.drawRoundedRect(tip_rect, 4, 4)
+            painter.setPen(QColor("#FF9F0A"))
+            painter.setFont(QFont("PingFang SC", 10, QFont.Weight.Bold))
+            painter.drawText(tip_rect, Qt.AlignmentFlag.AlignCenter, "拖框选要拆出的部分 · Esc 取消")
 
         painter.restore()
 
@@ -1038,10 +1170,13 @@ class CanvasContainer(QWidget):
     layer_moved_signal = pyqtSignal(object)
     badge_clicked_signal = pyqtSignal(object)
     layer_committed_signal = pyqtSignal(object)  # D-2：拖拽落定写回 .moti 后通知
+    region_picked_signal = pyqtSignal(int, object)  # (图层 index, 画布像素矩形)
+    region_cancelled_signal = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.settings = QSettings("FCPXStudioPro", "FCPXStudioPro")
+        self._pending_region_index: Optional[int] = None
         self._init_ui()
 
     def _init_ui(self):
@@ -1174,6 +1309,9 @@ class CanvasContainer(QWidget):
         self.right_canvas.set_checkerboard_enabled(saved_checker)
         self.right_canvas.layer_moved_signal.connect(self.layer_moved_signal.emit)
         self.right_canvas.badge_clicked_signal.connect(self.badge_clicked_signal.emit)
+        # 框选拆分只在右侧（转换结果）画板生效，结果带上是哪一层
+        self.right_canvas.region_picked_signal.connect(self._on_region_picked)
+        self.right_canvas.region_cancelled_signal.connect(self._on_region_cancelled)
         # D-2：两侧画布拖拽落定写回 .moti 后，向上转发给 MainWindow
         self.left_canvas.layer_committed_signal.connect(self.layer_committed_signal.emit)
         self.right_canvas.layer_committed_signal.connect(self.layer_committed_signal.emit)
@@ -1337,6 +1475,26 @@ class CanvasContainer(QWidget):
         # 外部调用同样走唯一入口，保证下拉框/按钮/画板一致，
         # 避免"程序内部设了竖版、下拉框仍显示横版"这类标签与真实状态脱节。
         self._apply_resolution(width, height, sync_preset=True)
+
+    # ── 框选拆分入口 ──
+    def begin_region_split(self, layer_index: int):
+        """让右侧画板进入框选模式，框选结果带上这一层的 index 抛给主窗口。"""
+        self._pending_region_index = int(layer_index)
+        self.right_canvas.begin_region_pick()
+
+    def cancel_region_split(self, notify: bool = True):
+        self._pending_region_index = None
+        self.right_canvas.cancel_region_pick(notify=notify)
+
+    def _on_region_picked(self, rect):
+        idx = self._pending_region_index
+        self._pending_region_index = None
+        if idx is not None:
+            self.region_picked_signal.emit(idx, rect)
+
+    def _on_region_cancelled(self):
+        self._pending_region_index = None
+        self.region_cancelled_signal.emit()
 
     def update_layer_display(self, info):
         self.left_canvas.update_layer_display(info)

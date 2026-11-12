@@ -260,6 +260,8 @@ class MainWindow(QMainWindow):
         self.canvas_view.layer_moved_signal.connect(self._on_canvas_layer_moved)
         self.canvas_view.layer_committed_signal.connect(self._on_canvas_layer_committed)
         self.canvas_view.badge_clicked_signal.connect(self._on_jump_to_diagnosis)
+        self.canvas_view.region_picked_signal.connect(self._on_region_picked)
+        self.canvas_view.region_cancelled_signal.connect(self._on_region_cancelled)
         tab1_layout.addWidget(self.canvas_view, stretch=3)
 
         # 右栏：属性面板
@@ -269,6 +271,7 @@ class MainWindow(QMainWindow):
         self.inspector.badge_clicked_signal.connect(self._on_jump_to_diagnosis)
         self.inspector.layers_merge_requested.connect(self._on_merge_layers)
         self.inspector.layer_split_requested.connect(self._on_split_layer)
+        self.inspector.layer_region_split_requested.connect(self._on_begin_region_split)
         self.inspector.save_template_signal.connect(self._on_save_current_template)
         self.inspector.batch_export_signal.connect(self._on_batch_export_all)
         self.inspector.setFixedWidth(400)  # 层树 5 列，360 时图层名只剩几个字看不清
@@ -695,6 +698,30 @@ class MainWindow(QMainWindow):
         from core.png_layer_io import split_layer_model
         self._apply_layer_edit(
             split_layer_model(self.current_parsed_psd, self.current_psd_path, index))
+
+    def _on_begin_region_split(self, index):
+        """进入框选模式：真正的拆分等用户在右侧画板拖完框才发生。"""
+        if not self._layer_edit_ready():
+            return
+        target = next((l for l in self.current_parsed_psd["layers"] if l.index == int(index)), None)
+        if target is None:
+            QMessageBox.warning(self, "改不了", "选中的层已不存在")
+            return
+        if (target.fallback_png_info or {}).get("layer_class") == "BACKGROUND":
+            QMessageBox.warning(self, "改不了", "背景层不拆（拆开没有意义）")
+            return
+        self.canvas_view.begin_region_split(index)
+
+    def _on_region_picked(self, index, rect):
+        if not self._layer_edit_ready():
+            return
+        from core.png_layer_io import split_layer_model
+        self._apply_layer_edit(
+            split_layer_model(self.current_parsed_psd, self.current_psd_path, index, region=rect))
+
+    def _on_region_cancelled(self):
+        # 用户按 Esc 或点了右键：静默退出，不打扰
+        pass
 
     def _on_save_current_template(self):
         if not self.current_parsed_psd or not self.current_psd_path:

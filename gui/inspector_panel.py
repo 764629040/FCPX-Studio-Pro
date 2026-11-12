@@ -21,6 +21,7 @@ class InspectorPanel(QWidget):
     # 手动纠错：多选合并（传 1-based 层索引列表）/ 单层按连通块拆分（传层索引）
     layers_merge_requested = pyqtSignal(list)
     layer_split_requested = pyqtSignal(int)
+    layer_region_split_requested = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -403,6 +404,9 @@ class InspectorPanel(QWidget):
             act = menu.addAction("按连通块拆分这层")
             act.triggered.connect(
                 lambda _=False, idx=infos[0].index: self.layer_split_requested.emit(idx))
+            act2 = menu.addAction("框选拆分这层（在右侧画板拖框）")
+            act2.triggered.connect(
+                lambda _=False, idx=infos[0].index: self.layer_region_split_requested.emit(idx))
         menu.addSeparator()
         menu.addAction("改动只在本次导出生效，不动源分层文件").setEnabled(False)
         menu.exec(self.tree.viewport().mapToGlobal(pos))

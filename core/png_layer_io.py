@@ -353,6 +353,42 @@ def merge_layer_pngs(paths: List[str], bboxes: List[Tuple[int, int, int, int]],
     return True
 
 
+def _layer_full_rgba(path: str, bbox: Tuple[int, int, int, int],
+                     canvas: Tuple[int, int]) -> Tuple[Optional[Any], Optional[Any]]:
+    """把层图按 bbox 贴回整幅画布，返回 (整幅 RGBA 图, alpha 数组)；读不回来给 (None, None)。"""
+    import numpy as np
+    from PIL import Image
+
+    im = _open_layer_rgba(path)
+    if im is None:
+        return None, None
+    W, H = int(canvas[0]), int(canvas[1])
+    if im.size == (W, H):
+        full = im
+    else:
+        x0, y0 = int(bbox[0]), int(bbox[1])
+        full = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        full.paste(im, (x0, y0))
+    return full, np.asarray(full.getchannel("A"))
+
+
+def _write_mask_png(full, mask_group, out_dir: str, name: str) -> Dict[str, Any]:
+    """把整幅图里 mask_group 覆盖的像素单独存一张 png，返回路径/画布 bbox/像素数。"""
+    import numpy as np
+    from PIL import Image
+
+    alpha = np.asarray(full.getchannel("A"))
+    a = np.where(mask_group, alpha, 0).astype(np.uint8)
+    rgb = np.asarray(full.convert("RGB"))
+    arr = np.dstack([rgb, a])
+    ys, xs = np.where(mask_group)
+    bx = [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
+    os.makedirs(out_dir, exist_ok=True)
+    p = os.path.join(out_dir, name)
+    Image.fromarray(arr).save(p, optimize=True)
+    return {"path": p, "bbox": bx, "pixels": int(mask_group.sum())}
+
+
 def split_layer_png(path: str, bbox: Tuple[int, int, int, int], canvas: Tuple[int, int],
                     out_dir: str) -> List[Dict[str, Any]]:
     """把一层按「不相连的连通块」拆成多层，返回每块的 png 路径与画布 bbox。
@@ -364,22 +400,12 @@ def split_layer_png(path: str, bbox: Tuple[int, int, int, int], canvas: Tuple[in
     又不让它超过本层像素的 1/8 —— 否则本身就很小的层永远拆不开。
     """
     import numpy as np
-    from PIL import Image
     from scipy import ndimage
 
-    im = _open_layer_rgba(path)
-    if im is None:
-        return []
     W, H = int(canvas[0]), int(canvas[1])
-
-    if im.size == (W, H):
-        full = im
-    else:
-        x0, y0 = int(bbox[0]), int(bbox[1])
-        full = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        full.paste(im, (x0, y0))
-
-    alpha = np.asarray(full.getchannel("A"))
+    full, alpha = _layer_full_rgba(path, bbox, (W, H))
+    if full is None:
+        return []
     mask = alpha > 8
     if not mask.any():
         return []
@@ -404,22 +430,80 @@ def split_layer_png(path: str, bbox: Tuple[int, int, int, int], canvas: Tuple[in
         groups.append(tail)
 
     m = mask.sum()
+    base = os.path.splitext(os.path.basename(path))[0]
     out_imgs = []
     for g in groups:
-        a = np.where(g, alpha, 0).astype(np.uint8)
-        rgb = np.asarray(full.convert("RGB"))
-        arr = np.dstack([rgb, a])
-        ys, xs = np.where(g)
-        bx = [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
-        img = Image.fromarray(arr)
-        base = os.path.splitext(os.path.basename(path))[0]
-        name = "%s_拆%d.png" % (base, len(out_imgs) + 1)
-        os.makedirs(out_dir, exist_ok=True)
-        p = os.path.join(out_dir, name)
-        img.save(p, optimize=True)
-        out_imgs.append({"path": p, "bbox": bx, "pixels": int(g.sum()),
-                         "ratio": float(g.sum()) / float(max(1, m))})
+        ent = _write_mask_png(full, g, out_dir, "%s_拆%d.png" % (base, len(out_imgs) + 1))
+        ent["ratio"] = float(ent["pixels"]) / float(max(1, m))
+        out_imgs.append(ent)
     return out_imgs
+
+
+def split_layer_png_region(path: str, bbox: Tuple[int, int, int, int],
+                           canvas: Tuple[int, int], out_dir: str,
+                           region: Tuple[int, int, int, int]
+                           ) -> Tuple[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """只把框选区域内的像素拆成独立层，框外留在原层。
+
+    return (blocks, rest):
+      blocks —— 框内每个「够大」的连接块各一条。同一连接块被框切开时，只取框内那部分，
+                框外那部分回原层，所以拆前后像素并集不变。
+      rest   —— 原层剩余（框外像素）；框内像素被整块拿走时为 None。
+
+    框里只有碎渣或空的，返回 ([], None)，由上层如实拒绝。
+    """
+    import numpy as np
+    from scipy import ndimage
+
+    W, H = int(canvas[0]), int(canvas[1])
+    full, alpha = _layer_full_rgba(path, bbox, (W, H))
+    if full is None:
+        return [], None
+    mask = alpha > 8
+    if not mask.any():
+        return [], None
+
+    rx0, ry0, rx1, ry1 = (int(region[0]), int(region[1]), int(region[2]), int(region[3]))
+    rx0 = max(0, min(W, rx0)); rx1 = max(0, min(W, rx1))
+    ry0 = max(0, min(H, ry0)); ry1 = max(0, min(H, ry1))
+    if rx1 <= rx0 or ry1 <= ry0:
+        return [], None
+
+    in_region = np.zeros_like(mask)
+    in_region[ry0:ry1, rx0:rx1] = True
+    picked = mask & in_region
+    if not picked.any():
+        return [], None
+
+    layer_pixels = int(mask.sum())
+    min_area = max(12, min(int(SPLIT_MIN_AREA_RATIO * W * H), layer_pixels // 8))
+
+    lab, _n = ndimage.label(mask, structure=np.ones((3, 3), dtype=np.uint8))
+    takeable = []
+    for cid in np.unique(lab[picked]):
+        if cid == 0:
+            continue
+        part = (lab == cid) & in_region
+        if int(part.sum()) >= min_area:
+            takeable.append(part)
+    if not takeable:
+        return [], None
+
+    base = os.path.splitext(os.path.basename(path))[0]
+    blocks = []
+    for g in takeable:
+        ent = _write_mask_png(full, g, out_dir, "%s_框拆%d.png" % (base, len(blocks) + 1))
+        ent["ratio"] = float(ent["pixels"]) / float(max(1, layer_pixels))
+        blocks.append(ent)
+
+    taken = np.zeros_like(mask)
+    for g in takeable:
+        taken |= g
+    rest_mask = mask & ~taken
+    rest = None
+    if rest_mask.any():
+        rest = _write_mask_png(full, rest_mask, out_dir, base + "_余.png")
+    return blocks, rest
 
 
 # ── 层编辑入口：合并 / 拆分（给设计器面板调用）───────────────────────────
@@ -533,11 +617,14 @@ def merge_layer_models(parsed: Dict[str, Any], split_dir: str,
     return _relayer(rest, (W, H)), "已合并 %d 层 → %s" % (len(picked), out_name)
 
 
-def split_layer_model(parsed: Dict[str, Any], split_dir: str,
-                     index: int) -> Tuple[Optional[List[PSDLayerInfo]], str]:
-    """把一层按「不相连的连通块」拆成多层，返回新层模型表。
+def split_layer_model(parsed: Dict[str, Any], split_dir: str, index: int,
+                     region: Optional[Tuple[int, int, int, int]] = None
+                     ) -> Tuple[Optional[List[PSDLayerInfo]], str]:
+    """把一层拆成多层，返回新层模型表。
 
-    只按像素连通性拆：连在一起的不会动，所以拆完发现只有一块就会如实拒绝。
+    region=None：按「不相连的连通块」全层拆，连在一起的不会动，只有一块就如实拒绝。
+    region=(x0,y0,x1,y1)（画布像素坐标）：只拆框内像素，框外留在原层（原名原位）。
+    同一块被框切成两半时，框内那半单独成层，框外那半回原层 —— 拆前后像素总量不变。
     """
     W, H = int(parsed["width"]), int(parsed["height"])
     layers = list(parsed["layers"])
@@ -549,15 +636,30 @@ def split_layer_model(parsed: Dict[str, Any], split_dir: str,
     if (target.fallback_png_info or {}).get("layer_class") == "BACKGROUND":
         return None, "背景层不拆（拆开没有意义）"
 
-    blocks = split_layer_png(target.fallback_png_path, _png_bbox(target), (W, H), _edit_dir(split_dir))
-    if not blocks:
-        return None, "这层是连成一片的，拆不开（没有不相连的块）"
-
     orig_cls = (target.fallback_png_info or {}).get("layer_class") or "ELEMENT"
     layer_type = "bitmap_text" if orig_cls == "TEXT" else "bitmap_layer"
+    edit = _edit_dir(split_dir)
+
+    if region is None:
+        blocks = split_layer_png(target.fallback_png_path, _png_bbox(target), (W, H), edit)
+        if not blocks:
+            return None, "这层是连成一片的，拆不开（没有不相连的块）"
+        remain = None
+        remain_note = None
+        msg_ok = "已把 %s 拆成 %d 层" % (target.name, len(blocks))
+    else:
+        blocks, remain = split_layer_png_region(
+            target.fallback_png_path, _png_bbox(target), (W, H), edit, region)
+        if not blocks:
+            return None, "框里没有可拆的东西（空，或只有碎渣）"
+        remain_note = "框选拆出 %d 块，框外留在这层" % len(blocks)
+        msg_ok = "已从 %s 框选出 %d 块" % (target.name, len(blocks))
+        if remain is None:
+            msg_ok += "（这层整块都被框走了，原层已移除）"
+
     made: List[PSDLayerInfo] = []
     for n, b in enumerate(blocks, start=1):
-        name = "%s_拆%d" % (target.name, n)
+        name = "%s_%s%d" % (target.name, "框拆" if region is not None else "拆", n)
         notes = ["手动拆分自 %s（共 %d 块）" % (target.name, len(blocks))]
         m = _model_from(target, b["path"], tuple(b["bbox"]), name, notes, layer_type)
         fi = dict(m.fallback_png_info or {})
@@ -566,5 +668,14 @@ def split_layer_model(parsed: Dict[str, Any], split_dir: str,
         made.append(m)
 
     pos = layers.index(target)
-    rest = layers[:pos] + made + layers[pos + 1:]
-    return _relayer(rest, (W, H)), "已把 %s 拆成 %d 层" % (target.name, len(blocks))
+    if region is None or remain is None:
+        rest = layers[:pos] + made + layers[pos + 1:]
+    else:
+        # 原层改成「框外剩余」：名字不变，用户在面板里看到还是这层，只是少了一块
+        keep = _model_from(target, remain["path"], tuple(remain["bbox"]), target.name,
+                           list(target.diagnostic_notes or []) + [remain_note], layer_type)
+        fi = dict(keep.fallback_png_info or {})
+        fi.update({"layer_class": orig_cls, "pixels": remain["pixels"]})
+        keep.fallback_png_info = fi
+        rest = layers[:pos] + [keep] + made + layers[pos + 1:]
+    return _relayer(rest, (W, H)), msg_ok
