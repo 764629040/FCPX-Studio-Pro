@@ -1,0 +1,19 @@
+P2 口径2 定稿前 · 10 夹具基线回归（split + check 全量复跑）
+生成时间: 2026-11-12 22:18:26
+解释器: /opt/homebrew/bin/python3；源码: tools/pngp1/png_split_p1.py（改动前对照）
+
+样本 | 层数 | 类别 | 补洞方法 | 洞占比 | 模式 | pass | fail | 结论 | maxdiff | p999
+------------------------------------------------------------------
+A_gradient_text_object_decor | 8 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.138 | RGB | 44 | 0 | PASS | 0.0 | 0.0
+B_flat_product_title | 6 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.188 | RGB | 36 | 0 | PASS | 0.0 | 0.0
+C_vignette_badge | 8 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.093 | RGB | 44 | 0 | PASS | 0.0 | 0.0
+D_card_portrait | 5 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.249 | RGB | 32 | 0 | PASS | 0.0 | 0.0
+E_ui_screenshot | 12 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.551 | RGB | 60 | 0 | PASS | 0.0 | 0.0
+F_low_contrast | 4 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.116 | RGB | 28 | 0 | PASS | 0.0 | 0.0
+G_vertical_text | 5 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.124 | RGB | 32 | 0 | PASS | 0.0 | 0.0
+H_two_objects | 5 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.216 | RGB | 32 | 0 | PASS | 0.0 | 0.0
+I_no_text | 5 | BACKGROUND,OBJECT,ELEMENT | edge_extend_nearest_from_confident_background | 0.064 | RGB | 32 | 0 | PASS | 0.0 | 0.0
+J_text_heavy | 6 | BACKGROUND,OBJECT,ELEMENT,TEXT | edge_extend_nearest_from_confident_background | 0.047 | RGB | 36 | 0 | PASS | 0.0 | 0.0
+
+汇总: PASS=10 FAIL=0；重合成 maxdiff/p999 全部 0.0
+注: 10 张夹具 source_mode 均为 RGB（实体底），补洞方法均为边缘延展；alpha 透明底分支当前无夹具覆盖。
