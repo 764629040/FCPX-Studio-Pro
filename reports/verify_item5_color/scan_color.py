@@ -130,6 +130,10 @@ def resolve_color(style):
         if h:
             return h, "表面/颜色"
     hosts = [
+        # 补「面/渐变」：全库 39 层缺口全是这条链（面(14)/渐变(17)/RGB/RGB1/颜色）。
+        # 放在「表面/渐变」之前 —— 面 是 Motion 中文原生填充容器，表面 是 Surface 的译名；
+        # 两者同时存在的层按「面」取，与 resolveTextColor 的新优先级一致。
+        (child_parameter(style, ["面"]), ["渐变"], ["颜色"]),
         (child_parameter(style, ["表面"]), ["渐变"], ["颜色"]),
         (child_parameter(style, ["Face"]), ["Gradient"], ["Color"]),
         (style, ["渐变", "Gradient"], ["颜色", "Color"]),
@@ -145,7 +149,9 @@ def resolve_color(style):
         if stop is None:
             continue
         color = child_parameter(stop, cnames)
-        h = rgb_hex(color, ["红色", "Red"], ["绿色", "Green"], ["蓝色", "Blue"])
+        # 通道名要同时认单字与双字：`面/渐变/.../颜色` 下是 红/绿/蓝，
+        # `表面/渐变/.../颜色` 与 `Face/Gradient/.../Color` 下是 红色/Red。
+        h = rgb_hex(color, ["红", "红色", "Red"], ["绿", "绿色", "Green"], ["蓝", "蓝色", "Blue"])
         if h:
             return h, "渐变首色标"
     return None, None

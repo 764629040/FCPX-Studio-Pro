@@ -483,9 +483,15 @@ public final class MotiDocumentParser {
         return (fontName, fontSize, textColor, source)
     }
 
-    /// 取色优先级（阶段 1 实证）：Face/Color → 面/颜色 → 表面/颜色 → 渐变首色标。
-    /// 明确排除 物质/颜色 与 Object/Basic/Substance/Color（全库实测只有空壳），
-    /// 也排除 轮廓/Outline（描边色，不是主色）。
+    /// 取色优先级（阶段 2 实证）：Face/Color → 面/颜色 → 表面/颜色 → 面/渐变首色标 → 表面/渐变首色标
+    /// → Face/Gradient → style 直挂渐变。
+    ///
+    /// 三条口径（本次补「面/渐变」时定死，不许顺手加）：
+    /// 1. 纯色优先于渐变：同一 style 里 `面/颜色` 能取到值时，不因 `面/渐变` 存在而改取首色标；
+    ///    `面` 与 `表面` 同时带渐变时取 `面`（Motion 中文原生填充容器优先于 Surface 译名）。
+    /// 2. 只认 `面` 子树里的 渐变→RGB→RGB1→颜色；`轮廓`/`拖放阴影`/`外框`/`纹理` 一律不参与，
+    ///    描边色和投影色不是主色，图片填充没有"主色"可取。
+    /// 3. 取不到就返回 nil，面板照旧显示「未取到」并禁用；绝不把空串当黑色补上。
     private static func resolveTextColor(style: XMLElement) -> (hex: String, source: String)? {
         if let face = childParameter(style, names: ["Face"]),
            let color = childParameter(face, names: ["Color"]),
@@ -502,8 +508,11 @@ public final class MotiDocumentParser {
            let hex = rgbHex(color, red: ["红色", "红"], green: ["绿色", "绿"], blue: ["蓝色", "蓝"]) {
             return (hex, "表面/颜色")
         }
-        // 渐变首色标兜底：表面/渐变/RGB/RGB1/颜色、Face/Gradient/RGB/RGB1/Color、顶层 渐变/RGB/RGB1
+        // 渐变首色标兜底：面/渐变/RGB/RGB1/颜色（本次新增）、表面/渐变/RGB/RGB1/颜色、
+        // Face/Gradient/RGB/RGB1/Color、顶层 渐变/RGB/RGB1/颜色。
+        // 通道名三种写法都要认：面 子树下是 红/绿/蓝，表面 与 Face 下是 红色/Red。
         let gradientHosts: [(XMLElement?, [String], [String])] = [
+            (childParameter(style, names: ["面"]), ["渐变"], ["颜色"]),
             (childParameter(style, names: ["表面"]), ["渐变"], ["颜色"]),
             (childParameter(style, names: ["Face"]), ["Gradient"], ["Color"]),
             (style, ["渐变", "Gradient"], ["颜色", "Color"])
@@ -514,7 +523,9 @@ public final class MotiDocumentParser {
                   let stop = childParameter(rgb, names: ["RGB1"]),
                   let color = childParameter(stop, names: colorNames),
                   let hex = rgbHex(color,
-                                   red: ["红色", "Red"], green: ["绿色", "Green"], blue: ["蓝色", "Blue"])
+                                   red: ["红", "红色", "Red"],
+                                   green: ["绿", "绿色", "Green"],
+                                   blue: ["蓝", "蓝色", "Blue"])
             else { continue }
             return (hex, "渐变首色标")
         }
