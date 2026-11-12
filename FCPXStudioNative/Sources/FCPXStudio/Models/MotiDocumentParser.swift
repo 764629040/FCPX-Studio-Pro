@@ -184,7 +184,9 @@ public final class MotiDocumentParser {
         do {
             document = try XMLDocument(data: data, options: [])
         } catch {
-            return MotiDocumentSnapshot.invalid(path: path, reason: "这份模板的内部格式无法识别，预览不了。")
+            // 损坏 .moti 容错：失败提示要带文件名 + 损坏类型 + 行号，而不是一句笼统的「无法识别」。
+            return MotiDocumentSnapshot.invalid(path: path,
+                                                 reason: classifyXMLDamage(path: path, data: data))
         }
 
         guard let root = document.rootElement() else {
@@ -245,6 +247,40 @@ public final class MotiDocumentParser {
                                     failureReason: nil,
                                     nestedLayerCount: nestedCount,
                                     containerLayerCount: containerCount)
+    }
+
+    /// 损坏 .moti 分类：只做「读得动的诊断」，绝不修文件、不写回。
+    /// 三类口径（问题单 C 定死，不扩）：
+    /// 1. 字节损坏：数据不是有效 UTF-8 文本（优先判）；
+    /// 2. 未转义字符：属性值里出现裸的 " / < / &（XMLParser 码 65 / 38 / 23，最小样本实证过）；
+    /// 3. 标签损坏：闭合标签拼错 / 标签名非法 / 标签失配（码 76 / 68 / 73 等，兜底桶）。
+    /// 提示必须带文件名 + 类型 + 行号；取不到行号就只带文件名 + 类型，不编造。
+    private static func classifyXMLDamage(path: String, data: Data) -> String {
+        let name = (path as NSString).lastPathComponent
+        guard String(data: data, encoding: .utf8) != nil else {
+            return "「\(name)」文件字节损坏（不是有效的文本编码），预览不了。"
+        }
+        final class DamageProbe: NSObject, XMLParserDelegate {
+            var code = -1
+            var line = 0
+            func parser(_ p: XMLParser, parseErrorOccurred error: Error) {
+                code = (error as NSError).code
+                line = p.lineNumber
+            }
+        }
+        let probe = DamageProbe()
+        let parser = XMLParser(data: data)
+        parser.delegate = probe
+        parser.parse()
+        let whereText = probe.line > 0 ? "（第 \(probe.line) 行附近）" : ""
+        switch probe.code {
+        case 65, 38, 23:
+            return "「\(name)」的 XML 里有未转义字符\(whereText)，预览不了。"
+        case 76, 68, 73:
+            return "「\(name)」的 XML 标签损坏\(whereText)，预览不了。"
+        default:
+            return "「\(name)」的 XML 无法解析\(whereText)，预览不了。"
+        }
     }
 
     /// 深度优先递归：收集 element 全部后代里名为 layer 的节点。
