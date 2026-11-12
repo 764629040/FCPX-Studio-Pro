@@ -1,0 +1,27 @@
+// 文字取色实测：直接调产品解析器，打印每层 text / textColor / 取色来源
+// 编译：FILES=$(find FCPXStudioNative/Sources/FCPXStudio -name "*.swift" ! -name "main.swift" | sort)
+//       swiftc -O -j 8 ${=FILES} /tmp/item5/dump_colors.swift -o /tmp/item5/dump_colors
+import Foundation
+
+@main
+struct DumpColors {
+    static func main() {
+        let paths = Array(CommandLine.arguments.dropFirst())
+        var lacking = 0
+        for path in paths {
+            let snap = MotiDocumentParser.parse(path: path)
+            print("=== \(path)")
+            print("valid=\(snap.isValid) layers=\(snap.layers.count) "
+                  + "canvas=\(Int(snap.canvasWidth))x\(Int(snap.canvasHeight))")
+            for l in snap.layers {
+                let color = l.textColor.isEmpty ? "(nil)" : l.textColor
+                let src = l.colorSourcePath.isEmpty ? "-" : l.colorSourcePath
+                let txt = l.text.replacingOccurrences(of: "\n", with: "\\n")
+                print("L\(l.index) id=\(l.id) depth=\(l.depth) chain=\(l.positionChain.isEmpty ? "\"\"" : l.positionChain) "
+                      + "text=\"\(txt)\" color=\(color) src=\(src) font=\"\(l.fontName)\" size=\(l.fontSize)")
+                if !l.text.isEmpty && l.textColor.isEmpty { lacking += 1 }
+            }
+        }
+        print("\nTEXT_LAYERS_WITHOUT_COLOR_TOTAL=\(lacking)")
+    }
+}
