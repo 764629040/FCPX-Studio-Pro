@@ -533,6 +533,8 @@ class MainWindow(QMainWindow):
                 self.canvas_view.set_artboard_resolution(
                     self.current_parsed_psd["width"], self.current_parsed_psd["height"])
                 self.canvas_view.load_layers(layers)
+                self.inspector.set_layer_edit_allowed(
+                    self.current_parsed_psd.get("source_kind") == "png_split")
                 self.inspector.load_layers(layers, layer_tree=layer_tree)
 
             except PSDParseError as err:
@@ -696,6 +698,7 @@ class MainWindow(QMainWindow):
         # 层结构整表变了：画布本就是全量重建，按新表刷最稳
         self.canvas_view.load_layers(persisted)
         self.inspector.load_layers(persisted, layer_tree=parsed.get("layer_tree"))
+        self.inspector.set_layer_edit_allowed(True)
         self.statusBar().showMessage(pmsg, 5000)
 
     def _on_merge_layers(self, indexes):

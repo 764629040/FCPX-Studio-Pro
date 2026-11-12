@@ -27,6 +27,7 @@ class InspectorPanel(QWidget):
         super().__init__(parent)
         self.current_layer_info = None
         self.layers = []
+        self.layer_edit_allowed = False
         self._init_ui()
 
     def _init_ui(self):
@@ -387,8 +388,12 @@ class InspectorPanel(QWidget):
     def _on_pub_toggled(self, info, state):
         info.is_published = (state == Qt.CheckState.Checked.value or state == 2)
 
+    def set_layer_edit_allowed(self, allowed: bool):
+        """PSD 链路的层来自源文件，改了跟源对不上，所以右键里不摆合并/拆分。"""
+        self.layer_edit_allowed = bool(allowed)
+
     def _on_tree_context_menu(self, pos):
-        """层树右键：多选合并 / 单层按连通块拆分（手动纠错入口）。"""
+        """层树右键：多选合并 / 单层拆分（手动纠错入口）。"""
         items = self.tree.selectedItems()
         infos = [it.data(0, Qt.ItemDataRole.UserRole) for it in items]
         infos = [i for i in infos if i is not None]
@@ -396,7 +401,9 @@ class InspectorPanel(QWidget):
             return
 
         menu = QMenu(self)
-        if len(infos) >= 2:
+        if not getattr(self, "layer_edit_allowed", False):
+            menu.addAction("PSD 的层来自源文件，这里不能合并/拆分").setEnabled(False)
+        elif len(infos) >= 2:
             act = menu.addAction("合并所选 %d 层" % len(infos))
             act.triggered.connect(
                 lambda _=False, idx=[i.index for i in infos]: self.layers_merge_requested.emit(idx))
@@ -407,8 +414,9 @@ class InspectorPanel(QWidget):
             act2 = menu.addAction("框选拆分这层（在右侧画板拖框）")
             act2.triggered.connect(
                 lambda _=False, idx=infos[0].index: self.layer_region_split_requested.emit(idx))
-        menu.addSeparator()
-        menu.addAction("改动只在本次导出生效，不动源分层文件").setEnabled(False)
+        if getattr(self, "layer_edit_allowed", False):
+            menu.addSeparator()
+            menu.addAction("改动会写回分层目录（旧文件已备份到 _backup_edit/）").setEnabled(False)
         menu.exec(self.tree.viewport().mapToGlobal(pos))
 
     def _on_tree_selection_changed(self):
