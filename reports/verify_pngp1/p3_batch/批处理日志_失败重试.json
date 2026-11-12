@@ -1,0 +1,47 @@
+{
+  "task_id": "65cafec0dc62",
+  "summary": {
+    "total": 3,
+    "done": 0,
+    "failed": 1,
+    "pending": 2,
+    "wall_s": 0.1,
+    "elapsed_ms": {
+      "total": 0.0,
+      "median": 0.0,
+      "max": 0.0
+    }
+  },
+  "items": [
+    {
+      "source": "bad_corrupt.png",
+      "status": "failed",
+      "layers": null,
+      "attempts": 2,
+      "elapsed_ms": 0.2,
+      "ratio": null,
+      "check": null,
+      "error": "cannot identify image file '/tmp/p3_fail_src/bad_corrupt.png'"
+    },
+    {
+      "source": "good_a.png",
+      "status": "pending",
+      "layers": null,
+      "attempts": null,
+      "elapsed_ms": null,
+      "ratio": null,
+      "check": null,
+      "error": ""
+    },
+    {
+      "source": "good_b.png",
+      "status": "pending",
+      "layers": null,
+      "attempts": null,
+      "elapsed_ms": null,
+      "ratio": null,
+      "check": null,
+      "error": ""
+    }
+  ]
+}

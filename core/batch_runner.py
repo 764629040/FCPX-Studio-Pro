@@ -24,12 +24,21 @@ from typing import Callable, Dict, List, Optional, Tuple
 class BatchRunner:
     """批量任务断点续跑器"""
 
-    def __init__(self, executor: Callable[[Dict[str, str]], None]):
+    def __init__(self, executor: Callable[[Dict[str, str]], None], max_retries: int = 0,
+                 is_complete: Optional[Callable[[str], bool]] = None):
         """
         executor: 可调用对象，接收 item dict（含 source/target），
-                  成功无返回，失败抛异常。
+                  成功可返回结果字典（记入 item["result"]），失败抛异常。
+        max_retries: 单项首次失败后的自动重试次数（默认 0，保持旧口径：
+                  一次失败即落 failed，靠 retry_failed 手动重试）；
+                  批量场景可传 ≥1 开启当轮自动重试。
+        is_complete: 可选幂等判定（入参 target 路径）；缺省沿用旧口径
+                  「目标目录非空即完成」。失败时执行器可能先建了空目录再抛异常，
+                  粗判会把半成品误判完成，需要严格契约产物判定时传入。
         """
         self.executor = executor
+        self.max_retries = max(0, int(max_retries))
+        self._is_complete_fn = is_complete
 
     # ── 状态读写 ──
 
@@ -69,8 +78,32 @@ class BatchRunner:
         item["updated_at"] = time.time()
 
     def _is_complete(self, target: str) -> bool:
-        """幂等性：目标目录已完整存在（非空）视为已完成"""
+        """幂等性：优先用注入的严格判定；缺省沿用「目标目录非空即完成」。"""
+        if self._is_complete_fn is not None:
+            return bool(self._is_complete_fn(target))
         return os.path.isdir(target) and len(os.listdir(target)) > 0
+
+    def _execute_item(self, item: Dict) -> None:
+        """执行单项：失败按 max_retries 自动重试；记录尝试次数、耗时与结果。
+
+        成功 → status=done，executor 返回值记入 item["result"]；
+        耗尽重试仍失败 → status=failed，最后一条异常进 item["error"]。
+        """
+        last_err = ""
+        for attempt in range(1, self.max_retries + 2):
+            t0 = time.perf_counter()
+            try:
+                result = self.executor(item)
+                item["result"] = result
+                item["attempts"] = attempt
+                item["elapsed_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+                self._mark(item, "done")
+                return
+            except Exception as e:  # 执行器内部异常统一收口为 failed
+                last_err = str(e)
+                item["attempts"] = attempt
+                item["elapsed_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+        self._mark(item, "failed", last_err)
 
     # ── 公开接口 ──
 
@@ -99,11 +132,8 @@ class BatchRunner:
                 self._mark(item, "done")
                 self._save(state_path, state)
                 continue
-            try:
-                self.executor(item)
-                self._mark(item, "done")
-            except Exception as e:
-                self._mark(item, "failed", str(e))
+            self._execute_item(item)
+            if item["status"] == "failed":
                 # 失败即中断本轮，后续项保持 pending，供下次 resume
                 self._save(state_path, state)
                 break
@@ -127,11 +157,8 @@ class BatchRunner:
                 self._mark(item, "done")
                 self._save(state_path, state)
                 continue
-            try:
-                self.executor(item)
-                self._mark(item, "done")
-            except Exception as e:
-                self._mark(item, "failed", str(e))
+            self._execute_item(item)
+            if item["status"] == "failed":
                 self._save(state_path, state)
                 break
             self._save(state_path, state)

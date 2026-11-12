@@ -1,0 +1,36 @@
+PNG 批量拆分 P3 耗时表
+任务号 6d4f8ad5d4aa　总耗时 0.0s
+合计 30 张：成功 30 / 失败 0 / 待处理 0
+成功项耗时(ms)：合计 93855.0　中位 3147.9　最大 4681.8
+
+  #  状态        层  尝试      耗时ms     体积比 复算           源文件
+  1  done      8   1    4248.8    2.87 PASS         A_gradient_text_object_decor.png
+  2  done      6   1    3337.0    2.93 PASS         B_flat_product_title.png
+  3  done      8   1    3471.5    2.47 PASS         C_vignette_badge.png
+  4  done      5   1    3273.4    3.05 PASS         D_card_portrait.png
+  5  done     12   1    4294.4     3.8 PASS         E_ui_screenshot.png
+  6  done      4   1    3014.6     3.0 PASS         F_low_contrast.png
+  7  done      5   1    3280.9    2.49 PASS         G_vertical_text.png
+  8  done      5   1    3250.0    3.29 PASS         H_two_objects.png
+  9  done      5   1    3147.9    4.86 PASS         I_no_text.png
+ 10  done      6   1    3450.4    2.16 PASS         J_text_heavy.png
+ 11  done      4   1    2851.8    2.35 PASS         P3_extra_01.png
+ 12  done      4   1    3050.1     3.0 PASS         P3_extra_02.png
+ 13  done      4   1    3059.3    3.01 PASS         P3_extra_03.png
+ 14  done      4   1    3246.1     2.7 PASS         P3_extra_04.png
+ 15  done      4   1    3009.5    2.82 PASS         P3_extra_05.png
+ 16  done      4   1    2977.8    2.63 PASS         P3_extra_06.png
+ 17  done      4   1    2978.5    2.93 PASS         P3_extra_07.png
+ 18  done      4   1    2972.0    2.58 PASS         P3_extra_08.png
+ 19  done      4   1    3053.5    2.73 PASS         P3_extra_09.png
+ 20  done      4   1    3085.6     2.9 PASS         P3_extra_10.png
+ 21  done      4   1    3021.4    2.91 PASS         P3_extra_11.png
+ 22  done      4   1    3066.7    2.76 PASS         P3_extra_12.png
+ 23  done      4   1    3171.7    2.85 PASS         P3_extra_13.png
+ 24  done      9   1    4652.3    0.97 PASS         S1_玻璃标题_横版.png
+ 25  done      7   1    3232.7    0.95 PASS         S2_粒子光叠加_横版.png
+ 26  done      8   1    4681.8    0.99 PASS         S3_清新字幕_横版.png
+ 27  done      8   1    3862.5    0.97 PASS         S4_运动模糊底_横版.png
+ 28  done      3   1     841.9    0.89 PASS         S5_婚礼花纹标题_横版.png
+ 29  done      6   1    1157.1    1.29 PASS         S6_灰度简约标题_横版.png
+ 30  done      3   1    1113.8    1.46 PASS         S7_高级阴影标题_横版.png

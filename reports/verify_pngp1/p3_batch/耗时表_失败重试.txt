@@ -1,0 +1,12 @@
+PNG 批量拆分 P3 耗时表
+任务号 65cafec0dc62　总耗时 0.1s
+合计 3 张：成功 0 / 失败 1 / 待处理 2
+成功项耗时(ms)：合计 0.0　中位 0.0　最大 0.0
+
+  #  状态        层  尝试      耗时ms     体积比 复算           源文件
+  1  failed  None   2       0.2    None None         bad_corrupt.png
+  2  pending None None      None    None None         good_a.png
+  3  pending None None      None    None None         good_b.png
+
+失败项：
+  - bad_corrupt.png: cannot identify image file '/tmp/p3_fail_src/bad_corrupt.png'

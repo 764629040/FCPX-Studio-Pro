@@ -1,0 +1,317 @@
+{
+  "task_id": "6d4f8ad5d4aa",
+  "summary": {
+    "total": 30,
+    "done": 30,
+    "failed": 0,
+    "pending": 0,
+    "wall_s": 0.0,
+    "elapsed_ms": {
+      "total": 93855.0,
+      "median": 3147.9,
+      "max": 4681.8
+    }
+  },
+  "items": [
+    {
+      "source": "A_gradient_text_object_decor.png",
+      "status": "done",
+      "layers": 8,
+      "attempts": 1,
+      "elapsed_ms": 4248.8,
+      "ratio": 2.87,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "B_flat_product_title.png",
+      "status": "done",
+      "layers": 6,
+      "attempts": 1,
+      "elapsed_ms": 3337.0,
+      "ratio": 2.93,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "C_vignette_badge.png",
+      "status": "done",
+      "layers": 8,
+      "attempts": 1,
+      "elapsed_ms": 3471.5,
+      "ratio": 2.47,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "D_card_portrait.png",
+      "status": "done",
+      "layers": 5,
+      "attempts": 1,
+      "elapsed_ms": 3273.4,
+      "ratio": 3.05,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "E_ui_screenshot.png",
+      "status": "done",
+      "layers": 12,
+      "attempts": 1,
+      "elapsed_ms": 4294.4,
+      "ratio": 3.8,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "F_low_contrast.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3014.6,
+      "ratio": 3.0,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "G_vertical_text.png",
+      "status": "done",
+      "layers": 5,
+      "attempts": 1,
+      "elapsed_ms": 3280.9,
+      "ratio": 2.49,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "H_two_objects.png",
+      "status": "done",
+      "layers": 5,
+      "attempts": 1,
+      "elapsed_ms": 3250.0,
+      "ratio": 3.29,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "I_no_text.png",
+      "status": "done",
+      "layers": 5,
+      "attempts": 1,
+      "elapsed_ms": 3147.9,
+      "ratio": 4.86,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "J_text_heavy.png",
+      "status": "done",
+      "layers": 6,
+      "attempts": 1,
+      "elapsed_ms": 3450.4,
+      "ratio": 2.16,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_01.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 2851.8,
+      "ratio": 2.35,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_02.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3050.1,
+      "ratio": 3.0,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_03.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3059.3,
+      "ratio": 3.01,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_04.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3246.1,
+      "ratio": 2.7,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_05.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3009.5,
+      "ratio": 2.82,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_06.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 2977.8,
+      "ratio": 2.63,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_07.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 2978.5,
+      "ratio": 2.93,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_08.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 2972.0,
+      "ratio": 2.58,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_09.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3053.5,
+      "ratio": 2.73,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_10.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3085.6,
+      "ratio": 2.9,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_11.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3021.4,
+      "ratio": 2.91,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_12.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3066.7,
+      "ratio": 2.76,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "P3_extra_13.png",
+      "status": "done",
+      "layers": 4,
+      "attempts": 1,
+      "elapsed_ms": 3171.7,
+      "ratio": 2.85,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S1_玻璃标题_横版.png",
+      "status": "done",
+      "layers": 9,
+      "attempts": 1,
+      "elapsed_ms": 4652.3,
+      "ratio": 0.97,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S2_粒子光叠加_横版.png",
+      "status": "done",
+      "layers": 7,
+      "attempts": 1,
+      "elapsed_ms": 3232.7,
+      "ratio": 0.95,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S3_清新字幕_横版.png",
+      "status": "done",
+      "layers": 8,
+      "attempts": 1,
+      "elapsed_ms": 4681.8,
+      "ratio": 0.99,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S4_运动模糊底_横版.png",
+      "status": "done",
+      "layers": 8,
+      "attempts": 1,
+      "elapsed_ms": 3862.5,
+      "ratio": 0.97,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S5_婚礼花纹标题_横版.png",
+      "status": "done",
+      "layers": 3,
+      "attempts": 1,
+      "elapsed_ms": 841.9,
+      "ratio": 0.89,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S6_灰度简约标题_横版.png",
+      "status": "done",
+      "layers": 6,
+      "attempts": 1,
+      "elapsed_ms": 1157.1,
+      "ratio": 1.29,
+      "check": "PASS",
+      "error": ""
+    },
+    {
+      "source": "S7_高级阴影标题_横版.png",
+      "status": "done",
+      "layers": 3,
+      "attempts": 1,
+      "elapsed_ms": 1113.8,
+      "ratio": 1.46,
+      "check": "PASS",
+      "error": ""
+    }
+  ]
+}
