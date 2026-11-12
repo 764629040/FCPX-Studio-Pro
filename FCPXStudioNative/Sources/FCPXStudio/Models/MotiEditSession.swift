@@ -42,6 +42,28 @@ public final class MotiEditSession {
         self.models = built
     }
 
+    /// TR-002-D-1 BUG-4D1-1：层可写性查询。positionChain == "zh" 才可写；
+    /// "en"（英文链）与 ""（两种都不是）一律不可写。索引越界按不可写处理（宁拒勿假）。
+    public func layerWritable(index: Int) -> Bool {
+        guard index >= 0, index < baseline.layers.count else { return false }
+        return baseline.layers[index].positionChain == "zh"
+    }
+
+    /// TR-002-D-1 BUG-4D1-1：不可写层改动自检——edits() 里第一个落在不可写层
+    /// 的层号；全部落在可写层时返回 nil。edits() 语义一行未动。
+    public func firstUnwritableEditLayer() -> Int? {
+        for edit in edits() where !layerWritable(index: edit.index) {
+            return edit.index
+        }
+        return nil
+    }
+
+    /// TR-002-D-1 BUG-4D1-1：可写层总数（edit_moti_open 日志用：
+    /// 文件可写 ≠ 这一层可写，564 层英文链模板应为 0）。
+    public var editableLayerCount: Int {
+        return baseline.layers.filter { $0.positionChain == "zh" }.count
+    }
+
     /// 保存成功后把基线刷新为写后重解析结果，UI 立即回到「无改动」。
     public func refreshBaselineAfterSave() {
         let snap = MotiDocumentParser.parse(path: path)

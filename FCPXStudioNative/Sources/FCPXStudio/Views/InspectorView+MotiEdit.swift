@@ -33,6 +33,9 @@ extension InspectorView {
     /// TR-002-D BUG-4D-1：非中文链时的固定提示文案（与问题单逐字一致，不许改字）。
     private static let motiChainUnsupportedTip =
         "该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写"
+    /// TR-002-D-1 BUG-4D1-1：横幅第二行追加句（首行 4D-1 原句一字不改）。
+    private static let motiChainReadOnlyLine2 =
+        "该图层仅支持只读预览：文本 / 可见 / 锁定 亦不可写回"
 
     /// TR-002-D BUG-4D-1：当前选中层的位置链形态。读会话快照，不改会话。
     /// 拿不到会话 / 对不上索引时按 "zh" 处理（与既有行为零变化，不误伤中文链模板）。
@@ -58,10 +61,17 @@ extension InspectorView {
         for v in motiPublishGroupViews { v.isHidden = true }
 
         // ── 只放行五类值；非中文链层 X/Y 置灰并显示「—」（BUG-4D-1） ─────
-        textEditor?.isEditable = true
-        textEditor?.textColor = .white
+        // TR-002-D-1 BUG-4D1-1：按选中层判整块可写性——不可写层（positionChain
+        // != "zh"）连 文本 / 可见 / 锁定 / 保存 一起收口，不再让 UI 给出可写假承诺。
         let chainWritable = motiEditPositionChain == "zh"
         let chainTip = InspectorView.motiChainUnsupportedTip
+        textEditor?.isEditable = chainWritable
+        textEditor?.textColor = chainWritable
+            ? .white
+            : NSColor(calibratedWhite: 0.45, alpha: 1.0)
+        textEditor?.toolTip = chainWritable
+            ? nil
+            : (chainTip + "\n" + InspectorView.motiChainReadOnlyLine2)
         if chainWritable {
             posXField?.isEnabled = true
             posYField?.isEnabled = true
@@ -102,28 +112,35 @@ extension InspectorView {
 
         // ── 标识 / 横幅 / 按钮文案 ───────────────────────────────────────
         readOnlyBadgeLabel?.isHidden = true
+        // TR-002-D-1 BUG-4D1-1：横幅两行——第一行逐字保留 4D-1 原句，
+        // 第二行追加只读预览说明；中文链形态一行不改。
         lockBannerLabel?.stringValue = chainWritable
             ? "编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti"
-            : chainTip
+            : (chainTip + "\n" + InspectorView.motiChainReadOnlyLine2)
         lockBannerLabel?.toolTip = chainWritable ? nil : chainTip
         lockBannerBox?.isHidden = false
         // BUG-4D-1：固定提示文案比原「图层已锁定」长一倍，单行必然被省略号截断，
-        // 逐字判定就过不了。非中文链时横幅临时改两行（文案一字不改），退出/中文链复原。
+        // 逐字判定就过不了。非中文链时横幅临时换行（文案一字不改），退出/中文链复原。
+        // TR-002-D-1：首句横排占两行 + 追加句一行 = 共三行，按三行放高度，
+        // 首行不许被省略号截断、不许改字。
         if let box = lockBannerBox, let label = lockBannerLabel {
             label.lineBreakMode = chainWritable ? .byTruncatingTail : .byCharWrapping
-            label.maximumNumberOfLines = chainWritable ? 1 : 2
+            label.maximumNumberOfLines = chainWritable ? 1 : 3
             label.cell?.wraps = !chainWritable
             label.cell?.isScrollable = false
             for c in box.constraints where c.firstAttribute == .height {
-                c.constant = chainWritable ? 26 : 42
+                c.constant = chainWritable ? 26 : 58
             }
         }
 
         saveButton?.title = " 保存回 .moti"
-        saveButton?.isEnabled = motiEditHasChanges && motiEditWritable
-        saveButton?.toolTip = motiEditWritable
-            ? (motiEditHasChanges ? "写回当前 .moti 原文件" : "没有改动，不允许保存")
-            : "目标不可写（只读卷或无写权限），已禁用保存"
+        // TR-002-D-1 BUG-4D1-1：保存按钮同时看 文件写权限 + 有无改动 + 选中层可写性。
+        saveButton?.isEnabled = motiEditHasChanges && motiEditWritable && chainWritable
+        saveButton?.toolTip = !motiEditWritable
+            ? "目标不可写（只读卷或无写权限），已禁用保存"
+            : (!chainWritable
+                ? (chainTip + "\n" + InspectorView.motiChainReadOnlyLine2)
+                : (motiEditHasChanges ? "写回当前 .moti 原文件" : "没有改动，不允许保存"))
         batchExportButton?.isEnabled = false
         batchExportButton?.toolTip = tip
 
@@ -154,6 +171,86 @@ extension InspectorView {
                 }
             }
         }
+
+        // TR-002-D-1 BUG-4D1-1：表格里不可写层的 可见/锁定 按钮置灰 + 固定提示。
+        installMotiChainScrollObserver()
+        applyMotiChainStateToTableButtons()
+    }
+
+    /// 滚动时单元格会按原逻辑重建，这里在滚动通知上补挂一次置灰，
+    /// 避免「滚一下按钮又亮了」的另一种假承诺。只装一次，退出编辑态摘掉。
+    private static var motiChainClipObserver: NSObjectProtocol?
+
+    private func installMotiChainScrollObserver() {
+        guard let clip = layerTableView?.enclosingScrollView?.contentView else { return }
+        if InspectorView.motiChainClipObserver != nil { return }
+        clip.postsBoundsChangedNotifications = true
+        InspectorView.motiChainClipObserver = NotificationCenter.default.addObserver(
+            forName: NSView.boundsDidChangeNotification,
+            object: clip,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.applyMotiChainStateToTableButtons(retries: 0)
+        }
+    }
+
+    private func removeMotiChainScrollObserver() {
+        if let token = InspectorView.motiChainClipObserver {
+            NotificationCenter.default.removeObserver(token)
+            InspectorView.motiChainClipObserver = nil
+        }
+    }
+
+    /// TR-002-D-1 BUG-4D1-1：把表格里不可写层（positionChain != "zh"）的
+    /// 可见/锁定 按钮置灰并挂固定提示。按层判，不整模板一刀切。
+    /// 单元格由 InspectorView.swift 原有逻辑创建，滚动/刷新会按原逻辑重建，
+    /// 因此每次 applyMotiEditMode 对可视行补挂一次；最终硬保证是
+    /// MainWindowController 保存前置拦截——按钮层被绕过也存不进盘。
+    private func applyMotiChainStateToTableButtons(retries: Int = 3) {
+        guard motiEditMode, let table = layerTableView,
+              let controller = window?.windowController as? MainWindowController,
+              let session = controller.motiEditSession else { return }
+        // 视图式表格的行是懒生成的：edit 态刚打开时 visibleRect 已算出可见行数，
+        // 但 rowView 尚未物化（rowView(atRow:makeIfNecessary:false) 全 nil）。
+        // 先强制一次布局把可视行建出来；仍无行则异步再补一次（只补一轮）。
+        table.layoutSubtreeIfNeeded()
+        let range = table.rows(in: table.visibleRect)
+        var materialized = false
+        if range.length > 0 {
+            let tip = InspectorView.motiChainUnsupportedTip
+            for row in range.location..<(range.location + range.length) {
+                guard row >= 0, row < table.numberOfRows,
+                      let rowView = table.rowView(atRow: row, makeIfNecessary: false) else { continue }
+                materialized = true
+                let writable = session.layerWritable(index: row)
+                var buttons: [NSButton] = []
+                InspectorView.collectMotiButtons(in: rowView, into: &buttons)
+                for button in buttons {
+                    let action = button.action
+                    guard action == #selector(InspectorView.onVisibilityToggled(_:))
+                            || action == #selector(InspectorView.onLockToggled(_:)) else { continue }
+                    button.isEnabled = writable
+                    if !writable {
+                        button.toolTip = tip
+                        button.contentTintColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
+                    }
+                }
+            }
+        }
+        if !materialized && retries > 0 {
+            // 窗口首次布局要等一两个 runloop 才把行建出来，稍等再补，最多补三轮。
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.applyMotiChainStateToTableButtons(retries: retries - 1)
+            }
+        }
+    }
+
+    private static func collectMotiButtons(in view: NSView, into out: inout [NSButton]) {
+        for sub in view.subviews {
+            if let button = sub as? NSButton { out.append(button) }
+            InspectorView.collectMotiButtons(in: sub, into: &out)
+        }
     }
 
     /// 退出编辑态：复位按钮与 tooltip；发布列由 applyMotiReadOnlyText() 加回。
@@ -161,6 +258,7 @@ extension InspectorView {
         motiEditMode = false
         motiEditHasChanges = false
         motiEditWritable = true
+        removeMotiChainScrollObserver()
         for v in motiPublishGroupViews { v.isHidden = false }
         saveButton?.title = " 保存当前模板至 FCPX"
         saveButton?.isEnabled = true
@@ -185,6 +283,11 @@ extension InspectorView {
         posXField?.toolTip = nil
         posYField?.toolTip = nil
         lockBannerLabel?.toolTip = nil
+        // TR-002-D-1 BUG-4D1-1 复原：文字内容框回可编辑 / 白字 / 无固定提示，
+        // 表格按钮由下一次 layers 赋值的 reloadData 按原逻辑重建。
+        textEditor?.isEditable = true
+        textEditor?.textColor = .white
+        textEditor?.toolTip = nil
         // 横幅回单行 26pt（TR-019-R 锁定提示的原始形态）。
         if let box = lockBannerBox, let label = lockBannerLabel {
             label.lineBreakMode = .byTruncatingTail

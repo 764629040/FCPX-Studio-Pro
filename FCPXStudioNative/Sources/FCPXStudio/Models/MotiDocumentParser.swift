@@ -66,6 +66,10 @@ public struct MotiLayerSnapshot {
     /// 默认 "zh"：仅 parseLayer 会显式赋值，其余构造点保持既有可写行为零变化。
     public let positionChain: String
 
+    /// TR-002-D-1 BUG-4D1-1：层可写性判定输出（纯查询，不改任何解析行为）。
+    /// 与问题单口径一致：positionChain == "zh" 才可写，"en" 与 "" 一律不可写。
+    public var isPositionChainWritable: Bool { positionChain == "zh" }
+
     public init(index: Int,
                 id: String,
                 name: String,

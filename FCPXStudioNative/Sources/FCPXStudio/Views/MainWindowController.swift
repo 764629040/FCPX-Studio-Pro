@@ -616,9 +616,25 @@ public final class MainWindowController: NSWindowController,
         inspectorView.applyMotiEditMode()
         canvasView.fitArtboard()
 
+        // TR-002-D-1 BUG-4D1-1：日志诚实——同一行必须能看出
+        // 「文件可写(writable) ≠ 这一层可写(editable_layers/selected_writable)」。
+        // writable 保留文件级写权限语义；editable_layers 为中文链可写层总数
+        // （564 层英文链模板应为 0）；selected_writable 按当前选中层判。
+        let selectedIdx = inspectorView.currentSelectedLayer.flatMap { selected in
+            session.models.firstIndex(where: { $0 === selected })
+        }
+        let selectedPart: String
+        if let idx = selectedIdx {
+            selectedPart = session.layerWritable(index: idx)
+                ? "selected_writable=true"
+                : "selected_writable=false reason=参数链非本工具格式"
+        } else {
+            selectedPart = "selected_writable=na"
+        }
         print("[TR-002C] edit_moti_open path=\(path) layers=\(session.models.count) "
               + "canvas=\(snapshot.canvasWidth)x\(snapshot.canvasHeight) "
-              + "writable=\(session.writable.0) reason=\(session.writable.1)")
+              + "writable=\(session.writable.0) reason=\(session.writable.1) "
+              + "editable_layers=\(session.editableLayerCount) \(selectedPart)")
         fflush(stdout)
 
         // 无人值守取证：预置改动后自动走「同一次确认 + 同一次写回」；
@@ -692,6 +708,23 @@ public final class MainWindowController: NSWindowController,
         let count = session.changeCount
         guard count > 0 else {
             showAlert(title: "没有改动", msg: "当前与写前状态一致，不允许保存。")
+            return
+        }
+        // TR-002-D-1 BUG-4D1-1：保存前置拦截——edits() 里存在不可写层
+        // （positionChain != "zh"）的改动时，根本不许进 MotiWriteBack：
+        // 不算备份路径、不写盘、无 SAVE_OK，文件 sha 与备份目录计数不变。
+        // 这是核心判据，不依赖写回报错，绝不落到「落点未找到」。
+        if let unwritableIdx = session.firstUnwritableEditLayer() {
+            print("[TR-002D1] SAVE_REJECT error=图层不可写：参数链非本工具格式 (L\(unwritableIdx))")
+            fflush(stdout)
+            let rejectMsg = "第 \(unwritableIdx + 1) 层（L\(unwritableIdx)）的参数链非本工具格式，该层不可写。\n本次改动未写回，原文件一个字节未变。"
+#if TR002C_AUTOMATION
+            if !ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
+                showAlert(title: "保存被拒绝", msg: rejectMsg)
+            }
+#else
+            showAlert(title: "保存被拒绝", msg: rejectMsg)
+#endif
             return
         }
         let (writable, why) = session.writable
