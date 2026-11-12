@@ -1,0 +1,1 @@
+[TR-002C] edit_moti_open path=/tmp/tr002d/x.moti layers=564 canvas=3840x2160 writable=true reason=可写

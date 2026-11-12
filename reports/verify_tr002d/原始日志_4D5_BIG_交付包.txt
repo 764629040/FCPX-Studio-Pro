@@ -1,0 +1,4 @@
+[TR-002C] edit_moti_open path=/tmp/tr002d/perf_big.moti layers=564 canvas=3840x2160 writable=true reason=可写
+[TR-002C] confirm_auto backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/perf_big.20261112123334.moti.bak changes=1
+[TR-002C] SAVE_OK before_sha=d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497 after_sha=1d7d4b5e102c7b81c9cfba374f913b4ed811b33f90de03f8043252039318c816 backup_sha=d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497 backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/perf_big.20261112123334.moti.bak delta=12 changed_lines=[673] changes=1 readback=1 elapsed_ms=2110.5
+[TR-002C] L0 enabled expect=false actual=false OK

@@ -1,0 +1,125 @@
+TR-002-D｜回归证据（问题单 §3 七条断言）
+==========================================================
+
+执行时间：2026-11-12 12:30–12:52
+最终交付包：FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+  sha256 = 7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b
+  size   = 4179744 B（重签后）
+
+----------------------------------------------------------
+[1] harness：PASS=61 FAIL=0 / 69 行 / sha16 6787e31d50961fb5，8 份逐字节相同
+----------------------------------------------------------
+编译：swiftc -O -j 8 <全部产品源码> tools/tr019r/tr019r_harness.swift
+       （无 -DTR002C_AUTOMATION，与历史口径一致）
+输出：PASS = 61   FAIL = 0
+      TR-019-R VERDICT: PASS
+      LINES = 69
+      SHA16 = 6787e31d50961fb5
+比对（cmp，8/8 BYTE_IDENTICAL）：
+  tr023b / tr024 / tr024_1 / tr024_2 / tr025 / tr026 / tr027 / tr002c
+日志：tr019r_harness_重跑.txt
+
+----------------------------------------------------------
+[2] 只读态：与 TR-027 08 逐字节相同
+----------------------------------------------------------
+最终包 --preview-moti build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+screencapture -x -o -l <WID>
+  new  sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  base sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  395855 B / 2414×1562
+  READONLY_REGRESSION=BYTE_IDENTICAL
+截图：shots/03_只读态回归_整窗.png
+日志：原始日志_只读态回归.txt
+
+----------------------------------------------------------
+[3] 写回正确性：五值读回全 OK、反向还原 byte-identical、xmllint 0、计数不变
+----------------------------------------------------------
+载体：取证构建 /tmp/fcpx_auto/release/FCPXStudio（75b91d08…）
+目标：/tmp/tr002d/q.moti（cv 自原始样本，写前 4cf1db26… / 247979 B）
+
+写回命令：
+  --edit-moti q.moti --edit-moti-auto-save --edit-moti-auto-confirm
+  --edit-moti-layer 0 --edit-moti-text $'领\n衔\n呈\n现·4D'
+  --edit-moti-x -198.5 --edit-moti-y 488.0 --edit-moti-enabled 0 --edit-moti-locked 1
+
+SAVE_OK：
+  before_sha = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+  after_sha  = 0dd65930de1f17650b2b628c28ff2d217265daad81ee8951847e9b0041d0ff01
+  backup_sha = 4cf1db26…（== 写前）
+  delta=27 changes=5 readback=5 elapsed_ms=48.9
+读回五行：
+  L0 X expect=-198.5 actual=-198.5 OK
+  L0 Y expect=488.0 actual=488.0 OK
+  L0 text expect=领\n衔\n呈\n现·4D actual=… OK
+  L0 enabled expect=false actual=false OK
+  L0 locked expect=true actual=true OK
+
+反向还原（把五处改动逐项替换回原值 + 删掉插入的 enabled/locked）：
+  LAYER_OPEN_AFTER: <layer name="Text 01" id="3000100" enabled="0" locked="1">
+  BYTE_IDENTICAL: True
+
+xmllint --noout --nonet → exit 0
+
+字节计数（before / after）：
+  line_count   6609 / 6609
+  LF           6608 / 6608
+  CR           0 / 0
+  BOM          False / False
+  tab          50396 / 50396
+  DOCTYPE      1 / 1
+  default="    928 / 928
+  comments     0 / 0
+  xml_decl     1 / 1
+  size         247979 → 248006（delta 27 == Σ目标串长度差 27）
+  diff_lines   [299, 995, 996, 1020]（保守目标行上界 [299,995,996,1017..1020] 的子集，
+               非目标差异 0）
+日志：原始日志_4D_五值写回与读回.txt
+
+----------------------------------------------------------
+[4] 原文件不动
+----------------------------------------------------------
+原始样本 build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+  247979 B / mtime Oct 28 20:14:13 / sha256 4cf1db26d6f52a9a…
+564 层模板 ~/Movies/Motion Templates.localized/…/10 字母.moti
+  11464903 B / sha256 d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+所有写回均在 /tmp 副本上完成；原件未参与任何写入。
+
+----------------------------------------------------------
+[5] 备份
+----------------------------------------------------------
+q.20261112124547.moti.bak
+  sha256 = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd（== 写前）
+  位置：~/Library/Application Support/FCPXStudioPro/moti_backups/
+  不在 Motion Templates 目录（IN_TEMPLATE_DIR=NO）
+模板目录内 *.moti.bak 数量 = 0
+
+----------------------------------------------------------
+[6] 包与镜像
+----------------------------------------------------------
+重装包流程（未签名 sha 先落盘 → 重签 → 验签）：
+  第 1 轮 未签名 a03818828e191879483e70760e73b7d8d1a06e63fb16e16aa2cf71362d8589ea / 4185912 B
+          签后   4179744 B，strict verify exit 0
+  第 2 轮 未签名 d145da960506b431e52e5a29d258a01c5e2bd123b9c01ab6ece422904f4b482b / 4185912 B
+          签后   7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b / 4179744 B
+          codesign --verify --deep --strict exit 0
+App 文件数 = 2006
+镜像（均未改动）：
+  v1.3 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb 47855074 B
+  v1.4 18d122ebfc7ee140f9cc7a3ad974fb61494130694af5b77b8ab31735db36b6bd 46290500 B
+  v1.5 c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499 46290844 B
+  v1.6 62ec40536cff1319534710545d6d43342ce607536ebcb5aa9c556eb34b367e68 48124361 B
+本单未封新镜像（v1.7 不在本单范围）。
+
+----------------------------------------------------------
+[7] 纪律
+----------------------------------------------------------
+· 全程 pgrep -x "Final Cut Pro" = 0（每次关键节点都核）。
+· 只起停自己编译的 FCPXStudio 实例；所有 exit 143 均为我方 kill -TERM。
+· 没有新增任何自动重启 / 退出 FCPX 的能力（本单只删开关，不添能力）。
+· 未 push（HEAD 待提交，见验收记录）。
+
+----------------------------------------------------------
+补充：BUG-4D-1 的 8 层中文链回归
+----------------------------------------------------------
+即使加了链类型检测，8 层样本 positionChain="zh"，X/Y 照旧可写：
+上面 [3] 的 readback=5 全 OK 即为证；截图 02 里 X=-213.0 / Y=484.5 也可视。

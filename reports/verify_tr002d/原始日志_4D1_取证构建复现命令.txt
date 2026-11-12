@@ -1,0 +1,2 @@
+[TR-002D] preset_skip_xy layer=0 chain=en reason=该层参数链非中文链，X/Y 不进写回 ops
+[TR-002C] edit_moti_open path=/tmp/tr002d/x.moti layers=564 canvas=3840x2160 writable=true reason=可写

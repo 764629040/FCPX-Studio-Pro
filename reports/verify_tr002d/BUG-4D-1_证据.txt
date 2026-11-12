@@ -1,0 +1,81 @@
+TR-002-D｜BUG-4D-1 证据：英文参数链 X/Y 假 0.0 收口
+==========================================================
+
+问题单 §2 BUG-4D-1。严重等级：严重。
+一句话：英文参数链模板 X/Y 显示假 0.0，改值后被自检回填且没有任何解释。
+
+----------------------------------------------------------
+1. 根因（复核结论一致）
+----------------------------------------------------------
+MotiDocumentParser.parseLayer 只按中文链取值：
+  属性(1) / 变换(100) / 位置(101) / X(1) | Y(2)
+564 层模板用的是英文链 Properties(1) / Transform(100) / Position(101)，
+解析器取不到 → posX / posY 恒 0.0（假数）。
+写回侧 MotiWriteBack 双语链都能写 → 写入成功；
+写后 readback 用解析器（中文链）仍读 0.0 → 判不一致 → 安全回填。
+用户只看到「写后读回不一致，已回填」，不知道是链格式不支持。
+
+----------------------------------------------------------
+2. 修复方式（按问题单期望：置灰 + 固定文案，不是支持英文链写回）
+----------------------------------------------------------
+a) MotiDocumentParser.swift
+   · MotiLayerSnapshot 新增只读字段 positionChain（"zh" / "en" / ""），
+     默认 "zh"，仅 parseLayer 显式赋值，其余构造点行为零变化。
+   · 新增 positionChainKind(of:)：只检测链存在与否，不读英文链的值。
+   · parseLayer 把检测结果写进快照。
+b) InspectorView+MotiEdit.swift
+   · 当前层 positionChain != "zh" 时：
+       - X / Y 输入框 isEnabled = false（置灰只读）
+       - 值显示「—」（不是 0.0，也不是空字符串）
+       - tooltip 与横幅使用固定文案：
+         该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写
+       - 横幅由单行 26pt 临时改两行 42pt（文案一字不改），避免省略号截断
+   · 中文链层完全走原路径：X/Y 可写、横幅仍是「编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti」。
+   · 退出编辑态恢复单行横幅与 X/Y tooltip。
+c) MainWindowController.swift（applyAutomationPreset 内）
+   · 非中文链层跳过 --edit-moti-x / --edit-moti-y 的预置，X/Y 不进 ops；
+     stdout 打 [TR-002D] preset_skip_xy layer=… chain=en …。
+   · 该函数整段已被 BUG-4D-3 的 #if TR002C_AUTOMATION 包住，交付包内不参与编译。
+
+----------------------------------------------------------
+3. 判定结果
+----------------------------------------------------------
+[判定 3.1] 打开 564 层模板并截图：X/Y 灰、提示文案逐字存在、无 0.0
+  截图：shots/01_bug4d1_英文链_XY置灰_整窗.png
+  尺寸：2414×1562 / 332471 B
+  实见：X「—」、Y「—」且均置灰；横幅两行完整：
+        该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写
+        全图无 0.0；「保存回 .moti」灰色（无改动禁存）。
+  载体：最终交付包（sha256 7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b）
+
+[判定 3.2] 问题单 §4 复现命令：stdout 无 SAVE_OK、副本 sha 与写前相同
+  命令（照抄 §4，最终交付包 7755783f…）：
+    cp "$BIG" /tmp/tr002d/x_final.moti
+    FCPXStudio --edit-moti /tmp/tr002d/x_final.moti --edit-moti-auto-save \
+      --edit-moti-auto-confirm --edit-moti-layer 0 --edit-moti-x 100
+  结果：
+    BUG4D1_SHA_UNCHANGED=TRUE
+    BUG4D1_SAVE_OK=ABSENT
+    写前 sha = 写后 sha = d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+    stdout 只有 edit_moti_open，无 confirm_auto / SAVE_OK / SAVE_FAIL
+  原始日志：原始日志_4D1_交付包复现命令.txt
+  说明：交付包内自动化开关已被 BUG-4D-3 编译期移除，复现命令对交付包整体无效；
+        该判定同时覆盖「不会写盘」与「不会回填」。
+
+[判定 3.3] 取证构建下确认是「主动跳过 X/Y」而不是碰巧没写
+  取证构建（-DTR002C_AUTOMATION，见 tools/tr002d/build_forensics.sh）
+  同一命令 stdout：
+    [TR-002D] preset_skip_xy layer=0 chain=en reason=该层参数链非中文链，X/Y 不进写回 ops
+  结果：sha 不变、无 SAVE_OK、备份数 15→15（未产生新 .bak）
+  原始日志：原始日志_4D1_取证构建复现命令.txt
+
+[判定 3.4] 8 层中文链样本回归：X/Y 仍可写，读回 5 值全 OK
+  见 回归_证据.txt 第 3 条：changes=5 / readback=5 / 五项逐条 OK。
+
+----------------------------------------------------------
+4. 未做的事（防止误读为「支持了英文链」）
+----------------------------------------------------------
+· 没有让解析器读英文链的值，没有把英文链层变成可写。
+· 没有改 MotiWriteBack 的写回算法、判定逻辑、备份/回填链路（一个字节都没动）。
+· 没有改 InspectorView.swift / 只读态逻辑。
+· 564 层模板的 X/Y 依旧不可写，这是本单要求的设计结果，不是遗留缺陷。

@@ -1,0 +1,14 @@
+[TR-002C] edit_moti_open path=/tmp/tr002d/q.moti layers=8 canvas=1080x1920 writable=true reason=可写
+[TR-002C] confirm_auto backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/q.20261112124547.moti.bak changes=5
+[TR-002C] SAVE_OK before_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd after_sha=0dd65930de1f17650b2b628c28ff2d217265daad81ee8951847e9b0041d0ff01 backup_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/q.20261112124547.moti.bak delta=27 changed_lines=[299, 995, 996, 1017, 1018, 1019, 1020] changes=5 readback=5 elapsed_ms=48.9
+[TR-002C] L0 X expect=-198.5 actual=-198.5 OK
+[TR-002C] L0 Y expect=488.0 actual=488.0 OK
+[TR-002C] L0 text expect=领
+衔
+呈
+现·4D actual=领
+衔
+呈
+现·4D OK
+[TR-002C] L0 enabled expect=false actual=false OK
+[TR-002C] L0 locked expect=true actual=true OK

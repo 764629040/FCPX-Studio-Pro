@@ -1,0 +1,71 @@
+TR-002-D｜BUG-4D-3 证据：自动化写盘开关编译期隔离（方案 A）
+==========================================================
+
+问题单 §2 BUG-4D-3。一般等级（安全/发布卫生）。
+期望（二选一，推荐 A）：交付包正常启动时，任何参数组合都无法触发自动写盘；
+取证改用 tools/ 下的构建产物。判定按行为，不靠 strings。
+
+----------------------------------------------------------
+1. 改动（方案 A：条件编译）
+----------------------------------------------------------
+条件：TR002C_AUTOMATION（交付构建不传，取证构建用 -DTR002C_AUTOMATION）
+
+MainWindowController.swift 内被 #if TR002C_AUTOMATION 包住的整段：
+  a) --edit-moti-auto-save 的自动保存触发（editMotiInDesigner 末尾）
+  b) applyAutomationPreset 整个函数体（--edit-moti-layer / -text / -x / -y /
+     -enabled / -locked 的读取与赋值）
+  c) --edit-moti-auto-confirm 跳过确认弹窗的分支（confirmAndSaveMotiEdits）
+  d) 保存成功 / 失败时因 auto-confirm 抑制模态框的两处判断
+
+交付包（无 -D）：上述参数在二进制内完全不存在，用户正常打开编辑态只能走
+「确认弹窗 → performMotiSave」这条唯一路径；没有绕过入口。
+取证构建：tools/tr002d/build_forensics.sh（产物只落 /tmp，不装包、不入库）。
+
+----------------------------------------------------------
+2. 判定（行为判定，最终重签交付包）
+----------------------------------------------------------
+载体：FCPX Studio Pro R2.app/Contents/MacOS/FCPXStudio
+      sha256 = 7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b
+      size   = 4179744 B
+      重签后 codesign --verify --deep --strict exit 0
+
+命令（照抄问题单判定标准）：
+  cp "$S" /tmp/tr002d/y_final.moti
+  FCPXStudio --edit-moti /tmp/tr002d/y_final.moti --edit-moti-auto-save \
+    --edit-moti-auto-confirm --edit-moti-layer 0 --edit-moti-x 100 \
+    --edit-moti-text "越权测试"
+
+结果：
+  BYPASS_SHA_UNCHANGED=TRUE
+  写前 sha = 写后 sha = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+  BYPASS_BAK_DELTA=0（moti_backups 15 → 15，无新 .bak）
+  BYPASS_SAVE_OK=ABSENT
+  stdout 仅一行 edit_moti_open；无 confirm_auto、无 SAVE_OK、无 SAVE_FAIL
+原始日志：原始日志_4D3_交付包越权测试.txt
+
+同判定在首轮重签包（a0381882…）上亦通过（早期证据）：
+原始日志_4D3_交付包越权测试_首轮.txt（Y sha 不变 / BAK 15→15 / 无 SAVE_OK）
+
+----------------------------------------------------------
+3. 旁证（不作为判定依据）
+----------------------------------------------------------
+strings 计数：
+  交付包：       grep -c "edit-moti-auto-save" → 0
+  取证构建：     grep -c "edit-moti-auto-save" → 1
+行为判定（第 2 节）才是结论；strings 只用于说明「确实没编进去」。
+
+----------------------------------------------------------
+4. 取证构建登记
+----------------------------------------------------------
+脚本：tools/tr002d/build_forensics.sh
+本次产物：/tmp/fcpx_auto/release/FCPXStudio
+  sha256 = 75b91d08ef1736e4c39caa02e34069acc02579c08aa0baad41d3c0565680f23f
+  size   = 4204152 B
+说明：该二进制不进交付包、不提交仓库、不随 dmg 分发；需要时可脚本重建。
+
+----------------------------------------------------------
+5. 未做的事
+----------------------------------------------------------
+· 没有采用方案 B（参数 + 环境变量双门），直接按推荐 A 做编译期隔离。
+· 没有给 UI 增加任何「自动保存」入口；正常用户始终要过确认弹窗。
+· 没有改动 --edit-moti 这个用户级入口本身（打开编辑态仍可用）。
