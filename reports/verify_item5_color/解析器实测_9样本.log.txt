@@ -1,0 +1,84 @@
+=== a_quanzhi.moti
+valid=true layers=7 canvas=1920x1080
+L0 id=1504716422 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L1 id=1504716271 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L2 id=989331 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L3 id=989419 depth=0 chain=zh text="지" color=(nil) src=- font="S-CoreDream-9Black" size=120.0
+L4 id=988023 depth=0 chain=zh text="무" color=#FD5F54 src=面/颜色 font="S-CoreDream-9Black" size=120.0
+L5 id=987975 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L6 id=10305 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+=== b_kuoyinqi.moti
+valid=true layers=7 canvas=1920x1080
+L0 id=1825777339 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L1 id=1825775410 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L2 id=10243 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L3 id=1504715645 depth=0 chain=zh text="어어어어어!!" color=(nil) src=- font="MapoMaponaru" size=100.0
+L4 id=10222 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L5 id=10044 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L6 id=1825775557 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+=== c_zitiao03.moti
+valid=true layers=4 canvas=1920x1080
+L0 id=1504715710 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L1 id=10068 depth=0 chain=zh text="메인 요리2" color=#FEFCFB src=面/颜色 font="S-CoreDream-4Regular" size=30.0
+L2 id=10045 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L3 id=1504722857 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+=== d_hunli.moti
+valid=true layers=11 canvas=1920x1080
+L0 id=3000100 depth=0 chain=zh text="书 瑶" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=66.6667
+L1 id=3000200 depth=0 chain=zh text="[shuyao]" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=27.7778
+L2 id=3000300 depth=0 chain=zh text="&" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=47.2222
+L3 id=3000400 depth=0 chain=zh text="亦 辰" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=66.6667
+L4 id=3000500 depth=0 chain=zh text="[YICHEN]" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=27.7778
+L5 id=3000600 depth=0 chain=zh text="20\n26" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=27.7778
+L6 id=3000700 depth=0 chain=zh text="( )" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=58.3333
+L7 id=3000800 depth=0 chain=zh text="W" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=16.6667
+L8 id=3000900 depth=0 chain=zh text="E" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=16.6667
+L9 id=3001000 depth=0 chain=zh text="D" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=16.6667
+L10 id=3001100 depth=0 chain=zh text="03.04" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=58.3333
+=== e_psd10.moti
+valid=true layers=17 canvas=1920x1080
+L0 id=3000100 depth=0 chain=zh text="婚\n礼\n日\n \n贰\n零\n贰\n六\n年" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L1 id=3000200 depth=0 chain=zh text="WEDDING\nDAY" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L2 id=3000300 depth=0 chain=zh text="新\n娘\n \n王\n书\n瑶" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L3 id=3000400 depth=0 chain=zh text="T\nH\nE\n \nB\nR\nI\nD\nE" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L4 id=3000500 depth=0 chain=zh text="新\n郎\n \n徐\n子\n墨" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L5 id=3000600 depth=0 chain=zh text="T\nH\nE\n \nG\nR\nO\nO\nM" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L6 id=3000700 depth=0 chain=zh text="城\n市\n \n上\n海" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L7 id=3000800 depth=0 chain=zh text="C\nI\nT\nY" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L8 id=3000900 depth=0 chain=zh text="酒\n店\n \n帝\n景\n华\n庭" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L9 id=3001000 depth=0 chain=zh text="H\nO\nT\nE\nL" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L10 id=3001100 depth=0 chain=zh text="婚\n庆\n \n花\n嫁\n时\n光" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L11 id=3001200 depth=0 chain=zh text="WEdding \nCeremony" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L12 id=3001300 depth=0 chain=zh text="摄\n影\n团\n队" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=29.1667
+L13 id=3001400 depth=0 chain=zh text="photography\nTEAM" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=20.8333
+L14 id=3001500 depth=0 chain=zh text="WEDDING\nDAY" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=16.6667
+L15 id=3001600 depth=0 chain=zh text="婚礼日" color=#FFFFFF src=渐变首色标 font="FZZYSK--GBK1-0" size=33.3333
+L16 id=3001700 depth=0 chain=zh text="" color=#FFFFFF src=渐变首色标 font="Helvetica" size=20.8333
+=== f_mingchengtiao.moti
+valid=true layers=6 canvas=1920x1080
+L0 id=1825781603 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L1 id=1825781597 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L2 id=1825781583 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L3 id=1825779821 depth=0 chain=zh text="총 3문제 성공!" color=(nil) src=- font="S-CoreDream-9Black" size=129.0
+L4 id=1825775790 depth=0 chain=zh text="진영 & 나연" color=#520800 src=面/颜色 font="BMYEONSUNG" size=0.0
+L5 id=1825778302 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+=== h_qinggan.moti
+valid=true layers=3 canvas=1920x1080
+L0 id=1504715771 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L1 id=10784 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L2 id=10066 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+=== i_meiwei05.moti
+valid=true layers=9 canvas=1920x1080
+L0 id=1504723390 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L1 id=1504722296 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L2 id=1504722146 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L3 id=1504721645 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L4 id=1504721600 depth=0 chain=zh text="맛잇뚱" color=#FF3299 src=面/颜色 font="S-CoreDream-9Black" size=65.0
+L5 id=1504721447 depth=0 chain="" text="" color=(nil) src=- font="" size=0.0
+L6 id=1504720110 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L7 id=1504720007 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+L8 id=1504719900 depth=0 chain=zh text="" color=(nil) src=- font="" size=0.0
+=== j_hongse.moti
+valid=true layers=0 canvas=1920x1080
+
+TEXT_LAYERS_WITHOUT_COLOR_TOTAL=3
