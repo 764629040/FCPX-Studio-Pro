@@ -168,8 +168,12 @@ public final class AssetHubView: NSVisualEffectView,
     public var viewModeSegmentedControl: NSSegmentedControl!
     public var currentViewMode: Int = 0 // 0: Grid (⊞), 1: List (☰)
     public var cardGridScrollView: NSScrollView!
-    public var cardGridContentView: FlippedContainerView!
-    public var cardViews: [ResourceCardView] = []
+    /// 任务 12（M.3.17=C 口径）：卡片列表改 NSCollectionView 复用队列，
+    /// 按可视区回收卡片（治 G1）；cardViews 全量持有 + 分块加载口径已退役。
+    public var cardCollectionView: NSCollectionView!
+    public private(set) var emptyStateOverlayView: NSView?
+    public private(set) var emptyStateIconView: NSImageView?
+    public private(set) var emptyStateTextLabel: NSTextField?
     public var selectedCardIndex: Int? = nil
     public var tableScrollView: NSScrollView!
 
@@ -1023,11 +1027,43 @@ public final class AssetHubView: NSVisualEffectView,
         cardGridScrollView.translatesAutoresizingMaskIntoConstraints = false
         rightColumnView.addSubview(cardGridScrollView)
 
-        // UI-O010: 由 bounds 驱动初始 frame，消除极小窗初始化短暂错位
-        cardGridContentView = FlippedContainerView(frame: rightColumnView.bounds)
-        cardGridScrollView.documentView = cardGridContentView
-        cardGridScrollView.postsBoundsChangedNotifications = true
-        NotificationCenter.default.addObserver(self, selector: #selector(onCardGridDidScroll(_:)), name: NSView.boundsDidChangeNotification, object: cardGridScrollView.contentView)
+        // 任务 12（C 口径）：NSCollectionView 复用队列 + 自适应 1–4 列布局
+        cardCollectionView = NSCollectionView()
+        cardCollectionView.wantsLayer = true
+        cardCollectionView.backgroundColors = [.clear]
+        cardCollectionView.isSelectable = false
+        // 作为滚动视图 documentView：宽高跟随裁剪视图，窗口缩放时列数自适应才生效
+        cardCollectionView.autoresizingMask = [.width, .height]
+        cardCollectionView.dataSource = self
+        cardCollectionView.collectionViewLayout = CardGridLayout()
+        cardCollectionView.register(CardItem.self, forItemWithIdentifier: CardItem.identifier)
+        cardCollectionView.register(CardFooterView.self,
+                                   forSupplementaryViewOfKind: CardGridLayout.footerKind,
+                                   withIdentifier: CardFooterView.identifier)
+        cardGridScrollView.documentView = cardCollectionView
+
+        // 空态覆盖层：盖在滚动视口上居中显示（与旧版文档内居中视觉一致）
+        let emptyStack = NSStackView()
+        emptyStack.orientation = .vertical
+        emptyStack.alignment = .centerX
+        emptyStack.spacing = 8
+        emptyStack.translatesAutoresizingMaskIntoConstraints = false
+        emptyStack.isHidden = true
+        let emptyIcon = NSImageView(image: NSImage(systemSymbolName: "square.dashed", accessibilityDescription: nil) ?? NSImage())
+        emptyIcon.contentTintColor = NSColor.secondaryLabelColor
+        let emptyLabel = NSTextField(labelWithString: "当前分类暂无模板")
+        emptyLabel.font = TypeScale.body
+        emptyLabel.textColor = NSColor.secondaryLabelColor
+        emptyStack.addArrangedSubview(emptyIcon)
+        emptyStack.addArrangedSubview(emptyLabel)
+        rightColumnView.addSubview(emptyStack)
+        NSLayoutConstraint.activate([
+            emptyStack.centerXAnchor.constraint(equalTo: cardGridScrollView.centerXAnchor),
+            emptyStack.centerYAnchor.constraint(equalTo: cardGridScrollView.centerYAnchor, constant: -20)
+        ])
+        emptyStateOverlayView = emptyStack
+        emptyStateIconView = emptyIcon
+        emptyStateTextLabel = emptyLabel
 
         tableScrollView = NSScrollView()
         tableScrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -1225,6 +1261,8 @@ public final class AssetHubView: NSVisualEffectView,
             reloadCardGrid()
         } else {
             pluginTableView.reloadData()
+            // 空态覆盖层只属于网格视图，切到列表模式时收起，避免浮在表格上
+            emptyStateOverlayView?.isHidden = true
         }
     }
 
@@ -1519,225 +1557,87 @@ public final class AssetHubView: NSVisualEffectView,
     //  卡片网格渲染中心 (Card Grid Rendering & Virtual Chunks R49)
     // ═══════════════════════════════════════════════════════════════
 
-    public static let defaultChunkSize: Int = 48
-    public private(set) var renderedChunkCount: Int = 48
-    public private(set) var loadMoreFooterView: NSView?
-    public private(set) var loadMoreButton: NSButton?
-    public private(set) var loadAllButton: NSButton?
-    public private(set) var loadMoreStatusLabel: NSTextField?
-
-    public func reloadCardGrid(resetPaging: Bool = true) {
-        guard let container = cardGridContentView else { return }
-
-        if resetPaging {
-            renderedChunkCount = min(AssetHubView.defaultChunkSize, plugins.count)
+    /// 空态切换：plugins 为空时显示居中覆盖层（区分「搜索无果」与「分类无模板」）。
+    private func refreshEmptyStateOverlay() {
+        let isEmpty = plugins.isEmpty
+        if let stack = emptyStateOverlayView {
+            stack.isHidden = !isEmpty
         }
+        guard isEmpty else { return }
+        let isSearching = !(searchField?.stringValue.isEmpty ?? true)
+        let iconName = isSearching ? "magnifyingglass" : "square.dashed"
+        emptyStateIconView?.image = NSImage(systemSymbolName: iconName, accessibilityDescription: nil) ?? NSImage()
+        emptyStateTextLabel?.stringValue = isSearching ? "未搜索到匹配的模板" : "当前分类暂无模板"
+    }
 
-        let items = plugins
-        let viewportW = cardGridScrollView.contentView.bounds.width > 0 ? cardGridScrollView.contentView.bounds.width : cardGridScrollView.bounds.width
-        let margin: CGFloat = 16
-        let spacing: CGFloat = 14
-        let availableW = max(viewportW, 320)
+    /// 重载卡片列表：数据源驱动 NSCollectionView（复用队列按可视区回收，G1 收口）。
+    /// 列数 / 卡片尺寸 / 底部状态条由 CardGridLayout 与 supplementary footer 承担。
+    public func reloadCardGrid() {
+        guard let collectionView = cardCollectionView else { return }
+        collectionView.reloadData()
+        refreshEmptyStateOverlay()
+    }
 
-        // R52 自适应弹性流式布局 (Adaptive Fluid Grid / UI-G016: 窄窗降至 1 列)
-        let rawCols = Int((availableW - margin * 2 + spacing) / (210 + spacing))
-        let cols = availableW < 440 ? 1 : max(1, min(4, rawCols))
-        let totalSpacing = CGFloat(max(0, cols - 1)) * spacing
-        let cardW = floor((availableW - margin * 2 - totalSpacing) / CGFloat(cols))
-        let cardH: CGFloat = cols == 1 ? 250 : 236
-
-        let countToRender = min(renderedChunkCount, items.count)
-        let rows = (countToRender + cols - 1) / cols
-
-        let cardsH = CGFloat(rows) * (cardH + spacing) + margin
-        let hasMore = countToRender < items.count
-        let footerH: CGFloat = hasMore ? 64.0 : (items.isEmpty ? 60.0 : 44.0)
-        let totalH = max(cardGridScrollView.bounds.height, cardsH + footerH + margin)
-        container.frame = NSRect(x: 0, y: 0, width: availableW, height: totalH)
-
-        // 1. 若当前卡片数量超出所需，移除多余卡片
-        if cardViews.count > countToRender {
-            for card in cardViews[countToRender...] {
-                card.removeFromSuperview()
-            }
-            cardViews.removeSubrange(countToRender...)
-        }
-
-        // 2. 高速就地复用已有卡片 (0ms View Recycling 彻底杜绝主线程反复 Alloc/Dealloc)
-        for i in 0..<cardViews.count {
-            let item = items[i]
-            let card = cardViews[i]
-            let col = i % cols
-            let row = i / cols
-            let x = margin + CGFloat(col) * (cardW + spacing)
-            let y = margin + CGFloat(row) * (cardH + spacing)
-            card.frame = NSRect(x: x, y: y, width: cardW, height: cardH)
-            if card.item.path != item.path || card.item.name != item.name || card.item.isEnabled != item.isEnabled || card.item.isOffline != item.isOffline || card.item.isCorrupted != item.isCorrupted || card.item.isMismatchedDisk != item.isMismatchedDisk {
-                card.item = item
+    /// 可见卡片就地重绑（toggle / 强制绑定 / 离线扫描后同步视口），
+    /// 替代旧 `for card in cardViews` 全量持有遍历——现在只碰可视区，语义不变。
+    private func rebindVisibleCards(itemMap: [String: TemplateItem],
+                                    updated: TemplateItem? = nil,
+                                    oldPath: String? = nil) {
+        guard let collectionView = cardCollectionView else { return }
+        for case let item as CardItem in collectionView.visibleItems() {
+            let it = item.cardView.item
+            if let matched = itemMap["\(it.path)|\(it.targetPath)"] ?? itemMap[it.path] {
+                item.cardView.item = matched
+            } else if let updated = updated, let oldPath = oldPath,
+                      it.path == oldPath || it.targetPath == oldPath || it.path == updated.path {
+                item.cardView.item = updated
             }
         }
+    }
 
-        // 3. 仅在不足时实例化新增卡片
-        if cardViews.count < countToRender {
-            for index in cardViews.count..<countToRender {
-                let item = items[index]
-                let col = index % cols
-                let row = index / cols
-                let x = margin + CGFloat(col) * (cardW + spacing)
-                let y = margin + CGFloat(row) * (cardH + spacing)
+    // MARK: - NSCollectionViewDataSource（卡片复用队列的数据源，plugins 为唯一真源）
+    public func numberOfSections(in collectionView: NSCollectionView) -> Int {
+        return 1
+    }
 
-                let card = ResourceCardView(item: item, frame: NSRect(x: x, y: y, width: cardW, height: cardH))
-                card.onToggle = { [weak self] it in
-                    self?.toggleTemplateItem(it)
-                }
-                // TR-012：降级旁路（未注入 onToggle 时）也要让统计条重算回写
-                card.onToggleCompleted = { [weak self] _ in
-                    self?.refreshList()
-                    self?.refreshTierStats()
-                }
-                card.onActionMenu = { [weak self] it, view in
-                    self?.showActionMenu(for: it, from: view)
-                }
-                card.onRequestContextMenu = { [weak self] it, _ in
-                    return self?.makeTemplateActionMenu(for: it)
-                }
-                container.addSubview(card)
-                cardViews.append(card)
+    public func collectionView(_ collectionView: NSCollectionView,
+                               numberOfItemsInSection section: Int) -> Int {
+        return plugins.count
+    }
 
-                // TR-001: 懒加载体积计算并回写 card.item.sizeMB，确保视图与模型完全同步
-                if !item.isSymlink && item.sizeMB == 0.0 && item.targetAvailable {
-                    TemplateTierScanner.calculateSizeAsync(for: item) { [weak card] calculatedSize in
-                        guard let card = card else { return }
-                        card.item.sizeMB = calculatedSize
-                        card.updateContent()
-                    }
-                }
+    public func collectionView(_ collectionView: NSCollectionView,
+                               itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
+        let templateItem = plugins[indexPath.item]
+        let cell = collectionView.makeItem(withIdentifier: CardItem.identifier, for: indexPath) as! CardItem
+        cell.hub = self
+        cell.bind(templateItem)
+        // TR-001: 懒加载体积计算并回写 card.item.sizeMB，确保视图与模型完全同步（复用口径下随绑随算）
+        if !templateItem.isSymlink && templateItem.sizeMB == 0.0 && templateItem.targetAvailable {
+            let expectedPath = templateItem.path
+            let expectedTarget = templateItem.targetPath
+            TemplateTierScanner.calculateSizeAsync(for: templateItem) { [weak card = cell.cardView] calculatedSize in
+                guard let card = card else { return }
+                // 复用换绑后，卡片可能已显示另一项；身份不符则丢弃本次回写，避免错贴体积
+                guard card.item.path == expectedPath && card.item.targetPath == expectedTarget else { return }
+                card.item.sizeMB = calculatedSize
+                card.updateContent()
             }
         }
-
-        // 移除旧底部栏
-        loadMoreFooterView?.removeFromSuperview()
-
-        // 底部控制器（加载更多 / 查看全部 / 状态指示）
-        let footer = NSView(frame: NSRect(x: margin, y: cardsH + 8, width: availableW - margin * 2, height: footerH))
-        container.addSubview(footer)
-        loadMoreFooterView = footer
-
-        if hasMore {
-            let footerStack = NSStackView()
-            footerStack.orientation = .horizontal
-            footerStack.spacing = 12
-            footerStack.alignment = .centerY
-            footerStack.translatesAutoresizingMaskIntoConstraints = false
-            footer.addSubview(footerStack)
-
-            NSLayoutConstraint.activate([
-                footerStack.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
-                footerStack.centerYAnchor.constraint(equalTo: footer.centerYAnchor)
-            ])
-
-            let btnMore = NSButton(title: "  加载更多模板 (已载入 \(countToRender) / 共 \(items.count) 款)",
-                                   target: self, action: #selector(onLoadMoreClicked))
-            btnMore.image = NSImage(systemSymbolName: "arrow.down.circle", accessibilityDescription: "加载更多")
-            btnMore.imagePosition = .imageLeading
-            btnMore.bezelStyle = .regularSquare
-            btnMore.isBordered = false
-            btnMore.wantsLayer = true
-            btnMore.layer?.cornerRadius = CornerRadius.capsule
-            btnMore.layer?.masksToBounds = true
-            btnMore.layer?.backgroundColor = ColorToken.activePillBg.cgColor
-            btnMore.layer?.borderColor = ColorToken.accentBlue.cgColor
-            btnMore.layer?.borderWidth = 1.0
-            btnMore.font = TypeScale.bodyBold
-            btnMore.contentTintColor = ColorToken.accentBlue
-            btnMore.translatesAutoresizingMaskIntoConstraints = false
-            btnMore.heightAnchor.constraint(equalToConstant: 32).isActive = true
-            btnMore.widthAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
-            footerStack.addArrangedSubview(btnMore)
-            self.loadMoreButton = btnMore
-
-            let btnAll = NSButton(title: "  查看全部", target: self, action: #selector(onLoadAllClicked))
-            btnAll.image = NSImage(systemSymbolName: "square.stack.3d.down.right", accessibilityDescription: "全部")
-            btnAll.imagePosition = .imageLeading
-            btnAll.bezelStyle = .regularSquare
-            btnAll.isBordered = false
-            btnAll.wantsLayer = true
-            btnAll.layer?.cornerRadius = CornerRadius.capsule
-            btnAll.layer?.masksToBounds = true
-            btnAll.layer?.backgroundColor = NSColor(calibratedWhite: 0.16, alpha: 0.9).cgColor
-            btnAll.layer?.borderColor = NSColor(calibratedWhite: 0.28, alpha: 0.8).cgColor
-            btnAll.layer?.borderWidth = 1.0
-            btnAll.font = TypeScale.footnoteMedium
-            btnAll.contentTintColor = NSColor(calibratedWhite: 0.85, alpha: 1.0)
-            btnAll.translatesAutoresizingMaskIntoConstraints = false
-            btnAll.heightAnchor.constraint(equalToConstant: 32).isActive = true
-            btnAll.widthAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
-            footerStack.addArrangedSubview(btnAll)
-            self.loadAllButton = btnAll
-        } else if items.isEmpty {
-            let emptyStack = NSStackView()
-            emptyStack.orientation = .vertical
-            emptyStack.alignment = .centerX
-            emptyStack.spacing = 8
-            emptyStack.translatesAutoresizingMaskIntoConstraints = false
-            let isSearching = !(searchField?.stringValue.isEmpty ?? true)
-            let iconName = isSearching ? "magnifyingglass" : "square.dashed"
-            let iconView = NSImageView(image: NSImage(systemSymbolName: iconName, accessibilityDescription: nil) ?? NSImage())
-            iconView.contentTintColor = NSColor.secondaryLabelColor
-            let tipText = isSearching ? "未搜索到匹配的模板" : "当前分类暂无模板"
-            let label = NSTextField(labelWithString: tipText)
-            label.font = TypeScale.body
-            label.textColor = NSColor.secondaryLabelColor
-            emptyStack.addArrangedSubview(iconView)
-            emptyStack.addArrangedSubview(label)
-            container.addSubview(emptyStack)
-            NSLayoutConstraint.activate([
-                emptyStack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                emptyStack.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -20)
-            ])
-        } else {
-            let label = NSTextField(labelWithString: "— 已展示「\(currentSubCategoryFilter)」下的全部 \(items.count) 款模板 —")
-            label.font = TypeScale.footnoteMedium
-            label.textColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
-            label.alignment = .center
-            label.translatesAutoresizingMaskIntoConstraints = false
-            footer.addSubview(label)
-            NSLayoutConstraint.activate([
-                label.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
-                label.centerYAnchor.constraint(equalTo: footer.centerYAnchor)
-            ])
-            self.loadMoreStatusLabel = label
-        }
+        return cell
     }
 
-    @objc public func onLoadMoreClicked() {
-        loadNextCardChunk()
+    public func collectionView(_ collectionView: NSCollectionView,
+                               viewForSupplementaryElementOfKind kind: String,
+                               at indexPath: IndexPath) -> NSView {
+        let footer = collectionView.makeSupplementaryView(
+            ofKind: CardGridLayout.footerKind,
+            withIdentifier: CardFooterView.identifier,
+            for: indexPath) as! CardFooterView
+        footer.configure(text: "— 已展示「\(currentSubCategoryFilter)」下的全部 \(plugins.count) 款模板 —")
+        return footer
     }
 
-    @objc public func onLoadAllClicked() {
-        loadAllCards()
-    }
-
-    public func loadNextCardChunk(step: Int = AssetHubView.defaultChunkSize) {
-        guard renderedChunkCount < plugins.count else { return }
-        renderedChunkCount = min(plugins.count, renderedChunkCount + step)
-        reloadCardGrid(resetPaging: false)
-    }
-
-    public func loadAllCards() {
-        guard renderedChunkCount < plugins.count else { return }
-        renderedChunkCount = plugins.count
-        reloadCardGrid(resetPaging: false)
-    }
-
-    @objc private func onCardGridDidScroll(_ notification: Notification) {
-        guard renderedChunkCount < plugins.count else { return }
-        let visibleRect = cardGridScrollView.contentView.documentVisibleRect
-        let contentHeight = cardGridContentView.bounds.height
-        if visibleRect.maxY >= contentHeight - 160 {
-            loadNextCardChunk()
-        }
-    }
+    // ↑ 旧 reloadCardGrid(resetPaging:) 平铺 frame 铺放 + 分块加载实现已随 C 口径迁移整体退役。
 
     // MARK: - TR-013 禁用/启用交互的安全与提示（禁止任何自动退出/重启 FCPX）
     //
@@ -1885,11 +1785,11 @@ public final class AssetHubView: NSVisualEffectView,
             if let idx = allItems.firstIndex(where: { $0.path == oldPath || $0.targetPath == oldPath }) {
                 allItems[idx] = updated
             }
-            // TR-012 根因修复：原实现只同步 allItems / plugins / cardViews，
+            // TR-012 根因修复：原实现只同步 allItems / plugins / 卡片视图，
             // 完全没有同步 groupItems（中栏分组是 allItems 的值拷贝快照）。
             // loadTemplatesForSelectedGroup() 会从陈旧 groupItems 派生 plugins 并直接写统计条，
             // 把 toggle 后的 279/1 打回 280/0 —— 这就是「统计条不刷新」的真因。
-            // 这里用 allItems 建 O(1) 索引，一次性同步 plugins / groupItems / cardViews。
+            // 这里用 allItems 建 O(1) 索引，一次性同步 plugins / groupItems，再由 rebindVisibleCards 刷新可见卡片。
             let itemMap = TemplateItem.buildItemIndex(from: allItems)
             for i in 0..<plugins.count {
                 let it = plugins[i]
@@ -1909,14 +1809,7 @@ public final class AssetHubView: NSVisualEffectView,
                     }
                 }
             }
-            for card in cardViews {
-                let it = card.item
-                if let matched = itemMap["\(it.path)|\(it.targetPath)"] ?? itemMap[it.path] {
-                    card.item = matched
-                } else if it.path == oldPath || it.targetPath == oldPath || it.path == updated.path {
-                    card.item = updated
-                }
-            }
+            rebindVisibleCards(itemMap: itemMap, updated: updated, oldPath: oldPath)
             pluginTableView?.reloadData()
 
             let msg = AssetHubView.toggleSuccessMessage(name: updated.name, enabled: updated.isEnabled)
@@ -1987,7 +1880,7 @@ public final class AssetHubView: NSVisualEffectView,
 
         // 6. 更新 UI: 重新刷新表格与卡片，并刷新子分类胶囊计数
         pluginTableView?.reloadData()
-        reloadCardGrid(resetPaging: false)
+        reloadCardGrid()
         updateSubCategoryFilterBar()
         updateStatusLine()
         // S03：破坏性操作结果（可放回原处），用户必须明确看到 → NSAlert
@@ -2157,12 +2050,8 @@ public final class AssetHubView: NSVisualEffectView,
                 }
             }
         }
-        for card in cardViews {
-            if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
-                card.item = matched
-            }
-        }
-        reloadCardGrid(resetPaging: false)
+        rebindVisibleCards(itemMap: itemMap)
+        reloadCardGrid()
 
         let msg = "已强制绑定卷并更新模板「\(item.name)」状态"
         // S04：安全敏感操作（UUID 不符强制绑定）的结果 → NSAlert
@@ -2205,12 +2094,8 @@ public final class AssetHubView: NSVisualEffectView,
                 }
             }
         }
-        for card in cardViews {
-            if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
-                card.item = matched
-            }
-        }
-        reloadCardGrid(resetPaging: false)
+        rebindVisibleCards(itemMap: itemMap)
+        reloadCardGrid()
     }
 
     @objc private func onCardRevealMenu(_ sender: NSMenuItem) {
@@ -3114,12 +2999,8 @@ public final class AssetHubView: NSVisualEffectView,
             }
 
             // 刷新网格展示离线灰化卡片，更新卡片属性 (O(1) 字典查表)
-            for card in cardViews {
-                if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
-                    card.item = matched
-                }
-            }
-            reloadCardGrid(resetPaging: false)
+            rebindVisibleCards(itemMap: itemMap)
+            reloadCardGrid()
 
             // 底部或顶部状态条显示离线提示（例如：“外置盘 [卷名] 已断开，12 套模板已离线保全”）
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
@@ -3220,12 +3101,8 @@ public final class AssetHubView: NSVisualEffectView,
                 }
             }
 
-            for card in cardViews {
-                if let matched = itemMap["\(card.item.path)|\(card.item.targetPath)"] ?? itemMap[card.item.path] {
-                    card.item = matched
-                }
-            }
-            reloadCardGrid(resetPaging: false)
+            rebindVisibleCards(itemMap: itemMap)
+            reloadCardGrid()
 
             let displayName = volumeName.isEmpty ? "外置盘" : volumeName
             let initialMsg: String
@@ -3276,12 +3153,8 @@ public final class AssetHubView: NSVisualEffectView,
                                     }
                                 }
                             }
-                            for card in self.cardViews {
-                                if let matched = updatedMap["\(card.item.path)|\(card.item.targetPath)"] ?? updatedMap[card.item.path] {
-                                    card.item = matched
-                                }
-                            }
-                            self.reloadCardGrid(resetPaging: false)
+                            self.rebindVisibleCards(itemMap: updatedMap)
+                            self.reloadCardGrid()
                             let corruptedMsg = "外置盘 [\(displayName)] 部分文件缺失损坏：\(corruptedCount) 套模板标红告警"
                             // S09：完整性校验发现损坏，需要用户知晓 → NSAlert
                             self.postFeedback(corruptedMsg, channel: .alert, site: "S09")
@@ -3985,7 +3858,7 @@ public final class AssetHubView: NSVisualEffectView,
     public override func resizeSubviews(withOldSize oldSize: NSSize) {
         super.resizeSubviews(withOldSize: oldSize)
         if currentViewMode == 0 && cardGridScrollView != nil && !cardGridScrollView.isHidden {
-            reloadCardGrid(resetPaging: false)
+            reloadCardGrid()
         }
     }
 
@@ -4131,3 +4004,182 @@ public final class AssetHubView: NSVisualEffectView,
         return urls.map { $0.path }
     }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  任务 12（M.3.17 = C 口径）：NSCollectionView 复用队列配套类
+//  · CardGridLayout —— 自适应 1–4 列布局（列数/卡宽/卡高公式与旧
+//    reloadCardGrid 完全同源：margin 16 / spacing 14 / 最小卡宽 210 /
+//    <440pt 降 1 列），并承载底部状态条 supplementary footer。
+//  · CardItem —— ResourceCardView 的 NSCollectionViewItem 包装；
+//    回调在 loadView 挂一次、hub 弱引用，bind 时随用随换数据。
+//  · CardFooterView —— 底部「已展示全部 N 款」状态条。
+//  旧分块加载（加载更多/查看全部按钮）随复用队列一并退役；
+//  G2 降采样 / G3 缓存上限 / G4 磁盘缓存不在本档。
+// ═══════════════════════════════════════════════════════════════
+
+final class CardGridLayout: NSCollectionViewLayout {
+
+    static let footerKind = "CardGridFooter"
+    private static let margin: CGFloat = 16
+    private static let spacing: CGFloat = 14
+
+    private var itemFrames: [CGRect] = []
+    private var footerFrame: CGRect = .zero
+    private var contentSize: NSSize = .zero
+    private var lastWidth: CGFloat = 0
+
+    /// 与旧实现同源的列数公式（R52 / UI-G016）
+    static func columns(forWidth width: CGFloat) -> Int {
+        let rawCols = Int((width - margin * 2 + spacing) / (210 + spacing))
+        return width < 440 ? 1 : max(1, min(4, rawCols))
+    }
+
+    static func cardSize(forWidth width: CGFloat) -> NSSize {
+        let cols = columns(forWidth: width)
+        let totalSpacing = CGFloat(max(0, cols - 1)) * spacing
+        let cardW = floor((width - margin * 2 - totalSpacing) / CGFloat(cols))
+        let cardH: CGFloat = cols == 1 ? 250 : 236
+        return NSSize(width: cardW, height: cardH)
+    }
+
+    override func prepare() {
+        super.prepare()
+        guard let collectionView = collectionView else { return }
+        let width = max(collectionView.bounds.width, 320)
+        lastWidth = width
+        let cols = CardGridLayout.columns(forWidth: width)
+        let card = CardGridLayout.cardSize(forWidth: width)
+        let count = collectionView.numberOfItems(inSection: 0)
+
+        itemFrames = []
+        itemFrames.reserveCapacity(count)
+        for i in 0..<count {
+            let col = i % cols
+            let row = i / cols
+            itemFrames.append(NSRect(x: CardGridLayout.margin + CGFloat(col) * (card.width + CardGridLayout.spacing),
+                                     y: CardGridLayout.margin + CGFloat(row) * (card.height + CardGridLayout.spacing),
+                                     width: card.width,
+                                     height: card.height))
+        }
+
+        let rows = (count + cols - 1) / max(1, cols)
+        let cardsH = CGFloat(rows) * (card.height + CardGridLayout.spacing)
+        let footerH: CGFloat = count == 0 ? 0 : 44
+        contentSize = NSSize(width: width, height: cardsH + footerH + CardGridLayout.margin)
+        footerFrame = NSRect(x: CardGridLayout.margin, y: cardsH + 8,
+                              width: width - CardGridLayout.margin * 2, height: footerH)
+    }
+
+    override var collectionViewContentSize: NSSize {
+        return contentSize
+    }
+
+    override func shouldInvalidateLayout(forBoundsChange newBounds: NSRect) -> Bool {
+        // 只对宽度变化全量重排；纵向滚动只做可见区增量取件，不再全量遍历
+        return Int(newBounds.width) != Int(lastWidth)
+    }
+
+    private func footerAttributes() -> NSCollectionViewLayoutAttributes {
+        let attrs = NSCollectionViewLayoutAttributes(forSupplementaryViewOfKind: CardGridLayout.footerKind,
+                                                     with: IndexPath(item: 0, section: 0))
+        attrs.frame = footerFrame
+        attrs.zIndex = 1
+        return attrs
+    }
+
+    override func layoutAttributesForElements(in rect: NSRect) -> [NSCollectionViewLayoutAttributes] {
+        var result: [NSCollectionViewLayoutAttributes] = []
+        result.reserveCapacity(32)
+        for (idx, frame) in itemFrames.enumerated() where frame.intersects(rect) {
+            let attrs = NSCollectionViewLayoutAttributes(forItemWith: IndexPath(item: idx, section: 0))
+            attrs.frame = frame
+            result.append(attrs)
+        }
+        if !footerFrame.isEmpty && footerFrame.intersects(rect) {
+            result.append(footerAttributes())
+        }
+        return result
+    }
+
+    override func layoutAttributesForItem(at indexPath: IndexPath) -> NSCollectionViewLayoutAttributes? {
+        guard indexPath.item < itemFrames.count else { return nil }
+        let attrs = NSCollectionViewLayoutAttributes(forItemWith: indexPath)
+        attrs.frame = itemFrames[indexPath.item]
+        return attrs
+    }
+
+    override func layoutAttributesForSupplementaryView(ofKind elementKind: String,
+                                                      at indexPath: IndexPath) -> NSCollectionViewLayoutAttributes? {
+        guard elementKind == CardGridLayout.footerKind else { return nil }
+        return footerAttributes()
+    }
+}
+
+final class CardItem: NSCollectionViewItem {
+
+    static let identifier = NSUserInterfaceItemIdentifier("AssetHubCardItem")
+
+    /// 占位模板：NSCollectionViewItem 实例化先于首次 bind，ResourceCardView 需要 item 才能建。
+    /// 视觉上永远不会真正显示它——makeItem 返回后立刻被 bind 覆盖。
+    private static let placeholder = TemplateItem(name: "", category: "", tier: .user,
+                                                  path: "", targetPath: "",
+                                                  isSymlink: false, targetAvailable: false, sizeMB: 0)
+
+    weak var hub: AssetHubView?
+    private(set) var cardView: ResourceCardView!
+
+    override func loadView() {
+        let card = ResourceCardView(item: CardItem.placeholder)
+        cardView = card
+        view = card
+        // 四个回调挂一次即可：hub 弱引用随 bind 更新，闭包不捕获具体数据
+        card.onToggle = { [weak self] it in self?.hub?.toggleTemplateItem(it) }
+        // TR-012：降级旁路（未注入 onToggle 时）也要让统计条重算回写
+        card.onToggleCompleted = { [weak self] _ in
+            self?.hub?.refreshList()
+            self?.hub?.refreshTierStats()
+        }
+        card.onActionMenu = { [weak self] it, fromView in
+            self?.hub?.showActionMenu(for: it, from: fromView)
+        }
+        card.onRequestContextMenu = { [weak self] it, event in
+            return self?.hub?.makeTemplateActionMenu(for: it)
+        }
+    }
+
+    func bind(_ templateItem: TemplateItem) {
+        // ResourceCardView.item 的 didSet 会走 updateContent()；
+        // 体积/缩略图两条异步链都有 path/targetPath 失效守卫，复用换绑天然安全。
+        cardView.item = templateItem
+    }
+}
+
+final class CardFooterView: NSView {
+
+    static let identifier = NSUserInterfaceItemIdentifier("AssetHubCardFooter")
+    private let label = NSTextField(labelWithString: "")
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        label.font = TypeScale.footnoteMedium
+        label.textColor = NSColor(calibratedWhite: 0.45, alpha: 1.0)
+        label.alignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(text: String) {
+        label.stringValue = text
+    }
+}
+
+/// 任务 12（C 口径）：数据源方法实现在类主体内（plugins 唯一真源），此处只声明协议一致性。
+extension AssetHubView: NSCollectionViewDataSource {}
