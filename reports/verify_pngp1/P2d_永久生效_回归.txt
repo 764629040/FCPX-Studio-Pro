@@ -53,7 +53,7 @@ L_transparent_text_only       PASS  pass 26  maxdiff 0.0  fail 0
 
 ════════ 三、写回 e2e（离屏真实 MainWindow + 真实面板信号） ════════
 
-用例一：框选拆分 → 写回 → 关窗重开（/tmp/e2e_persist.py）
+用例一：框选拆分 → 写回 → 关窗重开（脚本随 /tmp 清理已移除；参数：源目录 A 夹具、框选矩形 (540,710,800,1210)）
 
   编辑前           8 层，磁盘文件 layers/BACKGROUND.png … TEXT_02_文字.png
   界面层数         8，标签「参与转换 8 / 文档总计 8」
@@ -70,7 +70,7 @@ L_transparent_text_only       PASS  pass 26  maxdiff 0.0  fail 0
   体积             layers_bytes 156038，ratio_to_source 3.27
   重开             9 层，名称与磁盘一致 → 永久生效成立
 
-用例二：拆 → 重开 → 合并 → 再重开（/tmp/e2e_persist2.py）
+用例二：拆 → 重开 → 合并 → 再重开（脚本随 /tmp 清理已移除；步骤：拆分 → 重开 → 合并 OBJECT 层 → 重开）
 
   初始             8 层
   ① 拆分           界面 9 层，磁盘 9 层，edit_count 1
