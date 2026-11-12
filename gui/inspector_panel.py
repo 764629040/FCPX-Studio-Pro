@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTreeWidget, 
     QTreeWidgetItem, QHeaderView, QCheckBox, QPlainTextEdit, 
-    QDoubleSpinBox, QLineEdit, QGroupBox, QPushButton
+    QDoubleSpinBox, QLineEdit, QGroupBox, QPushButton, QMenu
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon, QPixmap, QColor, QBrush, QCursor
@@ -18,6 +18,9 @@ class InspectorPanel(QWidget):
     badge_clicked_signal = pyqtSignal(object)
     save_template_signal = pyqtSignal()
     batch_export_signal = pyqtSignal()
+    # 手动纠错：多选合并（传 1-based 层索引列表）/ 单层按连通块拆分（传层索引）
+    layers_merge_requested = pyqtSignal(list)
+    layer_split_requested = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -43,8 +46,12 @@ class InspectorPanel(QWidget):
         self.tree.header().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.tree.header().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         self.tree.header().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        self.tree.header().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        self.tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+        # 第 4 列是说明文字，按内容自适应会把图层名挤到看不见；
+        # 固定起始宽度 + 关掉「最后一列占满剩余」的表头默认行为，图层名才有地方显示。
+        self.tree.header().setStretchLastSection(False)
+        self.tree.header().setSectionResizeMode(4, QHeaderView.ResizeMode.Interactive)
+        self.tree.setColumnWidth(4, 84)
+        self.tree.setSelectionMode(QTreeWidget.SelectionMode.ExtendedSelection)
         self.tree.setAnimated(True)
         self.tree.setStyleSheet("""
             QTreeWidget {
@@ -71,6 +78,8 @@ class InspectorPanel(QWidget):
             }
         """)
         self.tree.itemSelectionChanged.connect(self._on_tree_selection_changed)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self._on_tree_context_menu)
         layout.addWidget(self.tree, stretch=1)
 
         # 兼容旧代码引用
@@ -228,7 +237,8 @@ class InspectorPanel(QWidget):
             "shape": "[形状]",
             "pixel": "[像素]",
             "group": "[组]",
-            "adjustment": "[调整层]"
+            "adjustment": "[调整层]",
+            "fallback_png": "[位图]"
         }
 
         # 建立图层信息速查表 (通过 name 或 layer_path)
@@ -281,9 +291,10 @@ class InspectorPanel(QWidget):
                 if info.kind == "type":
                     preview = info.text.replace("\n", " ").strip()[:14]
                     font_label = info.font_name.split("-")[0]
-                    item.setText(3, f'"{preview}" ({font_label})')
+                    item.setText(4, f'"{preview}" ({font_label})')
                 else:
-                    item.setText(3, f"[{info.disposition_reason[:12]}]")
+                    item.setText(4, f"[{info.disposition_reason[:8]}]")
+                    item.setToolTip(4, info.disposition_reason)
                 # R26-A47②：缺字层可见高亮（⚠徽标/橙前景/tooltip/marked_text 预览）
                 self._apply_missing_glyph_highlight(item, info)
             else:
@@ -332,9 +343,10 @@ class InspectorPanel(QWidget):
                 if info.kind == "type":
                     preview = info.text.replace("\n", " ").strip()[:14]
                     font_label = info.font_name.split("-")[0]
-                    item.setText(3, f'"{preview}" ({font_label})')
+                    item.setText(4, f'"{preview}" ({font_label})')
                 else:
-                    item.setText(3, f"[{info.disposition_reason[:12]}]")
+                    item.setText(4, f"[{info.disposition_reason[:8]}]")
+                    item.setToolTip(4, info.disposition_reason)
                 # R26-A47②：缺字层可见高亮（扁平后备模式同样生效）
                 self._apply_missing_glyph_highlight(item, info)
 
@@ -374,11 +386,35 @@ class InspectorPanel(QWidget):
     def _on_pub_toggled(self, info, state):
         info.is_published = (state == Qt.CheckState.Checked.value or state == 2)
 
+    def _on_tree_context_menu(self, pos):
+        """层树右键：多选合并 / 单层按连通块拆分（手动纠错入口）。"""
+        items = self.tree.selectedItems()
+        infos = [it.data(0, Qt.ItemDataRole.UserRole) for it in items]
+        infos = [i for i in infos if i is not None]
+        if not infos:
+            return
+
+        menu = QMenu(self)
+        if len(infos) >= 2:
+            act = menu.addAction("合并所选 %d 层" % len(infos))
+            act.triggered.connect(
+                lambda _=False, idx=[i.index for i in infos]: self.layers_merge_requested.emit(idx))
+        else:
+            act = menu.addAction("按连通块拆分这层")
+            act.triggered.connect(
+                lambda _=False, idx=infos[0].index: self.layer_split_requested.emit(idx))
+        menu.addSeparator()
+        menu.addAction("改动只在本次导出生效，不动源分层文件").setEnabled(False)
+        menu.exec(self.tree.viewport().mapToGlobal(pos))
+
     def _on_tree_selection_changed(self):
         items = self.tree.selectedItems()
         if not items:
             return
-        info = items[0].data(0, Qt.ItemDataRole.UserRole)
+        # 多选时参数面板跟随最后点中的那一层，而不是列表里排最前的
+        cur = self.tree.currentItem()
+        item = cur if cur in items else items[0]
+        info = item.data(0, Qt.ItemDataRole.UserRole)
         if info is not None:
             self.current_layer_info = info
             self.text_edit.blockSignals(True)

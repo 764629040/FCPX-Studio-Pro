@@ -1125,7 +1125,8 @@ def split(src: str, out_dir: str) -> dict:
         warnings.append("未检出主体层：没有达到面积/显著性阈值的前景块")
     if object_fallback:
         warnings.append("主体为保底选择，low_confidence=true")
-    if fill_info["hole_ratio"] > 0.35:
+    # 延展纹理穿帮只对实体底的延展填色成立；透明底洞保持透明，没有填色可穿帮
+    if fill_info["hole_ratio"] > 0.35 and fg_info["mode"] != "alpha":
         warnings.append("前景占比 %.1f%%，背景补洞面积大，挪层后可能仍可见延展纹理" %
                         (fill_info["hole_ratio"] * 100))
 
@@ -1144,7 +1145,7 @@ def split(src: str, out_dir: str) -> dict:
             "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
             "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
             "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
-            "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞",
+            "BACKGROUND": "去掉以上三类后的底图；洞的处理方式见 background_fill.method",
         },
         "text_editable": False,
         "notice": "文字层是位图：能挪不能改",

@@ -307,5 +307,60 @@
       1080,
       1920
     ]
+  },
+  "K_transparent_poster": {
+    "text_bboxes": [
+      [
+        150,
+        534,
+        718,
+        592
+      ],
+      [
+        150,
+        1190,
+        672,
+        1234
+      ]
+    ],
+    "object_bboxes": [
+      [
+        390,
+        760,
+        690,
+        1060
+      ]
+    ],
+    "element_count": 1,
+    "bg": "transparent",
+    "file": "K_transparent_poster.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "L_transparent_text_only": {
+    "text_bboxes": [
+      [
+        120,
+        917,
+        672,
+        988
+      ],
+      [
+        120,
+        1042,
+        476,
+        1089
+      ]
+    ],
+    "object_bboxes": [],
+    "element_count": 1,
+    "bg": "transparent",
+    "file": "L_transparent_text_only.png",
+    "size": [
+      1080,
+      1920
+    ]
   }
 }

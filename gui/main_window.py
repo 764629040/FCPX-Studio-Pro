@@ -267,9 +267,11 @@ class MainWindow(QMainWindow):
         self.inspector.layer_modified_signal.connect(self._on_inspector_layer_modified)
         self.inspector.layer_selected_signal.connect(self.canvas_view.select_layer)
         self.inspector.badge_clicked_signal.connect(self._on_jump_to_diagnosis)
+        self.inspector.layers_merge_requested.connect(self._on_merge_layers)
+        self.inspector.layer_split_requested.connect(self._on_split_layer)
         self.inspector.save_template_signal.connect(self._on_save_current_template)
         self.inspector.batch_export_signal.connect(self._on_batch_export_all)
-        self.inspector.setFixedWidth(360)
+        self.inspector.setFixedWidth(400)  # 层树 5 列，360 时图层名只剩几个字看不清
         tab1_layout.addWidget(self.inspector)
 
         self.tab_widget.addTab(tab1_widget, "🎨 引擎一：PSD 转档与 Motion 属性设计器")
@@ -525,6 +527,10 @@ class MainWindow(QMainWindow):
                 # 载入画布与面板
                 layers = self.current_parsed_psd["layers"]
                 layer_tree = self.current_parsed_psd.get("layer_tree")
+                # 画板必须先跟文档真实尺寸对齐：否则竖版文档按 1920×1080 的画板
+                # 摆放 1080×1920 的层坐标，整幅就错位溢出。
+                self.canvas_view.set_artboard_resolution(
+                    self.current_parsed_psd["width"], self.current_parsed_psd["height"])
                 self.canvas_view.load_layers(layers)
                 self.inspector.load_layers(layers, layer_tree=layer_tree)
 
@@ -644,6 +650,51 @@ class MainWindow(QMainWindow):
 
     def _on_inspector_layer_modified(self, info):
         self.canvas_view.update_layer_display(info)
+
+    # ── 面板手动合并 / 拆分（P2-b）──
+    def _layer_edit_ready(self) -> bool:
+        """只有 PNG 分层链路可编辑：PSD 的层来自源文件，在这里改了跟源对不上。"""
+        if not self.current_parsed_psd or not self.current_psd_path:
+            QMessageBox.warning(self, "提示", "请先选择一个已拆分好的 PNG 分层目录！")
+            return False
+        if self.current_parsed_psd.get("source_kind") != "png_split":
+            QMessageBox.warning(self, "提示",
+                                "手动合并/拆分只支持 PNG 分层目录；PSD 的层来自源文件，不能在这里改。")
+            return False
+        return True
+
+    def _apply_layer_edit(self, res):
+        """层表整体换掉并重刷画布与面板；失败弹原因，成功靠层数变化体现。"""
+        new_layers, msg = res
+        if new_layers is None:
+            QMessageBox.warning(self, "改不了", msg)
+            return
+        parsed = self.current_parsed_psd
+        parsed["layers"] = new_layers
+        parsed["layer_count"] = len(new_layers)
+        parsed["low_confidence_layers"] = [
+            l.name for l in new_layers if (l.fallback_png_info or {}).get("low_confidence")
+        ]
+        self.lbl_layer_count.setText(
+            f"图层数: 参与转换 {len(new_layers)} / 文档总计 {parsed['total_layers_count']}"
+        )
+        # 层结构整表变了：画布本就是全量重建，按新表刷最稳
+        self.canvas_view.load_layers(new_layers)
+        self.inspector.load_layers(new_layers, layer_tree=parsed.get("layer_tree"))
+
+    def _on_merge_layers(self, indexes):
+        if not self._layer_edit_ready():
+            return
+        from core.png_layer_io import merge_layer_models
+        self._apply_layer_edit(
+            merge_layer_models(self.current_parsed_psd, self.current_psd_path, indexes))
+
+    def _on_split_layer(self, index):
+        if not self._layer_edit_ready():
+            return
+        from core.png_layer_io import split_layer_model
+        self._apply_layer_edit(
+            split_layer_model(self.current_parsed_psd, self.current_psd_path, index))
 
     def _on_save_current_template(self):
         if not self.current_parsed_psd or not self.current_psd_path:

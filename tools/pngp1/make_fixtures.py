@@ -254,6 +254,40 @@ def make_j():
                 "element_count": 1, "bg": "gradient"}
 
 
+def make_k():
+    """透明底海报：中间圆角卡片 + 卡内主体圆 + 卡内文字 + 卡外星形，四周全透明。
+
+    覆盖 alpha 分支：源图自带透明底（不透明像素远低于 98%），
+    洞必须保持透明、不做延展填色。
+    """
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    # 卡片：不透明底，撑住主体和文字
+    d.rounded_rectangle([90, 420, 990, 1500], radius=36, fill=(28, 34, 50, 255))
+    d.ellipse([390, 760, 690, 1060], fill=(228, 96, 72, 255))
+    f1 = font(78)
+    box = draw_text_block(d, (150, 520), "AUTUMN SALE", f1, (255, 255, 255, 255))
+    f2 = font(58)
+    box2 = draw_text_block(d, (150, 1180), "2026 COLLECTION", f2, (198, 206, 224, 255))
+    # 卡片外悬浮装饰：星（下方透明区里）
+    star(d, 540, 1680, 62, (255, 206, 84, 255))
+    return im, {"text_bboxes": [box, box2], "object_bboxes": [[390, 760, 690, 1060]],
+                "element_count": 1, "bg": "transparent"}
+
+
+def make_l():
+    """透明底纯文字条：只有两行字 + 一条分隔线，无主体（验证不臆造 OBJECT）。"""
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    f1 = font(96)
+    box = draw_text_block(d, (120, 900), "TITLE ONLY", f1, (250, 250, 250, 255))
+    f2 = font(64)
+    box2 = draw_text_block(d, (120, 1030), "subtitle line", f2, (206, 210, 220, 255))
+    d.rectangle([120, 880, 960, 884], fill=(250, 250, 250, 255))
+    return im, {"text_bboxes": [box, box2], "object_bboxes": [], "element_count": 1,
+                "bg": "transparent"}
+
+
 MAKERS = {
     "A_gradient_text_object_decor": make_a,
     "B_flat_product_title": make_b,
@@ -265,28 +299,43 @@ MAKERS = {
     "H_two_objects": make_h,
     "I_no_text": make_i,
     "J_text_heavy": make_j,
+    "K_transparent_poster": make_k,
+    "L_transparent_text_only": make_l,
 }
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="reports/verify_pngp1/fixtures")
+    ap.add_argument("--force", action="store_true",
+                    help="覆盖已存在的夹具图（默认跳过，避免重跑打乱既有基线）")
     args = ap.parse_args()
     out = os.path.abspath(args.out)
     os.makedirs(out, exist_ok=True)
+    # 生成结果不是逐字节确定的（字体渲染/Pillow 编码会变），已入库的图必须保住：
+    # 默认只补缺失的，要重做才加 --force。真值也按已存在条目增量合并，不整体重写。
+    truth_path = os.path.join(out, "ground_truth.json")
     truth = {}
+    if os.path.isfile(truth_path):
+        with open(truth_path, encoding="utf-8") as f:
+            truth = json.load(f)
+    skipped = []
     for name, fn in MAKERS.items():
+        p = os.path.join(out, name + ".png")
+        if os.path.isfile(p) and not args.force:
+            skipped.append(name)
+            continue
         im, gt = fn()
         # 轻微整体模糊 0.4px，模拟真实成品图的抗锯齿，避免算法被「纯硬边」宠坏
         im = im.filter(ImageFilter.GaussianBlur(radius=0.4))
-        p = os.path.join(out, name + ".png")
         im.save(p, optimize=True)
         gt["file"] = os.path.basename(p)
         gt["size"] = [W, H]
         truth[name] = gt
-    with open(os.path.join(out, "ground_truth.json"), "w", encoding="utf-8") as f:
+    with open(truth_path, "w", encoding="utf-8") as f:
         json.dump(truth, f, ensure_ascii=False, indent=2)
-    print(json.dumps({"status": "ok", "count": len(truth), "out": out}, ensure_ascii=False))
+    print(json.dumps({"status": "ok", "count": len(truth), "written": sorted(set(MAKERS) - set(skipped)),
+                      "skipped": sorted(skipped), "out": out}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+A_gradient_text_object_decor     pass=44 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=8
+B_flat_product_title             pass=36 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=6
+C_vignette_badge                 pass=44 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=8
+D_card_portrait                  pass=32 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=5
+E_ui_screenshot                  pass=60 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=12
+F_low_contrast                   pass=28 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=4
+G_vertical_text                  pass=32 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=5
+H_two_objects                    pass=32 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=5
+I_no_text                        pass=32 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=5
+J_text_heavy                     pass=36 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGB  fill=edge_extend_nearest_from_confident_background layers=6
+K_transparent_poster             pass=30 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGBA fill=transparent_keep                              layers=5
+L_transparent_text_only          pass=26 fail=0 PASS maxdiff=0.0 p999=0.0 mode=RGBA fill=transparent_keep                              layers=4
+
+汇总: PASS=12 / FAIL=0（12 张夹具，含 2 张 alpha 透明底）
+口径: 实体底=边缘延展填洞（P1，口径2 保留）; 透明底=洞保持透明不做延展
+命令: python3 tools/pngp1/png_split_p1.py split --src <fixture> --out /tmp/p2_regress/<name> ; check --out 同名

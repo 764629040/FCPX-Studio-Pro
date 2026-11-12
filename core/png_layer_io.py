@@ -73,8 +73,11 @@ def _layer_note(layer_class: str, notes: List[str]) -> List[str]:
     if layer_class == "TEXT":
         out.insert(0, BITMAP_TEXT_NOTICE)
         out.insert(1, "不做 OCR，不重建矢量文字")
-    elif layer_class == "BACKGROUND":
-        out.insert(0, "背景底图：已按延展填色补洞")
+    elif layer_class == "BACKGROUND" and not out:
+        # 背景补洞方式随源图模式不同（实体底延展补 / 透明底保持透明），
+        # 清单 notes 已按实际分支写好；只有清单没写时才补一句中性说明，
+        # 不在这里写死结论，避免和清单自身口径打架。
+        out.append("背景底图")
     return out
 
 
@@ -291,3 +294,277 @@ def parse_png_split_dir(split_dir: str) -> Dict[str, Any]:
         "diagnosis_report": _diagnosis_report(doc, layers),
         "diagnostics": {},
     }
+
+
+# ── 层编辑：合并 / 拆分（像素工具，只做像素，不改业务判定）───────────────
+#
+# 设计器里用户手动纠错的两件事：
+#   · 合并：算法把一件东西拆成了几层 → 多选后并回一层
+#   · 拆分：一层里其实躺着几件不相连的东西 → 按连通块拆开
+#
+# 像素结果写到输出目录下的 ``_edit/``，**不覆盖**原 ``layers/*.png``，
+# 原有分层随时可回退。调用方负责更新层模型与界面。
+
+EDIT_SUBDIR = "_edit"
+# 与 P1 的碎渣阈值同口径：小于它的连通块不单独成层
+SPLIT_MIN_AREA_RATIO = 0.0008
+
+
+def _open_layer_rgba(path: str) -> Optional[Any]:
+    from PIL import Image
+
+    try:
+        with Image.open(path) as im:
+            return im.convert("RGBA")
+    except Exception:
+        return None
+
+
+def merge_layer_pngs(paths: List[str], bboxes: List[Tuple[int, int, int, int]],
+                     canvas: Tuple[int, int], out_path: str) -> bool:
+    """按叠放顺序（底层在前）把多层像素 alpha over 合成一张，写到 ``out_path``。
+
+    ``bboxes[i]`` 是第 i 层在画布上的位置；层 PNG 可能是裁剪尺寸也可能是全画幅，
+    两种都按 bbox 对齐贴回，不靠猜。
+    """
+    from PIL import Image
+
+    W, H = int(canvas[0]), int(canvas[1])
+    acc = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+
+    used = False
+    for path, bbox in zip(paths, bboxes):
+        im = _open_layer_rgba(path)
+        if im is None:
+            continue
+        if im.size == (W, H):
+            layer_img = im
+        else:
+            x0, y0, x1, y1 = [int(v) for v in bbox]
+            layer_img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            layer_img.paste(im, (x0, y0))
+        acc = Image.alpha_composite(acc, layer_img)
+        used = True
+    if not used:
+        return False
+
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    acc.save(out_path, optimize=True)
+    return True
+
+
+def split_layer_png(path: str, bbox: Tuple[int, int, int, int], canvas: Tuple[int, int],
+                    out_dir: str) -> List[Dict[str, Any]]:
+    """把一层按「不相连的连通块」拆成多层，返回每块的 png 路径与画布 bbox。
+
+    只按像素连通性拆，不猜语义：不相连才拆，相连的不动。
+    面积小于阈值的碎块并进最后一块，不制造几十个碎层。
+
+    阈值随层自身像素自适应：既用画布 0.08% 的绝对下限（对齐 P1 碎渣口径），
+    又不让它超过本层像素的 1/8 —— 否则本身就很小的层永远拆不开。
+    """
+    import numpy as np
+    from PIL import Image
+    from scipy import ndimage
+
+    im = _open_layer_rgba(path)
+    if im is None:
+        return []
+    W, H = int(canvas[0]), int(canvas[1])
+
+    if im.size == (W, H):
+        full = im
+    else:
+        x0, y0 = int(bbox[0]), int(bbox[1])
+        full = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        full.paste(im, (x0, y0))
+
+    alpha = np.asarray(full.getchannel("A"))
+    mask = alpha > 8
+    if not mask.any():
+        return []
+
+    layer_pixels = int(mask.sum())
+    min_area = max(12, min(int(SPLIT_MIN_AREA_RATIO * W * H), layer_pixels // 8))
+
+    lab, n = ndimage.label(mask, structure=np.ones((3, 3), dtype=np.uint8))
+    sizes = np.bincount(lab.ravel())
+    keep = [i for i in range(1, n + 1) if sizes[i] >= min_area]
+    if len(keep) <= 1:
+        return []  # 只有一块（或全是碎渣）:没什么可拆的
+
+    groups: List[tuple] = []
+    for cid in keep:
+        groups.append((lab == cid))
+    small = [i for i in range(1, n + 1) if sizes[i] < min_area]
+    if small:
+        tail = np.zeros_like(mask)
+        for cid in small:
+            tail |= (lab == cid)
+        groups.append(tail)
+
+    m = mask.sum()
+    out_imgs = []
+    for g in groups:
+        a = np.where(g, alpha, 0).astype(np.uint8)
+        rgb = np.asarray(full.convert("RGB"))
+        arr = np.dstack([rgb, a])
+        ys, xs = np.where(g)
+        bx = [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
+        img = Image.fromarray(arr)
+        base = os.path.splitext(os.path.basename(path))[0]
+        name = "%s_拆%d.png" % (base, len(out_imgs) + 1)
+        os.makedirs(out_dir, exist_ok=True)
+        p = os.path.join(out_dir, name)
+        img.save(p, optimize=True)
+        out_imgs.append({"path": p, "bbox": bx, "pixels": int(g.sum()),
+                         "ratio": float(g.sum()) / float(max(1, m))})
+    return out_imgs
+
+
+# ── 层编辑入口：合并 / 拆分（给设计器面板调用）───────────────────────────
+#
+# 只对 PNG 分层链路（source_kind == "png_split"）开放。返回**全新的层模型列表**，
+# 由调用方整体替换后重刷画布与面板；失败返回 (None, 原因)，界面据此提示。
+
+def _relayer(layers: List[PSDLayerInfo], canvas: Tuple[int, int]) -> List[PSDLayerInfo]:
+    """重排 1-based 索引、重算居中位移、按类别恢复发布通道。整表复用。"""
+    W, H = int(canvas[0]), int(canvas[1])
+    cx0, cy0 = W / 2.0, H / 2.0
+    for i, info in enumerate(layers, start=1):
+        info.index = i
+        left, top, right, bottom = info.psd_bbox
+        info.motion_pos = (round((left + right) / 2.0 - cx0, 2),
+                           round(cy0 - (top + bottom) / 2.0, 2))
+        if info.kind == "fallback_png" and info.layer_type in ("bitmap_text", "bitmap_layer"):
+            is_text = info.layer_type == "bitmap_text"
+            for ch in ("text", "font", "size", "tracking", "alignment"):
+                info.published_channels[ch] = not is_text
+    return layers
+
+
+def _edit_dir(split_dir: str) -> str:
+    d = os.path.join(split_dir, EDIT_SUBDIR)
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def _png_bbox(info: PSDLayerInfo) -> Tuple[int, int, int, int]:
+    return tuple(int(v) for v in (info.psd_bbox or (0, 0, 0, 0)))
+
+
+def _model_from(info: PSDLayerInfo, png_path: str, bbox: Tuple[int, int, int, int],
+                name: str, notes: List[str], layer_type: str) -> PSDLayerInfo:
+    """以既有层模型为模板造一层新的位图层（只改像素来源相关字段）。"""
+    import copy
+
+    new = copy.copy(info)
+    new.name = name
+    new.psd_bbox = tuple(int(v) for v in bbox)
+    new.fallback_png_path = png_path
+    new.layer_path = name
+    new.diagnostic_notes = list(notes)
+    new.layer_type = layer_type
+    new.thumbnail_bytes = _thumbnail_bytes(png_path) if png_path else None
+    new.has_thumbnail = bool(new.thumbnail_bytes)
+    fi = dict(new.fallback_png_info or {})
+    fi.update({"source": "png_split_edit", "layer_class": info.fallback_png_info.get("layer_class")
+               if info.fallback_png_info else None})
+    new.fallback_png_info = fi
+    new.disposition = "degraded" if layer_type == "bitmap_text" else "preserved"
+    new.disposition_reason = BITMAP_TEXT_NOTICE if layer_type == "bitmap_text" else "PNG 分层位图（手动编辑后）"
+    return new
+
+
+def merge_layer_models(parsed: Dict[str, Any], split_dir: str,
+                      indexes: List[int]) -> Tuple[Optional[List[PSDLayerInfo]], str]:
+    """把 indexes 指定的层合并成一层（按叠放顺序 alpha over），返回新层模型表。
+
+    背景层不允许参与合并：背景的洞是分层的语义基础，合进去就说不清了。
+    """
+    W, H = int(parsed["width"]), int(parsed["height"])
+    layers = list(parsed["layers"])
+    idxs = sorted(set(int(i) for i in indexes))
+    if len(idxs) < 2:
+        return None, "至少选两层才能合并"
+    by_index = {l.index: l for l in layers}
+    missing = [i for i in idxs if i not in by_index]
+    if missing:
+        return None, "选中的层已不存在（第 %s 层）" % ",".join(str(i) for i in missing)
+
+    picked = [by_index[i] for i in idxs]  # 已按叠放顺序（下 → 上）
+    bad = [p.name for p in picked
+           if (p.layer_type not in ("bitmap_text", "bitmap_layer")) or not p.fallback_png_path]
+    if bad:
+        return None, "这几层没有位图可取，不能合并：%s" % "、".join(bad)
+    if any("BACKGROUND" == ((p.fallback_png_info or {}).get("layer_class") or "") for p in picked):
+        return None, "背景层不能参与合并（背景的洞是分层的基础）"
+
+    base = picked[0]
+    classes = [((p.fallback_png_info or {}).get("layer_class") or "ELEMENT") for p in picked]
+    cls = "OBJECT" if "OBJECT" in classes else max(zip(classes, picked), key=lambda kv: int(
+        (kv[1].fallback_png_info or {}).get("pixels") or 0))[0]
+
+    edit = _edit_dir(split_dir)
+    seq = len([f for f in os.listdir(edit) if f.startswith("合并")]) + 1
+    out_name = "合并_%s_%02d" % (cls, seq)
+    out_path = os.path.join(edit, out_name + ".png")
+
+    ok = merge_layer_pngs([p.fallback_png_path for p in picked],
+                          [_png_bbox(p) for p in picked], (W, H), out_path)
+    if not ok:
+        return None, "合并失败：层图读不出来"
+
+    box = (min(_png_bbox(p)[0] for p in picked), min(_png_bbox(p)[1] for p in picked),
+           max(_png_bbox(p)[2] for p in picked), max(_png_bbox(p)[3] for p in picked))
+    notes = ["手动合并：%s 共 %d 层" % ("、".join(p.name for p in picked), len(picked))]
+    layer_type = "bitmap_text" if cls == "TEXT" else "bitmap_layer"
+    merged = _model_from(base, out_path, box, out_name, notes, layer_type)
+    fi = dict(merged.fallback_png_info or {})
+    fi.update({"layer_class": cls, "low_confidence": False,
+               "pixels": int(sum(int((p.fallback_png_info or {}).get("pixels") or 0) for p in picked))})
+    merged.fallback_png_info = fi
+
+    # 合并层落在最底层的位置（保持叠放稳定），其余层原序保留
+    first = idxs[0]
+    rest = [l for i, l in enumerate(layers, start=1) if i not in idxs]
+    pos = sum(1 for l in layers[:layers.index(by_index[first])] if l.index not in idxs)
+    rest.insert(pos, merged)
+    return _relayer(rest, (W, H)), "已合并 %d 层 → %s" % (len(picked), out_name)
+
+
+def split_layer_model(parsed: Dict[str, Any], split_dir: str,
+                     index: int) -> Tuple[Optional[List[PSDLayerInfo]], str]:
+    """把一层按「不相连的连通块」拆成多层，返回新层模型表。
+
+    只按像素连通性拆：连在一起的不会动，所以拆完发现只有一块就会如实拒绝。
+    """
+    W, H = int(parsed["width"]), int(parsed["height"])
+    layers = list(parsed["layers"])
+    target = next((l for l in layers if l.index == int(index)), None)
+    if target is None:
+        return None, "选中的层已不存在"
+    if not target.fallback_png_path:
+        return None, "这层没有位图可取，不能拆分"
+    if (target.fallback_png_info or {}).get("layer_class") == "BACKGROUND":
+        return None, "背景层不拆（拆开没有意义）"
+
+    blocks = split_layer_png(target.fallback_png_path, _png_bbox(target), (W, H), _edit_dir(split_dir))
+    if not blocks:
+        return None, "这层是连成一片的，拆不开（没有不相连的块）"
+
+    orig_cls = (target.fallback_png_info or {}).get("layer_class") or "ELEMENT"
+    layer_type = "bitmap_text" if orig_cls == "TEXT" else "bitmap_layer"
+    made: List[PSDLayerInfo] = []
+    for n, b in enumerate(blocks, start=1):
+        name = "%s_拆%d" % (target.name, n)
+        notes = ["手动拆分自 %s（共 %d 块）" % (target.name, len(blocks))]
+        m = _model_from(target, b["path"], tuple(b["bbox"]), name, notes, layer_type)
+        fi = dict(m.fallback_png_info or {})
+        fi.update({"layer_class": orig_cls, "pixels": b["pixels"], "low_confidence": False})
+        m.fallback_png_info = fi
+        made.append(m)
+
+    pos = layers.index(target)
+    rest = layers[:pos] + made + layers[pos + 1:]
+    return _relayer(rest, (W, H)), "已把 %s 拆成 %d 层" % (target.name, len(blocks))

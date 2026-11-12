@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QGraphicsItem, QGraphicsRectItem, QSplitter, QFrame
 )
 from PyQt6.QtCore import Qt, QRectF, QPointF, pyqtSignal, QSettings
+from PyQt6 import sip
 from PyQt6.QtGui import QColor, QPen, QBrush, QFont, QPainter, QCursor, QPixmap, QIcon
 
 PRESET_RESOLUTIONS = {
@@ -662,12 +663,18 @@ class InfiniteCanvasView(QGraphicsView):
         规则优先级：悬停 > 最新选中 > 无。
         框选多个时只允许一个展开，避免"交互时叠撞"。
         """
-        candidates = [it for it in self.items_map.values()
-                      if isinstance(it, ConvertedLayerGraphicItem) and it._wants_expand()]
+        # 图元可能已被重刷删除（Qt 侧 C++ 对象先走），逐个别跳过，
+        # 否则整表重建时的 selectionChanged 会撞上已删除图元直接崩。
+        candidates = []
+        for it in self.items_map.values():
+            if sip.isdeleted(it) or not isinstance(it, ConvertedLayerGraphicItem):
+                continue
+            if it._wants_expand():
+                candidates.append(it)
         if not candidates:
-            if self._expanded_item is not None:
-                old = self._expanded_item
-                self._expanded_item = None
+            old = self._expanded_item
+            self._expanded_item = None
+            if old is not None and not sip.isdeleted(old):
                 old.update()
             return
 
@@ -799,9 +806,13 @@ class InfiniteCanvasView(QGraphicsView):
         self._is_syncing = False
 
     def load_layers(self, layers):
-        for item in self.items_map.values():
-            self.scene.removeItem(item)
+        # 先把索引和展开态一起清掉，再删图元：removeItem 会同步触发选中/悬停回调，
+        # 那些回调会遍历 items_map 并刷新 _expanded_item，若还指着已删除的图元就会崩。
+        old_items = list(self.items_map.values())
         self.items_map.clear()
+        self._expanded_item = None
+        for item in old_items:
+            self.scene.removeItem(item)
 
         for info in layers:
             if self.is_original:
