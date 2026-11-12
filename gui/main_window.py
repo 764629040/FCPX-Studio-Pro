@@ -505,9 +505,7 @@ class MainWindow(QMainWindow):
                 self.lbl_file_name.setToolTip(self.current_psd_path)
                 self.lbl_resolution.setText(f"分辨率: {self.current_parsed_psd['width']}×{self.current_parsed_psd['height']}")
                 self.lbl_aspect_ratio.setText(f"画幅: {self.current_parsed_psd['aspect_ratio_str']}")
-                self.lbl_layer_count.setText(
-                    f"图层数: 参与转换 {self.current_parsed_psd['layer_count']} / 文档总计 {self.current_parsed_psd['total_layers_count']}"
-                )
+                self.lbl_layer_count.setText(self._layer_count_text())
 
                 # 刷新诊断报告
                 diag_report = self.current_parsed_psd.get("diagnosis_report")
@@ -666,6 +664,15 @@ class MainWindow(QMainWindow):
             return False
         return True
 
+    def _layer_count_text(self):
+        """层数标签的文案。合并/拆分后会跟原文档层数不一样，这时才把原文档层数说出来。"""
+        parsed = self.current_parsed_psd or {}
+        count = parsed.get("layer_count", 0)
+        total = parsed.get("total_layers_count", count)
+        if count == total:
+            return f"图层 {count} 层"
+        return f"图层 {count} 层（原文档 {total} 层）"
+
     def _apply_layer_edit(self, res):
         """层表整体换掉并重刷画布与面板；同时写回磁盘，让改动永久生效。"""
         new_layers, msg = res
@@ -685,9 +692,7 @@ class MainWindow(QMainWindow):
         parsed["low_confidence_layers"] = [
             l.name for l in persisted if (l.fallback_png_info or {}).get("low_confidence")
         ]
-        self.lbl_layer_count.setText(
-            f"图层数: 参与转换 {len(persisted)} / 文档总计 {parsed['total_layers_count']}"
-        )
+        self.lbl_layer_count.setText(self._layer_count_text())
         # 层结构整表变了：画布本就是全量重建，按新表刷最稳
         self.canvas_view.load_layers(persisted)
         self.inspector.load_layers(persisted, layer_tree=parsed.get("layer_tree"))
