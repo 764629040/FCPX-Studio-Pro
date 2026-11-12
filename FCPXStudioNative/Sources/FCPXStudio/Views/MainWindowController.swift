@@ -593,7 +593,38 @@ public final class MainWindowController: NSWindowController,
         inspectorView.motiEditWritable = session.writable.0
         inspectorView.resolutionLabel?.stringValue = "📐 幅面规格 \(snapshot.canvasWidth)×\(snapshot.canvasHeight)"
         inspectorView.resolutionLabel?.isHidden = false
-        inspectorView.diagnosticsSummaryLabel?.stringValue = "ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti"
+        // TR-002-D-1-r2：摘要行按可写层数分支（仅文案，判定逻辑仍全在 MotiEditSession/保存前置）。
+        let motiTotalLayers = session.models.count
+        let motiEditableLayers = session.editableLayerCount
+        if motiEditableLayers == 0 {
+            inspectorView.diagnosticsSummaryLabel?.stringValue =
+                "ⓘ 编辑态：本模板无可写图层，仅支持只读预览"
+        } else if motiEditableLayers < motiTotalLayers {
+            // 第一行原文，第二行「（可写 n/m 层）」——换行点放在括号前，避免「可写」与数字被拆开。
+            inspectorView.diagnosticsSummaryLabel?.stringValue =
+                "ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti"
+                + "\n（可写 \(motiEditableLayers)/\(motiTotalLayers) 层）"
+        } else {
+            inspectorView.diagnosticsSummaryLabel?.stringValue =
+                "ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti"
+        }
+        // 混链分支的摘要比单行宽度长约 60pt，不放开换行必然被省略号截断（判据要求「可写 7/8 层」可见）。
+        // 仅此分支允许两行；字体、锚点、盒高与所有判定一行不动，其余分支仍是单行截断。
+        let motiSummaryMultiLine = motiEditableLayers > 0 && motiEditableLayers < motiTotalLayers
+        if let summaryLabel = inspectorView.diagnosticsSummaryLabel {
+            if let h = summaryLabel.constraints.first(where: { $0.identifier == "motiSummaryH" }) {
+                h.constant = motiSummaryMultiLine ? 26 : 14
+            } else {
+                let h = summaryLabel.heightAnchor.constraint(
+                    equalToConstant: motiSummaryMultiLine ? 26 : 14)
+                h.identifier = "motiSummaryH"
+                h.isActive = true
+            }
+            summaryLabel.lineBreakMode = motiSummaryMultiLine ? .byCharWrapping : .byTruncatingTail
+            summaryLabel.maximumNumberOfLines = motiSummaryMultiLine ? 2 : 1
+            summaryLabel.cell?.wraps = motiSummaryMultiLine
+            summaryLabel.cell?.isScrollable = false
+        }
         inspectorView.diagnosticsBox?.stringValue = [
             "备份目录：~/Library/Application Support/FCPXStudioPro/moti_backups/",
             "保存会覆盖原文件；写后读回不一致会自动回填到写前状态。",

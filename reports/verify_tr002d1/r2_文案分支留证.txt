@@ -1,0 +1,94 @@
+TR-002-D-1-r2｜摘要行与每层备注的文案分支（只补文案，0 处逻辑改动）
+================================================================================
+执行时间：2026-11-12 14:15–14:35
+起点：HEAD=036f8e1 / ahead=75 / porcelain 空 / .git 无 lock / FCPX 进程 0
+取证构建：/tmp/fcpx_auto/release/FCPXStudio
+  sha256 = 7126dafe67f70463f98aea66699ccdd2835a044c33c34f905bd3f378cd19d35c
+  size   = 4207432 B（swift build -Xswiftc -DTR002C_AUTOMATION，tools/tr002d/build_forensics.sh）
+备份目录 ~/Library/Application Support/FCPXStudioPro/moti_backups/：开工 23，收尾 23（本轮 0 新增）
+
+--------------------------------------------------------------------------------
+一、改了哪两处（`git diff` 全文见提交；此处摘录判据相关行）
+
+1) FCPXStudioNative/Sources/FCPXStudio/Views/MainWindowController.swift:596 起，摘要行按可写层数分支
+   editableLayerCount == 0        → 「ⓘ 编辑态：本模板无可写图层，仅支持只读预览」
+   0 < n < models.count           → 原文 + 第二行「（可写 n/m 层）」
+   n == models.count              → 原文（一字未改）
+   原文字面：ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti
+
+   附带的纯显示适配（不改判定、不改任何约束数值之外的东西）：
+   混链分支的摘要比单行宽度长约 60pt，实测单行渲染被截成「…（可…」（见下 §三 旧图），
+   不满足「摘要应显示 可写 7/8 层」。因此仅在该分支放开两行：
+   lineBreakMode byCharWrapping / maximumNumberOfLines 2 / cell.wraps true，
+   并给该 label 一条具名高度约束 motiSummaryH（单行 14 / 两行 26）；
+   字体、颜色、锚点、盒高（24）与所有判定均未改动，其余分支与只读态仍是单行截断。
+
+2) FCPXStudioNative/Sources/FCPXStudio/Models/MotiEditSession.swift:37-40，每层 diagnosticNotes 首行按层分支
+   positionChain != "zh" → 「只读预览：参数链非本工具格式（Properties/Transform），本层不可写回」
+   positionChain == "zh" → 「编辑态：文本 / X / Y / 可见 / 锁定 可写回 .moti」（原文）
+   第二行「字号 / 对齐 / 颜色 / 旋转 / 缩放本版不写回」两分支共用，未改。
+   判据复用既有 `snap.layers[i].positionChain == "zh"`，与 layerWritable(index:) 同一条件，未新增判定。
+
+`git diff --numstat`（本轮，仅两文件）：
+   5	1	FCPXStudioNative/Sources/FCPXStudio/Models/MotiEditSession.swift
+   32	1	FCPXStudioNative/Sources/FCPXStudio/Views/MainWindowController.swift
+
+未改面实测（numstat 行数 = 0）：
+   MotiWriteBack.swift 0 / InspectorView.swift 0 / InspectorView+MotiEdit.swift 0
+   → 黄横幅、X/Y 置灰、保存判定、SAVE_REJECT 前置拦截、表格按钮逻辑：一个字节未动。
+
+--------------------------------------------------------------------------------
+二、A 组复跑（564 层副本 L0 改文本，最终二进制）
+  命令：
+    /tmp/fcpx_auto/release/FCPXStudio --edit-moti /tmp/tr002d1/r2a2.moti \
+      --edit-moti-auto-save --edit-moti-auto-confirm \
+      --edit-moti-layer 0 --edit-moti-text "越权改文本"
+  写前 sha = d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+--------------------------------------------------------------------------------
+[TR-002C] edit_moti_open path=/tmp/tr002d1/r2a2.moti layers=564 canvas=3840x2160 writable=true reason=可写 editable_layers=0 selected_writable=false reason=参数链非本工具格式
+[TR-002D1] SAVE_REJECT error=图层不可写：参数链非本工具格式 (L0)
+--------------------------------------------------------------------------------
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: sha_unchanged=TRUE / backup 23→23（不增）/ SAVE_OK=0 / SAVE_FAIL=0
+        exit=124 为我方 timeout 到点 kill（等待确认弹窗后由前置拦截路径正常结束流程），
+        拒绝在进 MotiWriteBack 之前完成，未落到「落点未找到」。
+
+--------------------------------------------------------------------------------
+三、截图重截（全部用上面同一个最终二进制）
+
+01_564层_不可写态_整窗.png
+  摘要行实测：ⓘ 编辑态：本模板无可写图层，仅支持只读预览   （无省略号、单行）
+  同图内其余元素与上一轮逐项一致：黄横幅三行（首行逐字保留 4D-1 原句）、X/Y「—」、
+  保存禁用、表格按钮灰。→ 证明只换了摘要文案，其余一个像素级元素未动。
+01b_564层_表格按钮置灰_局部.png
+  裁剪自 01：六行眼睛/锁图标全灰，横幅首行「该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写」完整。
+02_564层_有改动仍禁存_整窗.png
+  摘要行实测：ⓘ 编辑态：本模板无可写图层，仅支持只读预览
+  文字框内「越权改文本」为灰色不可编辑，保存按钮仍禁用。
+02b_564层_有改动仍禁存_保存按钮局部.png
+  「保存回 .moti」灰色禁用；X/Y「—」。
+03_8层中文链_编辑态对照_整窗.png（n == 总层，验证 else 分支仍是原文）
+  摘要行实测：ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti  （无括号后缀、无省略号）
+  X/Y 为真值 -213.0 / 484.5，横幅仍为单行中文链形态。
+05_混链样本_按层判_整窗.png（0 < n < 总层）
+  摘要行实测两行：
+      ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti
+      （可写 7/8 层）
+  无省略号；换行点在括号前，「可写 7/8 层」整段连续可读；与上/下相邻元素无重叠；
+  保存按钮仍在首屏。表格第一行（Text 01，en 链）眼睛/锁灰，其余 7 行亮 —— 按层判可视证明维持。
+
+过程留痕（诚实披露）：第一版混链截图（未放开两行）摘要行实被截成
+  「ⓘ 编辑态：仅 文本 / X / Y / 可见 / 锁定 会写回 .moti（可…」
+即判据「摘要应显示 可写 7/8 层」不成立，故才有上面第 1) 条的纯显示适配；本文件所有截图均为适配后的最终版。
+
+--------------------------------------------------------------------------------
+四、未重跑项（按单要求）与状态确认
+  harness 61/0、只读态 e32a9215…（395855 B 图仍在 截图/06，本轮未重截）、
+  8 层中文链五值写回、混链 C1/C2 —— 均未改动的代码路径，本轮不重跑。
+  原件：247979 B / Oct 28 20:14:13 / 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd（未动）
+        11464903 B / d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497（未动）
+  FCPX：pgrep -x "Final Cut Pro" = 0（全程）
+  镜像：未重封 v1.6、未封 v1.7、四镜像未触碰；交付 App 包内二进制按 §0 锁定未动。

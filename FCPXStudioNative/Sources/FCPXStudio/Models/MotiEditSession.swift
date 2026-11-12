@@ -34,8 +34,12 @@ public final class MotiEditSession {
             // toLayerModels 为只读预览一律 isLocked=true；编辑态还原源真值。
             built[i].isLocked = snap.layers[i].locked
             built[i].visible  = snap.layers[i].enabled
+            // TR-002-D-1-r2：只改每层首行文案，按层判（与 layerWritable 同一判据，不新增判定）。
+            let chainWritableNow = snap.layers[i].positionChain == "zh"
             built[i].diagnosticNotes = [
-                "编辑态：文本 / X / Y / 可见 / 锁定 可写回 .moti",
+                chainWritableNow
+                    ? "编辑态：文本 / X / Y / 可见 / 锁定 可写回 .moti"
+                    : "只读预览：参数链非本工具格式（Properties/Transform），本层不可写回",
                 "字号 / 对齐 / 颜色 / 旋转 / 缩放本版不写回"
             ]
         }
