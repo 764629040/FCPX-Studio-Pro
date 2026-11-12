@@ -30,6 +30,20 @@ public final class MotiTextEditBridge: NSObject, NSTextViewDelegate {
 extension InspectorView {
 
     private static let motiEditToolTip = "本版不写回 .moti"
+    /// TR-002-D BUG-4D-1：非中文链时的固定提示文案（与问题单逐字一致，不许改字）。
+    private static let motiChainUnsupportedTip =
+        "该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写"
+
+    /// TR-002-D BUG-4D-1：当前选中层的位置链形态。读会话快照，不改会话。
+    /// 拿不到会话 / 对不上索引时按 "zh" 处理（与既有行为零变化，不误伤中文链模板）。
+    private var motiEditPositionChain: String {
+        guard let controller = window?.windowController as? MainWindowController,
+              let session = controller.motiEditSession,
+              let layer = currentSelectedLayer,
+              let idx = session.models.firstIndex(where: { $0 === layer }),
+              idx < session.baseline.layers.count else { return "zh" }
+        return session.baseline.layers[idx].positionChain
+    }
 
     /// 编辑态配置。幂等；每次切图层 / 控件状态刷新后由主控制器再调一次。
     public func applyMotiEditMode() {
@@ -43,11 +57,25 @@ extension InspectorView {
         }
         for v in motiPublishGroupViews { v.isHidden = true }
 
-        // ── 只放行五类值 ────────────────────────────────────────────────
+        // ── 只放行五类值；非中文链层 X/Y 置灰并显示「—」（BUG-4D-1） ─────
         textEditor?.isEditable = true
         textEditor?.textColor = .white
-        posXField?.isEnabled = true
-        posYField?.isEnabled = true
+        let chainWritable = motiEditPositionChain == "zh"
+        let chainTip = InspectorView.motiChainUnsupportedTip
+        if chainWritable {
+            posXField?.isEnabled = true
+            posYField?.isEnabled = true
+            posXField?.toolTip = nil
+            posYField?.toolTip = nil
+        } else {
+            // 不许把解析器读不到的 0.0 当真实值显示（那是假数）。
+            posXField?.isEnabled = false
+            posYField?.isEnabled = false
+            posXField?.stringValue = "—"
+            posYField?.stringValue = "—"
+            posXField?.toolTip = chainTip
+            posYField?.toolTip = chainTip
+        }
 
         // ── 明确不写回的一律置灰 + tooltip ──────────────────────────────
         let blocked: [NSControl?] = [
@@ -74,8 +102,22 @@ extension InspectorView {
 
         // ── 标识 / 横幅 / 按钮文案 ───────────────────────────────────────
         readOnlyBadgeLabel?.isHidden = true
-        lockBannerLabel?.stringValue = "编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti"
+        lockBannerLabel?.stringValue = chainWritable
+            ? "编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti"
+            : chainTip
+        lockBannerLabel?.toolTip = chainWritable ? nil : chainTip
         lockBannerBox?.isHidden = false
+        // BUG-4D-1：固定提示文案比原「图层已锁定」长一倍，单行必然被省略号截断，
+        // 逐字判定就过不了。非中文链时横幅临时改两行（文案一字不改），退出/中文链复原。
+        if let box = lockBannerBox, let label = lockBannerLabel {
+            label.lineBreakMode = chainWritable ? .byTruncatingTail : .byCharWrapping
+            label.maximumNumberOfLines = chainWritable ? 1 : 2
+            label.cell?.wraps = !chainWritable
+            label.cell?.isScrollable = false
+            for c in box.constraints where c.firstAttribute == .height {
+                c.constant = chainWritable ? 26 : 42
+            }
+        }
 
         saveButton?.title = " 保存回 .moti"
         saveButton?.isEnabled = motiEditHasChanges && motiEditWritable
@@ -94,6 +136,15 @@ extension InspectorView {
         // 只读态一行不走，退出时逐项复原。
         fontDropPromptBox?.isHidden = true
         hiddenLayersCheckbox?.isHidden = true
+        // TR-002-D BUG-4D-4：文字内容框加高到 ≥6 行（55 -> 100pt），
+        // 上下 inset 各 6pt，4 行文本末行不再被框底压住；超高内容内部滚动。
+        if let scroll = textEditor?.enclosingScrollView {
+            for c in scroll.constraints
+            where c.firstAttribute == .height && c.firstItem === scroll {
+                c.constant = 100
+            }
+        }
+        textEditor?.textContainerInset = NSSize(width: 0, height: 6)
         if let stack = saveButton?.superview as? NSStackView {
             stack.spacing = 5
             if let clip = stack.superview {
@@ -129,7 +180,31 @@ extension InspectorView {
             publishTextCheck, publishPosCheck, publishRotCheck, publishScaleCheck
         ]
         for control in controls { control?.isEnabled = true; control?.toolTip = nil }
+        // BUG-4D-1 复原：清掉非中文链层的「—」占位与提示，值由
+        // updateControlStates 在下一次选层时按模型真值刷新。
+        posXField?.toolTip = nil
+        posYField?.toolTip = nil
+        lockBannerLabel?.toolTip = nil
+        // 横幅回单行 26pt（TR-019-R 锁定提示的原始形态）。
+        if let box = lockBannerBox, let label = lockBannerLabel {
+            label.lineBreakMode = .byTruncatingTail
+            label.maximumNumberOfLines = 1
+            label.cell?.wraps = false
+            label.cell?.isScrollable = true
+            for c in box.constraints where c.firstAttribute == .height {
+                c.constant = 26
+            }
+        }
         textEditor?.delegate = nil
+
+        // BUG-4D-4 复原：文字框回到 TR-019-R 基线高度 55pt / 默认 inset (0,2)。
+        if let scroll = textEditor?.enclosingScrollView {
+            for c in scroll.constraints
+            where c.firstAttribute == .height && c.firstItem === scroll {
+                c.constant = 55
+            }
+        }
+        textEditor?.textContainerInset = NSSize(width: 0, height: 2)
 
         // 复原右栏滚动区到 TR-019-R 基线：spacing 10、documentView 820、两块提示恢复。
         fontDropPromptBox?.isHidden = false

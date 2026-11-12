@@ -60,6 +60,11 @@ public struct MotiLayerSnapshot {
     public let textColor: String
     /// 取色用到的 XML 路径（仅用于自检与统计，不进 UI 文案）。
     public let colorSourcePath: String
+    /// TR-002-D BUG-4D-1：该层位置参数链的形态。只做检测，不读英文链的值、不加功能。
+    ///   "zh" = 属性(1)/变换(100)（本工具可写）；"en" = Properties(1)/Transform(100)
+    ///          （第三方英文链，X/Y 不可写，UI 置灰并提示）；"" = 两种都不是（同 en 处理）。
+    /// 默认 "zh"：仅 parseLayer 会显式赋值，其余构造点保持既有可写行为零变化。
+    public let positionChain: String
 
     public init(index: Int,
                 id: String,
@@ -76,7 +81,8 @@ public struct MotiLayerSnapshot {
                 fontSize: Double = 0,
                 alignment: String = "",
                 textColor: String = "",
-                colorSourcePath: String = "") {
+                colorSourcePath: String = "",
+                positionChain: String = "zh") {
         self.index = index
         self.id = id
         self.name = name
@@ -93,6 +99,7 @@ public struct MotiLayerSnapshot {
         self.alignment = alignment
         self.textColor = textColor
         self.colorSourcePath = colorSourcePath
+        self.positionChain = positionChain
     }
 }
 
@@ -308,6 +315,10 @@ public final class MotiDocumentParser {
         let posX = numericValue(of: xParam) ?? 0.0
         let posY = numericValue(of: yParam) ?? 0.0
 
+        // TR-002-D BUG-4D-1：只检测链形态，决定 X/Y 可不可写；
+        // 英文链不读值（读回没有判据，读了就是假功能），保持 X/Y 置灰。
+        let chainKind = positionChainKind(of: roots)
+
         // 文本：对象(2) -> 文本(369) -> <text> 的文本子节点（换行原样保留）
         let objects = descend(roots, name: "对象", id: "2")
         let textParameters = descend(objects, name: "文本", id: "369")
@@ -347,7 +358,21 @@ public final class MotiDocumentParser {
                                  fontSize: styleInfo.fontSize,
                                  alignment: resolveAlignment(in: layer),
                                  textColor: styleInfo.textColor,
-                                 colorSourcePath: styleInfo.colorSource)
+                                 colorSourcePath: styleInfo.colorSource,
+                                 positionChain: chainKind)
+    }
+
+    /// TR-002-D BUG-4D-1：位置参数链形态检测（只看链存在与否，不读值、不改任何解析行为）。
+    private static func positionChainKind(of roots: [XMLElement]) -> String {
+        if let transform = descend(roots, name: "属性", id: "1").first,
+           descend([transform], name: "变换", id: "100").first != nil {
+            return "zh"
+        }
+        if let transform = descend(roots, name: "Properties", id: "1").first,
+           descend([transform], name: "Transform", id: "100").first != nil {
+            return "en"
+        }
+        return ""
     }
 
     // MARK: - TR-023-B：文字样式只读提取（不修改任何既有解析行为）

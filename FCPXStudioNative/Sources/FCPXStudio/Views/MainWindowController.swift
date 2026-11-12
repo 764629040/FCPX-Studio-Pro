@@ -623,15 +623,24 @@ public final class MainWindowController: NSWindowController,
 
         // 无人值守取证：预置改动后自动走「同一次确认 + 同一次写回」；
         // 正常用户路径完全不触发这里。
+        // TR-002-D BUG-4D-3：自动化开关编译期隔离（方案 A）——交付包
+        // （swift build 不带 -DTR002C_AUTOMATION）整段不编译，任何参数组合
+        // 都无法跳过确认或触发自动写盘；取证用 tools/ 侧带该条件的构建产物。
+#if TR002C_AUTOMATION
         if ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-save") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 self?.confirmAndSaveMotiEdits()
             }
         }
+#endif
     }
 
     /// 仅供无人值守真机取证：按启动参数预置一层改动，用户界面不显示这些参数。
+    /// TR-002-D BUG-4D-3：整段条件编译，交付包内不存在的开关；取证构建才可用。
+    /// TR-002-D BUG-4D-1：非中文链层的 X/Y 不预置、不进 ops——
+    /// 否则写回成功、读回恒 0.0、必然回填，用户只会看到莫名其妙的失败。
     private func applyAutomationPreset(to session: MotiEditSession) {
+#if TR002C_AUTOMATION
         let args = ProcessInfo.processInfo.arguments
         func value(_ key: String) -> String? {
             guard let i = args.firstIndex(of: key), i + 1 < args.count else { return nil }
@@ -640,15 +649,24 @@ public final class MainWindowController: NSWindowController,
         let idx = Int(value("--edit-moti-layer") ?? "0") ?? 0
         guard idx >= 0, idx < session.models.count else { return }
         let layer = session.models[idx]
+        let chain = idx < session.baseline.layers.count
+            ? session.baseline.layers[idx].positionChain : "zh"
         if let t = value("--edit-moti-text") { layer.text = t }
-        if let x = value("--edit-moti-x"), let d = Double(x) { layer.posX = d }
-        if let y = value("--edit-moti-y"), let d = Double(y) { layer.posY = d }
+        if chain == "zh" {
+            if let x = value("--edit-moti-x"), let d = Double(x) { layer.posX = d }
+            if let y = value("--edit-moti-y"), let d = Double(y) { layer.posY = d }
+        } else if value("--edit-moti-x") != nil || value("--edit-moti-y") != nil {
+            print("[TR-002D] preset_skip_xy layer=\(idx) chain=\(chain) "
+                  + "reason=该层参数链非中文链，X/Y 不进写回 ops")
+            fflush(stdout)
+        }
         if let e = value("--edit-moti-enabled") {
             layer.visible = (e == "1" || e.lowercased() == "true")
         }
         if let l = value("--edit-moti-locked") {
             layer.isLocked = (l == "1" || l.lowercased() == "true")
         }
+#endif
     }
 
     /// 任何改动后刷新「有无改动 / 可写性 / 保存按钮」并补一次编辑态控件配置。
@@ -687,12 +705,15 @@ public final class MainWindowController: NSWindowController,
         let msg = "备份路径：\(backup)\n将改 \(count) 处\n原文件会被覆盖：\(session.path)"
 
         // 无人值守取证开关：跳过模态弹窗，但走完全相同的 performMotiSave。
+        // TR-002-D BUG-4D-3：交付包内该开关不编译，确认弹窗永远生效。
+#if TR002C_AUTOMATION
         if ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
             print("[TR-002C] confirm_auto backup=\(backup) changes=\(count)")
             fflush(stdout)
             performMotiSave(edits: edits, backupPath: backup)
             return
         }
+#endif
         let alert = NSAlert()
         alert.messageText = "确认保存回 .moti"
         alert.informativeText = msg
@@ -724,17 +745,26 @@ public final class MainWindowController: NSWindowController,
             for row in outcome.readback { print("[TR-002C] \(row.description)") }
             fflush(stdout)
             // 无人值守取证不弹模态框，避免卡住截图；正常用户仍看到一次结果提示。
+            // BUG-4D-3：交付包内 --edit-moti-auto-confirm 不编译，总是弹。
+#if TR002C_AUTOMATION
             if !ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
                 showAlert(title: "已保存", msg: "已写回 \(outcome.changedCount) 处。\n备份：\(outcome.backupPath)")
             }
+#else
+            showAlert(title: "已保存", msg: "已写回 \(outcome.changedCount) 处。\n备份：\(outcome.backupPath)")
+#endif
         } catch {
             let now = (try? Data(contentsOf: URL(fileURLWithPath: session.path)))
                 .map { MotiWriteBack.sha256($0) } ?? ""
             print("[TR-002C] SAVE_FAIL error=\(error.localizedDescription) current_sha=\(now)")
             fflush(stdout)
+#if TR002C_AUTOMATION
             if !ProcessInfo.processInfo.arguments.contains("--edit-moti-auto-confirm") {
                 showAlert(title: "保存失败", msg: "\(error.localizedDescription)\n原文件当前 sha256：\(now)")
             }
+#else
+            showAlert(title: "保存失败", msg: "\(error.localizedDescription)\n原文件当前 sha256：\(now)")
+#endif
             refreshMotiEditState()
         }
     }

@@ -269,6 +269,8 @@ SRC_SHA16="$(shasum -a 256 "$APP_ABS/Contents/MacOS/FCPXStudio" | cut -c1-16)"
         "内容：TR-024 / TR-024-1 / TR-024-2 / TR-025 / TR-026 —— 含真反相（不吃目标色）、" \
         "      「⇄ 对比色」按钮、X/Y 数值框左右拖动；" \
         "      TR-026：只读态隐藏属性区；几何控件同时置为不可用。" \
+        "      TR-002-C：设计器可编辑 .moti 的 文本 / X / Y / 可见 / 锁定 并写回，" \
+        "                写前自动备份到 ~/Library/Application Support/FCPXStudioPro/moti_backups/。" \
         "" \
         "校验（挂载后执行）：" \
         "  shasum -a 256 \"${APP_BASE}/Contents/MacOS/FCPXStudio\"" \
