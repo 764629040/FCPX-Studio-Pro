@@ -679,3 +679,222 @@ def split_layer_model(parsed: Dict[str, Any], split_dir: str, index: int,
         keep.fallback_png_info = fi
         rest = layers[:pos] + [keep] + made + layers[pos + 1:]
     return _relayer(rest, (W, H)), msg_ok
+
+
+# ── 写回：让合并/拆分永久生效 ────────────────────────────────────────────────
+#
+# 上面的合并/拆分只改内存层表、像素落到 ``_edit/``，关掉重开就回到原样。
+# 用户要「永久生效、相当于 FCPX 的模板」，所以这里把新层表落到 ``layers/``
+# 并重写清单，下次打开就是编辑后的样子。
+#
+# 外置卷不允许 rm，旧文件一律同卷改名进备份目录，不删。
+
+PERSIST_BACKUP_DIR = "_backup_edit"
+
+
+def _safe_stem(name: str) -> str:
+    """层名 → 安全文件名主干：去空格/全角/emoji/标点，只留中英文数字与连字符。"""
+    import re as _re
+
+    s = _re.sub(r"[^\w\u4e00-\u9fff\-]+", "_", (name or "").strip())
+    return (s.strip("_") or "layer")[:80]
+
+
+def _png_stats(path: str) -> Tuple[int, int, str]:
+    """实测层的可见像素数、alpha 总和、可见区平均色，供清单记录。"""
+    import numpy as np
+
+    im = _open_layer_rgba(path)
+    if im is None:
+        return 0, 0, "#000000"
+    a = np.asarray(im)
+    alpha = a[:, :, 3]
+    vis = alpha > 8
+    px = int(vis.sum())
+    asum = int(alpha.sum())
+    if px:
+        mc = a[:, :, :3][vis].mean(axis=0)
+        mean = "#%02X%02X%02X" % tuple(int(round(float(v))) for v in mc)
+    else:
+        mean = "#000000"
+    return px, asum, mean
+
+
+def _layer_full(info: PSDLayerInfo, W: int, H: int):
+    """层图统一成整幅，便于叠图。"""
+    from PIL import Image
+
+    if not info.fallback_png_path:
+        return None
+    im = _open_layer_rgba(info.fallback_png_path)
+    if im is None:
+        return None
+    if im.size != (W, H):
+        full = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        bb = _png_bbox(info)
+        full.paste(im, (int(bb[0]), int(bb[1])))
+        return full
+    return im
+
+
+def _repaint_previews(split_dir: str, layers: List[PSDLayerInfo], W: int, H: int) -> Dict[str, str]:
+    """层结构变了，预览图必须跟着重画，否则预览和层对不上。"""
+    from PIL import Image
+
+    order = {"BACKGROUND": 0, "OBJECT": 1, "ELEMENT": 2, "TEXT": 3}
+    scale = min(1.0, 720.0 / max(W, H))
+    tw, th = max(1, int(round(W * scale))), max(1, int(round(H * scale)))
+
+    def cls_of(l: PSDLayerInfo) -> str:
+        return (l.fallback_png_info or {}).get("layer_class") or "ELEMENT"
+
+    comp = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for l in sorted(layers, key=lambda x: order.get(cls_of(x), 9)):
+        im = _layer_full(l, W, H)
+        if im is not None:
+            comp = Image.alpha_composite(comp, im)
+    comp.resize((tw, th), Image.LANCZOS).save(os.path.join(split_dir, "预览_重合成.png"))
+
+    bg = next((l for l in layers if cls_of(l) == "BACKGROUND"), None)
+    if bg is not None:
+        im = _layer_full(bg, W, H)
+        if im is not None:
+            im.resize((tw, th), Image.LANCZOS).save(os.path.join(split_dir, "预览_背景补洞.png"))
+
+    cell = 16
+    n = min(12, len(layers))
+    cols = min(4, max(1, n))
+    rows = int((n + cols - 1) // cols)
+    board = Image.new("RGBA", (tw * cols, th * rows), (24, 26, 32, 255))
+    for y in range(0, th * rows, cell):
+        for x in range(0, tw * cols, cell):
+            if (x // cell + y // cell) % 2 == 0:
+                board.paste((38, 41, 49, 255), (x, y, x + cell, y + cell))
+    for idx, l in enumerate(layers[:n]):
+        im = _layer_full(l, W, H)
+        if im is None:
+            continue
+        board.alpha_composite(im.resize((tw, th), Image.LANCZOS),
+                              ((idx % cols) * tw, (idx // cols) * th))
+    board.convert("RGB").save(os.path.join(split_dir, "预览_分层检查板.png"))
+
+    return {"background_filled": "预览_背景补洞.png",
+            "checkerboard": "预览_分层检查板.png",
+            "recomposite": "预览_重合成.png"}
+
+
+def persist_layer_edit(parsed: Dict[str, Any], split_dir: str,
+                       layers: List[PSDLayerInfo]
+                       ) -> Tuple[Optional[List[PSDLayerInfo]], str]:
+    """把编辑后的层表写回分层目录，永久生效。
+
+    1. 先把旧 ``layers/*.png`` 与清单整体备份到 ``_backup_edit/<时间戳>/``；
+    2. 各层落盘到 ``layers/``，层模型路径回填为新文件；
+    3. 不再被引用的旧 png 同卷改名进备份的 ``removed/``（外置卷不许删）；
+    4. 重写清单（层序、像素、类别、体积、编辑次数），并重画预览图。
+
+    任何一步失败都返回 ``(None, 原因)``，调用方据此保持界面不变。
+    """
+    import shutil
+    import time
+
+    if not layers:
+        return None, "没有层可写回"
+    manifest_path = os.path.join(split_dir, MANIFEST_NAME)
+    if not os.path.exists(manifest_path):
+        return None, "找不到分层清单，不能写回（这个目录不是 PNG 分层目录）"
+    layers_dir = os.path.join(split_dir, "layers")
+    os.makedirs(layers_dir, exist_ok=True)
+
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    bak = os.path.join(split_dir, PERSIST_BACKUP_DIR, ts)
+    bak_layers = os.path.join(bak, "layers")
+    removed = os.path.join(bak, "removed")
+    try:
+        os.makedirs(bak_layers, exist_ok=True)
+        os.makedirs(removed, exist_ok=True)
+        shutil.copy2(manifest_path, os.path.join(bak, MANIFEST_NAME))
+        for fn in sorted(os.listdir(layers_dir)):
+            if fn.lower().endswith(".png"):
+                shutil.copy2(os.path.join(layers_dir, fn), os.path.join(bak_layers, fn))
+    except Exception as e:
+        return None, "备份失败，未做任何改动：%s" % e
+
+    # 落盘：同名先占用，重名自动加序号，避免把两层写成同一个文件
+    used = set()
+    new_layers: List[PSDLayerInfo] = []
+    for info in layers:
+        src = info.fallback_png_path
+        if not src or not os.path.exists(src):
+            return None, "层「%s」没有像素文件，写回中止（磁盘未变）" % info.name
+        stem = _safe_stem(info.name)
+        fn = stem + ".png"
+        k = 2
+        while fn in used:
+            fn = "%s_%d.png" % (stem, k)
+            k += 1
+        used.add(fn)
+        dst = os.path.join(layers_dir, fn)
+        if os.path.abspath(src) != os.path.abspath(dst):
+            try:
+                shutil.copy2(src, dst)
+            except Exception as e:
+                return None, "写入 %s 失败：%s" % (fn, e)
+        info.fallback_png_path = dst
+        new_layers.append(info)
+
+    for fn in sorted(os.listdir(layers_dir)):
+        if not fn.lower().endswith(".png") or fn in used:
+            continue
+        try:
+            shutil.move(os.path.join(layers_dir, fn), os.path.join(removed, fn))
+        except Exception:
+            pass  # 移不动不阻断：清单已不再引用它
+
+    try:
+        with open(manifest_path, encoding="utf-8") as f:
+            doc = json.load(f)
+    except Exception as e:
+        return None, "分层清单读不出来：%s" % e
+
+    rows = []
+    for i, info in enumerate(new_layers, start=1):
+        fi = info.fallback_png_info or {}
+        path = info.fallback_png_path
+        px, asum, mean = _png_stats(path)
+        rows.append({
+            "class": fi.get("layer_class") or "ELEMENT",
+            "seq": i,
+            "name": info.name,
+            "file": "layers/" + os.path.basename(path),
+            "bbox": [int(v) for v in _png_bbox(info)],
+            "pixels": px,
+            "alpha_sum": asum,
+            "confidence": fi.get("confidence", 1.0),
+            "low_confidence": bool(fi.get("low_confidence", False)),
+            "mean_color": mean,
+            "notes": list(info.diagnostic_notes or []),
+        })
+    doc["layers"] = rows
+    doc["layer_count"] = len(rows)
+    doc["classes_present"] = sorted({r["class"] for r in rows})
+    total = sum(os.path.getsize(os.path.join(split_dir, r["file"])) for r in rows)
+    src_bytes = int(doc.get("source_bytes") or 0)
+    doc["sizes"] = {"layers_bytes": total,
+                    "layer_total_mb": round(total / 1048576.0, 2),
+                    "ratio_to_source": (round(total / float(src_bytes), 2) if src_bytes else None)}
+    hist = doc.get("edited") if isinstance(doc.get("edited"), dict) else {}
+    doc["edited"] = {"edited": True, "last_edit": ts,
+                     "edit_count": int(hist.get("edit_count", 0)) + 1}
+    pv = dict(doc.get("previews") or {})
+    pv.update(_repaint_previews(split_dir, new_layers, int(doc["width"]), int(doc["height"])))
+    pv.setdefault("source", "预览_原图.png")
+    doc["previews"] = pv
+
+    try:
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return None, "写清单失败：%s" % e
+
+    return new_layers, "已写回分层目录（备份在 %s/）" % PERSIST_BACKUP_DIR

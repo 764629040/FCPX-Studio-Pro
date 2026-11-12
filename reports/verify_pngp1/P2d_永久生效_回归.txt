@@ -1,0 +1,102 @@
+P2-d 永久生效（编辑写回分层目录）+ 去描边/去接缝 回归记录
+日期：2026-11-13
+环境：MacBook Air，python /opt/homebrew/bin/python3，离屏 Qt（QT_QPA_PLATFORM=offscreen）
+
+════════ 一、这一轮改了什么 ════════
+
+1) 去掉层图元的 1px 白描边
+   gui/canvas_view.py  ConvertedLayerGraphicItem.paint
+   原先未选中时画一个 QPen(QColor(255,255,255,15),1) 的圆角框，层与层交界会画出
+   假接缝，拆开的相邻块中间显一条线。整段删除，只保留选中时的绿色虚线高亮。
+
+2) 修掉拆分后的亚像素接缝（补第一版没解决的那道横线）
+   现象：框选把球拆成两块后，32% 默认缩放下球中部有一条横线。
+   排查：磁盘上 9 层重合成与原图 alpha 差 0、RGB 差 0 —— 数据无缝，是渲染层的缝。
+        两块贴图各自按 rect 栅格化，非整数缩放时边界落在半像素上，各漏一条背景。
+   修法：gui/canvas_view.py 贴图分支（ConvertedLayerGraphicItem 的降级贴图绘制）
+        非整数缩放时四周外扩 1 个设备像素（bleed = 1.0 / 当前缩放）盖住缝；
+        1:1 与整数倍缩放本来对齐，不扩（否则重叠区两道半透明叠加反而压出浅线）。
+   踩坑记录：第一次改到了 OriginalLayerGraphicItem（左栏 PSD 原稿的 paint），
+            8px 外扩大法验证发现画面一动不动，才定位到右栏走的是另一条分支。
+
+3) 编辑写回磁盘，永久生效（本次主要功能）
+   core/png_layer_io.py  新增 PERSIST_BACKUP_DIR / _safe_stem / _png_stats /
+                         _layer_full / _repaint_previews / persist_layer_edit
+   gui/main_window.py    _apply_layer_edit 先落盘再改界面；写不进去就整体不动
+   流程：
+     a. 先把旧 layers/*.png 与 分层清单.json 整体复制备份到 _backup_edit/<时间戳>/
+     b. 各层像素落到 layers/<安全名>.png（重名自动加序号），层模型路径回填新文件
+     c. 不再被清单引用的旧 png 同卷改名进备份的 removed/（外置卷不许删）
+     d. 重写清单：layers / layer_count / classes_present / sizes / edited 标记
+     e. 重画 预览_重合成.png、预览_分层检查板.png、预览_背景补洞.png
+   任何一步失败返回 (None, 原因)，界面保持原状，不产生"界面改了文件没改"的半截状态。
+   层名做安全化（去空格/全角/emoji/标点），只留中英文数字与连字符。
+
+════════ 二、12 张夹具回归（确认 core 改动没破坏原有拆分） ════════
+
+结果：12/12 PASS，recomposite_max_abs_diff 全 0.0，fail_count 全 0。
+
+A_gradient_text_object_decor  PASS  pass 44  maxdiff 0.0  fail 0
+B_flat_product_title          PASS  pass 36  maxdiff 0.0  fail 0
+C_vignette_badge              PASS  pass 44  maxdiff 0.0  fail 0
+D_card_portrait               PASS  pass 32  maxdiff 0.0  fail 0
+E_ui_screenshot               PASS  pass 60  maxdiff 0.0  fail 0
+F_low_contrast                PASS  pass 28  maxdiff 0.0  fail 0
+G_vertical_text               PASS  pass 32  maxdiff 0.0  fail 0
+H_two_objects                 PASS  pass 32  maxdiff 0.0  fail 0
+I_no_text                     PASS  pass 32  maxdiff 0.0  fail 0
+J_text_heavy                  PASS  pass 36  maxdiff 0.0  fail 0
+K_transparent_poster          PASS  pass 30  maxdiff 0.0  fail 0
+L_transparent_text_only       PASS  pass 26  maxdiff 0.0  fail 0
+
+通过项数与 M.3.20 / M.3.21 逐条一致（44/36/44/32/60/28/32/32/32/36/30/26）。
+
+════════ 三、写回 e2e（离屏真实 MainWindow + 真实面板信号） ════════
+
+用例一：框选拆分 → 写回 → 关窗重开（/tmp/e2e_persist.py）
+
+  编辑前           8 层，磁盘文件 layers/BACKGROUND.png … TEXT_02_文字.png
+  界面层数         8，标签「参与转换 8 / 文档总计 8」
+  框选             走真实 _scene_rect_to_image，得到像素矩形 (540, 710, 800, 1210)
+  编辑后界面       9 层，标签「参与转换 9 / 文档总计 8」
+  状态栏           已写回分层目录（备份在 _backup_edit/）
+  磁盘清单         9 层
+  磁盘文件         BACKGROUND / OBJECT_01_主体 / OBJECT_01_主体_框拆1 / ELEMENT_01..04 / TEXT_01..02
+  备份             20261113_014236：8 个旧 png + 旧清单齐全
+  removed          0（没有多余文件）
+  像素             拆前拆后磁盘重合成 alpha 最大差 0，可见区 RGB 最大差 0
+  清单标记         edited {edited: true, last_edit: 20261113_014236, edit_count: 1}
+  预览             previews 四个键齐全，重合成 max_abs_diff 0 / p99 0.0
+  体积             layers_bytes 156038，ratio_to_source 3.27
+  重开             9 层，名称与磁盘一致 → 永久生效成立
+
+用例二：拆 → 重开 → 合并 → 再重开（/tmp/e2e_persist2.py）
+
+  初始             8 层
+  ① 拆分           界面 9 层，磁盘 9 层，edit_count 1
+  ② 重开           9 层
+     合并 [2,3]    界面 8 层，磁盘 8 层，edit_count 2
+     磁盘文件      BACKGROUND / 合并_OBJECT_01 / ELEMENT_01..04 / TEXT_01..02
+  ③ 再重开         8 层，名称「BACKGROUND / 合并_OBJECT_01 / …」
+  全程像素         alpha 最大差 0，可见区 RGB 最大差 0
+  备份             2 次（020408、020421），第二次 removed 2（两个拆块文件被移走）
+  二次编辑成立：已编辑过的目录可以继续编辑，每次都是新的备份时间戳，互不覆盖。
+
+════════ 四、视觉核对（截图已入库） ════════
+
+写回_拆分后重开.png     拆分后关窗重开，9 层；球面干净，中部横线消失
+写回_球接缝放大.png     32% 下球区放大 4 倍：内部无接缝，只剩球本身的原生抗锯齿轮廓
+写回_100缩放无缝.png     1:1 缩放：补缝逻辑自动关闭，球面无重影、无浅线
+写回_合并后重开.png     合并成 8 层后重开，合并_OBJECT_01 一层，球完整无缝
+
+量化：32% 下球内部逐行亮度最大跳变 2.39（原先那条线是明显的 1px 深色线）；
+      100% 下球下缘裁切放大无任何痕迹。
+
+════════ 五、备份与回退 ════════
+
+_backup_edit/<时间戳>/layers/     编辑前的全部层 png
+_backup_edit/<时间戳>/分层清单.json  编辑前的清单
+_backup_edit/<时间戳>/removed/    本次编辑后不再被引用的旧 png
+
+回退方式：把某个时间戳目录里的 layers 与清单同名覆盖回去即可，不需要任何代码。
+外置卷不允许 rm，所有旧文件都是同卷改名，没有删除动作。

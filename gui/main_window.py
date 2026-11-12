@@ -667,23 +667,31 @@ class MainWindow(QMainWindow):
         return True
 
     def _apply_layer_edit(self, res):
-        """层表整体换掉并重刷画布与面板；失败弹原因，成功靠层数变化体现。"""
+        """层表整体换掉并重刷画布与面板；同时写回磁盘，让改动永久生效。"""
         new_layers, msg = res
         if new_layers is None:
             QMessageBox.warning(self, "改不了", msg)
             return
+        from core.png_layer_io import persist_layer_edit
+
         parsed = self.current_parsed_psd
-        parsed["layers"] = new_layers
-        parsed["layer_count"] = len(new_layers)
+        # 先落盘再改界面：写不进去就整体不动，避免"界面改了但文件没改"的半截状态
+        persisted, pmsg = persist_layer_edit(parsed, self.current_psd_path, new_layers)
+        if persisted is None:
+            QMessageBox.warning(self, "写回失败", pmsg + "\n\n磁盘和界面都没有改动。")
+            return
+        parsed["layers"] = persisted
+        parsed["layer_count"] = len(persisted)
         parsed["low_confidence_layers"] = [
-            l.name for l in new_layers if (l.fallback_png_info or {}).get("low_confidence")
+            l.name for l in persisted if (l.fallback_png_info or {}).get("low_confidence")
         ]
         self.lbl_layer_count.setText(
-            f"图层数: 参与转换 {len(new_layers)} / 文档总计 {parsed['total_layers_count']}"
+            f"图层数: 参与转换 {len(persisted)} / 文档总计 {parsed['total_layers_count']}"
         )
         # 层结构整表变了：画布本就是全量重建，按新表刷最稳
-        self.canvas_view.load_layers(new_layers)
-        self.inspector.load_layers(new_layers, layer_tree=parsed.get("layer_tree"))
+        self.canvas_view.load_layers(persisted)
+        self.inspector.load_layers(persisted, layer_tree=parsed.get("layer_tree"))
+        self.statusBar().showMessage(pmsg, 5000)
 
     def _on_merge_layers(self, indexes):
         if not self._layer_edit_ready():

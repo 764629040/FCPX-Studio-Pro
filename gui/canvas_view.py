@@ -401,7 +401,16 @@ class ConvertedLayerGraphicItem(QGraphicsRectItem):
         else:
             # 降级贴图图层：绘制 32-bit 透明 PNG 像素
             if self.pixmap and not self.pixmap.isNull():
-                painter.drawPixmap(rect.toRect(), self.pixmap)
+                # 亚像素补缝：非整数缩放时相邻两块各自栅格化，边界会漏一条背景色的缝
+                # （框选拆开后球中间那道横线就是这个）。非整数缩放时四周外扩 1 个设备像素盖住它；
+                # 1:1 / 整数倍缩放本来就对齐，不扩，否则重叠区两道半透明叠加反而压出一条浅线。
+                scale = painter.worldTransform().m11() or 1.0
+                bleed = 0.0 if abs(scale - round(scale)) < 1e-6 else 1.0 / scale
+                if bleed:
+                    painter.drawPixmap(rect.adjusted(-bleed, -bleed, bleed, bleed),
+                                       self.pixmap, QRectF(self.pixmap.rect()))
+                else:
+                    painter.drawPixmap(rect.toRect(), self.pixmap)
 
             # 降级徽标（A-15：与文本层同一套折叠/展开策略）
             b_text, bg_col, fg_col = self.get_badge_info()
@@ -552,15 +561,11 @@ class OriginalLayerGraphicItem(QGraphicsRectItem):
 
         rect = self.rect()
 
-        # 选中高亮
+        # 选中高亮（未选中不描边：1px 白框会在层与层交界画出假接缝，拆开的相邻块中间会显一条线）
         if self.is_highlighted:
             pen = QPen(QColor("#30D158"), 2, Qt.PenStyle.DashLine)
             painter.setPen(pen)
             painter.setBrush(QColor(48, 209, 88, 25))
-            painter.drawRoundedRect(rect, 4, 4)
-        else:
-            painter.setPen(QPen(QColor(255, 255, 255, 15), 1))
-            painter.setBrush(QColor(0, 0, 0, 0))
             painter.drawRoundedRect(rect, 4, 4)
 
         if self.pixmap and not self.pixmap.isNull():
