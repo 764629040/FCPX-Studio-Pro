@@ -1,0 +1,136 @@
+TR-002-D-1｜BUG-4D1-1 不可写层拦截留证（原始 stdout 全文，未截断、未改写）
+================================================================================
+执行时间：2026-11-12 13:33–13:55
+取证构建：/tmp/fcpx_auto/release/FCPXStudio
+  sha256 = 2feb1be2135d565c710a22b08a3e893c5b7bc867576e61234521b31b6c6e9bed
+  size   = 4207528 B（swift build -Xswiftc -DTR002C_AUTOMATION，见 tools/tr002d/build_forensics.sh）
+交付包口径构建：/tmp/fcpx_wd/release/FCPXStudio
+  sha256 = ea4046828a84695e7e875dbcfe9b6d44aa4e1fbb8dc11828ce2779952525f1c7
+  size   = 4205656 B（swift build -c release，无 -D）
+备份目录：~/Library/Application Support/FCPXStudioPro/moti_backups/
+  · 本单开工计数 17；拒绝路径全程 0 新增；仅 4 次真实 SAVE_OK（B2/C2b 重跑前的两轮预跑 zh8、mixed8，
+    以及下面的 B2、C2b）各产生 1 个 .bak，收尾计数 21。
+  · 每个用例前后都实测计数，逐条记在下面的 RESULT 行里。
+
+================================================================================
+[用例 A2] 564 层英文链副本，L0 改文本 —— 必须写盘前拒绝
+  命令：
+    /tmp/fcpx_auto/release/FCPXStudio --edit-moti /tmp/tr002d1/a2.moti \
+      --edit-moti-auto-save --edit-moti-auto-confirm \
+      --edit-moti-layer 0 --edit-moti-text "越权改文本"
+  写前 sha = d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/a2.moti layers=564 canvas=3840x2160 writable=true reason=可写 editable_layers=0 selected_writable=false reason=参数链非本工具格式
+[TR-002D1] SAVE_REJECT error=图层不可写：参数链非本工具格式 (L0)
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: sha_unchanged=TRUE / backup 19→19 / SAVE_OK=0 / SAVE_FAIL=0
+        拒绝文案含「不可写」+ 层号 L0，未出现「落点未找到」。
+
+================================================================================
+[用例 A3] 564 层英文链副本，L3 改文本（质控 §2 同一条复现）
+  命令：同 A2，--edit-moti-layer 3
+  写前 sha = d7ccc027391cf16d2581f1d55aa2be970b23801b2ce73c325c252c45b889e497
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/a3.moti layers=564 canvas=3840x2160 writable=true reason=可写 editable_layers=0 selected_writable=false reason=参数链非本工具格式
+[TR-002D1] SAVE_REJECT error=图层不可写：参数链非本工具格式 (L3)
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: sha_unchanged=TRUE / backup 19→19 / SAVE_OK=0
+        拒绝文案含「不可写」+ 层号 L3。
+
+================================================================================
+[用例 B2] 8 层中文链样本，五值写回 —— 必须照旧成功（对照，防一刀切）
+  命令：
+    /tmp/fcpx_auto/release/FCPXStudio --edit-moti /tmp/tr002d1/b2.moti \
+      --edit-moti-auto-save --edit-moti-auto-confirm \
+      --edit-moti-layer 0 --edit-moti-x 123.4 --edit-moti-y 567.8 \
+      --edit-moti-text "质控D1" --edit-moti-enabled 0 --edit-moti-locked 1
+  写前 sha = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/b2.moti layers=8 canvas=1080x1920 writable=true reason=可写 editable_layers=8 selected_writable=true
+[TR-002C] confirm_auto backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/b2.20261112135026.moti.bak changes=5
+[TR-002C] SAVE_OK before_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd after_sha=31c7d65c920f8ffbbc759743e721ca18d40437608d13361c237094e9daf62bcd backup_sha=4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/b2.20261112135026.moti.bak delta=15 changed_lines=[299, 995, 996, 1017, 1018, 1019, 1020] changes=5 readback=5 elapsed_ms=48.1
+[TR-002C] L0 X expect=123.4 actual=123.4 OK
+[TR-002C] L0 Y expect=567.8 actual=567.8 OK
+[TR-002C] L0 text expect=质控D1 actual=质控D1 OK
+[TR-002C] L0 enabled expect=false actual=false OK
+[TR-002C] L0 locked expect=true actual=true OK
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: SAVE_OK / readback=5 全 OK / backup 19→20（本次真实写回应有 1 个备份）
+        delta=15 == Σ 目标串长度差（-7-1+0+12+11=15）
+
+================================================================================
+[用例 C1] 混链样本（L0=en、L1..L7=zh），L0 改文本 —— 必须拒绝
+  样本：/tmp/tr002d1/mixed8.moti（构造方法与自检见 回归留证.txt §5 与 混链样本构造器.py）
+  关键点：该层 对象/文本(369) 中文链是完整的，写回机制上「能够」写成功；
+          按层判据（positionChain != "zh"）必须在进 MotiWriteBack 之前拒绝。
+  写前 sha = f1f8e2e58831d2f7c764f4f5a2812f231d7e8a4ea7cb193dc513969b0ab8b933
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/mixed8.moti layers=8 canvas=1080x1920 writable=true reason=可写 editable_layers=7 selected_writable=false reason=参数链非本工具格式
+[TR-002D1] SAVE_REJECT error=图层不可写：参数链非本工具格式 (L0)
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: sha_unchanged=TRUE / backup 20→20 / SAVE_OK=0
+        editable_layers=7（同模板 8 层里 7 层可写，不是整模板判死）
+
+================================================================================
+[用例 C2] 同一混链样本，L1（zh 链）改文本 —— 必须照旧成功（按层判的正面证明）
+  命令：同上，--edit-moti-layer 1 --edit-moti-text "混链可写层"
+  写前 sha = f1f8e2e58831d2f7c764f4f5a2812f231d7e8a4ea7cb193dc513969b0ab8b933
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/mixed8.moti layers=8 canvas=1080x1920 writable=true reason=可写 editable_layers=7 selected_writable=false reason=参数链非本工具格式
+[TR-002C] confirm_auto backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/mixed8.20261112135141.moti.bak changes=1
+[TR-002C] SAVE_OK before_sha=f1f8e2e58831d2f7c764f4f5a2812f231d7e8a4ea7cb193dc513969b0ab8b933 after_sha=ca5ec74f6ce7e7c856a79791f22387c51295f099cf30a4be11561b4e5054dbde backup_sha=f1f8e2e58831d2f7c764f4f5a2812f231d7e8a4ea7cb193dc513969b0ab8b933 backup=/Users/mrhuang/Library/Application Support/FCPXStudioPro/moti_backups/mixed8.20261112135141.moti.bak delta=-7 changed_lines=[1797, 1798] changes=1 readback=1 elapsed_ms=48.1
+[TR-002C] L1 text expect=混链可写层 actual=混链可写层 OK
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: SAVE_OK / readback=1 OK / backup 20→21
+        同一份文件：L0 拒、L1 存 —— 判据按层，不整模板一刀切。
+
+================================================================================
+[用例 D2] 交付包口径构建，越权参数全套 —— 必须无任何反应（4D-3 不回退）
+  命令：
+    /tmp/fcpx_wd/release/FCPXStudio --edit-moti /tmp/tr002d1/d.moti \
+      --edit-moti-auto-save --edit-moti-auto-confirm --edit-moti-layer 0 \
+      --edit-moti-text "越权" --edit-moti-x 999 --edit-moti-y 888 \
+      --edit-moti-enabled 0 --edit-moti-locked 1
+  （交付口径二进制内 --edit-moti-auto-* 整段不编译：strings 命中 0）
+  写前 sha = d7ccc027…（同 A2）
+--------------------------------------------------------------------------------
+RAW STDOUT BEGIN
+[TR-002C] edit_moti_open path=/tmp/tr002d1/d.moti layers=564 canvas=3840x2160 writable=true reason=可写 editable_layers=0 selected_writable=false reason=参数链非本工具格式
+RAW STDOUT END
+--------------------------------------------------------------------------------
+RESULT: sha_unchanged=TRUE / backup 21→21 / SAVE_OK=0
+        只有 edit_moti_open 一行，自动化开关全部无效（等待确认弹窗，20s 后我方 kill -TERM）。
+
+================================================================================
+[补充] 界面层判据（截图逐条对应，见 截图/）
+--------------------------------------------------------------------------------
+01_564层_不可写态_整窗.png
+  · 横幅三行完整（首句按框宽换两行 + 追加句一行），无省略号：
+      该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写
+      该图层仅支持只读预览：文本 / 可见 / 锁定 亦不可写回
+  · X/Y 显示「—」且置灰；文字内容框灰字不可编辑；「保存回 .moti」禁用；
+    表格每行 眼睛/锁 按钮置灰（01b 局部）。
+02_564层_有改动仍禁存_整窗.png
+  · 预置了文本改动（框内可见「越权改文本」，灰字），保存按钮仍灰（02b 局部）：
+    不是「没改动所以灰」，是「这一层不可写所以灰」。
+03_8层中文链_编辑态对照_整窗.png
+  · 中文链形态一行未变：「编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti」；
+    X/Y 白色可编辑、表格按钮亮色。
+04_8层中文链_4D4四行文本_整窗.png
+  · 4 行文本全见、末行下方留白、保存按钮在首屏（4D-4 不回退）。
+05_混链样本_按层判_整窗.png
+  · 同一模板：选中行（Text 01，en 链）表格按钮灰、X/Y「—」、文本框灰字；
+    其余 7 行眼睛按钮亮蓝 —— 按层判的可视证明。
+06_只读态回归_整窗.png
+  · sha256 e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee / 395855 B，
+    与 reports/verify_tr027/shots/08_v15dmg_只读态_整窗.png cmp 逐字节相同。

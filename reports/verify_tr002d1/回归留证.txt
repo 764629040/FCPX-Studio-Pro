@@ -1,0 +1,128 @@
+TR-002-D-1｜回归留证（问题单 §3 八条 + 混链构造）
+==========================================================
+执行时间：2026-11-12 13:18–14:00
+代码改动面（4 个源文件，全部在 §0 允许清单内）：
+  Models/MotiDocumentParser.swift      + 1 个计算属性（isPositionChainWritable，纯查询）
+  Models/MotiEditSession.swift         + layerWritable(index:) / firstUnwritableEditLayer() / editableLayerCount
+  Views/InspectorView+MotiEdit.swift     主改动面（文本框/横幅/保存按钮/表格按钮按层判）
+  Views/MainWindowController.swift     保存前置拦截 + edit_moti_open 日志字段
+未动：MotiWriteBack.swift（0 行）、InspectorView.swift（0 行）、applyMotiReadOnlyText()（0 行）、
+      tools/tr019r/tr019r_harness.swift（0 行）、两份原件、四个镜像、v1.6 封包链路。
+
+----------------------------------------------------------
+[1] harness：PASS=61 FAIL=0 / 69 行 / sha16 6787e31d50961fb5，与 8 份历史日志逐字节相同
+----------------------------------------------------------
+编译（照 tools/tr019r/verify_layers.sh 口径，排除 main.swift）：
+  swiftc -O -j 8 <FCPXStudio 全部 .swift（不含 main.swift）> tools/tr019r/tr019r_harness.swift
+输出：
+  PASS = 61   FAIL = 0
+  TR-019-R VERDICT: PASS
+  LINES = 69
+  SHA16 = 6787e31d50961fb5
+比对（cmp，8/8 BYTE_IDENTICAL）：
+  tr023b / tr024 / tr024_1 / tr024_2 / tr025 / tr026 / tr027 / tr002c
+日志：tr019r_harness_重跑.txt
+
+----------------------------------------------------------
+[2] 只读态：与 TR-027 08 逐字节相同（新交付口径构建实测）
+----------------------------------------------------------
+载建：/tmp/fcpx_wd/release/FCPXStudio（ea4046828a84695e… / 4205656 B，无 -D）
+命令：--preview-moti build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+截图：screencapture -x -o -l <WID 主窗 1207x781>
+  new  sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  base sha256 = e32a921559178e048372c0cac107bce4c1e53a0cdcd4c6130a00d036537b83ee
+  395855 B / 2414×1562
+  READONLY_REGRESSION=BYTE_IDENTICAL（cmp 与 reports/verify_tr027/shots/08_... 相同）
+截图：截图/06_只读态回归_整窗.png
+
+----------------------------------------------------------
+[3] 五值写回：readback=5 全 OK、反向还原 byte-identical、xmllint 0、delta 守恒
+----------------------------------------------------------
+载体：取证构建 2feb1be2135d565c…（-DTR002C_AUTOMATION）
+目标：/tmp/tr002d1/b2.moti（cv 自原始样本，写前 4cf1db26… / 247979 B）
+命令：
+  --edit-moti b2.moti --edit-moti-auto-save --edit-moti-auto-confirm
+  --edit-moti-layer 0 --edit-moti-x 123.4 --edit-moti-y 567.8
+  --edit-moti-text "质控D1" --edit-moti-enabled 0 --edit-moti-locked 1
+SAVE_OK：
+  before_sha = 4cf1db26d6f52a9a5c9f61039cec44b467dedeac63f39b74cfd591d37148a6bd
+  after_sha  = 31c7d65c920f8ffbbc759743e721ca18d40437608d13361c237094e9daf62bcd
+  backup_sha = 4cf1db26…（== 写前）
+  delta=15 changes=5 readback=5 elapsed_ms=48.1
+读回五行：
+  L0 X expect=123.4 actual=123.4 OK
+  L0 Y expect=567.8 actual=567.8 OK
+  L0 text expect=质控D1 actual=质控D1 OK
+  L0 enabled expect=false actual=false OK
+  L0 locked expect=true actual=true OK
+
+反向还原（用本次备份覆盖副本）：
+  BYTE_IDENTICAL_BACK=True（cmp 与原始样本逐字节相同）
+
+xmllint --noout --nonet → exit 0
+
+字节计数（before / after）：
+  size         247979 → 247994（delta 15 == Σ目标串长度差：文本 -7、X -1、Y 0、enabled +12、locked +11）
+  line_count   6608 → 6605（文本由 4 行改为 1 行，LF -3，与目标串一致）
+  tab          50396 → 50396
+  DOCTYPE      1 → 1
+  default="    928 → 928
+  CR 0/0 · BOM False/False · comments 0/0 · xml_decl 1/1
+日志：不可写层拦截留证.txt [用例 B2]
+
+----------------------------------------------------------
+[4] 原件未动
+----------------------------------------------------------
+中文链样本 build_staging/T01_领衔呈现_竖版/T01_领衔呈现_竖版.moti
+  247979 B / mtime Oct 28 20:14:13 2026 / sha256 4cf1db26d6f52a9a…
+564 层第三方模板 ~/Movies/Motion Templates.localized/…/10 字母.moti
+  11464903 B / mtime Feb 25 21:33:40 2026 / sha256 d7ccc027391cf16d…
+所有写回均在 /tmp/tr002d1/ 副本上完成；原件未参与任何写入（读操作除外）。
+
+----------------------------------------------------------
+[5] 混链样本：构造方法（问题单 §4 要求写进报告）
+----------------------------------------------------------
+仓库内没有现成混链样本。构造方式（脚本见 混链样本构造器.py，全程只动副本）：
+  1. 取 8 层中文链样本副本 zh8.moti（sha 4cf1db26…）；
+  2. 按文档顺序定位第 1 个 layer 块（字节区间 12910..41209），把该块内：
+       name="属性" id="1"    ×2  → name="Properties" id="1"
+       name="变换" id="100"  ×1  → name="Transform" id="100"
+     其余字节一律不动（含另外 7 层、全部文本/样式/属性值）；
+  3. 脚本内置断言：L0 恰好 2 个属性标记 + 1 个变换标记；L1..L7 块逐字节未移动；
+  4. xmllint --noout 通过；副本 sha f1f8e2e58831d2f7c764f4f5a2812f231d7e8a4ea7cb193dc513969b0ab8b933。
+解析结果（实测日志）：layers=8、editable_layers=7、选中 L0 时 selected_writable=false。
+行为：L0 改文本 → SAVE_REJECT (L0)；L1 改文本 → SAVE_OK readback=1。
+说明：L0 的 对象/文本(369) 中文链完整，写回机制上本来能写成——本单改成必须先过
+      层可写性判据，正说明拦截不依赖写回报错。（该样本是合成件，只用于证明按层判。）
+
+----------------------------------------------------------
+[6] 4D-1 / 4D-4 不回退（截图逐项）
+----------------------------------------------------------
+4D-1（564 层编辑态，截图 01）：
+  · 横幅首行逐字：「该模板参数链非本工具格式（Properties/Transform/Position），X/Y 不可写」
+    后接第二行「该图层仅支持只读预览：文本 / 可见 / 锁定 亦不可写回」；无省略号截断。
+  · X/Y 显示「—」，全图中 X/Y 区域无 0.0（旋转字段的 0.0° 是既有只读显示，非位置值）。
+  · 表格 可见/锁定 按钮逐行置灰（截图 01b）。
+4D-4（8 层编辑态，截图 04）：
+  · 4 行文本（领衔/呈现/竖版/四行）全见、末行下方留白；
+  · 「保存回 .moti」在首屏可见且可用；文字框高度仍为 100pt（未被顺手改成 120pt）。
+中文链形态（截图 03）：横幅仍是「编辑态：仅 文本 / X / Y / 可见 / 锁定 写回 .moti」一行；
+  X/Y 白色可编辑（-213.0 / 484.5）、表格按钮亮色。
+
+----------------------------------------------------------
+[7] 备份卫生
+----------------------------------------------------------
+备份目录：~/Library/Application Support/FCPXStudioPro/moti_backups/
+  开工计数 17；拒绝路径（A2/A3/C1/D2）全程 0 新增；
+  仅真实 SAVE_OK 各 1 个：zh8.20261112133108 / mixed8.20261112133243 /
+  b2.20261112135026 / mixed8.20261112135141；收尾计数 21。
+模板目录内 *.moti.bak 数量 = 0（find "$HOME/Movies/Motion Templates.localized" 实测）。
+每个备份 sha == 对应写前 sha（SAVE_OK 日志 backup_sha 字段为证）。
+未删除任何历史备份（只增不删）。
+
+----------------------------------------------------------
+[8] 纪律
+----------------------------------------------------------
+· 全程 pgrep -x "Final Cut Pro" = 0（开工、每个用例后、收尾各核一次）。
+· 只起停自己编译的 FCPXStudio 实例；所有 timeout 124 / exit 15 均为我方 kill -TERM。
+· 未 push；未封新镜像；未改 harness；未改只读态逻辑；未改写回算法与错误文案体系。

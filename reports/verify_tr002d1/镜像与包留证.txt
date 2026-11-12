@@ -1,0 +1,54 @@
+TR-002-D-1｜镜像与包留证（四镜像 sha 全等 / 包不动 / 不封新镜像）
+==========================================================
+核对时间：2026-11-12 13:58
+本单性质：只收口源码 + 证据；不重封 v1.6、不封 v1.7、不改 App 包。
+
+----------------------------------------------------------
+一、四个镜像（全部未改动，完整 sha 实测）
+----------------------------------------------------------
+~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.3.dmg
+  47855074 B / 0fdf3359f7e1185de07585e691bba9822a0e4dd7d105d3efec67c98235728beb  ✓ 与基线全等
+~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.4.dmg
+  46290500 B / 18d122ebfc7ee140f9cc7a3ad974fb61494130694af5b77b8ab31735db36b6bd  ✓ 与基线全等
+~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.5.dmg
+  46290844 B / c786d750468238100bb58d4616d4c3526e343e3e149351d501f5649c42726499  ✓ 与基线全等
+~/Desktop/FCPX_Studio_Pro_Dist/FCPX_Studio_Pro_v1.6.dmg
+  48124361 B / 62ec40536cff1319534710545d6d43342ce607536ebcb5aa9c556eb34b367e68  ✓ 与基线全等
+v1.7 不存在：ls ~/Desktop/FCPX_Studio_Pro_Dist | grep -c "v1.7" = 0
+
+----------------------------------------------------------
+二、仓库内 App 包（不在本单允许改动清单内，未触碰）
+----------------------------------------------------------
+FCPX Studio Pro R2.app
+  文件数 = 2006
+  Contents/MacOS/FCPXStudio = 4179744 B
+  sha256 = 7755783f9f02f2c34d2f1b73665ba3d9ecb382d7f3e17062bf483629e5e2852b（与基线相同）
+  codesign --verify --deep --strict → exit 0
+
+  说明：本单修复在源码层（4 个 .swift），包内二进制按 §0 基线锁定不动，
+  因此该包仍是 7755783f…；下一次封版时自然带上本单修复。这一点在验收记录里披露。
+
+----------------------------------------------------------
+三、4D-3 不回退（交付包口径构建，无 -D）
+----------------------------------------------------------
+/tmp/fcpx_wd/release/FCPXStudio（swift build -c release，无 -DTR002C_AUTOMATION）
+  sha256 = ea4046828a84695e7e875dbcfe9b6d44aa4e1fbb8dc11828ce2779952525f1c7
+  size   = 4205656 B
+  strings -a | grep -c "edit-moti-auto"  → 0
+  strings -a | grep -ic "edit-moti"      → 0
+越权参数全套（auto-save + auto-confirm + layer + text + x + y + enabled + locked）：
+  SHA_UNCHANGED=TRUE / backup 21→21 / SAVE_OK=0（原始 stdout 见 不可写层拦截留证.txt [D2]）
+
+----------------------------------------------------------
+四、取证构建（-DTR002C_AUTOMATION，仅 /tmp，不发布）
+----------------------------------------------------------
+/tmp/fcpx_auto/release/FCPXStudio
+  sha256 = 2feb1be2135d565c710a22b08a3e893c5b7bc867576e61234521b31b6c6e9bed
+  size   = 4207528 B
+  构建入口：tools/tr002d/build_forensics.sh（本单未改）
+
+----------------------------------------------------------
+五、FCPX 纪律
+----------------------------------------------------------
+全程 pgrep -x "Final Cut Pro" = 0（开工 / 每轮用例后 / 收尾各核一次）。
+未启动、未退出、未重启 FCPX；无任何新增 FCPX 控制能力。
