@@ -23,6 +23,12 @@ from core.psd_parser import (
     PSDParseError
 )
 from core.motion_builder import MotionBuilder
+from core.png_layer_io import (
+    is_png_split_dir,
+    parse_png_split_dir,
+    regenerate_thumbnails,
+    PngSplitParseError,
+)
 from core.thumbnail import generate_thumbnails_from_psd
 from core.symlink_manager import SymlinkManager
 from core.batch_runner import BatchRunner
@@ -191,6 +197,27 @@ class MainWindow(QMainWindow):
         self.lbl_error_msg.setStyleSheet("color: #FF453A; font-weight: bold; font-size: 12px;")
         err_layout.addWidget(self.lbl_error_msg)
         main_layout.addWidget(self.error_banner)
+
+        # ── PNG 智能拆分（P1）链路的口径横幅：文字层是位图，能挪不能改 ──
+        # 立项单 §2/§8 要求这一句必须写在界面上，不许让用户以为能改字。
+        self.bitmap_notice_banner = QFrame()
+        self.bitmap_notice_banner.setVisible(False)
+        self.bitmap_notice_banner.setStyleSheet("""
+            QFrame {
+                background-color: #2A2312;
+                border: 1px solid #FF9F0A;
+                border-radius: 8px;
+                padding: 8px 14px;
+            }
+        """)
+        notice_layout = QHBoxLayout(self.bitmap_notice_banner)
+        notice_layout.setContentsMargins(4, 4, 4, 4)
+        self.lbl_bitmap_notice = QLabel("位图文字：文字层能挪不能改")
+        self.lbl_bitmap_notice.setStyleSheet(
+            "color: #FF9F0A; font-weight: bold; font-size: 12px;")
+        self.lbl_bitmap_notice.setWordWrap(True)
+        notice_layout.addWidget(self.lbl_bitmap_notice)
+        main_layout.addWidget(self.bitmap_notice_banner)
 
         # ── 主 Tab 分页 ──
         self.tab_widget = QTabWidget()
@@ -395,7 +422,12 @@ class MainWindow(QMainWindow):
         for p in paths:
             if p not in self.psd_file_list:
                 self.psd_file_list.append(p)
-                item = QListWidgetItem(f"📄 {os.path.basename(p)}")
+                is_split = os.path.isdir(p)
+                item = QListWidgetItem(
+                    ("🖼️ %s" % os.path.basename(p)) if is_split
+                    else ("📄 %s" % os.path.basename(p)))
+                if is_split:
+                    item.setToolTip("%s\nPNG 智能拆分输出目录（位图文字：能挪不能改）" % p)
                 self.psd_list_widget.addItem(item)
                 added_count += 1
         if added_count > 0:
@@ -408,6 +440,10 @@ class MainWindow(QMainWindow):
         self.psd_file_list = []
         if not os.path.exists(dir_path):
             return
+        # 直接选中的就是 PNG 拆分输出目录：单条载入
+        if is_png_split_dir(dir_path):
+            self._append_psd_files([dir_path])
+            return
         files = sorted(os.listdir(dir_path))
         for f in files:
             if f.endswith(".psd") and not f.startswith("."):
@@ -415,27 +451,49 @@ class MainWindow(QMainWindow):
                 self.psd_file_list.append(full_p)
                 item = QListWidgetItem(f"📄 {f}")
                 self.psd_list_widget.addItem(item)
+                continue
+            # 子目录里若是 PNG 智能拆分（P1）的输出目录，也当成一个可载入项
+            sub = os.path.join(dir_path, f)
+            if not f.startswith(".") and os.path.isdir(sub) and is_png_split_dir(sub):
+                self.psd_file_list.append(sub)
+                item = QListWidgetItem(f"🖼️ {f}")
+                item.setToolTip("%s\nPNG 智能拆分输出目录（位图文字：能挪不能改）" % sub)
+                self.psd_list_widget.addItem(item)
         if self.psd_file_list:
             self.psd_list_widget.setCurrentRow(0)
 
     def _on_import_folder_clicked(self):
-        dir_p = QFileDialog.getExistingDirectory(self, "选择包含 PSD 文件的目录")
+        dir_p = QFileDialog.getExistingDirectory(
+            self, "选择包含 PSD 文件或 PNG 拆分输出目录的目录")
         if dir_p:
             self._load_psd_dir(dir_p)
 
     def _on_psd_selected(self, row):
         if 0 <= row < len(self.psd_file_list):
             self.current_psd_path = self.psd_file_list[row]
+            is_split = os.path.isdir(self.current_psd_path)
             file_name = os.path.basename(self.current_psd_path)
 
             try:
                 # 调用核心解析与诊断引擎
-                self.current_parsed_psd = parse_psd_file(
-                    self.current_psd_path,
-                    extract_fallback_pngs=False,
-                    extract_thumbnails=True
-                )
+                if is_split:
+                    self.current_parsed_psd = parse_png_split_dir(self.current_psd_path)
+                else:
+                    self.current_parsed_psd = parse_psd_file(
+                        self.current_psd_path,
+                        extract_fallback_pngs=False,
+                        extract_thumbnails=True
+                    )
                 self.error_banner.setVisible(False)
+
+                # PNG 链路必须把「文字能挪不能改」摆在明面上（立项单 §2/§8）
+                notice = self.current_parsed_psd.get("bitmap_text_notice")
+                if notice:
+                    self.lbl_bitmap_notice.setText(
+                        "🖼️ %s —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路" % notice)
+                    self.bitmap_notice_banner.setVisible(True)
+                else:
+                    self.bitmap_notice_banner.setVisible(False)
 
                 # 刷新顶部 Banner
                 self.lbl_file_name.setText(f"📄 {self.current_parsed_psd['file_name']}")
@@ -474,6 +532,10 @@ class MainWindow(QMainWindow):
                 # 结构化捕获单文件损坏异常，精准定位源文件，界面显示红色警报面板，绝不崩溃！
                 err_text = f"文件损坏或格式非法: [{err.file_name}] - {str(err.original_error)}"
                 self._show_error_state(err.file_name, err.file_path, err_text)
+            except PngSplitParseError as err:
+                # 分层目录不可用 / 清单损坏：同样走可读提示，不改源文件、不进写回
+                err_text = f"分层目录不可用: [{err.file_name}] - {str(err.original_error)}"
+                self._show_error_state(err.file_name, err.file_path, err_text)
             except Exception as e:
                 err_text = f"读取异常: [{file_name}] - {str(e)}"
                 self._show_error_state(file_name, self.current_psd_path, err_text)
@@ -489,7 +551,11 @@ class MainWindow(QMainWindow):
         self.lbl_risk_badge.setText("❌ 解析失败")
         self.lbl_risk_badge.setStyleSheet("background-color: #3D1418; color: #FF453A; padding: 3px 8px; border-radius: 4px;")
 
-        # 生成失败诊断报告
+        # 生成失败诊断报告（PNG 分层目录没有 PSD 报告可生成，只留失败态）
+        if os.path.isdir(file_path):
+            self.current_diagnosis_report = None
+            self._populate_diagnosis_tab({"summary": {}, "layers": [], "warnings": [error_msg], "notes": []})
+            return
         fail_report = generate_conversion_diagnosis_report(file_path)
         self.current_diagnosis_report = fail_report
         self._populate_diagnosis_tab(fail_report)
@@ -581,10 +647,12 @@ class MainWindow(QMainWindow):
 
     def _on_save_current_template(self):
         if not self.current_parsed_psd or not self.current_psd_path:
-            QMessageBox.warning(self, "提示", "请先选择一个有效的 PSD 文件！")
+            QMessageBox.warning(self, "提示", "请先选择一个有效的 PSD 文件或 PNG 拆分目录！")
             return
 
-        base_name = os.path.splitext(os.path.basename(self.current_psd_path))[0]
+        is_split = os.path.isdir(self.current_psd_path)
+        base_name = (os.path.basename(self.current_psd_path.rstrip(os.sep)) if is_split
+                     else os.path.splitext(os.path.basename(self.current_psd_path))[0])
         group_name = "PSD婚礼字幕"
         target_group_dir = _resolve_export_group_dir(self.symlink_mgr.external_root or DEFAULT_EXTERNAL_DIR, group_name)
         template_dir = os.path.join(target_group_dir, base_name)
@@ -605,7 +673,8 @@ class MainWindow(QMainWindow):
                 layers_info=self.current_parsed_psd["layers"],
                 output_dir=template_dir,
                 template_name=base_name,
-                psd_path=self.current_psd_path,
+                # PNG 链路没有 PSD 源：传 None，模板里全部走 Media 位图层
+                psd_path=None if is_split else self.current_psd_path,
                 backup_existing=True,
                 # A-24：必须传真实画布尺寸，否则竖版 PSD 会生成横版 comp
                 canvas_size=(self.current_parsed_psd["width"],
@@ -614,6 +683,9 @@ class MainWindow(QMainWindow):
                 on_conflict="ask",
                 conflict_callback=_on_conflict,
             )
+            if is_split:
+                # 没有 PSD 时 build_template_atomic 会写全透明占位缩略图，用源成品图补回来
+                regenerate_thumbnails(self.current_parsed_psd, template_dir)
 
             # D-2/D-3：构建完成后，把 .moti 路径下发给画布与检查器，
             # 之后的拖拽/隐藏/锁定都会实时写回这个文件。

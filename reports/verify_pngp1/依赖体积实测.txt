@@ -1,0 +1,23 @@
+Python: 3.13.12
+
+numpy    2.5.4          30.7 MB  /Users/mrhuang/.workbuddy/binaries/python/versions/3.13.12/lib/python3.13/site-packages/numpy
+Pillow   13.0.0         12.7 MB  /Users/mrhuang/.workbuddy/binaries/python/versions/3.13.12/lib/python3.13/site-packages/PIL
+scipy    1.18.1         92.1 MB  /Users/mrhuang/.workbuddy/binaries/python/versions/3.13.12/lib/python3.13/site-packages/scipy
+
+这三项是否已在 requirements.txt / 既有运行环境：
+  requirements.txt 命中: numpy
+  requirements.txt 命中: Pillow
+  requirements.txt 命中: scipy
+
+P1 新增文件体积（tools/pngp1/ 全部 .py）:
+  eval_fixtures.py          5.3 KB
+  make_fixtures.py         11.6 KB
+  png_split_p1.py          63.8 KB
+  合计 80.7 KB
+
+结论：P1 只新增纯 Python 源码（80.7 KB），依赖 numpy/Pillow/scipy 均为既有依赖，新增依赖体积 = 0 字节。
+
+补充（requirements.txt 原文核对）：
+  Pillow==11.3.0 / numpy==2.4.4 / scipy>=1.13.1 三项本来就在 requirements.txt 里显式锁定，
+  scipy 的声明来自 R26 复核（psd-tools 带图层效果合成需要），不是 P1 引入。
+  因此 P1 对依赖体积的增量 = 0 字节，20MB 红线未触碰。

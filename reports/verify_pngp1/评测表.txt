@@ -1,0 +1,14 @@
+fixture                        lay  text  object elem   bg     maxdiff  ms       verdict
+------------------------------------------------------------------------------------------------
+A_gradient_text_object_decor   8    OK    OK     OK     OK     0        10459.7  PASS
+B_flat_product_title           6    OK    OK     OK     OK     0        18630.3  PASS
+C_vignette_badge               8    OK    OK     OK     OK     0        12959.2  PASS
+D_card_portrait                5    OK    OK     OK     OK     0        11474.2  PASS
+E_ui_screenshot                12   OK    OK     OK     OK     0        13512.1  PASS
+F_low_contrast                 4    OK    OK     OK     OK     0        8411.7   PASS
+G_vertical_text                5    OK    OK     OK     OK     0        7877.1   PASS
+H_two_objects                  5    OK    OK     OK     OK     0        7933.9   PASS
+I_no_text                      5    OK    OK     OK     OK     0        7151.5   PASS
+J_text_heavy                   6    OK    OK     OK     OK     0        7867.9   PASS
+------------------------------------------------------------------------------------------------
+PASS=10 FAIL=0

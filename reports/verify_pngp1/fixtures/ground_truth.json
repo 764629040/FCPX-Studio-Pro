@@ -1,0 +1,311 @@
+{
+  "A_gradient_text_object_decor": {
+    "text_bboxes": [
+      [
+        116,
+        282,
+        524,
+        402
+      ],
+      [
+        140,
+        492,
+        575,
+        539
+      ]
+    ],
+    "object_bboxes": [
+      [
+        300,
+        760,
+        780,
+        1380
+      ]
+    ],
+    "element_count": 4,
+    "bg": "gradient",
+    "file": "A_gradient_text_object_decor.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "B_flat_product_title": {
+    "text_bboxes": [
+      [
+        90,
+        253,
+        371,
+        339
+      ],
+      [
+        95,
+        409,
+        437,
+        450
+      ]
+    ],
+    "object_bboxes": [
+      [
+        260,
+        900,
+        820,
+        1500
+      ]
+    ],
+    "element_count": 2,
+    "bg": "flat",
+    "file": "B_flat_product_title.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "C_vignette_badge": {
+    "text_bboxes": [
+      [
+        88,
+        328,
+        583,
+        458
+      ],
+      [
+        95,
+        530,
+        574,
+        574
+      ]
+    ],
+    "object_bboxes": [
+      [
+        330,
+        820,
+        750,
+        1240
+      ]
+    ],
+    "element_count": 4,
+    "bg": "vignette",
+    "file": "C_vignette_badge.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "D_card_portrait": {
+    "text_bboxes": [
+      [
+        300,
+        1138,
+        582,
+        1207
+      ],
+      [
+        330,
+        1270,
+        597,
+        1309
+      ]
+    ],
+    "object_bboxes": [
+      [
+        220,
+        720,
+        860,
+        1500
+      ]
+    ],
+    "element_count": 3,
+    "bg": "gradient",
+    "file": "D_card_portrait.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "E_ui_screenshot": {
+    "text_bboxes": [
+      [
+        130,
+        553,
+        489,
+        610
+      ],
+      [
+        132,
+        688,
+        511,
+        725
+      ],
+      [
+        132,
+        750,
+        507,
+        787
+      ],
+      [
+        132,
+        812,
+        470,
+        849
+      ],
+      [
+        132,
+        1506,
+        397,
+        1531
+      ]
+    ],
+    "object_bboxes": [
+      [
+        80,
+        360,
+        1000,
+        1600
+      ]
+    ],
+    "element_count": 6,
+    "bg": "gradient",
+    "file": "E_ui_screenshot.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "F_low_contrast": {
+    "text_bboxes": [
+      [
+        120,
+        322,
+        439,
+        410
+      ]
+    ],
+    "object_bboxes": [
+      [
+        300,
+        800,
+        780,
+        1400
+      ]
+    ],
+    "element_count": 2,
+    "bg": "flat",
+    "file": "F_low_contrast.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "G_vertical_text": {
+    "text_bboxes": [
+      [
+        120,
+        206,
+        206,
+        570
+      ]
+    ],
+    "object_bboxes": [
+      [
+        420,
+        700,
+        820,
+        1300
+      ]
+    ],
+    "element_count": 2,
+    "bg": "gradient",
+    "file": "G_vertical_text.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "H_two_objects": {
+    "text_bboxes": [
+      [
+        120,
+        321,
+        382,
+        400
+      ]
+    ],
+    "object_bboxes": [
+      [
+        120,
+        820,
+        460,
+        1420
+      ],
+      [
+        560,
+        820,
+        940,
+        1420
+      ]
+    ],
+    "element_count": 1,
+    "bg": "flat",
+    "file": "H_two_objects.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "I_no_text": {
+    "text_bboxes": [],
+    "object_bboxes": [
+      [
+        340,
+        760,
+        740,
+        1160
+      ]
+    ],
+    "element_count": 3,
+    "bg": "gradient",
+    "file": "I_no_text.png",
+    "size": [
+      1080,
+      1920
+    ]
+  },
+  "J_text_heavy": {
+    "text_bboxes": [
+      [
+        90,
+        297,
+        596,
+        370
+      ],
+      [
+        90,
+        409,
+        663,
+        477
+      ],
+      [
+        90,
+        521,
+        692,
+        589
+      ]
+    ],
+    "object_bboxes": [
+      [
+        760,
+        1500,
+        980,
+        1720
+      ]
+    ],
+    "element_count": 1,
+    "bg": "gradient",
+    "file": "J_text_heavy.png",
+    "size": [
+      1080,
+      1920
+    ]
+  }
+}

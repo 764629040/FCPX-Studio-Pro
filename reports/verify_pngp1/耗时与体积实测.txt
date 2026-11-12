@@ -1,0 +1,34 @@
+测量环境：Python 3.13.12 / 单进程 / 本机 load average = 6.24 6.14 8.27（同一台机器同时有其它任务，取 3 次最小值）
+计时口径：png_split_p1.py split 的端到端墙钟（读图+分层+写 4 类 PNG+4 张预览图）
+
+样本                                 分辨率        源图 KB     层合计 KB    体积比       耗时(最小)s   层数       背景模型
+--------------------------------------------------------------------------------------------------------------------------------
+A_gradient_text_object_decor       1080x1920  47        134       2.87      9.76      8        rows(残差0.12)
+B_flat_product_title               1080x1920  28        81        2.93      6.80      6        global(残差0.00)
+C_vignette_badge                   1080x1920  49        121       2.47      7.49      8        cols(残差0.00)
+D_card_portrait                    1080x1920  29        90        3.05      7.38      5        rows(残差0.12)
+E_ui_screenshot                    1080x1920  47        180       3.80      8.86      12       global(残差87.72)
+F_low_contrast                     1080x1920  18        53        3.00      9.11      4        global(残差0.00)
+G_vertical_text                    1080x1920  29        73        2.49      8.12      5        cols(残差0.22)
+H_two_objects                      1080x1920  19        61        3.29      8.16      5        global(残差0.00)
+I_no_text                          1080x1920  11        56        4.86      7.94      5        rows(残差0.12)
+J_text_heavy                       1080x1920  55        120       2.16      9.36      6        rows(残差0.04)
+--------------------------------------------------------------------------------------------------------------------------------
+合计 10 张；体积比 中位 3.00 / 最大 4.86；耗时 中位 8.16 s / 最大 9.76 s
+超过 §6 「≤2.5 倍」目标的样本：A_gradient_text_object_decor, B_flat_product_title, D_card_portrait, E_ui_screenshot, F_low_contrast, H_two_objects, I_no_text
+
+【体积超标的成因与已验证的改进量】
+每层都是 1080×1920 全画幅 RGBA（立项单 §6 要求「与源图同分辨率，不缩」），透明区即使压得再狠也要占位。
+下面按「层 PNG 裁到自身 bbox + 清单里记 offset」重算一遍体积（只算不改现有实现）：
+
+样本                                 现状 KB      裁剪后 KB     体积比        省
+A_gradient_text_object_decor       134        74         1.58       45%
+B_flat_product_title               81         46         1.67       43%
+C_vignette_badge                   121        63         1.28       48%
+D_card_portrait                    90         58         1.97       35%
+E_ui_screenshot                    180        91         1.92       50%
+F_low_contrast                     53         29         1.64       45%
+G_vertical_text                    73         39         1.32       47%
+H_two_objects                      61         30         1.60       51%
+I_no_text                          56         24         2.12       56%
+J_text_heavy                       120        75         1.37       37%

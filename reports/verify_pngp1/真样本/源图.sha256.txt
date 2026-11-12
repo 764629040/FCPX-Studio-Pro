@@ -1,0 +1,9 @@
+# 真样本源图 sha256（P1 超范围验证用的真实商业模板成品图）
+# S1–S4 未入库（照片底，单张 1.6MB，非本项目版权），本机路径见每行末尾
+245dd0bfaae356fbc03a08f481d2a0f947ce627e984c7dc7d9da8f3577a99154  S1_玻璃标题_横版.png  ~/Movies/Motion Templates.localized/Titles.localized/易安装 - 8个磨砂玻璃标题效果预设/Glass Title 1/large.png
+e34913471964fe964ee877f868c62633e2d352c7f9cc453d48c94313bc926241  S2_粒子光叠加_横版.png  ~/Movies/Motion Templates.localized/Titles.localized/易安装 - 8个唯美粒子光叠加效果预设/易安装 03/large.png
+f82a296b56cf128cb22066f198312fca77699e564c2e4a155b898b7327387fa2  S3_清新字幕_横版.png  ~/Movies/Motion Templates.localized/Titles.localized/易安装 - 20个清新简约字幕动画预设 v2/易安装 12/large.png
+a6aec514440f6a990f322860a23e272e515344be5b8c4aa38dbea2be76ba525b  S4_运动模糊底_横版.png  ~/Movies/Motion Templates.localized/Titles.localized/易安装 - 6个视频运动模糊效果预设/中等运动模糊/large.png
+52a8e646137986d2d29509a4b4d2f44e3c9ed96edcf34e566c516be0ed661910  S5_婚礼花纹标题_横版.png
+49ed62a7372ad1f14c179de473854ce69e1e57484323818d37c2ee79c4245257  S6_灰度简约标题_横版.png
+d567b0eecc8818aec1ec24570006ede822adbbe65e07e2ad26216daf0c0f59c8  S7_高级阴影标题_横版.png

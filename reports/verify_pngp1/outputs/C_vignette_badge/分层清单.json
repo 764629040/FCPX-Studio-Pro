@@ -1,0 +1,245 @@
+{
+  "schema": "pngp1/v1",
+  "tool_version": "pngp1-1.0.0",
+  "source": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_pngp1/fixtures/C_vignette_badge.png",
+  "source_sha256": "04ca833ee5a16c278fa785449b310db2621c16019777fab216617ff0bf6bdec9",
+  "source_sha256_after": "04ca833ee5a16c278fa785449b310db2621c16019777fab216617ff0bf6bdec9",
+  "source_unchanged": true,
+  "source_bytes": 50273,
+  "source_mode": "RGB",
+  "width": 1080,
+  "height": 1920,
+  "class_legend": {
+    "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
+    "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
+    "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
+    "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞"
+  },
+  "text_editable": false,
+  "notice": "文字层是位图：能挪不能改",
+  "object_detected": true,
+  "object_fallback": false,
+  "layers": [
+    {
+      "class": "BACKGROUND",
+      "seq": 1,
+      "name": "BACKGROUND",
+      "file": "layers/BACKGROUND.png",
+      "bbox": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "pixels": 1881588,
+      "alpha_sum": 528768000,
+      "confidence": 0.99,
+      "low_confidence": false,
+      "mean_color": "#161016",
+      "notes": [
+        "已按延展填色补洞"
+      ]
+    },
+    {
+      "class": "OBJECT",
+      "seq": 1,
+      "name": "OBJECT_01_主体",
+      "file": "layers/OBJECT_01_主体.png",
+      "bbox": [
+        329,
+        819,
+        752,
+        1242
+      ],
+      "pixels": 140353,
+      "alpha_sum": 35357579,
+      "confidence": 0.757,
+      "low_confidence": false,
+      "mean_color": "#766632",
+      "notes": [
+        "边缘 1-2px 羽化"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 1,
+      "name": "ELEMENT_01_装饰",
+      "file": "layers/ELEMENT_01_装饰.png",
+      "bbox": [
+        967,
+        67,
+        1014,
+        114
+      ],
+      "pixels": 1105,
+      "alpha_sum": 281775,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#ECDA9E",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 2,
+      "name": "ELEMENT_02_装饰",
+      "file": "layers/ELEMENT_02_装饰.png",
+      "bbox": [
+        967,
+        1807,
+        1014,
+        1854
+      ],
+      "pixels": 1105,
+      "alpha_sum": 281775,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#ECDA9E",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 3,
+      "name": "ELEMENT_03_装饰",
+      "file": "layers/ELEMENT_03_装饰.png",
+      "bbox": [
+        68,
+        67,
+        113,
+        114
+      ],
+      "pixels": 1103,
+      "alpha_sum": 281265,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#EBDA9E",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 4,
+      "name": "ELEMENT_04_装饰",
+      "file": "layers/ELEMENT_04_装饰.png",
+      "bbox": [
+        68,
+        1807,
+        113,
+        1854
+      ],
+      "pixels": 1103,
+      "alpha_sum": 281265,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#EBDA9E",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 1,
+      "name": "TEXT_01_文字",
+      "file": "layers/TEXT_01_文字.png",
+      "bbox": [
+        96,
+        328,
+        574,
+        458
+      ],
+      "pixels": 38736,
+      "alpha_sum": 9877680,
+      "confidence": 0.808,
+      "low_confidence": false,
+      "mean_color": "#B7A36D",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 2,
+      "name": "TEXT_02_文字",
+      "file": "layers/TEXT_02_文字.png",
+      "bbox": [
+        99,
+        529,
+        570,
+        575
+      ],
+      "pixels": 8507,
+      "alpha_sum": 2169285,
+      "confidence": 0.894,
+      "low_confidence": false,
+      "mean_color": "#B1B0B6",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    }
+  ],
+  "layer_count": 8,
+  "classes_present": [
+    "BACKGROUND",
+    "OBJECT",
+    "ELEMENT",
+    "TEXT"
+  ],
+  "background_fill": {
+    "hole_pixels": 192012,
+    "hole_ratio": 0.093,
+    "max_hole_radius_px": 211.2,
+    "fill_grow_px": 2,
+    "method": "edge_extend_nearest_from_confident_background"
+  },
+  "background_model": {
+    "model": "cols",
+    "border_residual_delta_e": 0.0,
+    "border_px": 22
+  },
+  "segmentation": {
+    "mode": "color",
+    "threshold_delta_e": 6.0,
+    "border_noise_delta_e": 0.0,
+    "min_area_px": 41
+  },
+  "grouping": {
+    "component_count": 5,
+    "text_region_count": 2,
+    "text_group_count": 2,
+    "text_glyphs": 12,
+    "object_group_count": 1,
+    "element_group_count": 4,
+    "overflow_merged": 0
+  },
+  "warnings": [],
+  "timings_ms": {
+    "read": 112.4,
+    "background_and_mask": 5878.3,
+    "component_stats": 1442.5,
+    "classify_and_group": 862.4,
+    "write_layers": 3249.7,
+    "previews": 1413.9,
+    "total": 12959.2
+  },
+  "elapsed_s": 13.0,
+  "sizes": {
+    "layers_bytes": 124377,
+    "layer_total_mb": 0.12,
+    "ratio_to_source": 2.47
+  },
+  "previews": {
+    "source": "预览_原图.png",
+    "background_filled": "预览_背景补洞.png",
+    "checkerboard": "预览_分层检查板.png",
+    "recomposite": "预览_重合成.png",
+    "recomposite_max_abs_diff": 0,
+    "recomposite_p99_abs_diff": 0.0,
+    "partial_alpha_pixels": 4544,
+    "solid_compare_pixels": 2054746
+  }
+}

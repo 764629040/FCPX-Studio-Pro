@@ -1,0 +1,279 @@
+{
+  "schema": "pngp1/v1",
+  "tool_version": "pngp1-1.0.0",
+  "source": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_pngp1/真样本/源图/S3_清新字幕_横版.png",
+  "source_sha256": "f82a296b56cf128cb22066f198312fca77699e564c2e4a155b898b7327387fa2",
+  "source_sha256_after": "f82a296b56cf128cb22066f198312fca77699e564c2e4a155b898b7327387fa2",
+  "source_unchanged": true,
+  "source_bytes": 1666352,
+  "source_mode": "RGBA",
+  "width": 1280,
+  "height": 720,
+  "class_legend": {
+    "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
+    "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
+    "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
+    "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞"
+  },
+  "text_editable": false,
+  "notice": "文字层是位图：能挪不能改",
+  "object_detected": true,
+  "object_fallback": true,
+  "layers": [
+    {
+      "class": "BACKGROUND",
+      "seq": 1,
+      "name": "BACKGROUND",
+      "file": "layers/BACKGROUND.png",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "pixels": 799969,
+      "alpha_sum": 235008000,
+      "confidence": 0.99,
+      "low_confidence": false,
+      "mean_color": "#70786E",
+      "notes": [
+        "已按延展填色补洞"
+      ]
+    },
+    {
+      "class": "OBJECT",
+      "seq": 1,
+      "name": "OBJECT_01_主体",
+      "file": "layers/OBJECT_01_主体.png",
+      "bbox": [
+        1,
+        205,
+        1263,
+        644
+      ],
+      "pixels": 84164,
+      "alpha_sum": 24137675,
+      "confidence": 0.632,
+      "low_confidence": true,
+      "mean_color": "#656D5F",
+      "notes": [
+        "边缘 1-2px 羽化",
+        "无高置信主体，取最大前景块保底，low_confidence"
+      ],
+      "compare_exclude_boxes": [
+        [
+          542,
+          286,
+          676,
+          434
+        ],
+        [
+          685,
+          290,
+          744,
+          430
+        ],
+        [
+          146,
+          517,
+          154,
+          519
+        ],
+        [
+          174,
+          518,
+          178,
+          520
+        ]
+      ]
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 1,
+      "name": "ELEMENT_01_装饰",
+      "file": "layers/ELEMENT_01_装饰.png",
+      "bbox": [
+        542,
+        286,
+        676,
+        434
+      ],
+      "pixels": 13157,
+      "alpha_sum": 3355035,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#E5E8EC",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 2,
+      "name": "ELEMENT_02_装饰",
+      "file": "layers/ELEMENT_02_装饰.png",
+      "bbox": [
+        685,
+        290,
+        744,
+        430
+      ],
+      "pixels": 5929,
+      "alpha_sum": 1511895,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#FEFEFE",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 3,
+      "name": "ELEMENT_03_装饰",
+      "file": "layers/ELEMENT_03_装饰.png",
+      "bbox": [
+        617,
+        591,
+        740,
+        611
+      ],
+      "pixels": 820,
+      "alpha_sum": 209100,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#BC9A3D",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 1,
+      "name": "TEXT_01_文字",
+      "file": "layers/TEXT_01_文字.png",
+      "bbox": [
+        62,
+        517,
+        438,
+        676
+      ],
+      "pixels": 8926,
+      "alpha_sum": 2276130,
+      "confidence": 0.815,
+      "low_confidence": false,
+      "mean_color": "#6C6927",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 2,
+      "name": "TEXT_02_文字",
+      "file": "layers/TEXT_02_文字.png",
+      "bbox": [
+        746,
+        597,
+        904,
+        642
+      ],
+      "pixels": 1155,
+      "alpha_sum": 294525,
+      "confidence": 0.727,
+      "low_confidence": false,
+      "mean_color": "#867234",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 4,
+      "name": "ELEMENT_04_装饰",
+      "file": "layers/ELEMENT_04_装饰.png",
+      "bbox": [
+        1,
+        49,
+        1279,
+        719
+      ],
+      "pixels": 7886,
+      "alpha_sum": 2010930,
+      "confidence": 0.45,
+      "low_confidence": true,
+      "mean_color": "#9D9974",
+      "notes": [
+        "面积 < 800px 的碎渣合并层"
+      ],
+      "compare_exclude_boxes": []
+    }
+  ],
+  "layer_count": 8,
+  "classes_present": [
+    "BACKGROUND",
+    "OBJECT",
+    "ELEMENT",
+    "TEXT"
+  ],
+  "background_fill": {
+    "hole_pixels": 121631,
+    "hole_ratio": 0.132,
+    "max_hole_radius_px": 82.1,
+    "fill_grow_px": 2,
+    "method": "edge_extend_nearest_from_confident_background"
+  },
+  "background_model": {
+    "model": "poly2",
+    "border_residual_delta_e": 25.63,
+    "border_px": 14
+  },
+  "segmentation": {
+    "mode": "color",
+    "threshold_delta_e": 24.5,
+    "border_noise_delta_e": 5.41,
+    "min_area_px": 18
+  },
+  "grouping": {
+    "component_count": 2,
+    "text_region_count": 2,
+    "text_group_count": 2,
+    "text_glyphs": 27,
+    "object_group_count": 1,
+    "element_group_count": 1,
+    "overflow_merged": 0
+  },
+  "warnings": [
+    "主体为保底选择，low_confidence=true"
+  ],
+  "timings_ms": {
+    "read": 85.0,
+    "background_and_mask": 902.6,
+    "component_stats": 629.3,
+    "classify_and_group": 151.3,
+    "write_layers": 6572.2,
+    "previews": 1162.0,
+    "total": 9502.4
+  },
+  "elapsed_s": 9.5,
+  "sizes": {
+    "layers_bytes": 1652266,
+    "layer_total_mb": 1.58,
+    "ratio_to_source": 0.99
+  },
+  "previews": {
+    "source": "预览_原图.png",
+    "background_filled": "预览_背景补洞.png",
+    "checkerboard": "预览_分层检查板.png",
+    "recomposite": "预览_重合成.png",
+    "recomposite_max_abs_diff": 0,
+    "recomposite_p99_abs_diff": 0.0,
+    "partial_alpha_pixels": 20874,
+    "solid_compare_pixels": 894266
+  }
+}

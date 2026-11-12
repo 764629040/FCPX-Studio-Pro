@@ -1,0 +1,2035 @@
+=== A_gradient_text_object_decor ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "8 vs 8"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/ELEMENT_02_装饰.png', 'layers/ELEMENT_03_装饰.png', 'layers/ELEMENT_04_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[299, 759, 782, 1382] vs [299, 759, 782, 1382]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[361, 821, 520, 980] vs [361, 821, 520, 980]"
+  },
+  {
+   "check": "ELEMENT_02_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/ELEMENT_02_装饰.png"
+  },
+  {
+   "check": "ELEMENT_02_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_02_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_02_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[89, 1419, 992, 1428] vs [89, 1419, 992, 1428]"
+  },
+  {
+   "check": "ELEMENT_03_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/ELEMENT_03_装饰.png"
+  },
+  {
+   "check": "ELEMENT_03_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_03_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_03_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[906, 385, 974, 449] vs [906, 385, 974, 449]"
+  },
+  {
+   "check": "ELEMENT_04_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/ELEMENT_04_装饰.png"
+  },
+  {
+   "check": "ELEMENT_04_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_04_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_04_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[92, 1491, 148, 1544] vs [92, 1491, 148, 1544]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[99, 267, 516, 402] vs [99, 267, 516, 402]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/A_gradient_text_object_decor/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[141, 491, 571, 540] vs [141, 491, 571, 540]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1938574 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 45,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== B_flat_product_title ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "6 vs 6"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png', 'layers/TEXT_03_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[260, 900, 821, 1501] vs [260, 900, 821, 1501]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[60, 60, 1021, 1861] vs [60, 60, 1021, 1861]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[98, 253, 371, 339] vs [98, 253, 371, 339]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[99, 409, 435, 450] vs [99, 409, 435, 450]"
+  },
+  {
+   "check": "TEXT_03_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/B_flat_product_title/layers/TEXT_03_文字.png"
+  },
+  {
+   "check": "TEXT_03_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_03_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_03_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[480, 1620, 621, 1641] vs [480, 1620, 621, 1641]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1906167 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 37,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== C_vignette_badge ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "8 vs 8"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/ELEMENT_02_装饰.png', 'layers/ELEMENT_03_装饰.png', 'layers/ELEMENT_04_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[329, 819, 752, 1242] vs [329, 819, 752, 1242]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[967, 67, 1014, 114] vs [967, 67, 1014, 114]"
+  },
+  {
+   "check": "ELEMENT_02_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/ELEMENT_02_装饰.png"
+  },
+  {
+   "check": "ELEMENT_02_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_02_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_02_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[967, 1807, 1014, 1854] vs [967, 1807, 1014, 1854]"
+  },
+  {
+   "check": "ELEMENT_03_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/ELEMENT_03_装饰.png"
+  },
+  {
+   "check": "ELEMENT_03_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_03_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_03_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[68, 67, 113, 114] vs [68, 67, 113, 114]"
+  },
+  {
+   "check": "ELEMENT_04_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/ELEMENT_04_装饰.png"
+  },
+  {
+   "check": "ELEMENT_04_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_04_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_04_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[68, 1807, 113, 1854] vs [68, 1807, 113, 1854]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[96, 328, 574, 458] vs [96, 328, 574, 458]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/C_vignette_badge/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[99, 529, 570, 575] vs [99, 529, 570, 575]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1986580 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 45,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== D_card_portrait ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "5 vs 5"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/D_card_portrait/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/D_card_portrait/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[220, 118, 861, 1501] vs [220, 118, 861, 1501]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/D_card_portrait/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[330, 1600, 751, 1607] vs [330, 1600, 751, 1607]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/D_card_portrait/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[307, 1138, 578, 1207] vs [307, 1138, 578, 1207]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/D_card_portrait/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[332, 1270, 595, 1309] vs [332, 1270, 595, 1309]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1962839 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 33,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== E_ui_screenshot ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "12 vs 12"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/ELEMENT_02_装饰.png', 'layers/ELEMENT_03_装饰.png', 'layers/ELEMENT_04_装饰.png', 'layers/ELEMENT_05_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png', 'layers/TEXT_03_文字.png', 'layers/TEXT_04_文字.png', 'layers/TEXT_05_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[80, 360, 1001, 1601] vs [80, 360, 1001, 1601]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[120, 400, 169, 449] vs [120, 400, 169, 449]"
+  },
+  {
+   "check": "ELEMENT_02_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/ELEMENT_02_装饰.png"
+  },
+  {
+   "check": "ELEMENT_02_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_02_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_02_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[194, 400, 243, 449] vs [194, 400, 243, 449]"
+  },
+  {
+   "check": "ELEMENT_03_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/ELEMENT_03_装饰.png"
+  },
+  {
+   "check": "ELEMENT_03_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_03_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_03_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[268, 400, 317, 449] vs [268, 400, 317, 449]"
+  },
+  {
+   "check": "ELEMENT_04_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/ELEMENT_04_装饰.png"
+  },
+  {
+   "check": "ELEMENT_04_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_04_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_04_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[342, 400, 391, 449] vs [342, 400, 391, 449]"
+  },
+  {
+   "check": "ELEMENT_05_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/ELEMENT_05_装饰.png"
+  },
+  {
+   "check": "ELEMENT_05_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_05_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_05_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[416, 400, 465, 449] vs [416, 400, 465, 449]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[135, 553, 488, 610] vs [135, 553, 488, 610]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[135, 688, 511, 725] vs [135, 688, 511, 725]"
+  },
+  {
+   "check": "TEXT_03_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/TEXT_03_文字.png"
+  },
+  {
+   "check": "TEXT_03_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_03_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_03_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[135, 750, 507, 787] vs [135, 750, 507, 787]"
+  },
+  {
+   "check": "TEXT_04_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/TEXT_04_文字.png"
+  },
+  {
+   "check": "TEXT_04_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_04_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_04_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[135, 812, 470, 849] vs [135, 812, 470, 849]"
+  },
+  {
+   "check": "TEXT_05_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/E_ui_screenshot/layers/TEXT_05_文字.png"
+  },
+  {
+   "check": "TEXT_05_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_05_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_05_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[132, 1506, 395, 1531] vs [132, 1506, 395, 1531]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1948464 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 61,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== F_low_contrast ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "4 vs 4"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/TEXT_01_文字.png', 'layers/ELEMENT_01_装饰.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/F_low_contrast/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/F_low_contrast/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[300, 800, 781, 1401] vs [300, 800, 781, 1401]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/F_low_contrast/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[124, 322, 437, 410] vs [124, 322, 437, 410]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/F_low_contrast/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[837, 254, 923, 338] vs [837, 254, 923, 338]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=2014510 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 29,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== G_vertical_text ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "5 vs 5"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/ELEMENT_02_装饰.png', 'layers/TEXT_01_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/G_vertical_text/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/G_vertical_text/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[420, 700, 821, 1301] vs [420, 700, 821, 1301]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/G_vertical_text/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[861, 860, 939, 933] vs [861, 860, 939, 933]"
+  },
+  {
+   "check": "ELEMENT_02_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/G_vertical_text/layers/ELEMENT_02_装饰.png"
+  },
+  {
+   "check": "ELEMENT_02_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_02_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_02_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[759, 1499, 1001, 1508] vs [759, 1499, 1001, 1508]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/G_vertical_text/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[122, 205, 203, 570] vs [122, 205, 203, 570]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=2011535 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 33,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== H_two_objects ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "5 vs 5"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/OBJECT_02_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/TEXT_01_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/H_two_objects/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/H_two_objects/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[560, 820, 941, 1421] vs [560, 820, 941, 1421]"
+  },
+  {
+   "check": "OBJECT_02_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/H_two_objects/layers/OBJECT_02_主体.png"
+  },
+  {
+   "check": "OBJECT_02_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_02_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_02_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[120, 820, 461, 1421] vs [120, 820, 461, 1421]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/H_two_objects/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[460, 300, 621, 461] vs [460, 300, 621, 461]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/H_two_objects/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[128, 321, 382, 400] vs [128, 321, 382, 400]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1996079 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 33,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== I_no_text ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "5 vs 5"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/ELEMENT_02_装饰.png', 'layers/ELEMENT_03_装饰.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/I_no_text/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/I_no_text/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[340, 760, 741, 1161] vs [340, 760, 741, 1161]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/I_no_text/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[460, 1500, 501, 1541] vs [460, 1500, 501, 1541]"
+  },
+  {
+   "check": "ELEMENT_02_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/I_no_text/layers/ELEMENT_02_装饰.png"
+  },
+  {
+   "check": "ELEMENT_02_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_02_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_02_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[720, 1500, 761, 1541] vs [720, 1500, 761, 1541]"
+  },
+  {
+   "check": "ELEMENT_03_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/I_no_text/layers/ELEMENT_03_装饰.png"
+  },
+  {
+   "check": "ELEMENT_03_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_03_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_03_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[200, 1500, 241, 1541] vs [200, 1500, 241, 1541]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=2044780 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 32,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}
+=== J_text_heavy ===
+{
+ "schema": "pngp1/v1",
+ "checks": [
+  {
+   "check": "schema = pngp1/v1",
+   "ok": true,
+   "detail": "pngp1/v1"
+  },
+  {
+   "check": "层数与清单一致",
+   "ok": true,
+   "detail": "6 vs 6"
+  },
+  {
+   "check": "文件名无空格/全角",
+   "ok": true,
+   "detail": "['layers/BACKGROUND.png', 'layers/OBJECT_01_主体.png', 'layers/ELEMENT_01_装饰.png', 'layers/TEXT_01_文字.png', 'layers/TEXT_02_文字.png', 'layers/TEXT_03_文字.png']"
+  },
+  {
+   "check": "至少 1 个 BACKGROUND",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "BACKGROUND 唯一且在最底层",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "TEXT 全部 text_editable=false",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "notice 写明能挪不能改",
+   "ok": true,
+   "detail": "文字层是位图：能挪不能改"
+  },
+  {
+   "check": "BACKGROUND 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/BACKGROUND.png"
+  },
+  {
+   "check": "BACKGROUND 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "BACKGROUND 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "BACKGROUND 覆盖整幅",
+   "ok": true,
+   "detail": "[0, 0, 1080, 1920] vs [0, 0, 1080, 1920]"
+  },
+  {
+   "check": "OBJECT_01_主体 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/OBJECT_01_主体.png"
+  },
+  {
+   "check": "OBJECT_01_主体 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "OBJECT_01_主体 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "OBJECT_01_主体 bbox 与像素一致",
+   "ok": true,
+   "detail": "[760, 1500, 981, 1721] vs [760, 1500, 981, 1721]"
+  },
+  {
+   "check": "ELEMENT_01_装饰 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/ELEMENT_01_装饰.png"
+  },
+  {
+   "check": "ELEMENT_01_装饰 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "ELEMENT_01_装饰 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "ELEMENT_01_装饰 bbox 与像素一致",
+   "ok": true,
+   "detail": "[90, 240, 991, 245] vs [90, 240, 991, 245]"
+  },
+  {
+   "check": "TEXT_01_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/TEXT_01_文字.png"
+  },
+  {
+   "check": "TEXT_01_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_01_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_01_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[91, 297, 596, 370] vs [91, 297, 596, 370]"
+  },
+  {
+   "check": "TEXT_02_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/TEXT_02_文字.png"
+  },
+  {
+   "check": "TEXT_02_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_02_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_02_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[96, 409, 662, 477] vs [96, 409, 662, 477]"
+  },
+  {
+   "check": "TEXT_03_文字 文件存在",
+   "ok": true,
+   "detail": "reports/verify_pngp1/outputs/J_text_heavy/layers/TEXT_03_文字.png"
+  },
+  {
+   "check": "TEXT_03_文字 是 RGBA",
+   "ok": true,
+   "detail": "RGBA"
+  },
+  {
+   "check": "TEXT_03_文字 画幅 = 源图",
+   "ok": true,
+   "detail": "(1080, 1920) vs (1080, 1920)"
+  },
+  {
+   "check": "TEXT_03_文字 bbox 与像素一致",
+   "ok": true,
+   "detail": "[91, 521, 692, 589] vs [91, 521, 692, 589]"
+  },
+  {
+   "check": "实心像素重合成最大差 <= 2",
+   "ok": true,
+   "detail": "max=0.0 p99.9=0.00 solid_px=1935246 feather_px=0"
+  },
+  {
+   "check": "羽化带只占 <= 6%% 前景像素",
+   "ok": true,
+   "detail": "0.00%"
+  },
+  {
+   "check": "背景补洞后无透明像素",
+   "ok": true,
+   "detail": "透明像素=0"
+  },
+  {
+   "check": "含 BACKGROUND 与 OBJECT",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "四类齐全（本图必须四类）",
+   "ok": true,
+   "detail": "['BACKGROUND', 'ELEMENT', 'OBJECT', 'TEXT']"
+  },
+  {
+   "check": "low_confidence 字段齐全",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "pass_count": 37,
+ "fail_count": 0,
+ "verdict": "PASS",
+ "recomposite_max_abs_diff": 0.0,
+ "recomposite_p999_abs_diff": 0.0
+}

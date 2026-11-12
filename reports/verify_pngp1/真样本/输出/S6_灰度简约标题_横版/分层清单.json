@@ -1,0 +1,214 @@
+{
+  "schema": "pngp1/v1",
+  "tool_version": "pngp1-1.0.0",
+  "source": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_pngp1/真样本/源图/S6_灰度简约标题_横版.png",
+  "source_sha256": "49ed62a7372ad1f14c179de473854ce69e1e57484323818d37c2ee79c4245257",
+  "source_sha256_after": "49ed62a7372ad1f14c179de473854ce69e1e57484323818d37c2ee79c4245257",
+  "source_unchanged": true,
+  "source_bytes": 42569,
+  "source_mode": "RGBA",
+  "width": 1280,
+  "height": 720,
+  "class_legend": {
+    "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
+    "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
+    "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
+    "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞"
+  },
+  "text_editable": false,
+  "notice": "文字层是位图：能挪不能改",
+  "object_detected": false,
+  "object_fallback": false,
+  "layers": [
+    {
+      "class": "BACKGROUND",
+      "seq": 1,
+      "name": "BACKGROUND",
+      "file": "layers/BACKGROUND.png",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "pixels": 910887,
+      "alpha_sum": 235008000,
+      "confidence": 0.8,
+      "low_confidence": false,
+      "mean_color": "#FFFFFF",
+      "notes": [
+        "已按延展填色补洞"
+      ]
+    },
+    {
+      "class": "TEXT",
+      "seq": 1,
+      "name": "TEXT_01_文字",
+      "file": "layers/TEXT_01_文字.png",
+      "bbox": [
+        429,
+        303,
+        769,
+        318
+      ],
+      "pixels": 1288,
+      "alpha_sum": 328440,
+      "confidence": 0.847,
+      "low_confidence": false,
+      "mean_color": "#9D9D9D",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 2,
+      "name": "TEXT_02_文字",
+      "file": "layers/TEXT_02_文字.png",
+      "bbox": [
+        776,
+        303,
+        851,
+        318
+      ],
+      "pixels": 403,
+      "alpha_sum": 102765,
+      "confidence": 0.771,
+      "low_confidence": false,
+      "mean_color": "#A8A8A8",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 3,
+      "name": "TEXT_03_文字",
+      "file": "layers/TEXT_03_文字.png",
+      "bbox": [
+        359,
+        341,
+        921,
+        380
+      ],
+      "pixels": 5638,
+      "alpha_sum": 1437690,
+      "confidence": 0.894,
+      "low_confidence": false,
+      "mean_color": "#3E3E3E",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 4,
+      "name": "TEXT_04_文字",
+      "file": "layers/TEXT_04_文字.png",
+      "bbox": [
+        506,
+        407,
+        774,
+        435
+      ],
+      "pixels": 3112,
+      "alpha_sum": 793560,
+      "confidence": 0.671,
+      "low_confidence": false,
+      "mean_color": "#BBBBBB",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 1,
+      "name": "ELEMENT_01_装饰",
+      "file": "layers/ELEMENT_01_装饰.png",
+      "bbox": [
+        623,
+        471,
+        657,
+        479
+      ],
+      "pixels": 272,
+      "alpha_sum": 69360,
+      "confidence": 0.45,
+      "low_confidence": true,
+      "mean_color": "#2C2C2C",
+      "notes": [
+        "面积 < 800px 的碎渣合并层"
+      ],
+      "compare_exclude_boxes": []
+    }
+  ],
+  "layer_count": 6,
+  "classes_present": [
+    "BACKGROUND",
+    "ELEMENT",
+    "TEXT"
+  ],
+  "background_fill": {
+    "hole_pixels": 10713,
+    "hole_ratio": 0.012,
+    "max_hole_radius_px": 7.6,
+    "fill_grow_px": 2,
+    "method": "edge_extend_nearest_from_confident_background"
+  },
+  "background_model": {
+    "model": "global",
+    "border_residual_delta_e": 0.0,
+    "border_px": 14
+  },
+  "segmentation": {
+    "mode": "color",
+    "threshold_delta_e": 6.0,
+    "border_noise_delta_e": 0.0,
+    "min_area_px": 18
+  },
+  "grouping": {
+    "component_count": 0,
+    "text_region_count": 4,
+    "text_group_count": 4,
+    "text_glyphs": 30,
+    "object_group_count": 0,
+    "element_group_count": 0,
+    "overflow_merged": 0
+  },
+  "warnings": [
+    "未检出主体层：没有达到面积/显著性阈值的前景块"
+  ],
+  "timings_ms": {
+    "read": 104.8,
+    "background_and_mask": 1162.7,
+    "component_stats": 1001.3,
+    "classify_and_group": 19.6,
+    "write_layers": 418.9,
+    "previews": 642.6,
+    "total": 3349.9
+  },
+  "elapsed_s": 3.3,
+  "sizes": {
+    "layers_bytes": 54728,
+    "layer_total_mb": 0.05,
+    "ratio_to_source": 1.29
+  },
+  "previews": {
+    "source": "预览_原图.png",
+    "background_filled": "预览_背景补洞.png",
+    "checkerboard": "预览_分层检查板.png",
+    "recomposite": "预览_重合成.png",
+    "recomposite_max_abs_diff": 0,
+    "recomposite_p99_abs_diff": 0.0,
+    "partial_alpha_pixels": 0,
+    "solid_compare_pixels": 913116
+  }
+}

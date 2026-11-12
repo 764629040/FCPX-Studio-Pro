@@ -1,0 +1,187 @@
+{
+  "schema": "pngp1/v1",
+  "tool_version": "pngp1-1.0.0",
+  "source": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_pngp1/fixtures/H_two_objects.png",
+  "source_sha256": "25bd8350d2dc06f1d46440e2941ffc4aa98e2f431377942ffb42ef2cad06aa50",
+  "source_sha256_after": "25bd8350d2dc06f1d46440e2941ffc4aa98e2f431377942ffb42ef2cad06aa50",
+  "source_unchanged": true,
+  "source_bytes": 19107,
+  "source_mode": "RGB",
+  "width": 1080,
+  "height": 1920,
+  "class_legend": {
+    "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
+    "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
+    "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
+    "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞"
+  },
+  "text_editable": false,
+  "notice": "文字层是位图：能挪不能改",
+  "object_detected": true,
+  "object_fallback": false,
+  "layers": [
+    {
+      "class": "BACKGROUND",
+      "seq": 1,
+      "name": "BACKGROUND",
+      "file": "layers/BACKGROUND.png",
+      "bbox": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "pixels": 1626092,
+      "alpha_sum": 528768000,
+      "confidence": 0.99,
+      "low_confidence": false,
+      "mean_color": "#12504E",
+      "notes": [
+        "已按延展填色补洞"
+      ]
+    },
+    {
+      "class": "OBJECT",
+      "seq": 1,
+      "name": "OBJECT_01_主体",
+      "file": "layers/OBJECT_01_主体.png",
+      "bbox": [
+        560,
+        820,
+        941,
+        1421
+      ],
+      "pixels": 228457,
+      "alpha_sum": 57752987,
+      "confidence": 0.911,
+      "low_confidence": false,
+      "mean_color": "#D27860",
+      "notes": [
+        "边缘 1-2px 羽化"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "OBJECT",
+      "seq": 2,
+      "name": "OBJECT_02_主体",
+      "file": "layers/OBJECT_02_主体.png",
+      "bbox": [
+        120,
+        820,
+        461,
+        1421
+      ],
+      "pixels": 204473,
+      "alpha_sum": 51657615,
+      "confidence": 0.888,
+      "low_confidence": false,
+      "mean_color": "#F4E2B4",
+      "notes": [
+        "边缘 1-2px 羽化"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 1,
+      "name": "ELEMENT_01_装饰",
+      "file": "layers/ELEMENT_01_装饰.png",
+      "bbox": [
+        460,
+        300,
+        621,
+        461
+      ],
+      "pixels": 4140,
+      "alpha_sum": 1055700,
+      "confidence": 0.62,
+      "low_confidence": false,
+      "mean_color": "#DED4AA",
+      "notes": [],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 1,
+      "name": "TEXT_01_文字",
+      "file": "layers/TEXT_01_文字.png",
+      "bbox": [
+        128,
+        321,
+        382,
+        400
+      ],
+      "pixels": 10438,
+      "alpha_sum": 2661690,
+      "confidence": 0.81,
+      "low_confidence": false,
+      "mean_color": "#E8DAAF",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    }
+  ],
+  "layer_count": 5,
+  "classes_present": [
+    "BACKGROUND",
+    "OBJECT",
+    "ELEMENT",
+    "TEXT"
+  ],
+  "background_fill": {
+    "hole_pixels": 447508,
+    "hole_ratio": 0.216,
+    "max_hole_radius_px": 191.0,
+    "fill_grow_px": 2,
+    "method": "edge_extend_nearest_from_confident_background"
+  },
+  "background_model": {
+    "model": "global",
+    "border_residual_delta_e": 0.0,
+    "border_px": 22
+  },
+  "segmentation": {
+    "mode": "color",
+    "threshold_delta_e": 6.0,
+    "border_noise_delta_e": 0.0,
+    "min_area_px": 41
+  },
+  "grouping": {
+    "component_count": 3,
+    "text_region_count": 1,
+    "text_group_count": 1,
+    "text_glyphs": 4,
+    "object_group_count": 2,
+    "element_group_count": 1,
+    "overflow_merged": 0
+  },
+  "warnings": [],
+  "timings_ms": {
+    "read": 71.7,
+    "background_and_mask": 3551.6,
+    "component_stats": 795.5,
+    "classify_and_group": 530.3,
+    "write_layers": 2257.8,
+    "previews": 727.0,
+    "total": 7933.9
+  },
+  "elapsed_s": 7.9,
+  "sizes": {
+    "layers_bytes": 62816,
+    "layer_total_mb": 0.06,
+    "ratio_to_source": 3.29
+  },
+  "previews": {
+    "source": "预览_原图.png",
+    "background_filled": "预览_背景补洞.png",
+    "checkerboard": "预览_分层检查板.png",
+    "recomposite": "预览_重合成.png",
+    "recomposite_max_abs_diff": 0,
+    "recomposite_p99_abs_diff": 0.0,
+    "partial_alpha_pixels": 11364,
+    "solid_compare_pixels": 2046618
+  }
+}

@@ -1,0 +1,793 @@
+{
+  "schema": "pngp1/v1",
+  "tool_version": "pngp1-1.0.0",
+  "source": "/Volumes/摄影师工具箱128GB/未命名文件夹/FCPX_Studio_Pro/reports/verify_pngp1/fixtures/E_ui_screenshot.png",
+  "source_sha256": "6a462e3661b34fcb984ae1d19ecdfeb34d47b74a9b2935b9b66b6c64aba32bf2",
+  "source_sha256_after": "6a462e3661b34fcb984ae1d19ecdfeb34d47b74a9b2935b9b66b6c64aba32bf2",
+  "source_unchanged": true,
+  "source_bytes": 48543,
+  "source_mode": "RGB",
+  "width": 1080,
+  "height": 1920,
+  "class_legend": {
+    "OBJECT": "会被单独移动/缩放/替换的主体，边缘 1-2px 羽化",
+    "TEXT": "文字区域的位图，能挪不能改（不 OCR、不重建矢量文字）",
+    "ELEMENT": "装饰件/图标/光效碎片/边框，逐个成层",
+    "BACKGROUND": "去掉以上三类后的底图，已按延展填色补洞"
+  },
+  "text_editable": false,
+  "notice": "文字层是位图：能挪不能改",
+  "object_detected": true,
+  "object_fallback": false,
+  "layers": [
+    {
+      "class": "BACKGROUND",
+      "seq": 1,
+      "name": "BACKGROUND",
+      "file": "layers/BACKGROUND.png",
+      "bbox": [
+        0,
+        0,
+        1080,
+        1920
+      ],
+      "pixels": 930935,
+      "alpha_sum": 528768000,
+      "confidence": 0.99,
+      "low_confidence": false,
+      "mean_color": "#161A23",
+      "notes": [
+        "已按延展填色补洞"
+      ]
+    },
+    {
+      "class": "OBJECT",
+      "seq": 1,
+      "name": "OBJECT_01_主体",
+      "file": "layers/OBJECT_01_主体.png",
+      "bbox": [
+        80,
+        360,
+        1001,
+        1601
+      ],
+      "pixels": 1105387,
+      "alpha_sum": 287879218,
+      "confidence": 0.934,
+      "low_confidence": false,
+      "mean_color": "#F3F5F9",
+      "notes": [
+        "边缘 1-2px 羽化"
+      ],
+      "compare_exclude_boxes": [
+        [
+          120,
+          400,
+          169,
+          449
+        ],
+        [
+          194,
+          400,
+          243,
+          449
+        ],
+        [
+          268,
+          400,
+          317,
+          449
+        ],
+        [
+          342,
+          400,
+          391,
+          449
+        ],
+        [
+          416,
+          400,
+          465,
+          449
+        ],
+        [
+          239,
+          553,
+          293,
+          610
+        ],
+        [
+          391,
+          553,
+          439,
+          609
+        ],
+        [
+          135,
+          554,
+          178,
+          609
+        ],
+        [
+          186,
+          554,
+          236,
+          609
+        ],
+        [
+          296,
+          554,
+          332,
+          610
+        ],
+        [
+          342,
+          554,
+          384,
+          609
+        ],
+        [
+          444,
+          554,
+          488,
+          609
+        ],
+        [
+          135,
+          688,
+          153,
+          717
+        ],
+        [
+          156,
+          688,
+          161,
+          692
+        ],
+        [
+          317,
+          688,
+          330,
+          717
+        ],
+        [
+          339,
+          688,
+          370,
+          717
+        ],
+        [
+          407,
+          688,
+          411,
+          717
+        ],
+        [
+          480,
+          689,
+          511,
+          717
+        ],
+        [
+          156,
+          696,
+          161,
+          717
+        ],
+        [
+          165,
+          696,
+          183,
+          717
+        ],
+        [
+          186,
+          696,
+          206,
+          717
+        ],
+        [
+          219,
+          696,
+          239,
+          717
+        ],
+        [
+          242,
+          696,
+          260,
+          717
+        ],
+        [
+          263,
+          696,
+          283,
+          717
+        ],
+        [
+          296,
+          696,
+          316,
+          717
+        ],
+        [
+          373,
+          696,
+          393,
+          717
+        ],
+        [
+          415,
+          696,
+          435,
+          717
+        ],
+        [
+          436,
+          696,
+          456,
+          725
+        ],
+        [
+          457,
+          696,
+          477,
+          717
+        ],
+        [
+          135,
+          750,
+          153,
+          779
+        ],
+        [
+          156,
+          750,
+          161,
+          754
+        ],
+        [
+          313,
+          750,
+          326,
+          779
+        ],
+        [
+          335,
+          750,
+          366,
+          779
+        ],
+        [
+          403,
+          750,
+          407,
+          779
+        ],
+        [
+          218,
+          751,
+          258,
+          779
+        ],
+        [
+          476,
+          751,
+          507,
+          779
+        ],
+        [
+          156,
+          758,
+          161,
+          779
+        ],
+        [
+          165,
+          758,
+          183,
+          779
+        ],
+        [
+          186,
+          758,
+          206,
+          779
+        ],
+        [
+          259,
+          758,
+          279,
+          779
+        ],
+        [
+          292,
+          758,
+          312,
+          779
+        ],
+        [
+          369,
+          758,
+          389,
+          779
+        ],
+        [
+          411,
+          758,
+          431,
+          779
+        ],
+        [
+          432,
+          758,
+          452,
+          787
+        ],
+        [
+          453,
+          758,
+          473,
+          779
+        ],
+        [
+          135,
+          812,
+          153,
+          841
+        ],
+        [
+          156,
+          812,
+          161,
+          816
+        ],
+        [
+          218,
+          812,
+          249,
+          841
+        ],
+        [
+          321,
+          812,
+          326,
+          816
+        ],
+        [
+          361,
+          812,
+          365,
+          841
+        ],
+        [
+          156,
+          820,
+          161,
+          841
+        ],
+        [
+          165,
+          820,
+          183,
+          841
+        ],
+        [
+          186,
+          820,
+          206,
+          841
+        ],
+        [
+          253,
+          820,
+          307,
+          841
+        ],
+        [
+          321,
+          820,
+          326,
+          841
+        ],
+        [
+          329,
+          820,
+          347,
+          841
+        ],
+        [
+          369,
+          820,
+          389,
+          841
+        ],
+        [
+          392,
+          820,
+          410,
+          841
+        ],
+        [
+          413,
+          820,
+          432,
+          849
+        ],
+        [
+          435,
+          820,
+          455,
+          841
+        ],
+        [
+          458,
+          820,
+          470,
+          841
+        ],
+        [
+          152,
+          1506,
+          162,
+          1531
+        ],
+        [
+          178,
+          1506,
+          195,
+          1531
+        ],
+        [
+          205,
+          1506,
+          215,
+          1531
+        ],
+        [
+          224,
+          1506,
+          240,
+          1531
+        ],
+        [
+          243,
+          1506,
+          260,
+          1531
+        ],
+        [
+          262,
+          1506,
+          278,
+          1531
+        ],
+        [
+          281,
+          1506,
+          310,
+          1531
+        ],
+        [
+          313,
+          1506,
+          323,
+          1531
+        ],
+        [
+          332,
+          1506,
+          342,
+          1531
+        ],
+        [
+          362,
+          1506,
+          372,
+          1531
+        ],
+        [
+          379,
+          1506,
+          395,
+          1531
+        ],
+        [
+          132,
+          1513,
+          149,
+          1531
+        ],
+        [
+          349,
+          1521,
+          359,
+          1524
+        ],
+        [
+          171,
+          1528,
+          175,
+          1531
+        ]
+      ]
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 1,
+      "name": "ELEMENT_01_装饰",
+      "file": "layers/ELEMENT_01_装饰.png",
+      "bbox": [
+        120,
+        400,
+        169,
+        449
+      ],
+      "pixels": 2333,
+      "alpha_sum": 594915,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#476FC8",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 2,
+      "name": "ELEMENT_02_装饰",
+      "file": "layers/ELEMENT_02_装饰.png",
+      "bbox": [
+        194,
+        400,
+        243,
+        449
+      ],
+      "pixels": 2333,
+      "alpha_sum": 594915,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#C85B5B",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 3,
+      "name": "ELEMENT_03_装饰",
+      "file": "layers/ELEMENT_03_装饰.png",
+      "bbox": [
+        268,
+        400,
+        317,
+        449
+      ],
+      "pixels": 2333,
+      "alpha_sum": 594915,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#476FC8",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 4,
+      "name": "ELEMENT_04_装饰",
+      "file": "layers/ELEMENT_04_装饰.png",
+      "bbox": [
+        342,
+        400,
+        391,
+        449
+      ],
+      "pixels": 2333,
+      "alpha_sum": 594915,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#C85B5B",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "ELEMENT",
+      "seq": 5,
+      "name": "ELEMENT_05_装饰",
+      "file": "layers/ELEMENT_05_装饰.png",
+      "bbox": [
+        416,
+        400,
+        465,
+        449
+      ],
+      "pixels": 2333,
+      "alpha_sum": 594915,
+      "confidence": 0.6,
+      "low_confidence": false,
+      "mean_color": "#476FC8",
+      "notes": [
+        "从主体内部拆出的独立装饰件（高饱和 + 面积/形状达标）"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 1,
+      "name": "TEXT_01_文字",
+      "file": "layers/TEXT_01_文字.png",
+      "bbox": [
+        135,
+        553,
+        488,
+        610
+      ],
+      "pixels": 10699,
+      "alpha_sum": 2728245,
+      "confidence": 0.853,
+      "low_confidence": false,
+      "mean_color": "#464B55",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 2,
+      "name": "TEXT_02_文字",
+      "file": "layers/TEXT_02_文字.png",
+      "bbox": [
+        135,
+        688,
+        511,
+        725
+      ],
+      "pixels": 4322,
+      "alpha_sum": 1102110,
+      "confidence": 0.814,
+      "low_confidence": false,
+      "mean_color": "#7F8590",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 3,
+      "name": "TEXT_03_文字",
+      "file": "layers/TEXT_03_文字.png",
+      "bbox": [
+        135,
+        750,
+        507,
+        787
+      ],
+      "pixels": 4288,
+      "alpha_sum": 1093440,
+      "confidence": 0.82,
+      "low_confidence": false,
+      "mean_color": "#7E848F",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 4,
+      "name": "TEXT_04_文字",
+      "file": "layers/TEXT_04_文字.png",
+      "bbox": [
+        135,
+        812,
+        470,
+        849
+      ],
+      "pixels": 3948,
+      "alpha_sum": 1006740,
+      "confidence": 0.796,
+      "low_confidence": false,
+      "mean_color": "#7F858F",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    },
+    {
+      "class": "TEXT",
+      "seq": 5,
+      "name": "TEXT_05_文字",
+      "file": "layers/TEXT_05_文字.png",
+      "bbox": [
+        132,
+        1506,
+        395,
+        1531
+      ],
+      "pixels": 2356,
+      "alpha_sum": 600780,
+      "confidence": 0.862,
+      "low_confidence": false,
+      "mean_color": "#A2A6B0",
+      "notes": [
+        "位图文字层：能挪不能改",
+        "不做 OCR，不重建矢量文字"
+      ],
+      "compare_exclude_boxes": []
+    }
+  ],
+  "layer_count": 12,
+  "classes_present": [
+    "BACKGROUND",
+    "OBJECT",
+    "ELEMENT",
+    "TEXT"
+  ],
+  "background_fill": {
+    "hole_pixels": 1142665,
+    "hole_ratio": 0.551,
+    "max_hole_radius_px": 461.0,
+    "fill_grow_px": 2,
+    "method": "edge_extend_nearest_from_confident_background"
+  },
+  "background_model": {
+    "model": "global",
+    "border_residual_delta_e": 87.72,
+    "border_px": 22
+  },
+  "segmentation": {
+    "mode": "color",
+    "threshold_delta_e": 8.9,
+    "border_noise_delta_e": 1.83,
+    "min_area_px": 41
+  },
+  "grouping": {
+    "component_count": 1,
+    "text_region_count": 5,
+    "text_group_count": 5,
+    "text_glyphs": 28,
+    "object_group_count": 1,
+    "element_group_count": 0,
+    "overflow_merged": 0
+  },
+  "warnings": [
+    "前景占比 55.1%，背景补洞面积大，挪层后可能仍可见延展纹理"
+  ],
+  "timings_ms": {
+    "read": 45.5,
+    "background_and_mask": 4005.9,
+    "component_stats": 2888.4,
+    "classify_and_group": 609.8,
+    "write_layers": 4484.3,
+    "previews": 1478.2,
+    "total": 13512.1
+  },
+  "elapsed_s": 13.5,
+  "sizes": {
+    "layers_bytes": 184579,
+    "layer_total_mb": 0.18,
+    "ratio_to_source": 3.8
+  },
+  "previews": {
+    "source": "预览_原图.png",
+    "background_filled": "预览_背景补洞.png",
+    "checkerboard": "预览_分层检查板.png",
+    "recomposite": "预览_重合成.png",
+    "recomposite_max_abs_diff": 0,
+    "recomposite_p99_abs_diff": 0.0,
+    "partial_alpha_pixels": 38988,
+    "solid_compare_pixels": 2021604
+  }
+}

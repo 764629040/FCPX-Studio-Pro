@@ -1,0 +1,15 @@
+# 真样本 S1–S4 是照片底商业模板预览图（每张 1.6MB、非本项目版权），不入库；
+# 复现方式：本机 ~/Movies/Motion Templates.localized/Titles.localized/ 下的同名 large.png，
+# sha256 见 真样本/源图.sha256.txt。
+真样本/源图/S1_玻璃标题_横版.png
+真样本/源图/S2_粒子光叠加_横版.png
+真样本/源图/S3_清新字幕_横版.png
+真样本/源图/S4_运动模糊底_横版.png
+
+# 真样本输出的逐层 PNG（全画幅 RGBA，18MB）：清单与统计已入库，
+# 层图用 `python3 tools/pngp1/png_split_p1.py split --src <源图> --out <目录>` 可任意时刻重建。
+真样本/输出/*/layers/
+真样本/输出/*/预览_*.png
+真样本/输出/*.split.log
+
+# 夹具/真样本输出里的层 PNG 保留（2.2MB，check 复算要用）

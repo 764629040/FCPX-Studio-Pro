@@ -1,0 +1,174 @@
+qt.qpa.fonts: Populating font family aliases took 1143 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+列出条目数: 10
+  A_gradient_text_object_decor     层=8   画布=8   检查器=8   横幅=ON
+  B_flat_product_title             层=6   画布=6   检查器=6   横幅=ON
+  C_vignette_badge                 层=8   画布=8   检查器=8   横幅=ON
+  D_card_portrait                  层=5   画布=5   检查器=5   横幅=ON
+  E_ui_screenshot                  层=12  画布=12  检查器=12  横幅=ON
+  F_low_contrast                   层=4   画布=4   检查器=4   横幅=ON
+  G_vertical_text                  层=5   画布=5   检查器=5   横幅=ON
+  H_two_objects                    层=5   画布=5   检查器=5   横幅=ON
+  I_no_text                        层=5   画布=5   检查器=5   横幅=ON
+  J_text_heavy                     层=6   画布=6   检查器=6   横幅=ON
+导出: {"ran": true, "name": "A_gradient_text_object_decor", "template_dir": "/tmp/pngp1_gui_e2e/PSD婚礼字幕/A_gradient_text_object_decor", "moti_exists": true, "moti_bytes": 46199, "media_count": 8, "large_png_bytes": 28159, "current_moti_path": "/tmp/pngp1_gui_e2e/PSD婚礼字幕/A_gradient_text_object_decor/A_gradient_text_object_decor.moti"}
+
+=== SUMMARY JSON ===
+{
+ "listed": 10,
+ "rows": [
+  {
+   "name": "A_gradient_text_object_decor",
+   "layers": 8,
+   "canvas_items": 8,
+   "inspector_rows": 8,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "B_flat_product_title",
+   "layers": 6,
+   "canvas_items": 6,
+   "inspector_rows": 6,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "C_vignette_badge",
+   "layers": 8,
+   "canvas_items": 8,
+   "inspector_rows": 8,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "D_card_portrait",
+   "layers": 5,
+   "canvas_items": 5,
+   "inspector_rows": 5,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "E_ui_screenshot",
+   "layers": 12,
+   "canvas_items": 12,
+   "inspector_rows": 12,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "F_low_contrast",
+   "layers": 4,
+   "canvas_items": 4,
+   "inspector_rows": 4,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "G_vertical_text",
+   "layers": 5,
+   "canvas_items": 5,
+   "inspector_rows": 5,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "H_two_objects",
+   "layers": 5,
+   "canvas_items": 5,
+   "inspector_rows": 5,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "I_no_text",
+   "layers": 5,
+   "canvas_items": 5,
+   "inspector_rows": 5,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  },
+  {
+   "name": "J_text_heavy",
+   "layers": 6,
+   "canvas_items": 6,
+   "inspector_rows": 6,
+   "banner_visible": true,
+   "error_banner": false,
+   "error_text": "",
+   "notice": "🖼️ 文字层是位图：能挪不能改 —— 本条链路不提供可编辑文本；要真文字请走 PSD 链路",
+   "size": [
+    1080,
+    1920
+   ]
+  }
+ ],
+ "export": {
+  "ran": true,
+  "name": "A_gradient_text_object_decor",
+  "template_dir": "/tmp/pngp1_gui_e2e/PSD婚礼字幕/A_gradient_text_object_decor",
+  "moti_exists": true,
+  "moti_bytes": 46199,
+  "media_count": 8,
+  "large_png_bytes": 28159,
+  "current_moti_path": "/tmp/pngp1_gui_e2e/PSD婚礼字幕/A_gradient_text_object_decor/A_gradient_text_object_decor.moti"
+ }
+}
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+截图: ["/tmp/pngp1_gui_e2e/shots/设计器_A_gradient_text_object_decor.png", "/tmp/pngp1_gui_e2e/shots/设计器_E_ui_screenshot.png"]

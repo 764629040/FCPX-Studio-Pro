@@ -1,0 +1,14 @@
+fixture                          verdict pass  fail  maxdiff 四类开关     fails
+------------------------------------------------------------------------------------------------
+A_gradient_text_object_decor     PASS   45    0     0.0     on       
+B_flat_product_title             PASS   37    0     0.0     on       
+C_vignette_badge                 PASS   45    0     0.0     on       
+D_card_portrait                  PASS   33    0     0.0     on       
+E_ui_screenshot                  PASS   61    0     0.0     on       
+F_low_contrast                   PASS   29    0     0.0     on       
+G_vertical_text                  PASS   33    0     0.0     on       
+H_two_objects                    PASS   33    0     0.0     on       
+I_no_text                        PASS   32    0     0.0     off      
+J_text_heavy                     PASS   37    0     0.0     on       
+------------------------------------------------------------------------------------------------
+TOTAL pass=385 fail=0
