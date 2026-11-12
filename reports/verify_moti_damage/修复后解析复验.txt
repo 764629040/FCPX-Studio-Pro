@@ -1,0 +1,6 @@
+OK	点 03.moti	layers=2
+OK	点 07.moti	layers=2
+OK	点文本 03.moti	layers=7
+OK	菜单条修复.moti	layers=12
+OK	菜单条自定义.moti	layers=12
+FAIL	条01.moti	「条01.moti」文件字节损坏（不是有效的文本编码），预览不了。
